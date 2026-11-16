@@ -210,16 +210,20 @@ desempates, top cut, decklists) está en `js/torneos/motor.js`,
 traducido 1:1 de `libs/engine` de TrainerArena — si tocas su lógica,
 respeta la SPEC de TrainerArena y anótalo.
 
-**La ficha del torneo tiene UNA cabecera de una línea y lo demás va en
-pestañas** (tanda 1341, PINGU: «es enorme», «es mucho lío en el móvil»). Un dato
-nuevo del torneo (formato, premios, jornadas, normas) va en la caja de Info
-(`#torneoInfoCaja`), no en la cabecera; una acción del organizador que no se
-usa en cada ronda va en «⋯» (`#torneoMasMenu`), no en una fila de botones. Y lo
-pegado arriba (`#torneoPegado`: pestañas, pastilla y la línea del tablón) es de
-UNA línea cada cosa: lo que no quepa en una línea va en su pestaña.
-Las pestañas (cuáles hay en cada momento, su orden, la de entrada y dónde
-van según el ancho) viven en `js/torneos/pestanas.js` desde la 1352; los ids
-no cambian (`?ver=jugar` sigue abriendo Hoy).
+**La ficha del torneo es una cabecera BAJA y lo demás va en pestañas** (tanda
+1341, PINGU: «es enorme», «es mucho lío en el móvil»; desde la 1375, «tiene que
+ser como una aplicación, sencillo»). La cabecera lleva el nombre, el estado,
+quién organiza, el reloj en UNA pastilla y las rayitas de jornadas o rondas
+(`js/torneos/cabecera.js`), y nada más: un dato nuevo del torneo (formato,
+premios, jornadas, normas) va en la caja de Info (`#torneoInfoCaja`); una acción
+del organizador que no se usa en cada ronda va en «⋯» (`#torneoMasMenu`), no en
+una fila de botones. Lo pegado arriba (`#torneoPegado`: pestañas, pastilla y la
+línea del tablón) es de UNA línea cada cosa: lo que no quepa en una línea va en
+su pestaña. Las pestañas (cuáles hay en cada momento, su orden y la de entrada)
+viven en `js/torneos/pestanas.js` desde la 1352; los ids no cambian
+(`?ver=jugar` sigue abriendo Hoy). Y van SIEMPRE arriba, grandes y con icono
+(1375, PINGU: «el menú lateral es demasiado pequeño y poco visible»): ni columna
+en el PC ni barra abajo en el móvil.
 
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus

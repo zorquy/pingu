@@ -41,6 +41,7 @@ import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
 import { montarPestanas, pintarPestanas, irAPestana } from './pestanas.js'
+import { pintarCabecera } from './cabecera.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
@@ -254,6 +255,8 @@ function pintarFicha() {
   const proxima = estado.pausa && estado.proxima ? ` · jornada ${estado.proxima.n}${estado.proxima.fecha ? `, ${diaCorto(estado.proxima.fecha)}` : ''}` : ''
   pintarSiCambia(pill, `${torneo.status === 'in_progress' && !estado.pausa ? '<span class="torneo-punto"></span>' : ''}${escapeHtml(estado.texto + proxima)}`)
   pill.className = `torneo-estado ${estado.clase}`
+  // El reloj y las rayitas de la cabecera (1375).
+  pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda?.rondaDeAhora?.() || null }, pintarSiCambia)
   // El sello de OFICIAL, al lado del estado. Se pinta aquí y no en el
   // HTML porque depende del torneo.
   document.getElementById('torneoChapaOficial')?.remove()
@@ -1754,6 +1757,8 @@ async function recargar() {
   // analizarlo, y lo que lo necesita (la gloria, el podio) viene detrás.
   ronda = await import('./ronda.js')
   await ronda.montarCiclo(contexto)
+  // Con las rondas ya cargadas, la cabecera sabe en qué ronda va (1375).
+  pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda.rondaDeAhora() }, pintarSiCambia)
   await montarJueces(contexto)
   // El tablón (878): después de los jueces, que es quien sabe si quien
   // mira puede escribir en él.

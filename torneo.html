@@ -105,6 +105,10 @@
   <link rel="modulepreload" href="/js/torneos/ficha-arriba.js" />
   <!-- precargas: las escribe generar-precargas.mjs (1315) -->
   <link rel="modulepreload" href="/js/torneos/pestanas.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/torneos/cabecera.js" />
+  <link rel="modulepreload" href="/js/torneos/liga-en-curso.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
@@ -222,22 +226,33 @@
          el móvil el botón «‹ Torneos». Antes era un enlace suelto de 12 px. -->
     <nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/torneos.html">Torneos</a> <span>›</span> <span id="torneoMiga"></span></nav>
 
-    <!-- La cabecera, en UNA línea (1341, PINGU: «es enorme»): estado, nombre,
-         quién organiza, Compartir y, para quien lo lleva, «⋯». El formato, las
-         plazas, los premios y la descripción viven en la pestaña Info. -->
-    <header class="torneo-cabecera torneo-cab-linea" id="torneoCabecera">
+    <!-- La cabecera (1375, PINGU eligió la versión 2 de «El torneo,
+         renovado»: «tiene que ser como una aplicación, sencillo»). A la
+         izquierda el nombre, el estado y quién organiza; a la derecha
+         Compartir, «⋯» y el reloj en una pastilla («Jornada 7 en 4 d 7 h»);
+         abajo, una rayita por jornada (o por ronda). El formato, las plazas,
+         los premios y la descripción siguen en la pestaña Info (1341). -->
+    <header class="torneo-cabecera torneo-cab-linea torneo-hero" id="torneoCabecera">
       <img id="torneoBanner" class="torneo-banner hidden" alt="" />
       <div class="torneo-cabecera-dentro">
-        <div class="torneo-ficha-cabecera">
-          <span class="torneo-estado" id="torneoEstado"></span>
-          <button type="button" class="torneo-compartir" id="btnCompartirTorneo" aria-label="Compartir el torneo"></button>
-          <details class="torneo-mas hidden" id="torneoMas">
-            <summary class="torneo-mas-boton" aria-label="Más opciones del torneo">⋯</summary>
-            <div class="torneo-mas-menu" id="torneoMasMenu"></div>
-          </details>
+        <div class="torneo-hero-texto">
+          <h1 id="torneoNombre"></h1>
+          <div class="torneo-hero-sub">
+            <span class="torneo-estado" id="torneoEstado"></span>
+            <p class="torneo-meta" id="torneoMeta"></p>
+          </div>
         </div>
-        <h1 id="torneoNombre"></h1>
-        <p class="torneo-meta" id="torneoMeta"></p>
+        <div class="torneo-hero-lado">
+          <div class="torneo-ficha-cabecera">
+            <button type="button" class="torneo-compartir" id="btnCompartirTorneo" aria-label="Compartir el torneo"></button>
+            <details class="torneo-mas hidden" id="torneoMas">
+              <summary class="torneo-mas-boton" aria-label="Más opciones del torneo">⋯</summary>
+              <div class="torneo-mas-menu" id="torneoMasMenu"></div>
+            </details>
+          </div>
+          <div class="torneo-hero-cuenta hidden" id="torneoCuenta"></div>
+        </div>
+        <div class="torneo-rayitas hidden" id="torneoRayitas"></div>
       </div>
     </header>
 

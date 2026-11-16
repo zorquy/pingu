@@ -3486,6 +3486,12 @@ export async function recargarCiclo() {
 // la ronda anterior (los que perdieron). Sin cut (torneo solo de
 // suizas) el podio son los cuatro primeros de la clasificación, que es
 // exactamente como se reparten los premios de verdad.
+// La ronda de ahora (la última creada), para el reloj y las rayitas de la
+// cabecera (1375): la cabecera vive en torneo.js y las rondas, aquí.
+export function rondaDeAhora() {
+  return rondas.length ? [...rondas].sort((a, b) => a.round_number - b.round_number).at(-1) : null
+}
+
 export function podioDelTorneo() {
   if (ctx?.torneo?.status !== 'finished') return []
   const rondasCut = rondas.filter((r) => r.phase === 'top_cut').sort((a, b) => a.round_number - b.round_number)

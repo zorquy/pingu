@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1375 — El torneo, renovado: la estructura
+
+- `js/torneos/cabecera.js`: `cuentaAtras(ms)` («4 d 7 h», «7 h 33 min»,
+  «33 min»), `cuentaDeCabecera(t, {rondas, ronda, ahora})` → `{rotulo, valor}`
+  o null (terminado, cancelado, sin fecha), `rayitasDeTorneo(t, {rondas,
+  ronda})` → `{que, marcas: ['h'|'a'|'']}` o null (solo `in_progress`; liga por
+  `jornadasDeLiga`, de un día por `swiss_rounds`), y `pintarCabecera(t, datos,
+  pintarSiCambia)` en `#torneoCuenta` y `#torneoRayitas`. Lo llaman
+  `pintarFicha` y `recargar` (este, con las rondas ya cargadas).
+- `ronda.js`: `rondaDeAhora()`, la última ronda creada.
+- `torneo.html`: `.torneo-hero` con `.torneo-hero-texto` (h1, `.torneo-hero-sub`
+  con `#torneoEstado` y `#torneoMeta`) y `.torneo-hero-lado`
+  (`.torneo-ficha-cabecera` con Compartir y «⋯», `#torneoCuenta`), y
+  `#torneoRayitas` debajo. En el móvil (≤900) lado y texto son `display:
+  contents` y todo va en filas.
+- `pestanas.js`: `colocar` deja SIEMPRE la barra en `#torneoPegado` y quita lo
+  de la 1352 (`html.torneo-app`, `#torneoRail`). Fuera del CSS la barra de abajo
+  y la columna; el tablón es hoja en todos los anchos (`@media all`) y en ≥1100
+  sale por la derecha (440 px).
+
 ## Tanda 1374 — Inicio, perfil y el precio de la ficha
 
 - `subDeTorneo(torneo, jornadas)` (js/hoy.js): nombre corto sin su «· jornada

@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (621) — PINGU-Claude (1375 — El torneo, renovado: la estructura)
+
+**Hecho** (la versión 2 de la propuesta «El torneo, renovado»; PINGU: «dale con
+la versión 2 y lo recomendado»):
+- **Cabecera nueva**: el nombre, el estado y quién organiza a la izquierda; a la
+  derecha Compartir, «⋯» y una PASTILLA con el reloj («Empieza en 2 d 4 h»,
+  «Jornada 7 en 4 d 7 h», «En juego · Ronda 3»); abajo, una RAYITA por jornada
+  (liga) o por ronda suiza, hechas / la de ahora / las que faltan. Fondo morado
+  de Jugar; con banner, el banner con su velo (decisión 3). En el móvil, en
+  filas: nombre y botones, estado, la pastilla en una línea y las rayitas.
+- **Pestañas grandes ARRIBA en todos los anchos** (decisión 1), pegadas al
+  bajar: en el PC una fila a lo ancho con icono y nombre; en el móvil una fila
+  de iconos con su nombre debajo. Fuera la columna estrecha del PC y la barra
+  de abajo del móvil (1352): la barra de la web vuelve a verse dentro del torneo.
+- **Todo el ancho**: el tablón deja de ser una columna a la derecha en el PC;
+  es su línea, como en el móvil, y la hoja sale por la derecha.
+- Arreglo de paso: `pintarFicha` no sabía la ronda de ahora; `ronda.js`
+  exporta `rondaDeAhora()`.
+
+**Ficheros**: `torneo.html`, `js/torneos/cabecera.js` (nuevo, puro + pintar),
+`js/torneos/torneo.js`, `js/torneos/pestanas.js`, `js/torneos/ronda.js`,
+`css/torneos.css`, `normas/jugar.md`, `novedades.json`. Prueba
+`test-tanda-1375-pantalla.mjs` (rama `pruebas`); la 1352 se ajusta.
+
+**Pendiente**: 1376 (Hoy), 1377 (Mesas), 1378 (Tabla, Info y Jueces).
+
 ## 2026-11-16 (620) — PINGU-Claude (1374 — Inicio, perfil y el precio de la ficha)
 
 **Hecho** (la propuesta «Más mejoras», C y D; PINGU: «dale con lo recomendado»):

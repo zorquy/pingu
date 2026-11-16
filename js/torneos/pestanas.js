@@ -1,15 +1,12 @@
 // Las pestañas de la ficha del torneo (tanda 1352, «Torneos como app» de
-// PINGU). Salen de torneo.js, que no cabía en su presupuesto, y además
-// deciden DÓNDE van, que depende del ancho:
+// PINGU). Salen de torneo.js, que no cabía en su presupuesto.
 //
-//  - móvil (≤ 900 px): son la barra de abajo. La de la web (Inicio,
-//    Aprender…) se esconde mientras estás dentro del torneo, y se sale con
-//    la flecha de la cabecera. PINGU lo eligió así: dos barras abajo se
-//    comen media pantalla.
-//  - PC (≥ 1.100 px): una columna a la izquierda, con el tablón a la derecha.
-//  - entre medias, como hasta ahora: la fila pegada arriba.
-//
-// El elemento es UNO y se MUEVE (norma 893): nada de pintar dos menús.
+// Desde la 1375 (la versión 2 de «El torneo, renovado», PINGU: «el menú
+// lateral es demasiado pequeño y poco visible») van SIEMPRE arriba, grandes
+// y con icono, pegadas al bajar: en el PC una fila a lo ancho; en el móvil
+// una fila de iconos con su nombre debajo. Se acabaron la columna estrecha
+// del PC y la barra de abajo del móvil, y la barra de la web vuelve a verse
+// dentro del torneo.
 import { icons } from '../icons.js'
 
 // Los ids no cambian desde la 413 (`?ver=jugar` sigue valiendo); los nombres
@@ -28,10 +25,9 @@ const ORDEN_DE_PESTANAS = {
   juego: ['jugar', 'rondas', 'clasificacion', 'meta', 'torneo', 'jueces'],
   fin: ['clasificacion', 'rondas', 'meta', 'torneo', 'jugar', 'jueces'],
 }
-// En la barra de abajo caben cinco; con más, las últimas van en «Más».
+// En la fila del móvil caben cinco; con más, las últimas van en «Más».
 const CABEN_ABAJO = 5
 const MOVIL = '(max-width: 900px)'
-const ANCHO = '(min-width: 1100px)'
 
 let f = null
 let pestanaActiva = null
@@ -57,15 +53,14 @@ function pestanaDeEntrada(fase, visibles) {
 
 const $ = (id) => document.getElementById(id)
 const enMovil = () => window.matchMedia?.(MOVIL).matches
-const enAncho = () => window.matchMedia?.(ANCHO).matches
 
 // `funciones`: torneo(), pendientesDeJuez(), activos(), pintarSiCambia(el,
 // html) y alAbrirInfo() (el «Leer más» de la descripción, que se mide).
 export function montarPestanas(funciones) {
   f = funciones
-  for (const q of [MOVIL, ANCHO]) window.matchMedia?.(q).addEventListener?.('change', () => pintarPestanas(true))
-  // La columna del PC se pega debajo de lo pegado arriba, que cambia de alto
-  // (la pastilla del reloj sale y entra).
+  window.matchMedia?.(MOVIL).addEventListener?.('change', () => pintarPestanas(true))
+  // Lo pegado cambia de alto (la pastilla del reloj sale y entra): lo que se
+  // pega debajo lo lee de aquí.
   const pegado = $('torneoPegado')
   if (pegado && 'ResizeObserver' in window) {
     new ResizeObserver(() => document.documentElement.style.setProperty('--torneo-pegado-alto', `${pegado.offsetHeight}px`)).observe(pegado)
@@ -82,26 +77,13 @@ export function irAPestana(id) {
   pintarPestanas()
 }
 
-function colocar(nav, visible) {
-  const raiz = document.documentElement
-  const movil = enMovil()
-  raiz.classList.toggle('torneo-app', Boolean(movil && visible))
+// Siempre en lo pegado de arriba (1375). La de la 1352 movía la barra al
+// cuerpo (móvil) o a una columna (PC); si alguna quedó ahí, vuelve.
+function colocar(nav) {
+  document.documentElement.classList.remove('torneo-app')
+  document.getElementById('torneoRail')?.remove()
   const pegado = $('torneoPegado')
-  const cuerpo = document.querySelector('.torneo-ficha-cuerpo')
-  if (movil) {
-    if (nav.parentNode !== document.body) document.body.appendChild(nav)
-  } else if (enAncho() && cuerpo) {
-    let rail = $('torneoRail')
-    if (!rail) {
-      rail = document.createElement('div')
-      rail.id = 'torneoRail'
-      rail.className = 'torneo-rail'
-      cuerpo.prepend(rail)
-    }
-    if (nav.parentNode !== rail) rail.appendChild(nav)
-  } else if (pegado && nav.parentNode !== pegado) {
-    pegado.prepend(nav)
-  }
+  if (pegado && nav.parentNode !== pegado) pegado.prepend(nav)
 }
 
 function botonHtml(p, cuenta) {
@@ -133,11 +115,10 @@ export function pintarPestanas(forzar = false) {
   document.documentElement.dataset.torneoPestana = pestanaActiva
 
   const nav = $('torneoPestanas')
-  // Una barra con UNA sola pestaña no es una barra (tanda 310): se esconde,
-  // y en el móvil vuelve la de la web.
+  // Una barra con UNA sola pestaña no es una barra (tanda 310): se esconde.
   const visible = visibles.length >= 2
   nav.classList.toggle('hidden', !visible)
-  colocar(nav, visible)
+  colocar(nav)
   // La de jueces lleva cuántas cosas esperan (394); la de jugadores, cuántos hay.
   const pendientes = f.pendientesDeJuez()
   const activos = f.activos()
