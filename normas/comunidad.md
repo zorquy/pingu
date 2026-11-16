@@ -221,6 +221,21 @@
   existe, lo de antes del punto (`encajeDe`); el punto del final de una
   frase no es del nombre. La base hace lo mismo en `menciones_de` (migración
   1382, el correo): si se cambia una, se cambia la otra.
+- **Escribir en el foro, como un foro** (tanda 1383, PINGU: «el panel se
+  debería quedar siempre ahí fijo»; «editar el título del spoiler es
+  difícil»; «pensaba que iba a ser más como un código de los foros
+  antiguos»). La barra de `.rte-compacta` va PEGADA (`sticky`, bajo el menú)
+  porque la caja crece sin scroll (1115); en el móvil es una fila que se
+  desliza y, con una paleta abierta, vuelve a filas. El botón dice
+  «Spoiler». Un spoiler nuevo empieza por el TÍTULO (seleccionado; Enter baja
+  al cuerpo); en el editor el título lleva «Título» delante, no el triángulo,
+  y ni el clic ni el espacio lo pliegan. `[spoiler]…[/spoiler]` y
+  `[spoiler=Título]…[/spoiler]` se escriben a mano y `sanitizeRichText`
+  (`spoilersDeCodigo`) los guarda como el <details>; solo ese código, nada de
+  [b] ni [url] (lo eligió PINGU). Y una @mención que no lleva a nadie se avisa
+  al escribir (`js/menciones-aviso.js`, desde `engancharAutocompletarMenciones`
+  en las `.rte-surface`): subrayado con la Custom Highlight API, que no toca
+  el texto, y «¿Querías decir…?».
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

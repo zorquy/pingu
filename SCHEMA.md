@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1383 — Escribir en el foro: barra fija, spoiler fácil y menciones avisadas
+
+- `css/editor-texto.css`: `.rte-compacta .rte-toolbar` `position: sticky; top:
+  60px; z-index: 3`; ≤ 900 px `.rte-compacta .rte-tools` en una fila con
+  `overflow-x: auto` (y `flex-wrap: wrap; overflow: visible` con
+  `:has(.rte-paleta:not(.hidden))`). `.rte-btn-spoiler` / `.rte-btn-palabra`.
+  En `.rte-surface`, el `summary::before` del triángulo pasa a ser la etiqueta
+  «Título». `::highlight(mencion-sin-nadie)` y `.rte-aviso-menciones`.
+- `js/richtext-editor.js`: la acción de spoiler lleva `clase`; clic en un
+  `summary` del editor con `preventDefault` (salvo el aspa); espacio en él →
+  `insertText`; `ponerSpoiler` selecciona el texto del título si no se metió
+  una selección dentro.
+- `js/richtext-format.js`: `spoilersDeCodigo(doc)` (exportada), llamada desde
+  `sanitizeRichText` si el HTML contiene `[spoiler`: aísla los códigos en sus
+  nodos de texto (fuera de `a`, `code`, `pre`, `summary`), extrae lo de dentro
+  con un Range a un `<details>` y lo de detrás del cierre a un párrafo nuevo.
+- `js/menciones-aviso.js`: `vigilarMenciones(superficie)` (700 ms tras
+  `input`), `distancia`, `elMasParecido`; lo engancha
+  `engancharAutocompletarMenciones` en las `.rte-surface`.
+
 ## Tanda 1382 — Las menciones del foro: todas enlazadas y con punto
 
 - `js/menciones.js`: `PATRON` admite `.` dentro del nombre; `limpio` quita

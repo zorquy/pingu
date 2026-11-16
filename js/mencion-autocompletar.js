@@ -97,6 +97,12 @@ async function buscarPersonas(escrito) {
 
 export function engancharAutocompletarMenciones(superficie) {
   if (!superficie || superficie.__mencionSoltar) superficie.__mencionSoltar?.()
+  // Y el aviso de las que no llevan a nadie (1383), en las cajas del editor.
+  if (superficie?.classList?.contains('rte-surface')) {
+    import('./menciones-aviso.js')
+      .then((m) => m.vigilarMenciones(superficie))
+      .catch(() => {})
+  }
 
   let lista = null
   let opciones = []

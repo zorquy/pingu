@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (629) — PINGU-Claude (1383 — Escribir en el foro: barra fija, spoiler fácil y menciones avisadas)
+
+**Hecho** (PINGU, escribiendo un mensaje largo: «cada vez quería subir otra vez
+al panel a darle al spoiler… se debería quedar siempre ahí fijo», «editar el
+título del spoiler es difícil, parece que lo pliegas», «pensaba que iba a ser
+más como un código de los foros antiguos», «no sé si todas las menciones
+funcionan»; eligió lo recomendado de la propuesta):
+- **La barra, pegada**: `.rte-compacta .rte-toolbar` es `sticky` (top 60px)
+  en responder, tema nuevo y editar. En el móvil, una fila que se desliza (con
+  varias filas medía 200 px); con una paleta abierta vuelve a repartirse.
+- **El spoiler**: el botón dice «Spoiler»; al ponerlo, «Spoiler» queda
+  seleccionado para escribir el título y Enter baja al cuerpo; en el editor el
+  título lleva «Título» delante (sin el triángulo) y ni el clic ni el espacio
+  lo pliegan.
+- **Los códigos**: `[spoiler]…[/spoiler]` y `[spoiler=Título]…[/spoiler]` se
+  guardan como el desplegable (`spoilersDeCodigo` en `sanitizeRichText`), en
+  una línea o a lo largo de varios párrafos; sin cerrar, texto. Solo ese código.
+- **Menciones que no llevan a nadie**: al parar de escribir, subrayado
+  ondulado (Custom Highlight API) y una línea bajo la caja, con «¿Querías decir
+  @…?» si hay alguien parecido (distancia de edición ≤ 2), que lo cambia.
+
+**Ficheros**: `js/richtext-editor.js`, `js/richtext-format.js`,
+`js/menciones-aviso.js` (nuevo), `js/mencion-autocompletar.js`,
+`css/editor-texto.css`, `normas/comunidad.md`, `novedades.json`. Prueba
+`test-tanda-1383-pantalla.mjs` (rama `pruebas`).
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-16 (628) — PINGU-Claude (1382 — Las menciones del foro: todas enlazadas y con punto)
 
 **Hecho** (PINGU, con una captura de un mensaje con quince menciones: «las

@@ -235,9 +235,69 @@
 .rte-compacta .rte-toolbar {
   gap: 4px;
   padding: 8px 8px;
-  /* En una caja baja, una barra pegajosa se despega de su propia caja al
-     hacer scroll y se queda flotando sobre el mensaje de al lado. */
-  position: static;
+  /* PEGADA mientras escribes (1383, PINGU: «cada vez quería subir otra vez
+     al panel a darle al spoiler… el panel se debería quedar siempre ahí
+     fijo»). La caja del foro crece sin scroll dentro (1115), así que en un
+     mensaje largo la barra se quedaba pantallas arriba. Pegada no sale de su
+     `.rte-wrap`: al acabar la caja se va con ella. Antes iba `static` porque
+     la caja tenía su propio scroll (55vh) y la barra flotaba fuera. */
+  position: sticky;
+  top: 60px;
+  z-index: 3;
+}
+
+/* En el móvil la barra pegada es UNA fila que se desliza (1383): con los
+   botones en varias filas medía 200 px y, pegada, tapaba media pantalla. Con
+   una paleta abierta (color, emojis) vuelve a repartirse en filas, que una
+   fila que se desliza recortaría lo que flota debajo. */
+@media (max-width: 900px) {
+  .rte-compacta .rte-tools {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 2px;
+    scrollbar-width: none;
+  }
+  .rte-compacta .rte-tools::-webkit-scrollbar { display: none; }
+  .rte-compacta .rte-tools > * { flex: none; }
+  .rte-compacta .rte-tools:has(.rte-paleta:not(.hidden)) {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+/* El botón de spoiler con su palabra (1383). */
+.rte-toolbar button.rte-btn-spoiler {
+  gap: 4px;
+  width: auto;
+  padding: 0 8px;
+}
+.rte-btn-palabra {
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+/* Las menciones que no son de nadie, con su subrayado (1383, Custom
+   Highlight API: no toca el texto). */
+::highlight(mencion-sin-nadie) {
+  text-decoration: underline wavy var(--danger);
+  text-decoration-thickness: 1.5px;
+}
+.rte-aviso-menciones {
+  margin: 4px 2px 0;
+  color: var(--danger);
+  font-size: var(--t-xs);
+  line-height: 1.5;
+}
+.rte-aviso-menciones button {
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Encoger la barra no puede significar amontonarla.
@@ -300,6 +360,28 @@
 .rte-surface summary {
   user-select: text;
   cursor: text;
+}
+/* Y se lee como un campo (1383): «Título» delante, en vez del triángulo
+   de plegar (en el editor no se pliega), y el texto con la tinta de lo que
+   se escribe. El triángulo es un ::before con bordes y girado al abrirse
+   (components.css): aquí se le quita todo eso. */
+.rte-surface summary {
+  color: var(--text);
+}
+.rte-surface details > summary::before,
+.rte-surface details[open] > summary::before {
+  content: 'Título';
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--navy) 12%, transparent);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  transform: none;
+  user-select: none;
 }
 
 /* El aspa de borrar el spoiler, solo en el editor. El aspa va en un

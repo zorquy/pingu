@@ -67,7 +67,9 @@ const ACCIONES = [
   { enlace: true, etiqueta: icons.link(15), titulo: 'Insertar enlace' },
   { cmd: 'unlink', etiqueta: `${icons.link(15)}<span class="rte-tachadura">✕</span>`, titulo: 'Quitar enlace' },
   { separador: true },
-  { spoiler: true, etiqueta: icons.eye(15), titulo: 'Spoiler (texto plegado)' },
+  // Con su palabra (1383): en un mensaje largo se busca a ojo, y un ojo
+  // suelto no dice «spoiler».
+  { spoiler: true, etiqueta: `${icons.eye(15)}<span class="rte-btn-palabra">Spoiler</span>`, titulo: 'Spoiler (texto plegado). También vale escribir [spoiler=Título]…[/spoiler]', clase: 'rte-btn-spoiler' },
 ]
 
 // Lo que pone en la pestaña del spoiler mientras el autor no lo cambie.
@@ -165,7 +167,7 @@ export function richTextToolbarHtml({ cajas = false } = {}) {
         ${paletaHtml(a.color)}
       </span>`
     }
-    return `<button type="button" data-i="${i}" title="${a.titulo}">${a.etiqueta}</button>`
+    return `<button type="button" data-i="${i}" title="${a.titulo}"${a.clase ? ` class="${a.clase}"` : ''}>${a.etiqueta}</button>`
   }).join('')
 
   return `<div class="rte-tools">
@@ -537,6 +539,26 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     document.removeEventListener('click', cerrarAlPincharFuera)
     surfaceEl.removeEventListener('toggle', impedirPlegado, true)
   }
+
+  // Tocar el TÍTULO de un spoiler es para escribir en él, no para plegarlo
+  // (1383, PINGU: «editar el título del spoiler es difícil, porque parece
+  // que lo pliegas o lo despliegas»): el clic no llega a su acción de
+  // plegar (el cursor ya lo ha puesto el mousedown), y el espacio, que en
+  // un <summary> también pliega, escribe un espacio.
+  surfaceEl.addEventListener('click', (e) => {
+    const resumen = e.target.closest?.('summary')
+    if (resumen && surfaceEl.contains(resumen) && !e.target.closest('.rte-sp-quitar')) e.preventDefault()
+  })
+  surfaceEl.addEventListener('keydown', (e) => {
+    if (e.key !== ' ') return
+    const sel = document.getSelection()
+    let n = sel?.anchorNode
+    if (n && n.nodeType === 3) n = n.parentNode
+    const resumen = n?.closest?.('summary')
+    if (!resumen || !surfaceEl.contains(resumen)) return
+    e.preventDefault()
+    ordenSilenciosa('insertText', ' ')
+  })
 
   // Enter en el TÍTULO de un spoiler no puede partir el <summary> en dos
   // (un details con dos resúmenes no es nada): terminar de escribir el
@@ -1121,9 +1143,22 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     }
 
     vestirSpoilers()
-    // El cursor va al cuerpo del spoiler, que es donde se quiere seguir
-    // escribiendo — no al resumen.
-    ponerCursorEn(cuerpo)
+    // Lo primero que se escribe es el TÍTULO (1383): «Spoiler» queda
+    // seleccionado y se sustituye al teclear; Enter baja al cuerpo. Si se
+    // había seleccionado texto para meterlo dentro, el título ya importa
+    // menos y el cursor va al cuerpo, como antes.
+    if (dentro && dentro.textContent.trim()) ponerCursorEn(cuerpo)
+    else {
+      const t = sum.firstChild
+      const r2 = document.createRange()
+      if (t && t.nodeType === 3) {
+        r2.setStart(t, 0)
+        r2.setEnd(t, t.data.length)
+      } else r2.selectNodeContents(sum)
+      const s2 = document.getSelection()
+      s2.removeAllRanges()
+      s2.addRange(r2)
+    }
   }
 
   // El aspa de "borrar el spoiler" que lleva cada pestaña DENTRO DEL

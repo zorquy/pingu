@@ -250,6 +250,100 @@ function esExterno(href) {
   return /^https?:\/\//i.test(String(href || ''))
 }
 
+// Los CÓDIGOS de spoiler, como en los foros de siempre (tanda 1383, PINGU:
+// «pensaba que esto iba a ser más como un código de los foros antiguos…
+// abres spoiler entre corchetes y para cerrar lo mismo con la barra»):
+// `[spoiler]…[/spoiler]` o `[spoiler=Título]…[/spoiler]` escritos a mano (o
+// pegados de otro foro) se guardan como el <details> que pone el botón. En el
+// editor se ven como texto mientras escribes; se convierten al guardar, que es
+// cuando pasan por aquí. Un código sin cerrar se queda como texto.
+const SP_ABRE = /\[spoiler(?:=([^\]\n]{0,80}))?\]/i
+const SP_CIERRA = /\[\/spoiler\]/i
+const SP_BLOQUE = /^(P|H[1-6]|UL|OL|BLOCKQUOTE|PRE|FIGURE|DIV|TCG-DECK|YT-VIDEO|DETAILS|HR|TABLE)$/
+
+// El primer trozo de texto (fuera de enlaces y código) que casa con `re`,
+// a partir de `desde` en el orden del documento; lo deja en su propio nodo.
+function aislarCodigo(doc, re, desde = null, saltar = null) {
+  const paseo = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT)
+  let pasado = !desde
+  while (paseo.nextNode()) {
+    const n = paseo.currentNode
+    if (!pasado) {
+      if (n === desde) pasado = true
+      continue
+    }
+    if (saltar?.has(n) || n.parentElement?.closest('a, code, pre, summary')) continue
+    const m = re.exec(n.data)
+    if (!m) continue
+    const codigo = m.index ? n.splitText(m.index) : n
+    if (codigo.data.length > m[0].length) codigo.splitText(m[0].length)
+    return { nodo: codigo, titulo: (m[1] || '').trim() }
+  }
+  return null
+}
+
+const deCuerpo = (doc, n) => {
+  while (n && n.parentNode !== doc.body) n = n.parentNode
+  return n
+}
+
+export function spoilersDeCodigo(doc) {
+  // Un código sin cierre se queda como texto y no se vuelve a mirar.
+  const sueltos = new Set()
+  for (let vuelta = 0; vuelta < 50; vuelta++) {
+    const abre = aislarCodigo(doc, SP_ABRE, null, sueltos)
+    if (!abre) return
+    const cierra = aislarCodigo(doc, SP_CIERRA, abre.nodo)
+    if (!cierra) {
+      sueltos.add(abre.nodo)
+      continue
+    }
+    const A = deCuerpo(doc, abre.nodo)
+    const B = deCuerpo(doc, cierra.nodo)
+    // Lo de dentro, entero.
+    const r = doc.createRange()
+    r.setStartAfter(abre.nodo)
+    r.setEndBefore(cierra.nodo)
+    const dentro = r.extractContents()
+    // Lo que va detrás del cierre, en su propio párrafo.
+    const r2 = doc.createRange()
+    r2.setStartAfter(cierra.nodo)
+    r2.setEnd(B, B.childNodes.length)
+    const detras = r2.extractContents()
+    abre.nodo.remove()
+    cierra.nodo.remove()
+
+    const det = doc.createElement('details')
+    const sum = doc.createElement('summary')
+    sum.textContent = abre.titulo || 'Spoiler'
+    det.appendChild(sum)
+    // Lo suelto (texto, negritas) va en párrafos; los bloques, tal cual.
+    let p = null
+    for (const n of [...dentro.childNodes]) {
+      if (n.nodeType === 1 && SP_BLOQUE.test(n.tagName)) {
+        p = null
+        if (n.textContent.trim() || n.querySelector?.('img, tcg-deck, yt-video')) det.appendChild(n)
+        continue
+      }
+      if (!p) {
+        if (n.nodeType === 3 && !n.data.trim()) continue
+        p = doc.createElement('p')
+        det.appendChild(p)
+      }
+      p.appendChild(n)
+    }
+    A.after(det)
+    if (detras.textContent.trim() || detras.querySelector?.('img')) {
+      const cola = doc.createElement(/^(P|H2|H3)$/.test(B.tagName) ? B.tagName.toLowerCase() : 'p')
+      cola.appendChild(detras)
+      det.after(cola)
+    }
+    const vacio = (el) => el && el.isConnected && !el.textContent.trim() && !el.querySelector('img, tcg-deck, yt-video, details')
+    if (B !== A && vacio(B)) B.remove()
+    if (vacio(A)) A.remove()
+  }
+}
+
 export function sanitizeRichText(html) {
   const limpio = DOMPurify.sanitize(html || '', {
     ALLOWED_TAGS,
@@ -261,6 +355,9 @@ export function sanitizeRichText(html) {
   if (typeof DOMParser === 'undefined') return limpio
 
   const doc = new DOMParser().parseFromString(limpio, 'text/html')
+
+  // Los códigos de spoiler, a <details> antes de mirar los spoilers (1383).
+  if (/\[spoiler/i.test(limpio)) spoilersDeCodigo(doc)
 
   // <font> y <strike>/<del> se traducen antes de nada, para que el resto
   // del recorrido solo vea las etiquetas modernas.
