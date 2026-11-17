@@ -56,7 +56,9 @@ console.log('── 1. Seleccionar cartas de una expansión ──')
   await p.waitForTimeout(300)
   check('  …marcar dos dice «2 al stock»', /2 seleccionadas/.test(await p.textContent('#mcMarcarCuenta')) && (await p.textContent('#mcMarcarGuardarTexto')) === '2 al stock')
   check('  …sin «A un álbum» ni «Las quiero»', !(await p.isVisible('#mcMarcarAlbum')) && !(await p.isVisible('#mcMarcarQuiero')))
-  await p.click('#mcMarcarGuardar'); await p.waitForTimeout(1500)
+  await p.click('#mcMarcarGuardar')
+  // Desde la 1384 se pregunta el idioma y el estado: se acepta lo de entrada.
+  await p.waitForSelector('#mcCambioVarias[open] [data-cvar="si"]', { timeout: 4000 }).then(() => p.click('#mcCambioVarias [data-cvar="si"]')).catch(() => {}); await p.waitForTimeout(1500)
   check('  …y entran las dos en su stock', (await stock(p)) === 'p9002:es:3,sv8-1:es:3,sv8-2:es:1,sv8-3:es:1', await stock(p))
   await ctx.close()
 }

@@ -201,6 +201,8 @@ console.log('\n── 5. Guardar: UNA petición, no una por carta ──')
   await page.waitForTimeout(400)
   await page.evaluate(() => sessionStorage.removeItem('__escrituras__'))
   await page.click('#mcMarcarGuardar')
+  // Desde la 1384 se pregunta el idioma y el estado: se acepta lo de entrada.
+  await page.waitForSelector('#mcCambioVarias[open] [data-cvar="si"]', { timeout: 4000 }).then(() => page.click('#mcCambioVarias [data-cvar="si"]')).catch(() => {})
   await page.waitForTimeout(1800)
   const esc = await escrituras(page)
   // La razón de ser de la tanda: cuatro cartas, no cuatro inserts.
@@ -256,6 +258,8 @@ console.log('\n── 6. Con las versiones separadas, cada casilla es la suya �
   check('  …y la clave lleva la versión', /\|/.test(clave || '') && !/\|normal$/.test(clave || ''), clave)
   await page.evaluate(() => sessionStorage.removeItem('__escrituras__'))
   await page.click('#mcMarcarGuardar')
+  // Desde la 1384 se pregunta el idioma y el estado: se acepta lo de entrada.
+  await page.waitForSelector('#mcCambioVarias[open] [data-cvar="si"]', { timeout: 4000 }).then(() => page.click('#mcCambioVarias [data-cvar="si"]')).catch(() => {})
   await page.waitForTimeout(1800)
   const nuevas = await page.evaluate(() => window.__TABLAS__.user_collection.filter((x) => x.card_id === 'sv1-101'))
   check('se guarda la versión marcada y no la normal', nuevas.length === 2 &&
@@ -312,6 +316,8 @@ console.log('\n── 7 bis. Si la base no deja escribir, se dice ──')
   await page.locator('#mcAlbum .mc-bolsillo-enlace').nth(2).click()
   await page.waitForTimeout(400)
   await page.click('#mcMarcarGuardar')
+  // Desde la 1384 se pregunta el idioma y el estado: se acepta lo de entrada.
+  await page.waitForSelector('#mcCambioVarias[open] [data-cvar="si"]', { timeout: 4000 }).then(() => page.click('#mcCambioVarias [data-cvar="si"]')).catch(() => {})
   await page.waitForTimeout(1500)
   const texto = await page.locator('body').textContent()
   check('no dice que las haya añadido', !/cartas añadidas/.test(texto))
