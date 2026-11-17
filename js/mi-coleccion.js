@@ -1088,8 +1088,12 @@ function pintarNotaDeGradeo(casa, nota = '') {
   $('mcEdGradeoLibreLabel').classList.toggle('hidden', casa !== OTRA)
 }
 
-function idiomasParaEditar(idioma) {
-  const lista = idiomasDeLaVista()
+// En el catálogo japonés, los MISMOS que al añadir (1384, un usuario por
+// Twitter: «a la hora de editar una carta solo deja elegir japonés», y al
+// añadirla sí dejaba coreano y chino): la japonesa y, si su set los tiene, la
+// coreana y la china. `delSet` llega luego (`idiomasDeSet`).
+function idiomasParaEditar(idioma, delSet = null, market = vista === 'ja' ? 'JP' : 'WEST') {
+  const lista = market === 'JP' ? idiomasParaAnadirEn('JP', [], delSet) : idiomasDeLaVista()
   if (!idioma || lista.some((i) => i.id === idioma)) return lista
   return [...lista, ...IDIOMAS.filter((i) => i.id === idioma)]
 }
@@ -2545,7 +2549,18 @@ function abrirEditor(l) {
   // catálogo de ahora no lo ofrezca: un `<select>` cuyo valor no está
   // entre sus opciones se queda con la primera, y al guardar le cambiaría
   // el idioma a la carta sin que nadie lo pidiera (tanda 472).
-  $('mcEdIdioma').innerHTML = opciones(idiomasParaEditar(l.idioma), l.idioma)
+  const mercadoDeFicha = c?.market || l.market || (vista === 'ja' ? 'JP' : 'WEST')
+  $('mcEdIdioma').innerHTML = opciones(idiomasParaEditar(l.idioma, null, mercadoDeFicha), l.idioma)
+  // Los idiomas de su set llegan después (1384): con ellos, la coreana y la
+  // china de un set japonés que las tuvo. Lo elegido no se pierde.
+  if (mercadoDeFicha === 'JP' && c?.set_id) {
+    void idiomasDeSet(c.set_id, 'JP').then((delSet) => {
+      if (!delSet?.length || cartaAbierta !== l.card_id) return
+      const sel = $('mcEdIdioma')
+      const puesto = sel.value
+      sel.innerHTML = opciones(idiomasParaEditar(puesto, delSet, 'JP'), puesto)
+    })
+  }
   $('mcEdEstado').innerHTML = opciones(ESTADOS, l.estado)
   // Las versiones de ESTA carta y no las cuatro (tanda 563). PINGU:
   // «este Lapras exactamente solo tiene una versión, la holográfica;

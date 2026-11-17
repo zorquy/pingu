@@ -93,29 +93,48 @@ const marcado = (sel, dato) => dialogo.querySelector(`${sel} [aria-checked="true
 // de entrada (los de «Añadir»). Devuelve { cuantas, idioma, estado } o
 // `undefined` si se cancela.
 export function preguntarCambio({ tuyas = 0, nuevas = 0, idiomas = [], idioma = 'es', estado = 'NM' } = {}) {
+  return preguntar({ tuyas, nuevas, idiomas, idioma, estado, anadir: false })
+}
+
+// AÑADIR VARIAS con su idioma y su estado (1384, un usuario por Twitter:
+// «desde la función de añadir múltiples cartas tampoco deja seleccionar
+// idioma»). La misma hoja, sin el bloque de «cuántas das». Devuelve
+// { idioma, estado } o `undefined` si se cancela.
+export function preguntarAnadir({ nuevas = 0, idiomas = [], idioma = 'es', estado = 'NM', alStock = false } = {}) {
+  return preguntar({ tuyas: 0, nuevas, idiomas, idioma, estado, anadir: true, alStock })
+}
+
+function preguntar({ tuyas, nuevas, idiomas, idioma, estado, anadir, alStock = false }) {
   const d = crear()
   const total = tuyas + nuevas
+  d.querySelector('#cvarTitulo').textContent = anadir ? (alStock ? 'Al stock' : 'Añadir') : 'Para cambio'
+  d.querySelector('[data-cvar="si"]').textContent = anadir ? (alStock ? `Meter ${total} al stock` : `Añadir ${total}`) : 'Poner para cambio'
   d.querySelector('#cvarCuenta').textContent = `${total} ${total === 1 ? 'carta' : 'cartas'}`
   d.querySelector('#cvarTuyas').hidden = !tuyas
   d.querySelector('#cvarTuyasRot').textContent = tuyas === total ? (total === 1 ? 'De la que tienes, das' : 'De cada una, das') : tuyas === 1 ? 'De la que tienes, das' : `De las ${tuyas} que tienes, das`
   d.querySelector('#cvarCuantas').innerHTML = CUANTAS.map((c, i) => chipHtml(c.id, c.nombre, i === 0, 'cuantas')).join('')
   d.querySelector('#cvarNuevas').hidden = !nuevas
-  d.querySelector('#cvarNuevasRot').textContent = nuevas === total
-    ? (total === 1 ? 'No la tienes: se añade así' : 'No las tienes: se añaden así')
-    : `${nuevas === 1 ? 'La que no tienes se añade' : `Las ${nuevas} que no tienes se añaden`} así`
+  d.querySelector('#cvarNuevasRot').textContent = anadir
+    ? (total === 1 ? 'Se añade así' : 'Se añaden así')
+    : nuevas === total
+      ? (total === 1 ? 'No la tienes: se añade así' : 'No las tienes: se añaden así')
+      : `${nuevas === 1 ? 'La que no tienes se añade' : `Las ${nuevas} que no tienes se añaden`} así`
   const lista = idiomas.map((id) => IDIOMAS.find((i) => i.id === id)).filter(Boolean)
   const entrada = lista.some((i) => i.id === idioma) ? idioma : lista[0]?.id
   d.querySelector('#cvarIdiomas').innerHTML = lista.map((i) => chipDeIdiomaHtml(i, i.id === entrada)).join('')
   d.querySelector('#cvarEstados').innerHTML = ESTADOS.map((e) => chipHtml(e.id, e.id, e.id === estado, 'estado')).join('')
   for (const b of d.querySelectorAll('#cvarEstados [data-estado]')) b.title = ESTADOS.find((e) => e.id === b.dataset.estado)?.nombre || ''
-  d.querySelector('#cvarNota').textContent = nuevas
-    ? 'Se añaden a tu colección con una para cambio. Lo que ya dabas no baja.'
-    : 'Salen en tu perfil y en los cruces. Lo que ya dabas no baja.'
+  d.querySelector('#cvarNota').textContent = anadir
+    ? 'Una copia de cada una. Luego puedes cambiar cada carta en su ficha.'
+    : nuevas
+      ? 'Se añaden a tu colección con una para cambio. Lo que ya dabas no baja.'
+      : 'Salen en tu perfil y en los cruces. Lo que ya dabas no baja.'
   d.returnValue = ''
   return new Promise((resolver) => {
     d.addEventListener('close', () => {
       if (d.returnValue !== 'si') return resolver(undefined)
-      resolver({ cuantas: marcado('#cvarCuantas', 'cuantas') || 'una', idioma: marcado('#cvarIdiomas', 'idioma') || entrada, estado: marcado('#cvarEstados', 'estado') || estado })
+      const r = { idioma: marcado('#cvarIdiomas', 'idioma') || entrada, estado: marcado('#cvarEstados', 'estado') || estado }
+      resolver(anadir ? r : { cuantas: marcado('#cvarCuantas', 'cuantas') || 'una', ...r })
     }, { once: true })
     d.showModal()
     d.querySelector('[data-cvar="si"]')?.focus()

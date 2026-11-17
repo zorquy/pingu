@@ -55212,6 +55212,19 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1384 — Coreano y chino al editar y al añadir varias
+
+- `mi-coleccion.js`: `idiomasParaEditar(idioma, delSet = null, market)` → en
+  `JP`, `idiomasParaAnadirEn('JP', [], delSet)`; al abrir la ficha de una
+  japonesa, `idiomasDeSet(set, 'JP')` repinta `#mcEdIdioma` conservando el valor.
+- `cambio-varias.js`: `preguntarAnadir({ nuevas, idiomas, idioma, estado,
+  alStock })` → `{ idioma, estado }` (la hoja `#mcCambioVarias` con título
+  «Añadir»/«Al stock», sin el bloque de «cuántas das»); `preguntarCambio` igual
+  que antes, por el mismo `preguntar`.
+- `seleccion.js`: `idiomasParaVarias(entradas)` (en `JP`, la unión de
+  `idiomasDeSet` de hasta 20 sets); `guardarMarcadas` pregunta si alguna
+  marcada no es «otra copia» de una línea.
+
 ## Tanda 1383 — Escribir en el foro: barra fija, spoiler fácil y menciones avisadas
 
 - `css/editor-texto.css`: `.rte-compacta .rte-toolbar` `position: sticky; top:

@@ -316,7 +316,7 @@ async function cambiarMarcadas() {
     else nuevas.push(e)
   }
   const { preguntarCambio, cambioDeLineas } = await import('./cambio-varias.js')
-  const idiomas = [...($('mcTocarIdioma')?.options || [])].map((o) => o.value)
+  const idiomas = await idiomasParaVarias(nuevas)
   const r = await preguntarCambio({ tuyas: tuyas.length, nuevas: nuevas.length, idiomas, idioma: $('mcTocarIdioma')?.value || 'es', estado: $('mcTocarEstado')?.value || 'NM' })
   if (!r) return
   const b = $('mcMarcarCambio')
@@ -354,14 +354,40 @@ async function cambiarMarcadas() {
   }
 }
 
+// Los idiomas que se ofrecen al añadir VARIAS (1384): los de la vista y, en
+// el catálogo japonés, los de los sets de las marcadas (la coreana y la china
+// donde su set las tuvo, como en la hoja de una). Antes era el desplegable
+// escondido de la vista, que en el japonés solo tiene el japonés.
+async function idiomasParaVarias(entradas) {
+  const deLaVista = [...($('mcTocarIdioma')?.options || [])].map((o) => o.value)
+  if (ctx.mercado !== 'JP') return deLaVista
+  const [{ idiomasDeSet }, { idiomasParaAnadirEn }] = await Promise.all([import('../idiomas-de-set.js'), import('../cardmarket.js')])
+  const sets = [...new Set(entradas.map((e) => ctx.cartaPorId?.(e.cardId)?.set_id || ctx.cartas?.get?.(e.cardId)?.set_id).filter(Boolean))].slice(0, 20)
+  const listas = await Promise.all(sets.map((id) => idiomasDeSet(id, 'JP').catch(() => null)))
+  const todos = new Set(['ja'])
+  for (const delSet of listas) for (const i of idiomasParaAnadirEn('JP', [], delSet)) todos.add(i.id)
+  return ['ja', 'ko', 'zh'].filter((id) => todos.has(id))
+}
+
 async function guardarMarcadas() {
   if (!marcadas?.size) return
   const boton = $('mcMarcarGuardar')
-  const idioma = $('mcTocarIdioma')?.value || 'es'
-  const estado = $('mcTocarEstado')?.value || 'NM'
+  let idioma = $('mcTocarIdioma')?.value || 'es'
+  let estado = $('mcTocarEstado')?.value || 'NM'
+  const entradas = entradasMarcadas()
+  // Las que no son «otra copia de una línea tuya» se añaden con lo que se
+  // elija en la hoja (1384): antes, con el idioma escondido de la vista.
+  const sinLinea = entradas.filter((e) => !e.linea)
+  if (sinLinea.length) {
+    const { preguntarAnadir } = await import('./cambio-varias.js')
+    const r = await preguntarAnadir({ nuevas: entradas.length, idiomas: await idiomasParaVarias(sinLinea), idioma, estado, alStock: ctx.modoTienda })
+    if (!r) return
+    idioma = r.idioma
+    estado = r.estado
+  }
   // Desde «Cartas», una copia MÁS de cada una, con su idioma y su estado:
   // es «otra igual que esta», no una carta nueva.
-  const lineasNuevas = entradasMarcadas().map((e) => ({
+  const lineasNuevas = entradas.map((e) => ({
     card_id: e.cardId, variante: e.variante, idioma: e.linea?.idioma || idioma, estado: e.linea?.estado || estado,
   }))
   boton.disabled = true

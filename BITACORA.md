@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-17 (631) — PINGU-Claude (1384 — Coreano y chino al editar y al añadir varias, como al añadir una)
+
+**Hecho** (un usuario por Twitter, vía PINGU: «a la hora de editar una carta
+[de un set japonés] solo deja elegir idioma japonés… desde la opción de añadir
+cartas individuales sí deja los otros dos idiomas asiáticos, aunque desde
+añadir múltiples cartas tampoco deja seleccionar idioma»):
+- **Editar**: `idiomasParaEditar(idioma, delSet, market)` usa en el japonés lo
+  mismo que la hoja de añadir (`idiomasParaAnadirEn('JP', …)`); la ficha pide
+  `idiomasDeSet` y repinta el desplegable con japonés, coreano y chino si el set
+  los tiene, sin perder el idioma que la copia ya tenía.
+- **Añadir varias** (Seleccionar → Añadir): pregunta idioma y estado en la hoja
+  de «Para cambio» con su modo «Añadir» (`preguntarAnadir`). Los idiomas: los de
+  la vista y, en el japonés, la unión de los de los sets de las marcadas
+  (`idiomasParaVarias`, también para «Para cambio»). «Otra copia» de una línea
+  tuya (desde Cartas) sigue con los suyos, sin preguntar.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/seleccion.js`,
+`js/mi-coleccion/cambio-varias.js`, `normas/coleccion.md`, `novedades.json`.
+Pruebas (rama `pruebas`): `test-tanda-1384-pantalla.mjs` nueva; 426 y 1076
+aceptan la hoja nueva.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-16 (630) — PINGU-Claude (1381b — La fila de Expansiones, como se pidió: caja que llena el hueco, banderas grandes, la rueda)
 
 **Hecho** (PINGU, con la captura del móvil: «los botones son demasiado

@@ -449,6 +449,16 @@
   `idioma: 'es'` — abrir una habría pintado «Japonés» y al guardar le
   habría reescrito el idioma. Si acotas las opciones de un desplegable,
   mete SIEMPRE el valor que la fila ya tiene (`idiomasParaEditar`).
+- **Los idiomas de una carta japonesa son los MISMOS en todos los caminos**
+  (tanda 1384, un usuario por Twitter: «a la hora de editar una carta solo
+  deja elegir japonés… desde añadir cartas individuales sí deja los otros dos
+  idiomas asiáticos, aunque desde añadir múltiples tampoco deja seleccionar
+  idioma»): añadir una, editarla y añadir varias usan `idiomasParaAnadirEn('JP',
+  …, delSet)` (japonés y, si su set los tiene, coreano y chino), con
+  `idiomasDeSet` después de pintar. Y Seleccionar → Añadir PREGUNTA idioma y
+  estado (`preguntarAnadir`, la hoja de `cambio-varias.js`) salvo para «otra
+  copia» de una línea tuya, que lleva los suyos. Un camino nuevo que meta o
+  edite cartas ofrece los idiomas por ahí, no por `idiomasDeLaVista` a secas.
 - **El idioma con el que se AÑADE sale del selector de catálogo** (tanda
   472), no de una constante ni de una preferencia global: en el catálogo
   japonés no existe una carta en español, así que ofrecerlo era afirmar
