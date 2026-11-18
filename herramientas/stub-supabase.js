@@ -3269,7 +3269,9 @@ export const supabase = {
             historia: (T.user_collection_value || []).filter((h) => h.user_id === yo && String(h.dia) >= hace60).sort((a, b) => String(a.dia).localeCompare(String(b.dia))).map((h) => ({ dia: h.dia, valor: h.valor })),
             ahora: { valor: valorDeLineas(lineas, precios), copias: lineas.reduce((t, l) => t + cantidad(l), 0), lineas: lineas.length, distintas: new Set(lineas.map((l) => l.card_id)).size, sin_precio: 0 },
           },
-          torneos: T.tournaments.filter((t) => registros.includes(t.id)).map((t) => ({ id: t.id, slug: t.slug, name: t.name, start_at: t.start_at, status: t.status, format: t.format ?? 'standard', matchday_dates: t.matchday_dates ?? null })),
+          torneos: T.tournaments.filter((t) => registros.includes(t.id)).map((t) => ({ id: t.id, slug: t.slug, name: t.name, start_at: t.start_at, status: t.status, format: t.format ?? 'standard', matchday_dates: t.matchday_dates ?? null,
+            // 1394: el podio congelado y cuándo se cerró; con `__SIN_1394__`, como sin su migración.
+            ...(typeof window !== 'undefined' && window.__SIN_1394__ ? {} : { podium: t.podium ?? null, updated_at: t.updated_at ?? null }) })),
           abierto: abierto ? { id: abierto.id, slug: abierto.slug, name: abierto.name, start_at: abierto.start_at } : null,
           sets: (T.tcg_sets || []).filter((s) => (s.market || 'WEST') === 'WEST' && s.serie_id != null && s.serie_id !== 'tcgp' && s.release_date && String(s.release_date).slice(0, 10) >= hoy).sort((a, b) => String(a.release_date).localeCompare(String(b.release_date))).slice(0, 3)
             .map((s) => ({ name: s.name ?? null, name_en: s.name_en ?? null, release_date: s.release_date, logo_tcggo: s.logo_tcggo ?? null, logo_scrydex: s.logo_scrydex ?? null, oculto: s.oculto ?? false, tcggo_id: s.tcggo_id ?? null })),

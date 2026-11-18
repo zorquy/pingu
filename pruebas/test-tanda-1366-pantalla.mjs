@@ -27,7 +27,7 @@ console.log('── 1. Lo escrito ──')
   check('  …y cartas.html es lo que sale del generador', generarCartas(leer('mi-coleccion.html')) === cartas)
   const { PARTES_DE_LA_COLECCION } = await import(`${RAIZ}/js/barra-lateral.js`)
   check('la lateral fuera de Mi colección lleva las cuatro', PARTES_DE_LA_COLECCION.map((p) => p.texto).join('|') === 'Panel|Cartas|Deseos y cambios|Buscar', PARTES_DE_LA_COLECCION.map((p) => p.texto).join('|'))
-  for (const [f, n] of [['meta.html', 3], ['mazos.html', 3], ['laboratorio.html', 3], ['repeticiones.html', 4], ['mis-partidas.html', 4]]) {
+  for (const [f, n] of [['meta.html', 3], ['mazos.html', 3], ['laboratorio.html', 3], ['repeticiones.html', 4], ['mis-partidas.html', 5]]) {
     const s = leer(f)
     const fila = s.match(/<(nav|div) class="seg (?:jugar-pestanas|partidas-tabs) seg-iconos"[\s\S]*?<\/\1>/)?.[0] || ''
     check(`${f}: fila con icono en sus ${n} pestañas`, (fila.match(/data-seg-icono="\w+"/g) || []).length === n && (fila.match(/class="seg-txt"/g) || []).length === n)
@@ -44,8 +44,8 @@ async function abrir(ruta, movil) {
   await page.waitForTimeout(2400)
   return { page, ctx }
 }
-// (/mis-partidas abre en «Partidas»: el doble tiene partidas sueltas y
-// ningún torneo.)
+// (/mis-partidas abre en «Resumen» desde la 1390, que va delante: el doble
+// tiene partidas sueltas y ningún torneo.)
 // Lo que se ve de una fila: el nombre si se lee, «·» si solo está el icono.
 const fila = (page, sel) => page.evaluate((sel) => [...document.querySelectorAll(`${sel} .seg-btn`)].map((x) => {
   const t = x.querySelector('.seg-txt')
@@ -124,9 +124,9 @@ for (const [ruta, sel, movil, esperada] of [
   ['/mazos', '.jugar-pestanas', true, '·|Los*|·'],
   ['/laboratorio', '.jugar-pestanas', true, '·|·|Probar*'],
   ['/repeticiones', '.jugar-pestanas', true, '·|·|·|Repeticiones*'],
-  ['/mis-partidas', '#partidasTabs', true, '·|Partidas*|·|·'],
+  ['/mis-partidas', '#partidasTabs', true, 'Resumen*|·|·|·|·'],
   ['/meta', '.jugar-pestanas', false, 'Meta*|Los|Probar'],
-  ['/mis-partidas', '#partidasTabs', false, 'Torneos|Partidas*|Estadísticas|Repeticiones'],
+  ['/mis-partidas', '#partidasTabs', false, 'Resumen*|Torneos|Partidas|Estadísticas|Repeticiones'],
 ]) {
   const { page, ctx } = await abrir(ruta, movil)
   const vista = await fila(page, sel)
@@ -135,7 +135,7 @@ for (const [ruta, sel, movil, esperada] of [
   if (ruta === '/mis-partidas' && movil) {
     await page.click('#partidasTabs [data-vista="stats"]')
     await page.waitForTimeout(500)
-    check('  …tocar Estadísticas le da su nombre', (await fila(page, sel)) === '·|·|Estadísticas*|·', await fila(page, sel))
+    check('  …tocar Estadísticas le da su nombre', (await fila(page, sel)) === '·|·|·|Estadísticas*|·', await fila(page, sel))
   }
   await ctx.close()
 }
