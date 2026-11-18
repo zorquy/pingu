@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (638) — PINGU-Claude (1391 — Torneo en modo juego: la pantalla VS, tu camino y la celebración)
+
+**Hecho** (la propuesta «Torneos en modo juego», PINGU: «dale con todo lo
+recomendado»; D4: primero lo que se juega).
+- **La pantalla VS**: tu mesa (el duelo de la 298) en un panel de juego, tu
+  mitad violeta y la del rival roja, con el VS amarillo en medio.
+- **Reportar**: Victoria y Derrota gordos y de color siempre (antes, solo al
+  pasar el ratón).
+- **Tu camino** en «Tu puesto»: R1…R5 como niveles (verde, rojo, gris), la
+  de ahora latiendo y el Top con su trofeo (dorado si entraste). En una liga,
+  las últimas cinco de siempre.
+- **La celebración** (`js/torneos/celebrar.js`): cuando tu mesa se cierra,
+  «¡VICTORIA!» con confeti y la mascota contenta, «Derrota» con la mascota
+  triste o «Empate», con el marcador, contra quién, los puntos y cuánto subes.
+  Una vez por mesa; solo si se acaba de cerrar.
+
+**Ficheros**: `js/torneos/celebrar.js` (nuevo), `js/torneos/ronda.js`
+(`celebrarMiMesa`, `caminoHtml`), `css/torneos.css`, `normas/jugar.md`. Prueba
+`test-tanda-1391-pantalla.mjs` (rama `pruebas`); 1341, 1347, 1375-1378 y
+test-torneos-15…22 siguen en verde (la 23 ya fallaba antes).
+
+**Pendiente**: la tabla con podio y las mesas en mapa (1392), la arena y
+elegir mazo (1393), el campeón y «Tu torneo» (1394) y la vitrina (1395).
+
 ## 2026-11-18 (637) — PINGU-Claude (1390 — El Resumen de Mis partidas, con cara de juego)
 
 **Hecho** (la propuesta «Jugar con cara de juego», PINGU: «dale con todo lo

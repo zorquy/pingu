@@ -271,3 +271,15 @@ pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticione
 El constructor no está en el menú: se abre desde «Nuevo mazo» o «Editar» y
 vuelve a Los míos. Una página nueva de Jugar va como pestaña de uno de los
 tres (y en `HERMANAS` de `js/barra-movil.js`), no como cuarto enlace.
+
+**Torneos en modo juego (1391–1395, la propuesta «Torneos en modo juego»,
+PINGU: «dale con todo lo recomendado»).** Tu mesa es un cara a cara (panel
+de juego violeta contra rojo, con el VS en medio; el mazo del rival solo si la
+base deja ver su lista, regla 230), «Tu puesto» lleva **tu camino** (las rondas
+suizas como niveles y el Top con su trofeo; una liga sigue con sus últimas
+cinco) y, cuando TU mesa se cierra, sale **la celebración**
+(`js/torneos/celebrar.js`): victoria con confeti y la mascota contenta,
+derrota con la mascota triste, empate con un guiño, los puntos y cuánto
+subes. Sale UNA vez por mesa y navegador (`pd-celebrada-<id>`) y solo si se
+acaba de cerrar (menos de tres horas, o el torneo en juego): abrir un torneo
+viejo no celebra nada. Un bye no se celebra.

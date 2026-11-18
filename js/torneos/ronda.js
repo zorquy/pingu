@@ -30,6 +30,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
+import { celebrarRonda, yaCelebrada } from './celebrar.js'
 import { apuntarEnTablon } from './tablon.js'
 import { misJornadas, listaAnterior, enviarListaJornada, cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
 import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
@@ -2673,6 +2674,7 @@ function pintarMiPartida() {
       contenido.innerHTML = html
       engancharRepeticiones(contenido)
     }
+    celebrarMiMesa(mia, soyA, rival, actual)
     return
   }
   if (mia.status === 'disputed') {
@@ -2795,6 +2797,65 @@ function pintarMiPartida() {
   contenido.querySelectorAll('[data-quitar]').forEach((b) => {
     b.addEventListener('click', () => desreportar(mia, Number(b.dataset.quitar)))
   })
+}
+
+// La pantalla de victoria o derrota de TU mesa (1391): una vez por mesa, y
+// solo si se acaba de cerrar (con el torneo en juego, o hace menos de tres
+// horas): abrir un torneo de hace meses no celebra su última ronda.
+function celebrarMiMesa(mia, soyA, rival, ronda) {
+  if (mia.status === 'bye' || yaCelebrada(mia.id)) return
+  const r = resultadoDe(mia.id)
+  const cuando = Date.parse(r?.created_at || r?.updated_at || '')
+  const reciente = Number.isFinite(cuando) ? Date.now() - cuando < 3 * 3600e3 : ctx.torneo.status === 'in_progress'
+  if (!reciente) return
+  const res = resultadoParaJugadorEn(mia, miId()).texto
+  if (!['V', 'D', 'E'].includes(res)) return
+  const yo = miId()
+  const tabla = computeStandings(montarSnapshot(rondas.length))
+  const i = tabla.findIndex((e) => e.playerId === yo)
+  const marcador = r && (r.score_a != null || r.score_b != null) ? `${soyA ? r.score_a : r.score_b}-${soyA ? r.score_b : r.score_a}` : ''
+  celebrarRonda({
+    matchId: mia.id,
+    res,
+    rival: rival?.perfil?.username || '',
+    marcador,
+    ronda: ronda.phase === 'top_cut' ? `Top cut ${ronda.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(ronda.round_number)) : `Ronda ${ronda.round_number}`,
+    puntos: res === 'V' ? 3 : res === 'E' ? 1 : 0,
+    puesto: i >= 0 && ronda.phase !== 'top_cut' ? i + 1 : null,
+    antes: puestosAntes()?.get(yo) ?? null,
+    de: tabla.length || null,
+  })
+}
+
+// Tu camino (1391): las rondas del torneo como niveles de un mapa — verde
+// las ganadas, rojo las perdidas, la de ahora latiendo, las que faltan en
+// gris y el Top al final con su trofeo. Solo en un torneo suizo: una liga de
+// treinta rondas se queda con sus últimas cinco (formaHtml).
+function caminoHtml(yo) {
+  const total = Number(ctx.torneo.swiss_rounds) || 0
+  if (!total || total > 12) return ''
+  const actual = rondaActual()
+  const pasos = []
+  for (let n = 1; n <= total; n++) {
+    const ronda = rondas.find((r) => r.phase !== 'top_cut' && r.round_number === n)
+    const mia = ronda && partidas.find((m) => m.round_id === ronda.id && (m.player_a_id === yo || m.player_b_id === yo))
+    let clase = ''
+    let letra = ''
+    if (mia && TERMINALES.has(mia.status)) {
+      const t = resultadoParaJugadorEn(mia, yo).texto
+      letra = t === 'Bye' ? 'B' : t
+      clase = { V: 'gana', B: 'gana', D: 'pierde', E: 'empata' }[letra] || ''
+    } else if (mia && actual && ronda.id === actual.id) {
+      clase = 'vivo'
+    }
+    pasos.push(`<li class="torneo-camino-paso ${clase}"><span class="torneo-camino-bola">${letra || (clase === 'vivo' ? '<i></i>' : '')}</span><b>R${n}</b></li>`)
+  }
+  const corte = Number(ctx.torneo.top_cut_size) || 0
+  if (corte) {
+    const dentro = partidas.some((m) => rondas.find((r) => r.id === m.round_id)?.phase === 'top_cut' && (m.player_a_id === yo || m.player_b_id === yo))
+    pasos.push(`<li class="torneo-camino-paso top${dentro ? ' dentro' : ''}"><span class="torneo-camino-bola">${icons.trophy?.(14) || ''}</span><b>Top ${corte}</b></li>`)
+  }
+  return `<ol class="torneo-camino" aria-label="Tu camino en el torneo">${pasos.join('')}</ol>`
 }
 
 // ── La clasificación por jornada y las listas de los rivales (tanda 219) ──
@@ -3110,7 +3171,7 @@ function pintarComoVas() {
       <span class="torneo-puesto-texto"><b>de ${tabla.length} · ${plural(e.matchPoints, 'punto', 'puntos')}</b><span>${plural(e.wins, 'ganada', 'ganadas')}, ${plural(e.losses, 'perdida', 'perdidas')}${e.draws ? `, ${plural(e.draws, 'empate', 'empates')}` : ''}</span></span>
       ${movimientoHtml(antes?.get(yo), i + 1)}
     </div>
-    ${formaHtml(formaDe(yo))}
+    ${(!esLiga() && caminoHtml(yo)) || formaHtml(formaDe(yo))}
     <button type="button" class="link-btn" data-ir-pestana="clasificacion">Ver la tabla</button>`
   if (yaEstaPintado('comoVas', html)) return
   $('comoVasContenido').innerHTML = html

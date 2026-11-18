@@ -55212,6 +55212,22 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1391 — Torneo en modo juego: VS, tu camino y la celebración
+
+- `js/torneos/celebrar.js`: `celebrarRonda({ matchId, res: 'V'|'D'|'E',
+  rival, marcador, ronda, puntos, puesto, antes, de })` abre un `<dialog
+  class="torneo-celebra torneo-celebra-gana|pierde|empata">` con un hueco de
+  mascota (`contento`, `triste`, `guino`); `yaCelebrada(matchId)` mira
+  `pd-celebrada-<id>`. Confeti con `burstConfetti` solo en la victoria.
+- `js/torneos/ronda.js`: `celebrarMiMesa(mia, soyA, rival, ronda)` en la rama
+  TERMINALES de `pintarMiPartida` (reciente: `created_at` del resultado a
+  menos de 3 h, o sin fecha con el torneo `in_progress`); `caminoHtml(yo)`
+  (`ol.torneo-camino > li.torneo-camino-paso.gana|pierde|empata|vivo|top`) en
+  `pintarComoVas` en vez de la forma, salvo en liga o con más de 12 suizas.
+- `css/torneos.css` (bloque 1391): `.torneo-duelo` en panel de juego,
+  `.torneo-duelo-vs` como insignia, botones de resultado de color,
+  `.torneo-camino*`, `.torneo-celebra*`.
+
 ## Tanda 1390 — El Resumen de Mis partidas
 
 - `js/partidas-resumen.js`: `datosDelResumen(jugadas)` → `{ total, racha,

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Los torneos se juegan con cara de juego: tu mesa es un cara a cara con un gran VS, ves tu camino ronda a ronda y, al acabar cada ronda, sale la pantalla de victoria (o de derrota) con la mascota.", "enlace": "/torneos" },
     { "fecha": "2026-11-18", "tipo": "nuevo", "texto": "Mis partidas estrena el Resumen: tu % de victorias en un anillo, tu mazo estrella en grande, tus últimas partidas en verde y rojo y contra qué mazos ganas y cuáles te cuestan.", "enlace": "/mis-partidas" },
     { "fecha": "2026-11-18", "tipo": "nuevo", "texto": "La mascota de PokeDoc ahora es 3D y se mueve: saluda en Inicio, se pone triste en los vacíos, baila con tus logros y se enamora cuando le das a «La quiero». Tócala y verás. Si prefieres, en Ajustes › Apariencia la dejas quieta o la quitas.", "enlace": "/" },
     { "fecha": "2026-11-18", "tipo": "arreglo", "texto": "Al abrir una carta desde el buscador sale el pop-up de siempre, y al cambiar de versión (Winner Stamp, Jumbo…) cambia también la foto de la carta.", "enlace": "/cartas" },
