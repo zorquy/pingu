@@ -371,7 +371,8 @@ export function crearModelo(T) {
       ojos('ojo', 'ojo', { sx: 1 + 0.3 * w, sy: 1 + 0.38 * w })
       pico(w)
       const gp = tramo(a, 0.17, 1.15)
-      R.gorra.position.y += 0.75 * arco(gp); R.gorra.rotation.y = Math.PI * 2 * suave(gp); R.gorra.rotation.z += 0.3 * arco(gp)
+      // 0,5 y no 0,75 (1396): con 0,75 la gorra se salía del lienzo por arriba.
+      R.gorra.position.y += 0.5 * arco(gp); R.gorra.rotation.y = Math.PI * 2 * suave(gp); R.gorra.rotation.z += 0.3 * arco(gp)
       R.aletaD.rotation.z = -0.28 + 1.5 * w; R.aletaI.rotation.z = 0.28 - 1.5 * w
       R.pieI.rotation.x = -0.6 * w; R.pieD.rotation.x = -0.6 * w
       if (a > 0.15) { const s = 0.5 * (1 + 0.35 * Math.max(0, 1 - (a - 0.15) * 5)); fx(true, 'exclama', 0.6, 1.75, 0.3, s * w, w) }

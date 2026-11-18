@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-18", "tipo": "arreglo", "texto": "A la mascota ya no se le corta la gorra por arriba, ni cuando salta o la lanza.", "enlace": "/" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "La pestaña Torneos de cada perfil abre con su vitrina: torneos jugados, mejor puesto, podios, medallas y el mazo que más ha llevado en los torneos de PokeDoc.", "enlace": "/perfil" },
     { "fecha": "2026-11-18", "tipo": "nuevo", "texto": "Si quedas en el podio de un torneo, ahora se celebra: pantalla de campeón con trofeo y confeti, tu último torneo en grande en Mis partidas y, unos días, «¡Campeón!» en tu Inicio.", "enlace": "/mis-partidas" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Los torneos son ahora «La arena»: el que estás jugando sale arriba como «Tu combate», tus torneos brillan en la lista y, al elegir mazo para un torneo, cada uno sale en su carta con su Pokémon.", "enlace": "/torneos" },

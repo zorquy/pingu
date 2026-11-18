@@ -55212,6 +55212,16 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1396 — A la mascota no se le corta la gorra
+
+- `js/mascota.js` (`arrancarMotor`): cámara en `(0.55, 2.6, 8.4)` mirando a
+  `(0.1, 2.3, 0)` (antes `(0.55, 2.2, 6.3)` → `(0.1, 1.95, 0)`): ~13 % libre
+  sobre la gorra en reposo, ≥ 8 % en los gestos que la mueven.
+- `js/mascota-modelo.js`: «sorpresa» lanza la gorra `+0.5` (antes `+0.75`).
+- `test-tanda-1396-pantalla.mjs`: mide la primera fila con pintura del lienzo
+  gesto a gesto (en «sorpresa», solo los píxeles azules de la gorra) y que
+  ningún antepasado con `overflow` recorte el lienzo en Inicio, 404 y Entrar.
+
 ## Tanda 1395 — Torneo en modo juego: la vitrina del perfil
 
 - `js/perfil-torneos.js`: con torneos jugados, `section.perfil-vitrina` arriba

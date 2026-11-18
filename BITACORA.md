@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (643) — PINGU-Claude (1396 — A la mascota no se le corta la gorra)
+
+**Hecho** (PINGU: «se le corta el gorro a la mascota, por arriba, siempre»).
+- La cámara de la mascota se aleja y sube un poco: en reposo queda un 13 % de
+  aire sobre la gorra y ningún gesto la saca del lienzo (antes la tocaba
+  hasta quieta). La mascota sale algo más pequeña en su hueco.
+- En «sorpresa» la gorra salta 0,5 en vez de 0,75 (se salía igual).
+- Ningún hueco la recortaba por CSS: era el lienzo.
+
+**Ficheros**: `js/mascota.js` (cámara), `js/mascota-modelo.js` («sorpresa»),
+`normas/interfaz.md`. Prueba `test-tanda-1396-pantalla.mjs`; 1389, 1391 y
+1394 en verde.
+
+**Pendiente**: 1397 (sala del torneo), 1398 (cartel y mazos), 1399
+(celebraciones).
+
 ## 2026-11-18 (642) — PINGU-Claude (1395 — Torneo en modo juego: la vitrina del perfil)
 
 **Hecho** (la propuesta «Jugar con cara de juego», D4, y el último paso de

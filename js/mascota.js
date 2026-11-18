@@ -62,8 +62,11 @@ function arrancarMotor() {
     render.setPixelRatio(1)
     render.setSize(LADO, LADO, false)
     const camara = new T.PerspectiveCamera(30, 1, 0.1, 60)
-    camara.position.set(0.55, 2.2, 6.3)
-    camara.lookAt(0.1, 1.95, 0)
+    // Con aire arriba (1396, PINGU: «se le corta el gorro… siempre»): antes la
+    // gorra tocaba el borde del lienzo hasta en reposo, y al saltar o lanzarla
+    // se salía. Lo vigila test-tanda-1396-pantalla.mjs midiendo el lienzo.
+    camara.position.set(0.55, 2.6, 8.4)
+    camara.lookAt(0.1, 2.3, 0)
     return { modelo: crearModelo(T), render, camara, lienzo }
   })()
   return motor

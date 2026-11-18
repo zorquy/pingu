@@ -470,3 +470,11 @@
   ancho lo pone la hoja de esa pantalla. Un momento suelto (sale y se va) es
   `mascotaMomento(ancla, gesto)`. «Sin mascota» y «Quieta» viven en
   `pd-mascota` (Ajustes › Apariencia) y «menos movimiento» cuenta como Quieta.
+- **La mascota necesita aire arriba** (tanda 1396, PINGU: «se le corta el
+  gorro… siempre»). El lienzo es cuadrado y la cámara de `arrancarMotor`
+  (`js/mascota.js`) deja ~13 % libre sobre la gorra en reposo: los gestos la
+  suben (saltar, saludar, lanzarla en «sorpresa») y sin ese aire se salía.
+  Si se acerca la cámara o un gesto nuevo sube la gorra, se vuelve a medir con
+  `test-tanda-1396-pantalla.mjs`. Lo que vuela (confeti, zetas, corazones)
+  sí puede irse por arriba. Y un hueco nuevo no lleva `overflow: hidden` en
+  sus padres: la prueba mira que nada recorte el lienzo.
