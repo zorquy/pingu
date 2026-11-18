@@ -35,7 +35,7 @@ const errores = []
 async function abrir(ruta, movil) {
   const ctx = await contexto(b, movil, 'user-1')
   const page = await ctx.newPage()
-  page.on('pageerror', (e) => errores.push(`${ruta}: ${String(e).slice(0, 160)}`))
+  page.on('pageerror', (e) => { if (!/Transition was (aborted|skipped)/.test(String(e))) errores.push(`${ruta}: ${String(e).slice(0, 160)}`) })
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   return { page, ctx }
@@ -62,7 +62,8 @@ for (const [ruta, burbuja, filas] of [
 {
   const { page, ctx } = await abrir('/mis-partidas', true)
   const r = await page.evaluate(() => ({ tabs: [...document.querySelectorAll('#partidasTabs .seg-btn')].map((x) => x.textContent.trim()), rep: document.querySelector('#partidasTabs a.seg-btn')?.getAttribute('href') }))
-  check('/mis-partidas: «Repeticiones» es su cuarta pestaña, y va a /repeticiones', r.tabs.length === 4 && r.tabs[3] === 'Repeticiones' && r.rep === '/repeticiones', JSON.stringify(r))
+  // Desde la 1390, «Resumen» va delante: Repeticiones pasa a ser la quinta.
+  check('/mis-partidas: «Repeticiones» es su última pestaña (tras Resumen, 1390), y va a /repeticiones', r.tabs.length === 5 && r.tabs[0] === 'Resumen' && r.tabs[4] === 'Repeticiones' && r.rep === '/repeticiones', JSON.stringify(r))
   await page.locator('#partidasTabs .seg-btn[data-vista="stats"]').click()
   check('  …y las otras tres siguen cambiando de vista sin salir', /ver=stats/.test(page.url()) && (await page.locator('#vista-stats.active').count()) === 1, page.url())
   await ctx.close()
