@@ -458,3 +458,15 @@
   barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja
   una figura (la lupa del buscador, el canto de una carta) que van
   declarados como excepción en la prueba. Las tarjetas, todas a 1px.
+- **La mascota es 3D y se pide con un hueco, nunca con una `<img>`** (tanda
+  1389, PINGU: «prefiero que tarde más en cargar y que salga la mascota»).
+  Una pantalla nueva con mascota escribe `<span class="… mascota-3d"
+  data-mascota="<gesto>">` (los gestos, en `ANIM` de `js/mascota-modelo.js`;
+  `data-vacio` para el buzón vacío, `data-sin-globo` si ya hay un bocadillo
+  cerca) y `js/app.js` lo ve y baja `js/mascota.js`, que monta todos los
+  huecos con UN motor (`js/vendor/three.min.js`, fuera del presupuesto de la
+  portada). No se enseña el dibujo antes: solo si el 3D no puede. El hueco
+  guarda el sitio del dibujo de antes (`aspect-ratio: 523/791`), así que su
+  ancho lo pone la hoja de esa pantalla. Un momento suelto (sale y se va) es
+  `mascotaMomento(ancla, gesto)`. «Sin mascota» y «Quieta» viven en
+  `pd-mascota` (Ajustes › Apariencia) y «menos movimiento» cuenta como Quieta.

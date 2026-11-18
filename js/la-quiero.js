@@ -31,7 +31,11 @@ export function pintarLoseta(boton, cardId, deseos) {
   const puesta = Array.isArray(deseos) && deseos.some((d) => d.card_id === cardId)
   // Late al PONERSE (784, MV9), no al pintarse la primera vez ni al quitarse.
   const antes = boton.getAttribute('aria-pressed') === 'true'
-  if (puesta && !antes && boton.dataset.quieroVisto === cardId) import('./efectos.js').then(({ latir }) => latir(boton)).catch(() => {})
+  if (puesta && !antes && boton.dataset.quieroVisto === cardId) {
+    import('./efectos.js').then(({ latir }) => latir(boton)).catch(() => {})
+    // Y la mascota se asoma con ojos de corazón (1389): sale y se va.
+    import('./mascota.js').then(({ mascotaMomento }) => mascotaMomento(boton, 'enamorado')).catch(() => {})
+  }
   boton.dataset.quieroVisto = cardId || ''
   boton.setAttribute('aria-pressed', String(puesta))
   const rotulo = boton.querySelector('span')

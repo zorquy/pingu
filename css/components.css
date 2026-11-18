@@ -585,6 +585,8 @@
   }
 }
 
+.achievement-cabeza { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+.achievement-mascota { width: 62px; margin-left: -66px; }
 .achievement-icon {
   font-size: 42px;
   width: 78px;

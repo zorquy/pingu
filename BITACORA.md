@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (636) — PINGU-Claude (1389 — La mascota en 3D por toda la web)
+
+**Hecho** (PINGU, con las propuestas «La mascota en 3D» y «Dónde viviría la
+mascota»: «dale con todo lo recomendado… prefiero que tarde más en cargar y
+que salga la mascota», sin el dibujo antes).
+- `js/mascota-modelo.js`: el modelo de la propuesta (cubo de hielo, gorra,
+  buzón y 15 gestos) como `crearModelo(THREE)`, sin páginas dentro.
+- `js/mascota.js`: monta cada hueco `[data-mascota]` con un solo motor
+  (`js/vendor/three.min.js`, r128, MIT), pinta a 30 fps solo lo que se ve,
+  gesto al aparecer y luego respira; tocarla: cosquillas, enfado, mareo.
+  `mascotaMomento()` para los que salen y se van. Sin WebGL o sin motor: el
+  dibujo. `js/app.js` mira si hay huecos y solo entonces la baja.
+- Dónde: Inicio (saluda una vez al día; en el móvil, pequeña junto a las
+  cartas), los vacíos (`vacio.js`, Guardados, Mi colección, /cartas: triste
+  con el buzón vacío), el 404 y lo que no existe (piensa), /sobre, ¿Qué es
+  PokeDoc?, Entrar, bienvenida (saluda), set completo (contenta), cursos
+  (contenta o triste), sin conexión (dormida; sin red, el dibujo de dentro),
+  el pop-up de un logro (baila) y «La quiero» (enamorada, sale y se va).
+- Ajustes › Apariencia › Mascota: Con movimiento · Quieta · Sin mascota.
+- `sw.js`: la página sin conexión cambia, así que su caché pasa a la 2.
+
+**Ficheros**: `js/mascota.js`, `js/mascota-modelo.js`, `js/vendor/three.min.js`,
+`js/app.js`, `js/home.js`, `js/vacio.js`, `js/guardados.js`,
+`js/no-encontrado.js`, `js/mi-coleccion/ensenar.js`, `js/curso-estimulos.js`,
+`js/curso.js`, `js/gamification.js`, `js/la-quiero.js`, `js/ajustes.js`,
+`css/style.css`, `css/portada.css`, `css/components.css`, `css/curso.css`,
+`css/auth.css`, `css/mi-coleccion.css`, `404.html`, `index.html`,
+`sobre.html`, `auth.html`, `onboarding.html`, `mi-coleccion.html`,
+`cartas.html`, `sin-conexion.html`, `sw.js`, `normas/interfaz.md`. Prueba
+`test-tanda-1389-pantalla.mjs` (rama `pruebas`) y al día 725, 729, 1149,
+1207 y 1318. Portada: 150,9 KB de 170.
+
+**Pendiente**: nada.
+
 ## 2026-11-18 (635) — PINGU-Claude (1388 — La carta del buscador en el pop-up de siempre, y la foto de cada versión)
 
 **Hecho** (PINGU: «cuando buscas una carta y le das, te sale este pop-up raro…

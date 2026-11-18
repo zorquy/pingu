@@ -237,7 +237,8 @@
     color: var(--blanco-fijo);
   }
 
-  .auth-arte img {
+  .auth-arte img,
+  .auth-arte .auth-mascota {
     width: 96px;
     height: auto;
   }

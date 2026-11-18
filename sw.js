@@ -5,7 +5,7 @@
 // sirviendo ficheros viejos. La página «Sin conexión» solo se sirve cuando
 // una NAVEGACIÓN no llega a la red; los ficheros y las páginas de la web,
 // desde la 786 y la 897, desde su caché, por generaciones (982, abajo).
-const CACHE = 'pokedoc-sin-conexion-1'
+const CACHE = 'pokedoc-sin-conexion-2'
 const PAGINA = '/sin-conexion.html'
 // Las fotos de las listas del modo evento (1029), que guarda la propia página.
 const FOTOS_EVENTO = 'pokedoc-evento-fotos'

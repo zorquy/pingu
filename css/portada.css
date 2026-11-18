@@ -557,13 +557,15 @@
   }
   .banda .bienvenida-texto strong { font-size: var(--t-xl); }
   .banda .bienvenida-chips { grid-column: 1; }
-  .banda-abanico { grid-column: 2; grid-row: 1 / span 2; width: 96px; height: 76px; }
-  .banda-rotulo,
-  .banda-mascota { display: none; }
+  .banda-abanico { grid-column: 2; grid-row: 1 / span 2; width: 136px; height: 76px; }
+  .banda-rotulo { display: none; }
+  /* La mascota 3D también en el móvil (1389, D4): pequeña, a la izquierda
+     de las cartas, que se corren 40 px. */
+  .banda-mascota { width: 50px; left: -6px; }
   .banda-carta { width: 44px; }
-  .banda-carta-1 { left: 0; }
-  .banda-carta-2 { left: 26px; bottom: 8px; }
-  .banda-carta-3 { left: 52px; }
+  .banda-carta-1 { left: 40px; }
+  .banda-carta-2 { left: 66px; bottom: 8px; }
+  .banda-carta-3 { left: 92px; }
   .banda-sube { display: none; }
 }
 

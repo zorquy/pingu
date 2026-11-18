@@ -131,7 +131,8 @@ export function estallido(el, cuantas = 10) {
 // burbuja y se va sola. Aparece POCO a propósito — el búho de Duolingo
 // funciona porque no está siempre.
 let mascotaViva = null
-export function mascotaDice(texto) {
+// `gesto` (1389): lo que hace la mascota 3D mientras lo dice.
+export function mascotaDice(texto, gesto = 'contento') {
   try {
     if (movimientoReducido() || !texto) return
     mascotaViva?.remove()
@@ -139,7 +140,7 @@ export function mascotaDice(texto) {
     caja.className = 'curso-mascota'
     caja.innerHTML = `
       <span class="curso-mascota-burbuja"></span>
-      <img loading="lazy" src="/assets/images/mascota.webp" alt="" width="72" height="109" />`
+      <span class="mascota-3d" data-mascota="${gesto}" data-sin-globo></span>`
     caja.querySelector('.curso-mascota-burbuja').textContent = texto
     document.body.appendChild(caja)
     mascotaViva = caja

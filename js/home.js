@@ -293,7 +293,7 @@ async function cargarBienvenida(session) {
         ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
         ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
       </div>
-      <div class="banda-abanico"><img class="banda-mascota" src="/assets/images/mascota.webp" alt="" width="96" height="96" loading="lazy" decoding="async"><div class="banda-cartas" id="bandaCartas">${abanicoPrevio}</div></div>`
+      <div class="banda-abanico"><span class="banda-mascota mascota-3d" data-mascota="saludar" data-saludo-del-dia data-sin-globo></span><div class="banda-cartas" id="bandaCartas">${abanicoPrevio}</div></div>`
     import('./escaparate.js').then(({ pintarAbanico }) => pintarAbanico(document.getElementById('bandaCartas'))).catch(() => {})
     // El hero se esconde SOLO cuando la bienvenida está lista: si algo
     // de arriba fallara, la portada de siempre sigue entera. La clase

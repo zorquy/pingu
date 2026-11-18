@@ -910,3 +910,22 @@ function abrirCartaEnPopup(e) {
     .then((ok) => { if (!ok) location.href = a.href })
     .catch(() => { location.href = a.href })
 }
+
+// La mascota 3D (1389): si en la página hay un hueco `[data-mascota]` (el de
+// Inicio, un vacío, el 404…), se baja js/mascota.js y lo monta; si no hay
+// ninguno, no se baja nada. Lo que se pinta después (una lista vacía) se
+// mira una vez por fotograma. «Sin mascota» (Ajustes) la quita de todas.
+function vigilarMascotas() {
+  let sin = false
+  try { sin = localStorage.getItem('pd-mascota') === 'no' } catch {}
+  document.documentElement.toggleAttribute('data-sin-mascota', sin)
+  if (sin || !document.body) return
+  let pendiente = 0
+  const mirar = () => {
+    pendiente = 0
+    if (document.querySelector('[data-mascota]:not([data-montada])')) import('./mascota.js').then((m) => m.montarMascotas()).catch(() => {})
+  }
+  mirar()
+  new MutationObserver(() => { if (!pendiente) pendiente = requestAnimationFrame(mirar) }).observe(document.body, { childList: true, subtree: true })
+}
+vigilarMascotas()

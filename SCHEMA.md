@@ -55212,6 +55212,24 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1389 — La mascota en 3D
+
+- Hueco: `<span class="… mascota-3d" data-mascota="<gesto>" [data-vacio]
+  [data-giro="-0.15"] [data-sin-globo] [data-saludo-del-dia]>`. CSS común en
+  `style.css` (`.mascota-3d`, `.mascota-lienzo`, `.mascota-globo`,
+  `.mascota-momento`, `:root[data-sin-mascota]`).
+- `js/app.js` `vigilarMascotas()`: `data-sin-mascota` en la raíz si
+  `pd-mascota=no`; si no, un `MutationObserver` mira una vez por fotograma si
+  hay huecos sin montar y hace `import('./mascota.js').montarMascotas()`.
+- `js/mascota.js`: `preferenciaMascota()`, `guardarPreferenciaMascota(v)`
+  (`mueve` · `quieta` · `no`), `montarMascotas(raiz)`, `mascotaMomento(ancla,
+  gesto)`. Motor: `<script src="/js/vendor/three.min.js">` + `import()` del
+  modelo; un `WebGLRenderer` de 384 px que se copia a cada lienzo 2D;
+  `IntersectionObserver` para empezar el gesto al verse y parar el bucle.
+  Estados del hueco en `data-montada`: `cargando` · `3d` · `dibujo`.
+- `js/mascota-modelo.js` `crearModelo(T)` → `{ escena, pose, ANIM, girar }`.
+- `pd-mascota-saludo` (fecha): el saludo de Inicio, una vez al día.
+
 ## Tanda 1388 — La carta del buscador en el pop-up de siempre, y la foto de cada versión
 
 - `js/app.js` `abrirCartaEnPopup` (oyente de la 1043): si el enlace lleva

@@ -6419,7 +6419,7 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
   flex: none;
 }
 
-.mc-completo-mascota img {
+.mc-completo-mascota .mascota-3d {
   display: block;
 }
 
@@ -6542,6 +6542,7 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
 /* ── 729 (V6): el vacío con la mascota (SCHEMA 729) ── */
 .mc-vacio-img {
   display: block;
+  width: 96px;
   margin: 0 auto var(--e-md);
 }
 

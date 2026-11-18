@@ -18,6 +18,7 @@ import { estaActivo, conGrupo, seccionesDeAvisos, estadoDeSeccion, tiposEn } fro
 import { FIESTAS_CON_DECORACION } from './fiestas-puro.js'
 import { LLAVE_SIN_GLOSARIO, glosarioApagado } from './glosario-ajuste.js'
 import { MONEDAS, LLAVE_MONEDA, monedaElegida, cambioGuardado, enMoneda } from './moneda.js'
+import { preferenciaMascota, guardarPreferenciaMascota } from './mascota.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
@@ -458,6 +459,11 @@ const aparienciaHtml = () => `
       <select id="ajMoneda">${Object.entries(MONEDAS).map(([id, m]) => `<option value="${id}"${monedaElegida() === id ? ' selected' : ''}>${m.nombre} (${m.simbolo})</option>`).join('')}</select>
     </label>
     <p class="aj-nota" id="ajMonedaNota">${textoDeMoneda()}</p>
+    <h3>Mascota</h3>
+    <div class="seg aj-mascota" role="group" aria-label="La mascota">
+      ${[['mueve', 'Con movimiento'], ['quieta', 'Quieta'], ['no', 'Sin mascota']]
+        .map(([v, t]) => `<button type="button" class="seg-btn" data-mascota-pref="${v}" aria-pressed="${preferenciaMascota() === v}"><span>${t}</span></button>`).join('')}
+    </div>
     <h3>Fiestas</h3>
     ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}
     <h3>Lectura</h3>
@@ -526,6 +532,13 @@ function montarApariencia(panel) {
     } catch { /* sin almacenamiento: no se puede recordar */ }
     // Si hoy hay fiesta, se ve al momento.
     if (document.documentElement.dataset.temporada || e.target.checked) location.reload()
+  })
+  // La mascota 3D (1389): en este navegador, como el tema.
+  panel.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mascota-pref]')
+    if (!b) return
+    guardarPreferenciaMascota(b.dataset.mascotaPref)
+    for (const x of panel.querySelectorAll('[data-mascota-pref]')) x.setAttribute('aria-pressed', String(x === b))
   })
   panel.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-tema]')

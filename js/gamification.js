@@ -608,7 +608,7 @@ export function showAchievementModal(achievement) {
     modal.className = 'achievement-modal'
     modal.innerHTML = `
       <div class="achievement-card">
-        <div class="achievement-icon" id="achievementIcon"></div>
+        <div class="achievement-cabeza"><span class="achievement-mascota"></span><div class="achievement-icon" id="achievementIcon"></div></div>
         <h3 id="achievementName"></h3>
         <p id="achievementDesc"></p>
         <div class="achievement-xp">+<span id="achievementXP"></span> XP</div>
@@ -638,6 +638,9 @@ export function showAchievementModal(achievement) {
   modal.querySelector('#achievementDesc').textContent = achievement.description || ''
   modal.querySelector('#achievementXP').textContent = achievement.xp_reward || 0
   modal.__logro = achievement
+  // La mascota baila al lado del trofeo (1389): un hueco nuevo cada vez, para
+  // que el baile empiece con cada logro (js/mascota.js lo monta solo).
+  modal.querySelector('.achievement-mascota').outerHTML = '<span class="achievement-mascota mascota-3d" data-mascota="bailar"></span>'
   modal.classList.remove('hidden')
 }
 

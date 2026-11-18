@@ -800,7 +800,7 @@ function resolver(block, acierto) {
       if (mult >= 3) mascotaDice('¡Imparable! Racha de ' + partida.racha)
     }
   } else if (rachaAntes >= 3) {
-    mascotaDice(`¡Vaya, llevabas ${rachaAntes} seguidas! La siguiente es tuya.`)
+    mascotaDice(`¡Vaya, llevabas ${rachaAntes} seguidas! La siguiente es tuya.`, 'triste')
   }
   // La barra de progreso se tiñe de dorado mientras hay multiplicador.
   progressFill?.classList.toggle('progress-racha', multiplicadorDe(partida.racha) > 1)

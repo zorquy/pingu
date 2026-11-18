@@ -124,7 +124,7 @@ export function celebrarSetCompleto({ setId, nombre, total, logo = null, compart
   }
   d.innerHTML = `
     <div class="mc-completo-mascota">
-      <img src="/assets/images/mascota.webp" alt="" width="64" height="97" loading="lazy">
+      <span class="mascota-3d" data-mascota="contento" data-sin-globo style="width:64px"></span>
       <span class="mc-completo-medalla" aria-hidden="true">${icons.medal(20)}</span>
     </div>
     <div class="mc-completo-texto">

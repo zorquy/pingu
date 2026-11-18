@@ -22,7 +22,7 @@ const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blo
 
 const vacioHtml = () => `
   <div class="empty-state gd-vacio">
-    <img src="/assets/images/mascota.webp" class="gd-vacio-mascota" alt="" width="523" height="791" loading="lazy" decoding="async" />
+    <span class="gd-vacio-mascota mascota-3d" data-mascota="triste" data-vacio data-giro="-0.15"></span>
     <p>Todavía no has guardado nada. Toca ${icons.bookmark(14)} <b>Guardar</b> en una guía o una noticia y lo tendrás aquí para luego.</p>
     <div id="gdParaEmpezar"></div>
     <a class="btn-secondary" href="/aprender">Ver todas las guías</a>
