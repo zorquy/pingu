@@ -16,7 +16,8 @@ async function abrir(ruta, movil = false) {
   const ctx = await contexto(b, movil, 'user-1')
   const page = await ctx.newPage()
   const errores = []
-  page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
+  // Una transición que el navegador corta al cambiar de página no es un fallo (910, 1386).
+  page.on('pageerror', (e) => { if (!/Transition was (aborted|skipped)/.test(String(e))) errores.push(String(e).slice(0, 160)) })
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
   return { ctx, page, errores }
@@ -106,8 +107,11 @@ console.log('── 4. La lupa de arriba (paleta) ──')
   if (hay) {
     await page.click('.paleta a[href*="carta="]').catch(async () => page.keyboard.press('Enter'))
     await page.waitForTimeout(2500)
-    const f = await ficha(page)
-    check('una carta de la paleta se abre en el pop-up, sin irse', f?.abierta && page.url() === antes, JSON.stringify({ f, url: page.url() }))
+    // Desde la 1388 (PINGU: «sale este pop-up raro… que saliese el pop-up de
+    // siempre»), lo buscado con la lupa va a Cartas › Buscar y abre allí el
+    // pop-up de Mi colección (#mcEditor), como dice la 998.
+    const r = await page.evaluate(() => ({ editor: document.getElementById('mcEditor')?.open, rapida: !!document.getElementById('fichaRapida')?.open }))
+    check('una carta de la paleta abre el pop-up de siempre en Cartas › Buscar (1388)', /\/cartas\?ver=buscar/.test(page.url()) && r.editor && !r.rapida, JSON.stringify({ r, url: page.url() }))
   } else {
     check('la paleta encuentra la carta (para poder probarlo)', false, 'sin resultados de cartas')
   }
