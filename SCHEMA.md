@@ -55212,6 +55212,26 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1399 — Las pantallas que celebran
+
+- `js/celebrar-momento.js` (nuevo): `celebrarMomento({ llave, id, tono
+  (nivel|racha|oro|set), gesto, insignia, ceja, titulo, texto, cifras,
+  boton, confeti, colores, modal })` → `<dialog class="celebra celebra-<tono>">`
+  (una vez por `llave` en localStorage; sin localStorage no sale), baja
+  `/css/celebra.css` con un `<link data-celebra>` la primera vez.
+  `celebrarNivel(nivel, { compartir })` (llave `pd-nivel-<nivel>`, «N de 10»
+  con `NIVELES`) y `celebrarRacha(dias, { escudo, hoy })` (solo
+  `RACHAS_GRANDES` 7/30/100; llave `pd-racha-<dias>-<día>`).
+- `js/gamification.js`: `celebrarSubidaDeNivel` pide `celebrarNivel` por
+  `import()` (el toast con Compartir queda de respaldo); `checkDailyStreak`,
+  al llegar a 7, 30 o 100, `celebrarRacha` con `escudo` si ganó protector.
+- `js/mi-coleccion/ensenar.js`: `celebrarSetCompleto` (ahora `async`) usa el
+  molde con `id: 'mcCompleto'`, `tono: 'set'`, el logo como insignia (o la
+  medalla), los colores del logo y `modal: false`.
+- `css/celebra.css` (nuevo): `.celebra*`, `.celebra-icono-{nivel,llama,medalla}`
+  y `.celebra-sin-capa` (arriba, con el fondo libre para el Deshacer).
+  `css/mi-coleccion.css` pierde `.mc-completo*`.
+
 ## Tanda 1398 — Tu próximo torneo en cartel y los mazos como póster
 
 - `js/torneos/torneos.js` (`proximoHtml`): antepone

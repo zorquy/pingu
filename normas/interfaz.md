@@ -478,3 +478,13 @@
   `test-tanda-1396-pantalla.mjs`. Lo que vuela (confeti, zetas, corazones)
   sí puede irse por arriba. Y un hueco nuevo no lleva `overflow: hidden` en
   sus padres: la prueba mira que nada recorte el lienzo.
+- **Un momento que se celebra es una pantalla, y tiene UN molde**
+  (tanda 1399, PINGU: «las pantallas que celebran… también me gusta»):
+  `celebrarMomento` de `js/celebrar-momento.js` (la mascota, una insignia, la
+  ceja, el título grande, dos cifras y «Seguir»), con su hoja
+  `css/celebra.css`. Se pide por `import()` en el momento: ni el módulo ni la
+  hoja van en la portada. Cada momento lleva su `llave` y sale UNA vez por
+  navegador; lo que no debe tapar nada (la expansión completa, con el
+  Deshacer debajo) va con `modal: false`. Subir de nivel, las rachas de 7, 30
+  y 100 días y la expansión completa ya pasan por ahí; un momento nuevo
+  también, no con otro toast ni otra caja.

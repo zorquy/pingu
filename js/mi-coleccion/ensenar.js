@@ -110,42 +110,34 @@ function apuntarCelebrado(setId, almacen = globalThis.localStorage) {
 
 // `logo` y `compartir` (784, MV4): confeti con los colores del logo, la
 // medalla que gira hasta su sitio y un botón que comparte la lista del set.
-export function celebrarSetCompleto({ setId, nombre, total, logo = null, compartir = null }, { doc = document } = {}) {
+// Desde la 1399 es la pantalla de las celebraciones (js/celebrar-momento.js,
+// por import()), con el logo del set arriba. SIN capa (`modal: false`): la
+// carta que lo completa acaba de entrar con su aviso de Deshacer, y una capa
+// encima lo dejaría sin poder pulsar; la hoja la deja libre por abajo.
+export async function celebrarSetCompleto({ setId, nombre, total, logo = null, compartir = null }) {
   if (!setId || yaCelebrado(setId)) return null
   apuntarCelebrado(setId)
-  let d = doc.getElementById('mcCompleto')
-  if (!d) {
-    d = doc.createElement('dialog')
-    d.id = 'mcCompleto'
-    d.className = 'mc-completo'
-    d.setAttribute('aria-labelledby', 'mcCompletoTitulo')
-    doc.body.appendChild(d)
-    d.addEventListener('click', (e) => { if (e.target.closest('[data-cerrar]')) d.close() })
-  }
-  d.innerHTML = `
-    <div class="mc-completo-mascota">
-      <span class="mascota-3d" data-mascota="contento" data-sin-globo style="width:64px"></span>
-      <span class="mc-completo-medalla" aria-hidden="true">${icons.medal(20)}</span>
-    </div>
-    <div class="mc-completo-texto">
-      <h2 id="mcCompletoTitulo">¡Has completado ${escapeHtml(nombre || 'la colección')}!</h2>
-      <p>${total ? `Las ${total} cartas del set, todas tuyas.` : 'Todas las cartas del set, tuyas.'}</p>
-    </div>
-    ${compartir ? '<button type="button" class="btn-primary mc-completo-compartir" data-compartir-completo>Compartir</button>' : ''}
-    <button type="button" class="mc-completo-cerrar" data-cerrar aria-label="Cerrar">✕</button>`
-  d.querySelector('[data-compartir-completo]')?.addEventListener('click', () => compartir())
-  // Confeti con los colores del logo (si el logo se deja leer) y la medalla
-  // que entra girando (la clase la anima; con «menos movimiento», quieta).
-  import('../efectos.js')
-    .then(({ coloresDeLogo }) => coloresDeLogo(logo))
-    .then((colores) => import('../app.js').then(({ burstConfetti }) => burstConfetti(48, colores?.length ? colores : undefined)))
-    .catch(() => {})
-  d.classList.add('mc-completo-gira')
-  // SIN modal (`show`, no `showModal`): la carta que lo completa acaba de
-  // entrar con su aviso de Deshacer, y una capa encima lo dejaría sin poder
-  // pulsar. Se celebra al lado, no tapando.
-  if (!d.open) d.show()
-  return d
+  const [{ celebrarMomento }, colores] = await Promise.all([
+    import('../celebrar-momento.js'),
+    import('../efectos.js').then(({ coloresDeLogo }) => coloresDeLogo(logo)).catch(() => null),
+  ])
+  const insignia = logo
+    ? `<img class="celebra-logo" src="${escapeHtml(logo)}" alt="" />`
+    : `<span class="celebra-icono celebra-icono-medalla">${icons.medal(36)}</span>`
+  return celebrarMomento({
+    id: 'mcCompleto',
+    tono: 'set',
+    gesto: 'contento',
+    insignia,
+    ceja: 'Expansión completa',
+    titulo: `¡Has completado ${nombre || 'la colección'}!`,
+    texto: total ? `Las ${total} cartas del set, todas tuyas.` : 'Todas las cartas del set, tuyas.',
+    cifras: total ? [[total, total === 1 ? 'carta' : 'cartas'], ['100 %', 'completa']] : [],
+    boton: compartir ? { texto: 'Compartir', alPulsar: compartir } : null,
+    confeti: 70,
+    colores: colores?.length ? colores : undefined,
+    modal: false,
+  })
 }
 
 // «AÑADIDA», DICHO CON EL PROPIO BOTÓN (728, V4 de la lista). Al añadir, el

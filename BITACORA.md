@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (646) — PINGU-Claude (1399 — Las pantallas que celebran)
+
+**Hecho** (PINGU: «y luego las pantallas que celebran… también me gusta»).
+- **Subir de nivel**: de un toast a una pantalla con la mascota, el icono del
+  nivel en su color, «7 de 10», lo que falta para el siguiente y Compartir.
+- **Rachas de 7, 30 y 100 días**: al entrar el día que llegas, la pantalla
+  con la llama (y «+1 protector» a los 7). Las demás rachas, como siempre.
+- **Expansión completa**: la cajita de arriba pasa a la misma pantalla, con
+  el logo del set y el confeti de sus colores; sigue sin capa para no tapar
+  el Deshacer de la carta que la completa.
+- Un solo molde (`js/celebrar-momento.js` + `css/celebra.css`), fuera de la
+  portada: se baja al celebrar. Portada 151,1 KB (quedan 18,9).
+
+**Ficheros**: `js/celebrar-momento.js` y `css/celebra.css` (nuevos),
+`js/gamification.js`, `js/mi-coleccion/ensenar.js`, `css/mi-coleccion.css`
+(fuera la cajita vieja), `normas/interfaz.md`. Prueba
+`test-tanda-1399-pantalla.mjs`; puestas al día la 725 (la mascota, más
+grande), la 784 y la 873 (leían el código viejo); 1389 en verde (983 y 835
+ya fallaban antes).
+
+**Pendiente**: nada de lo acordado. Todo (1396–1399) espera al «sube».
+
 ## 2026-11-18 (645) — PINGU-Claude (1398 — Tu próximo torneo en cartel y los mazos como póster)
 
 **Hecho** (PINGU: «lo de los mazos también me gusta… en el PC también se ve

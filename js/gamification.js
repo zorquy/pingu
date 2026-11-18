@@ -69,16 +69,21 @@ export function levelBadgeHtml(nivel, tamanoIcono = 12) {
 // La subida de nivel pasaba en silencio: el número cambiaba en el perfil
 // y nadie se enteraba. Confeti y un toast, como con los logros — y en un
 // try porque una celebración no puede tumbar jamás el guardado del XP.
+// Desde la 1399, una pantalla con la mascota (js/celebrar-momento.js, por
+// import(): no pesa en la portada); el toast queda si el módulo no llega.
 function celebrarSubidaDeNivel(nivel) {
-  try {
-    burstConfetti()
-    // Con «Compartir» (873): la hoja común, por import(), solo si se pulsa.
-    showToast(`¡Has subido de nivel! Ahora eres ${nivel}.`, 'success', {
-      accion: { texto: 'Compartir', alPulsar: () => import('./logro-compartir.js').then((m) => m.compartirNivel(nivel)).catch(() => {}) },
+  // Con «Compartir» (873): la hoja común, por import(), solo si se pulsa.
+  const compartir = () => import('./logro-compartir.js').then((m) => m.compartirNivel(nivel)).catch(() => {})
+  import('./celebrar-momento.js')
+    .then((m) => m.celebrarNivel(nivel, { compartir }))
+    .catch(() => {
+      try {
+        burstConfetti()
+        showToast(`¡Has subido de nivel! Ahora eres ${nivel}.`, 'success', { accion: { texto: 'Compartir', alPulsar: compartir } })
+      } catch {
+        /* nada: era solo la fiesta */
+      }
     })
-  } catch {
-    /* nada: era solo la fiesta */
-  }
 }
 
 
@@ -325,6 +330,11 @@ export async function checkDailyStreak(userId) {
     : { current_streak: newStreak, last_active_date: today, streak_shields: escudos }
   await supabase.from('user_profiles').update(cambios).eq('id', userId)
   await addXP(userId, STREAK_BONUS_XP)
+  // 7, 30 y 100 días, en grande (1399); con el protector ganado si toca.
+  if (newStreak === 7 || newStreak === 30 || newStreak === 100) {
+    const escudo = !sinProtector && newStreak % 7 === 0
+    import('./celebrar-momento.js').then((m) => m.celebrarRacha(newStreak, { escudo, hoy: today })).catch(() => {})
+  }
   return newStreak
 }
 
