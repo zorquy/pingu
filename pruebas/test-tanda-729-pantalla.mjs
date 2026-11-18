@@ -32,9 +32,9 @@ async function abrir() {
   const v = await page.evaluate(() => {
     const c = document.getElementById('mcCartasVacio')
     const img = c?.querySelector('.mc-vacio-img')
-    return c ? { ve: !c.classList.contains('hidden'), img: img ? { w: img.getAttribute('width'), h: img.getAttribute('height'), src: img.getAttribute('src') } : null, botones: [...c.querySelectorAll('.mc-vacio-acciones > *')].map((b) => b.textContent.trim()), pie: c.querySelector('.mc-vacio-pie')?.textContent.trim() } : null
+    return c ? { ve: !c.classList.contains('hidden'), img: img ? { w: Math.round(img.getBoundingClientRect().width), h: Math.round(img.getBoundingClientRect().height), gesto: img.dataset.mascota } : null, botones: [...c.querySelectorAll('.mc-vacio-acciones > *')].map((b) => b.textContent.trim()), pie: c.querySelector('.mc-vacio-pie')?.textContent.trim() } : null
   })
-  check('sin cartas sale el vacío, con la mascota y su hueco reservado', v?.ve && v.img?.src.includes('mascota') && v.img.w === '96' && v.img.h === '145', JSON.stringify(v))
+  check('sin cartas sale el vacío, con la mascota y su hueco reservado', v?.ve && v.img?.gesto === 'triste' && v.img.w === 96 && v.img.h === 145, JSON.stringify(v))
   // 758: el escáner está escondido, así que queda UN camino.
   check('  …y un camino: buscar', JSON.stringify(v?.botones) === JSON.stringify(['Buscar una carta']), JSON.stringify(v?.botones))
   check('  …y debajo, traerla de otra app', /Collectr o Dex/.test(v?.pie || ''), v?.pie)

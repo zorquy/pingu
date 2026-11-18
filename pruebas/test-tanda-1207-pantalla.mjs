@@ -143,7 +143,7 @@ console.log('── 4. El móvil ──')
     const r = bd.getBoundingClientRect()
     return { cartas: bd.querySelectorAll('.banda-carta').length, dentro: ab.right <= r.right && ab.left >= r.left, mascota: getComputedStyle(bd.querySelector('.banda-mascota')).display, masNoticias: getComputedStyle(document.getElementById('masNoticiasSeccion')).display }
   })
-  check('la banda en pequeño: las tres cartas dentro, sin mascota', m.cartas === 3 && m.dentro && m.mascota === 'none', JSON.stringify(m))
+  check('la banda en pequeño: las tres cartas dentro, y la mascota 3D pequeña (1389)', m.cartas === 3 && m.dentro && m.mascota !== 'none', JSON.stringify(m))
   check('«Más noticias» de abajo no sale (las noticias son la tira, 1190)', m.masNoticias === 'none', JSON.stringify(m))
   check('el foro, con sus cuatro', (await page.locator('.pb-foro-cuatro > li').count()) === 4)
   check('la comunidad, con sus cuatro', (await page.locator('#homeActivityFeed .suc-lista > li').count()) === 4)

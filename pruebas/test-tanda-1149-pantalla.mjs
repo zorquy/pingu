@@ -92,7 +92,7 @@ for (const [ruta, titulo, parecida] of [['/guia/guia-charizard-estandar', 'Esta 
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-no-encontrado]', { timeout: 8000 }).catch(() => {})
   await page.waitForTimeout(1500)
-  const r = await page.evaluate(() => ({ h1: document.querySelector('[data-no-encontrado] h1')?.textContent, q: document.querySelector('[data-no-encontrado] input[name=q]')?.value, en: document.querySelector('[data-no-encontrado] input[name=en]')?.value, parecidas: [...document.querySelectorAll('#noEncontradoParecidas a')].map((a) => a.textContent.trim()), mascota: !!document.querySelector('[data-no-encontrado] img.mascota'), ancho: document.documentElement.scrollWidth <= innerWidth }))
+  const r = await page.evaluate(() => ({ h1: document.querySelector('[data-no-encontrado] h1')?.textContent, q: document.querySelector('[data-no-encontrado] input[name=q]')?.value, en: document.querySelector('[data-no-encontrado] input[name=en]')?.value, parecidas: [...document.querySelectorAll('#noEncontradoParecidas a')].map((a) => a.textContent.trim()), mascota: !!document.querySelector('[data-no-encontrado] .mascota[data-mascota="pensar"]'), ancho: document.documentElement.scrollWidth <= innerWidth }))
   check(`${ruta}: la mascota y «${titulo}»`, r.h1 === titulo && r.mascota, JSON.stringify(r))
   if (parecida) check('  …el buscador relleno y una parecida', r.q && parecida.test(r.parecidas.join(' ')), JSON.stringify(r))
   else check('  …un id no rellena nada ni inventa parecidas', r.q === '' && r.parecidas.length === 0, JSON.stringify(r))

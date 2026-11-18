@@ -95,7 +95,7 @@ const browser = await chromium.launch()
 console.log('── 3. D3: la página sin conexión ──')
 {
   const html = leer('sin-conexion.html')
-  check('va entera dentro (sin pedir nada a la red): la mascota incrustada', /<img src="data:image\/webp;base64,/.test(html) && !/<link rel="stylesheet"/.test(html) && !/<script[^>]+src=/.test(html))
+  check('va entera dentro (sin pedir nada a la red): la mascota incrustada (de respaldo de la 3D, 1389)', /<img[^>]+src="data:image\/webp;base64,/.test(html) && !/<link rel="stylesheet"/.test(html) && !/<script[^>]+src=/.test(html))
   check('«Sin cobertura» y las salidas a lo que funciona: tu colección, el modo evento y las guías leídas', /<h1>Sin cobertura<\/h1>/.test(html) && /id="irColeccion" href="\/mi-coleccion"/.test(html) && /id="irEvento" href="\/evento"/.test(html) && /pokedoc-lectura-1/.test(html))
   check('se reintenta sola', /setInterval\(function \(\) \{\s*fetch\('\/huellas\.txt\?sin-red=/.test(html) && /addEventListener\('online'/.test(html))
   const ctx = await browser.newContext({ viewport: { width: 400, height: 800 } })
