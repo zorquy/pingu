@@ -11,6 +11,8 @@ import { escapeHtml } from './html.js'
 import { achievementIconHtml } from './app.js'
 import { getAllAchievements } from './gamification.js'
 import { esLogroDeTorneo, siguienteHito } from './torneos/palmares.js'
+import { arquetipoDeMazo, claveDeArquetipo, dexesDeNombre } from './torneos/arquetipos.js'
+import { artePokemonHtml } from './arte-pokemon.js'
 
 const vacio = (propia) =>
   propia
@@ -118,8 +120,54 @@ export async function pintarTorneosDe(caja, { userId, propia = false, logros = [
     grupo('Jugando ahora', jugando.map((t) => fila(t, '<span class="mis-torneos-puesto vivo">En juego</span>'))) +
     grupo(propia ? 'Apuntado' : 'Apuntado a', apuntado.map((t) => fila(t, `<span class="mis-torneos-puesto subtext">${estadoInscripcion.get(t.id) === 'waitlisted' ? 'En lista de espera' : 'Inscrito'}</span>`))) +
     grupo('Jugados', jugados.map((t) => fila(t, puestoDe(t))))
-  caja.innerHTML = (jugados.length ? cifrasDeTorneosHtml(jugados, userId) + palmaresHtml(definiciones, logros, userId, jugados) : '') + (lista || vacio(propia))
+  // La vitrina (1395, «Torneos en modo juego»): las cifras, las medallas y el
+  // mazo de torneo en el panel de juego; debajo, la lista de siempre.
+  const vitrina = jugados.length
+    ? `<section class="perfil-vitrina" aria-label="Vitrina de torneos">
+        <span class="perfil-vitrina-brillo" aria-hidden="true"></span>
+        <small class="perfil-vitrina-kick">VITRINA DE TORNEOS</small>
+        ${cifrasDeTorneosHtml(jugados, userId)}${palmaresHtml(definiciones, logros, userId, jugados)}
+        <div class="perfil-vitrina-mazo" data-mazo-de-torneo hidden></div>
+      </section>`
+    : ''
+  caja.innerHTML = vitrina + (lista || vacio(propia))
+  if (jugados.length) void pintarMazoDeTorneo(caja.querySelector('[data-mazo-de-torneo]'), userId, jugados, propia)
   // Tu temporada en cada liga (1323): por su cuenta, detrás de lo de arriba.
   const ligas = (torneos || []).filter((t) => t.format === 'league' && estadoInscripcion.get(t.id) !== 'dropped')
   if (ligas.length) import('./perfil-liga.js').then((m) => m.pintarLigasDe(supabase, caja, { userId, torneos: ligas })).catch(() => {})
+}
+
+// El mazo de torneo (1395, D4 de «Jugar con cara de juego»): el que más ha
+// llevado en torneos de PokeDoc YA TERMINADOS, sacado de sus listas — nunca
+// de las partidas sueltas, que se apuntan a mano. Las listas de un torneo
+// terminado las ve cualquiera (230); las de uno en juego, no, y no se piden.
+// Puro: lo prueba node.
+export function mazoMasJugado(listas, catalogo = []) {
+  const cuenta = new Map()
+  for (const l of listas || []) {
+    if (!l?.parsed_cards) continue
+    const arq = arquetipoDeMazo(l.parsed_cards, catalogo)
+    if (!arq?.iconos?.length && !arq?.id) continue
+    const clave = claveDeArquetipo(arq)
+    const x = cuenta.get(clave) || { nombre: arq.nombre, iconos: arq.iconos, veces: 0 }
+    x.veces++
+    cuenta.set(clave, x)
+  }
+  return [...cuenta.values()].sort((a, b) => b.veces - a.veces)[0] || null
+}
+
+async function pintarMazoDeTorneo(hueco, userId, jugados, propia) {
+  if (!hueco) return
+  try {
+    const [{ data: listas }, { data: catalogo }] = await Promise.all([
+      supabase.from('tournament_decklists').select('tournament_id, parsed_cards').eq('user_id', userId).in('tournament_id', jugados.map((t) => t.id)),
+      supabase.from('tcg_archetypes').select('*').eq('activo', true),
+    ])
+    const mazo = mazoMasJugado(listas, catalogo || [])
+    if (!mazo) return
+    const dex = dexesDeNombre(mazo.iconos?.[0]?.nombre || mazo.nombre)[0]
+    hueco.innerHTML = `${dex ? artePokemonHtml(dex, 'perfil-vitrina-arte') : ''}
+      <span><small>${propia ? 'TU MAZO DE TORNEO' : 'SU MAZO DE TORNEO'}</small><b>${escapeHtml(mazo.nombre)}</b><em>${mazo.veces} ${mazo.veces === 1 ? 'torneo' : 'torneos'}</em></span>`
+    hueco.hidden = false
+  } catch {}
 }

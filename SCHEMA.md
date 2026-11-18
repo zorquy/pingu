@@ -55212,6 +55212,16 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1395 — Torneo en modo juego: la vitrina del perfil
+
+- `js/perfil-torneos.js`: con torneos jugados, `section.perfil-vitrina` arriba
+  de `#misTorneos` (las tres cifras de la 1271 y el palmarés de la 867 dentro)
+  y un hueco `[data-mazo-de-torneo]` que rellena `pintarMazoDeTorneo` con
+  `tournament_decklists` del usuario en esos torneos terminados y el catálogo
+  `tcg_archetypes`. `mazoMasJugado(listas, catalogo)` (puro): el arquetipo más
+  repetido `{ nombre, iconos, veces }`.
+- `css/perfil.css` (bloque 1395): `.perfil-vitrina*` en panel de juego.
+
 ## Tanda 1394 — Torneo en modo juego: el campeón y «Tu torneo»
 
 - `supabase-migration-1394-portada-podio.sql`: `portada_hoy()` igual que la

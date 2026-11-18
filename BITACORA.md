@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (642) — PINGU-Claude (1395 — Torneo en modo juego: la vitrina del perfil)
+
+**Hecho** (la propuesta «Jugar con cara de juego», D4, y el último paso de
+«Torneos en modo juego»).
+- **Perfil › Torneos** abre con la **vitrina** en el panel de juego: las tres
+  cifras (torneos, mejor puesto, podios), las medallas y el **mazo de torneo**
+  con el dibujo de su Pokémon y cuántas veces lo llevó.
+- El mazo sale solo de sus listas de torneos de PokeDoc terminados; una liga
+  en juego no cuenta (su lista no se ve), y las partidas sueltas tampoco.
+
+**Ficheros**: `js/perfil-torneos.js` (`mazoMasJugado`, `pintarMazoDeTorneo`),
+`css/perfil.css`, `normas/jugar.md`. Prueba `test-tanda-1395-pantalla.mjs`;
+1270, 1323 y 248 en verde (262 y 867 ya fallaban antes).
+
+**Pendiente**: nada de la propuesta; queda ejecutar la migración 1394.
+
 ## 2026-11-18 (641) — PINGU-Claude (1394 — Torneo en modo juego: el campeón y «Tu torneo»)
 
 **Hecho** (la propuesta «Torneos en modo juego», D4 paso 4, y «Tu torneo» de

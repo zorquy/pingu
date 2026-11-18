@@ -2316,3 +2316,21 @@ button.perfil-logro-destacado,
   .perfil-ajena .perfil-franja { padding-inline: var(--e-xl); }
   .perfil-ajena .perfil-social { padding-inline: 0; }
 }
+
+/* ══ 1395 — La vitrina de torneos (SCHEMA 1395): las cifras, las medallas y
+   el mazo de torneo en el panel de juego violeta, oscuro en los dos temas. ══ */
+.perfil-vitrina { position: relative; overflow: hidden; display: grid; gap: var(--e-sm); margin-bottom: var(--e-md); padding: var(--e-md); border-radius: 18px; color: #f2eefc; border: 1px solid #3a2f7a; background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 45%, #16202b 100%); }
+.perfil-vitrina > * { position: relative; z-index: 1; }
+.perfil-vitrina-brillo { position: absolute !important; z-index: 0 !important; right: -70px; top: -80px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(155, 123, 255, 0.4), transparent 65%); pointer-events: none; }
+.perfil-vitrina-kick { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: #c9b8ff; }
+.perfil-vitrina .perfil-tres-cifras { margin: 0; }
+.perfil-vitrina .perfil-tres-cifras > div { background: rgba(11, 18, 25, 0.5); border-color: rgba(255, 255, 255, 0.08); }
+.perfil-vitrina .perfil-tres-cifras b { color: #fff; }
+.perfil-vitrina .perfil-tres-cifras small, .perfil-vitrina .torneo-palmares { color: #b7aee0; }
+.perfil-vitrina .palmares-fila { margin: 0; }
+.perfil-vitrina-mazo { display: flex; align-items: center; gap: var(--e-sm); min-height: 72px; padding: 6px 10px; border-radius: 14px; background: rgba(11, 18, 25, 0.55); }
+.perfil-vitrina-mazo > span { display: grid; min-width: 0; }
+.perfil-vitrina-mazo small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; color: #c9b8ff; }
+.perfil-vitrina-mazo b { font-family: var(--font-marca); font-size: var(--t-lg); color: #fff; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.perfil-vitrina-mazo em { font-style: normal; font-size: var(--t-xs); color: #b7aee0; }
+.perfil-vitrina-arte { width: 72px; height: 72px; object-fit: contain; flex: none; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45)); }

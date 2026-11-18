@@ -305,3 +305,8 @@ arriba «Tu último torneo» (el de PokeDoc más reciente, solo con la lista sin
 filtrar). Inicio dice «Tu torneo · ¡Campeón!» esos mismos días, con el podio
 que trae `portada_hoy()` (migración 1394): **Inicio no hace consultas sueltas**
 (la 1017 lo vigila), así que lo que necesite va en esa función.
+**La vitrina del perfil** (1395): Perfil › Torneos abre con las cifras, las
+medallas y el **mazo de torneo** en el panel de juego. Ese mazo sale SOLO de
+sus listas de torneos de PokeDoc terminados (`mazoMasJugado`, con
+`arquetipoDeMazo`), nunca de las partidas sueltas, que se apuntan a mano y no
+se comprueban; ni de un torneo en juego, cuya lista no se ve (230).
