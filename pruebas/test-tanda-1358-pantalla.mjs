@@ -89,12 +89,19 @@ for (const [ruta, marcada] of [['/laboratorio', 'Mazos'], ['/repeticiones', 'Par
   await ctx.close()
 }
 
-console.log('── 4. Cada mazo: Editar, Probar y «A un torneo» ──')
+console.log('── 4. Cada mazo: Probar, y en el «⋯» Editar y «A un torneo» ──')
 {
   const { page, ctx } = await abrir('/mazos', false)
-  const botones = await page.evaluate(() => [...document.querySelectorAll('.cm-mazo-tarjeta')][0] ? [...document.querySelectorAll('.cm-mazo-tarjeta')[0].querySelectorAll('.cm-mazo-pie > a.cm-btn')].map((a) => a.textContent.trim()) : [])
-  check('la tarjeta lleva Editar, Probar y A un torneo a la vista', botones.join('|') === 'Editar|Probar|A un torneo', botones.join('|'))
+  // Desde la 1398 (cada mazo un póster) a la vista solo va «Probar»; Editar y
+  // «A un torneo» están en el «⋯».
+  const botones = await page.evaluate(() => {
+    const t = document.querySelector('.cm-mazo-tarjeta')
+    if (!t) return { vista: [], menu: [] }
+    return { vista: [...t.querySelectorAll('.cm-mazo-pie > a.cm-btn')].map((a) => a.textContent.trim()), menu: [...t.querySelectorAll('.cm-mazo-menu > a')].map((a) => a.textContent.trim()) }
+  })
+  check('la tarjeta lleva Probar a la vista, y Editar y A un torneo en el «⋯»', botones.vista.join('|') === 'Probar' && botones.menu.join('|') === 'Editar|A un torneo', JSON.stringify(botones))
   const nombre = await page.locator('.cm-mazo-tarjeta .cm-mazo-nombre').first().innerText()
+  await page.locator('.cm-mazo-tarjeta .cm-mazo-mas summary').first().click()
   await Promise.all([page.waitForURL(/torneos/), page.locator('.cm-mazo-tarjeta [data-a-torneo]').first().click()])
   await page.waitForTimeout(2000)
   const linea = await page.evaluate(() => { const c = document.getElementById('torneosMazoElegido'); return c && !c.hidden ? c.textContent.trim() : null })

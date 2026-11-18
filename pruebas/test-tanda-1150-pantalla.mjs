@@ -1,7 +1,7 @@
 // Tanda 1150 — de «Cuatro pantallas más»:
 //   C3 · el perfil a lo ancho en el PC; desde la 1270, en dos columnas.
 //   C4 · Mis mazos compactos: una fila por mazo en el móvil; en el PC, la
-//        franja de foto más baja.
+//        franja de foto más baja. (Desde la 1398, en el móvil, un póster.)
 import { chromium, contexto, BASE } from './fixtures-app.mjs'
 
 let fails = 0
@@ -50,8 +50,11 @@ console.log('── 2. Mis mazos ──')
   await page.waitForSelector('.cm-mazo-tarjeta', { timeout: 8000 }).catch(() => {})
   await page.waitForTimeout(800)
   const t = await page.$$eval('.cm-mazo-tarjeta', (ts) => ts.map((x) => ({ alto: Math.round(x.getBoundingClientRect().height), foto: Math.round(x.querySelector('.cm-mazo-portada').getBoundingClientRect().width), formato: getComputedStyle(x.querySelector('.mz-chip-formato')).display !== 'none', probar: !!x.querySelector('a[href^="/laboratorio"]') })))
-  check('en el móvil, una fila por mazo (menos de 180 de alto) con la foto en pequeño', t.length && t.every((x) => x.alto < 180 && x.foto <= 72), JSON.stringify(t))
-  check('  …el formato en una chapa y «Probar» a mano', t.every((x) => x.formato && x.probar), JSON.stringify(t))
+  // Desde la 1398 («PokeDoc en modo app», PINGU: «lo de los mazos también me
+  // gusta») el móvil deja la fila: cada mazo es un póster con la portada a lo
+  // ancho y «Probar» como único botón (lo mira test-tanda-1398-pantalla.mjs).
+  check('en el móvil, cada mazo un póster con la portada a lo ancho', t.length && t.every((x) => x.foto >= 300), JSON.stringify(t))
+  check('  …y «Probar» a mano', t.every((x) => x.probar), JSON.stringify(t))
   check('  …sin desbordar de lado', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
   await ctx.close()
 }

@@ -61,7 +61,9 @@ console.log('── 2. /mazos ──')
   check('el récord de sus partidas apuntadas con ese mazo', /7-3-1 en tus partidas/.test(await t2.innerText()))
   check('  …lo que falta para 60', /Faltan 52 para 60/.test(await t2.innerText()))
   check('  …el color de su tipo', (await t2.getAttribute('data-tipo')) === 'Water')
-  check('  …y la barra de Pokémon, Entrenadores y Energías', (await t2.locator('.mz-barra i').count()) === 3 && /4 Pokémon/.test(await t2.innerText()))
+  // Desde la 1398 (el póster) la leyenda va escondida: queda la barra, y el
+  // texto sigue en la página para quien lo lee.
+  check('  …y la barra de Pokémon, Entrenadores y Energías', (await t2.locator('.mz-barra i').count()) === 3 && /4 Pokémon/.test(await t2.textContent()))
   check('lo que te falta sale solo: con todo, «Lo tienes entero»', /Lo tienes entero/.test(await t2.locator('[data-coste-caja]').innerText()), await t2.locator('[data-coste-caja]').innerText())
   const t1 = page.locator('.cm-mazo-tarjeta[data-id="mazo-1"]')
   check('  …y si no, cuántas y cuánto', /Faltan 4 · 50/.test(await t1.locator('[data-coste-caja]').innerText()), await t1.locator('[data-coste-caja]').innerText())
