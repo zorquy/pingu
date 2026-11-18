@@ -1657,7 +1657,7 @@ function pintarMesas(ronda) {
               .join('')}</div>`
           : ''
       return `
-      <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'}">
+      <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'} torneo-mesa-${estadoDeMesa(m)}">
         <span class="torneo-mesa-num">${m.table_number}</span>
         ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
         <span class="torneo-mesa-centro">${terminal && res && res.score_a != null && res.score_b != null && m.status !== 'bye' ? `<b class="torneo-mesa-marcador">${res.score_a}–${res.score_b}</b>` : ''}${chapaDeMesa(m)}</span>
@@ -1673,7 +1673,27 @@ function pintarMesas(ronda) {
   // es cada cosa; aquí la forma lo dice sola: número, uno, resultado,
   // otro. Y en el móvil ya no hace falta convertirla en tarjetas con
   // `data-etiqueta`, porque nunca fue una tabla.
-  return `<div class="torneo-mesas">${filas}</div>`
+  // El mapa (1392, modo juego): cada mesa con el color de su estado y, arriba,
+  // la leyenda con cuántas hay de cada uno.
+  return `${leyendaDeMesasHtml(mesas)}<div class="torneo-mesas torneo-mesas-mapa">${filas}</div>`
+}
+
+// El estado de una mesa en el mapa (1392): jugando (violeta y latiendo),
+// disputa (rojo, la que pide a alguien), cerrada (verde) o sin empezar.
+function estadoDeMesa(m) {
+  if (TERMINALES.has(m.status)) return 'cerrada'
+  if (m.status === 'disputed') return 'disputa'
+  if (m.status === 'pending') return 'espera'
+  return 'jugando'
+}
+
+function leyendaDeMesasHtml(mesas) {
+  const cuenta = { jugando: 0, disputa: 0, cerrada: 0, espera: 0 }
+  for (const m of mesas) cuenta[estadoDeMesa(m)]++
+  const NOMBRE = { jugando: ['jugando', 'jugando'], disputa: ['en disputa', 'en disputa'], cerrada: ['terminada', 'terminadas'], espera: ['sin empezar', 'sin empezar'] }
+  const partes = ['jugando', 'disputa', 'espera', 'cerrada'].filter((k) => cuenta[k])
+  if (partes.length < 2 && !cuenta.disputa) return ''
+  return `<p class="torneo-mesas-leyenda">${partes.map((k) => `<span class="torneo-leyenda-${k}"><i aria-hidden="true"></i>${cuenta[k]} ${NOMBRE[k][cuenta[k] === 1 ? 0 : 1]}</span>`).join('')}</p>`
 }
 
 // «⋯» de cada mesa (1377, la versión 2 de «El torneo, renovado»): «Corregir»
@@ -3233,7 +3253,9 @@ function pintarProximaJornada() {
 }
 
 // Mientras se juega (1345): los tres de arriba, en tres cajas, con sus puntos.
-// No es el podio del final (ese sale con el torneo cerrado): dice «va».
+// No es el podio del final (ese sale con el torneo cerrado): dice «va». Desde
+// la 1392 (modo juego) es un podio de verdad: cada uno sobre su peana, la del
+// primero más alta y dorada, y su mazo si las listas se ven (`chapaDe`).
 function lideresHtml(tabla) {
   return `<div class="torneo-lideres" aria-label="Quién va primero">${tabla
     .slice(0, 3)
@@ -3243,6 +3265,8 @@ function lideresHtml(tabla) {
         <span class="torneo-lider-pos">${i + 1}.º</span>
         <strong>${escapeHtml(nombreDe(e.playerId))}</strong>
         <span class="subtext">${e.matchPoints} pts<span class="torneo-lider-vde"> · ${e.wins}-${e.losses}-${e.draws}</span></span>
+        ${chapaDe(e.playerId)}
+        <span class="torneo-peana" aria-hidden="true">${i + 1}</span>
       </div>`
     )
     .join('')}</div>`
@@ -3330,7 +3354,7 @@ function pintarClasificacion() {
   const banner = !general
     ? ''
     : podio.length
-    ? `<div class="torneo-podio">
+    ? `<div class="torneo-podio torneo-podio-de-${podio.length}">
         ${podio
           .map(
             (id, i) => `
@@ -3339,7 +3363,9 @@ function pintarClasificacion() {
             <span class="torneo-podio-icono">${i === 0 ? icons.trophy(26) : icons.medal(20)}</span>
             <strong>${escapeHtml(nombreDe(id))}</strong>
             <span class="subtext">${PUESTOS[i]}</span>
+            ${chapaDe(id)}
             ${id === miId() ? `<button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${i}">${icons.share(14)} Compartir</button>` : ''}
+            <span class="torneo-peana" aria-hidden="true">${i + 1}</span>
           </div>`
           )
           .join('')}
@@ -3382,6 +3408,7 @@ function pintarClasificacion() {
   // alguien tenía abierta la lista de un rival, se le cerraba sola.
   if (yaEstaPintado('clasificacion', htmlClasif)) return
   $('clasificacionContenido').innerHTML = htmlClasif
+  vigilarMiFila(tabla)
 
   // Las pestañitas y los «Ver lista», recién pintados: se enganchan aquí.
   document.querySelectorAll('[data-ver-clasif]').forEach((b) =>
@@ -3407,6 +3434,29 @@ function pintarClasificacion() {
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)
+}
+
+// «Tú» a mano en la Tabla (1392, modo juego): en el móvil, con tu fila fuera
+// de la pantalla, una pastilla abajo dice tu puesto y te lleva a ella. En el PC
+// la tabla cabe y no sale (CSS).
+let vigiaMiFila = null
+function vigilarMiFila(tabla) {
+  vigiaMiFila?.disconnect()
+  vigiaMiFila = null
+  const caja = $('clasificacionContenido')
+  const fila = caja?.querySelector('tr.torneo-fila-yo')
+  const i = tabla.findIndex((e) => e.playerId === miId())
+  if (!fila || i < 0 || tabla.length < 8 || typeof IntersectionObserver !== 'function') return
+  const e = tabla[i]
+  const boton = document.createElement('button')
+  boton.type = 'button'
+  boton.className = 'torneo-tu-flota'
+  boton.hidden = true
+  boton.innerHTML = `${caraDe(miId())}<b>Tú · ${i + 1}º</b><span>${e.matchPoints} pts</span>${icons.arrowDown(16)}`
+  boton.addEventListener('click', () => fila.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' }))
+  caja.appendChild(boton)
+  vigiaMiFila = new IntersectionObserver(([v]) => { boton.hidden = v.isIntersecting })
+  vigiaMiFila.observe(fila)
 }
 
 // El bracket del cut como en su clasificación: una columna por ronda

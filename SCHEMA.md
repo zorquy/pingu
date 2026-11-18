@@ -55212,6 +55212,19 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1392 — Torneo en modo juego: tabla con podio y mesas en mapa
+
+- `lideresHtml` y el podio del final llevan `<span class="torneo-peana">N</span>`
+  y `chapaDe(id)`; `.torneo-podio-de-N` dice cuántos hay. El texto «1.º» queda
+  solo para el lector de pantalla.
+- `estadoDeMesa(m)` → `jugando | disputa | cerrada | espera`; cada
+  `.torneo-mesa` lleva `torneo-mesa-<estado>`. `leyendaDeMesasHtml(mesas)`
+  (`p.torneo-mesas-leyenda`, solo con dos estados o una disputa) va encima de
+  `.torneo-mesas.torneo-mesas-mapa` (rejilla de `minmax(400px, 1fr)`).
+- `vigilarMiFila(tabla)`: con tu fila y 8 o más en la tabla, un
+  `button.torneo-tu-flota` al final de `#clasificacionContenido` que un
+  IntersectionObserver enseña con la fila fuera; solo se ve por debajo de 900 px.
+
 ## Tanda 1391 — Torneo en modo juego: VS, tu camino y la celebración
 
 - `js/torneos/celebrar.js`: `celebrarRonda({ matchId, res: 'V'|'D'|'E',

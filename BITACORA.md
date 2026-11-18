@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (639) — PINGU-Claude (1392 — Torneo en modo juego: la tabla con podio y las mesas en mapa)
+
+**Hecho** (la propuesta «Torneos en modo juego», D4 paso 2).
+- **Tabla**: «quién va» (y el podio del final) son un podio de verdad: cada
+  uno sobre su peana, 2-1-3, la del primero dorada y más alta, con su mazo si
+  las listas se ven. Tu fila, con un borde de color.
+- **«Tú» a mano** en el móvil: con tu fila fuera de la pantalla sale abajo
+  «Tú · 4º · 3 pts», que te lleva a ella.
+- **Mesas en mapa**: en rejilla en el PC, cada mesa con el color de su estado
+  (jugando violeta y latiendo, disputa roja, terminada verde), la tuya rodeada
+  y, encima, la leyenda «1 jugando · 1 en disputa · 2 terminadas».
+
+**Ficheros**: `js/torneos/ronda.js` (`lideresHtml`, el podio,
+`estadoDeMesa`, `leyendaDeMesasHtml`, `vigilarMiFila`), `css/torneos.css`,
+`normas/jugar.md`. Prueba `test-tanda-1392-pantalla.mjs`; 1341, 1347, 1377,
+1378, 1391, 298, 394, 516, 555, 722, 873 y torneos-15 en verde (la 255 ya
+fallaba antes).
+
+**Pendiente**: la arena y elegir mazo (1393), el campeón y «Tu torneo»
+(1394) y la vitrina (1395).
+
 ## 2026-11-18 (638) — PINGU-Claude (1391 — Torneo en modo juego: la pantalla VS, tu camino y la celebración)
 
 **Hecho** (la propuesta «Torneos en modo juego», PINGU: «dale con todo lo

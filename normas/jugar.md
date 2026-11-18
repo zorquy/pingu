@@ -283,3 +283,11 @@ derrota con la mascota triste, empate con un guiño, los puntos y cuánto
 subes. Sale UNA vez por mesa y navegador (`pd-celebrada-<id>`) y solo si se
 acaba de cerrar (menos de tres horas, o el torneo en juego): abrir un torneo
 viejo no celebra nada. Un bye no se celebra.
+La **tabla** es un podio (los tres de arriba sobre peanas, 2-1-3; la del
+primero, dorada y más alta; con su mazo si las listas se ven) y tu fila lleva
+su borde; en el móvil, con tu fila fuera de la pantalla, la pastilla «Tú · Nº»
+te lleva a ella (solo con ocho o más). Las **mesas** son un mapa: cada una con
+el color de su estado (`estadoDeMesa`: jugando violeta y latiendo, disputa
+roja, terminada verde, sin empezar gris), la tuya rodeada y la leyenda con
+cuántas hay de cada. Un estado nuevo de mesa entra en `estadoDeMesa`, no en el
+CSS suelto.

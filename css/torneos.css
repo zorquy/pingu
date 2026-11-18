@@ -4984,3 +4984,102 @@ button.torneo-tj { cursor: pointer; }
 .torneo-celebra-cifras b { font-family: var(--font-marca); font-size: var(--t-2xl); }
 .torneo-celebra-cifras small { font-size: var(--t-2xs); color: #a9bcc6; }
 .torneo-celebra-seguir { width: 100%; }
+
+/* ══ 1392 — Torneos en modo juego: la tabla con podio y las mesas en mapa
+   (SCHEMA 1392) ══ */
+/* El podio: cada uno sobre su peana (la del 1.º, más alta y dorada). Sirve
+   para «quién va» (.torneo-lider) y para el del final (.torneo-podio). */
+.torneo-lideres { gap: var(--e-xs); align-items: end; max-width: 620px; margin-inline: auto; }
+/* El puesto ya lo dice la peana; el texto queda para el lector de pantalla. */
+.torneo-lider .torneo-lider-pos { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.torneo-lider,
+.torneo-podio-puesto { position: relative; padding-bottom: 0; border: 0; background: none; overflow: visible; }
+.torneo-peana {
+  justify-self: stretch;
+  align-self: stretch;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  margin-top: var(--e-xs);
+  height: 52px;
+  border-radius: 12px 12px 4px 4px;
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, #9aa7b8, #6b7889);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+.torneo-lider-1 .torneo-peana,
+.torneo-podio-1 .torneo-peana { height: 84px; font-size: 2.4rem; background: linear-gradient(180deg, #f6c945, #c48a0a); box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 10px 26px rgba(217, 164, 6, 0.35); }
+.torneo-lider-2 .torneo-peana,
+.torneo-podio-2 .torneo-peana { height: 64px; }
+.torneo-lider-3 .torneo-peana,
+.torneo-podio-3 .torneo-peana,
+.torneo-podio-4 .torneo-peana { height: 44px; background: linear-gradient(180deg, #d39867, #a3643a); }
+.torneo-lider-1 { padding-block: 0; }
+.torneo-lider.yo { box-shadow: none; }
+.torneo-lider.yo .torneo-peana { outline: 3px solid var(--acento, var(--navy)); outline-offset: 2px; }
+.torneo-lider .torneo-arquetipo,
+.torneo-podio-puesto .torneo-arquetipo { max-width: 100%; }
+.torneo-podio { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: var(--e-xs); max-width: 620px; margin-inline: auto; }
+.torneo-podio-puesto { min-width: 0; padding: 0; }
+.torneo-podio-puesto strong { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.torneo-podio-1 { order: 2; padding: 0; background: none; font-size: 1em; }
+.torneo-podio-2 { order: 1; }
+.torneo-podio-3 { order: 3; }
+.torneo-podio-4 { order: 4; }
+
+/* La tabla: el 1.º en oro, tu fila con su borde y, en el móvil, «Tú» a mano. */
+.torneo-clasificacion-tabla tr.torneo-fila-yo { background: color-mix(in srgb, var(--acento, var(--navy)) 14%, transparent); box-shadow: inset 3px 0 0 var(--acento, var(--navy)); }
+.torneo-tu-flota { display: none; }
+@media (max-width: 900px) {
+  .torneo-tu-flota:not([hidden]) {
+    position: fixed;
+    z-index: 90;
+    left: 50%;
+    bottom: calc(72px + var(--seguro-abajo) + var(--e-sm));
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 44px;
+    padding: 4px 14px 4px 4px;
+    border: 0;
+    border-radius: 999px;
+    color: var(--blanco-fijo);
+    background: var(--navy);
+    box-shadow: 0 10px 26px rgba(13, 27, 42, 0.35);
+    font: inherit;
+    font-size: var(--t-sm);
+    cursor: pointer;
+    animation: torneo-tu-sube 0.25s var(--ease) both;
+  }
+  .torneo-tu-flota span { opacity: 0.8; }
+}
+@keyframes torneo-tu-sube { from { opacity: 0; transform: translate(-50%, 12px); } }
+
+/* Las mesas en mapa: cada una con el color de su estado; la tuya, marcada. */
+.torneo-mesas-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-md); margin: 0 0 var(--e-sm); font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-mesas-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.torneo-mesas-leyenda i { width: 10px; height: 10px; border-radius: 50%; }
+.torneo-leyenda-jugando i { background: #8b5cf6; }
+.torneo-leyenda-disputa i { background: var(--danger); }
+.torneo-leyenda-cerrada i { background: var(--success); }
+.torneo-leyenda-espera i { background: var(--text-dim); }
+.torneo-mesas-mapa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: var(--e-sm); max-width: none; }
+.torneo-mesas-mapa .torneo-mesa { border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius-md); background: var(--white); }
+.torneo-mesas-mapa .torneo-mesa:last-child { border-bottom: 1px solid var(--border); }
+.torneo-mesas-mapa .torneo-mesa-jugando { border-left-color: #8b5cf6; }
+.torneo-mesas-mapa .torneo-mesa-disputa { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, var(--white)); }
+.torneo-mesas-mapa .torneo-mesa-cerrada { border-left-color: var(--success); }
+.torneo-mesas-mapa .torneo-mesa-espera { border-left-color: var(--text-dim); }
+.torneo-mesa-jugando .torneo-mesa-num { color: #fff; background: #8b5cf6; border-color: #8b5cf6; animation: torneo-mesa-late 1.8s ease-in-out infinite; }
+.torneo-mesa-disputa .torneo-mesa-num { color: #fff; background: var(--danger); border-color: var(--danger); }
+.torneo-mesa-cerrada .torneo-mesa-num { color: var(--success); background: var(--success-bg); border-color: transparent; }
+.torneo-mesas-mapa .torneo-mesa.mia { background: color-mix(in srgb, var(--acento, var(--navy)) 8%, var(--white)); box-shadow: 0 0 0 2px var(--acento, var(--navy)); }
+.torneo-mesas-mapa .torneo-mesa.mia .torneo-mesa-num { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--acento, var(--navy)); }
+@keyframes torneo-mesa-late { 50% { box-shadow: 0 0 0 5px rgba(139, 92, 246, 0.25); } }
+@media (prefers-reduced-motion: reduce) {
+  .torneo-mesa-jugando .torneo-mesa-num, .torneo-tu-flota:not([hidden]) { animation: none; }
+}
