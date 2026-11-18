@@ -79,7 +79,7 @@ console.log('── La web: el filtro de CSP y una vez por visita ──')
   await b.close()
   const s = readFileSync(`${REPO}/js/error-log.js`, 'utf8')
   check('el mismo error, una vez por visita (sessionStorage)', /yaEnEstaVisita\(clave\)/.test(s) && /sessionStorage/.test(s))
-  check('el oyente de CSP pasa por cspEsNuestra', /securitypolicyviolation[\s\S]{0,80}cspEsNuestra\(e\.sourceFile\)/.test(s))
+  check('el oyente de CSP pasa por cspEsNuestra', /securitypolicyviolation[\s\S]{0,80}cspEsNuestra\(e\.sourceFile\b/.test(s))
 }
 
 console.log('── El panel ──')

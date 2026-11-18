@@ -110,7 +110,10 @@ console.log('\n── 2. Si aun así llega una mezcla, una recarga ──')
   check('«Script error.» sin traza, fuera', esRuido('Script error.', null) && esRuido('Script error', undefined))
   check('  …con traza sí se apunta', !esRuido('Script error.', { stack: 'at x' }))
   check('las transiciones que cancela el navegador, fuera', esRuido('Transition was aborted because of invalid state. Viewport size changed', {}) && esRuido('Transition was aborted because of invalid state. Page already revealed', {}) && esRuido('Transition was skipped', {}))
-  check('un error de verdad se apunta', !esRuido("Cannot set properties of null (setting 'textContent')", {}) && !esRuido('Failed to fetch', {}))
+  // Un fallo de red, solo si su traza pasa por un fichero nuestro (1386: los
+  // 4.194 «Failed to fetch» del panel eran del script de analítica de Netlify).
+  check('un error de verdad se apunta', !esRuido("Cannot set properties of null (setting 'textContent')", {}) && !esRuido('Failed to fetch', { stack: 'TypeError: Failed to fetch\n    at cargar (https://pokedoc.es/js/foro.js:3:1)' }))
+  check('  …y un fallo de red sin fichero nuestro, no', esRuido('Failed to fetch', {}) && esRuido('Failed to fetch', { stack: 'at https://pokedoc.es/.netlify/scripts/rum:1:1' }))
   check('«Failed to fetch» lleva si había red, si se veía la pestaña y a los cuántos segundos', /en línea: \$\{navigator\.onLine/.test(src) && /pestaña: \$\{document\.visibilityState\}/.test(src))
   for (const [f, re] of [['js/theme.js', /t\.ready\.catch\(\(\) => \{\}\)/], ['js/mi-coleccion/gestos-ficha.js', /t\.ready\.catch\(\(\) => \{\}\)[\s\S]*t\.ready\.catch\(\(\) => \{\}\)/]]) check(`${f}: la transición saltada no deja una promesa sin mirar`, re.test(readFileSync(`${RAIZ}/${f}`, 'utf8')))
 }

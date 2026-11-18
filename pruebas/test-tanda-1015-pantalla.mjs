@@ -87,7 +87,9 @@ console.log('\n── 4. Aprender y el catálogo en el móvil (L10, L11) ──'
     return { ancho: Math.round(busca.getBoundingClientRect().width), barra: Math.round(barra.getBoundingClientRect().width), alLado: Math.abs(orden.top - busca.getBoundingClientRect().top) < 8, desborda: barra.scrollWidth > barra.clientWidth + 1 }
   })
   // Los filtros de qué se ve se fueron a la hoja de «Orden» en la 1038.
-  check('L11: el buscador del catálogo ocupa su fila con «Orden» al lado (1020), sin deslizar de lado', k.ancho >= k.barra * 0.6 && k.alLado && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
+  // Desde la 1381b comparte la fila con las banderas y la rueda, y llena
+  // el hueco que dejan (PINGU: «la barra de búsqueda lo ha reducido a nada»).
+  check('L11: el buscador del catálogo llena el hueco de su fila con «Orden» al lado (1020, 1381b), sin deslizar de lado', k.ancho >= k.barra * 0.45 && k.alLado && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
   await c.ctx.close()
 }
 
