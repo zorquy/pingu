@@ -39,7 +39,8 @@ console.log('── 2. Logro y nivel ──')
   check('el nivel', textoDeNivel({ nivel: 'Entrenador' }) === '⬆️ He subido de nivel en PokeDoc: ahora soy Entrenador\npokedoc.es')
   const g = leer('js/gamification.js')
   check('la tarjeta del logro lleva «Compartir» y abre logro-compartir.js por import()', /id="achievementShareBtn"/.test(g) && /import\('\.\/logro-compartir\.js'\)\.then\(\(m\) => m\.compartirLogro/.test(g))
-  check('  …y la subida de nivel, un aviso con acción «Compartir»', /accion: \{ texto: 'Compartir', alPulsar: \(\) => import\('\.\/logro-compartir\.js'\)\.then\(\(m\) => m\.compartirNivel\(nivel\)\)/.test(g))
+  // Desde la 1399 la subida de nivel es una pantalla (celebrar-momento.js) con su «Compartir»; el aviso queda de respaldo.
+  check('  …y la subida de nivel, con «Compartir»', /const compartir = \(\) => import\('\.\/logro-compartir\.js'\)\.then\(\(m\) => m\.compartirNivel\(nivel\)\)/.test(g) && /celebrarNivel\(nivel, \{ compartir \}\)/.test(g) && /accion: \{ texto: 'Compartir', alPulsar: compartir \}/.test(g))
   const toast = leer('js/toast.js')
   // Desde la 1084 admite también varias (`acciones`); con una o con varias, dura más.
   check('showToast admite { accion } y entonces dura más', /accion = null/.test(toast) && /acciones = accion \? \[accion\] : \[\]/.test(toast) && /toast-accion/.test(toast) && /acciones\.length \? 9000 : 4200/.test(toast))
