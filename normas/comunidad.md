@@ -236,6 +236,14 @@
   al escribir (`js/menciones-aviso.js`, desde `engancharAutocompletarMenciones`
   en las `.rte-surface`): subrayado con la Custom Highlight API, que no toca
   el texto, y «¿Querías decir…?».
+- **Lo que entra en un spoiler va en sus BLOQUES, nunca en un párrafo**
+  (tanda 1387, un usuario: «en los spoilers no se pueden poner imágenes en
+  fila… solo una debajo de otra»). El botón Spoiler con algo seleccionado y
+  el código `[spoiler]` pasan por `repartirEnSpoiler` (`js/richtext-format.js`):
+  lo suelto a párrafos, una fila o una figura tal cual, los bloques vacíos
+  fuera. Meterlo todo en un `<p>` dejaba un párrafo dentro de otro, y «Fila de
+  2» ya no veía las imágenes («hace falta otra imagen justo detrás»); con solo
+  imágenes seleccionadas, se perdían.
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

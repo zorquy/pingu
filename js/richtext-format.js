@@ -287,6 +287,31 @@ const deCuerpo = (doc, n) => {
   return n
 }
 
+// Lo que va DENTRO de un spoiler, repartido en bloques: lo suelto (texto,
+// negritas, una imagen en línea) en párrafos; los bloques —una fila de
+// imágenes, una figura, una lista de cartas— tal cual, y los que se quedan
+// vacíos fuera. Lo usan el código [spoiler] y el botón Spoiler del editor al
+// envolver lo seleccionado (1387: lo metía todo en UN párrafo, así que una
+// fila de fotos quedaba pegada al texto y «Fila de 2» ya no la encontraba).
+export function repartirEnSpoiler(det, nodos) {
+  const doc = det.ownerDocument
+  let p = null
+  for (const n of [...nodos]) {
+    if (n.nodeType === 1 && SP_BLOQUE.test(n.tagName)) {
+      p = null
+      if (n.textContent.trim() || /^(HR|TCG-DECK|YT-VIDEO)$/.test(n.tagName) || n.querySelector?.('img, tcg-deck, yt-video')) det.appendChild(n)
+      continue
+    }
+    if (n.nodeType !== 1 && n.nodeType !== 3) continue
+    if (!p) {
+      if (n.nodeType === 3 && !n.data.trim()) continue
+      p = doc.createElement('p')
+      det.appendChild(p)
+    }
+    p.appendChild(n)
+  }
+}
+
 export function spoilersDeCodigo(doc) {
   // Un código sin cierre se queda como texto y no se vuelve a mirar.
   const sueltos = new Set()
@@ -317,21 +342,7 @@ export function spoilersDeCodigo(doc) {
     const sum = doc.createElement('summary')
     sum.textContent = abre.titulo || 'Spoiler'
     det.appendChild(sum)
-    // Lo suelto (texto, negritas) va en párrafos; los bloques, tal cual.
-    let p = null
-    for (const n of [...dentro.childNodes]) {
-      if (n.nodeType === 1 && SP_BLOQUE.test(n.tagName)) {
-        p = null
-        if (n.textContent.trim() || n.querySelector?.('img, tcg-deck, yt-video')) det.appendChild(n)
-        continue
-      }
-      if (!p) {
-        if (n.nodeType === 3 && !n.data.trim()) continue
-        p = doc.createElement('p')
-        det.appendChild(p)
-      }
-      p.appendChild(n)
-    }
+    repartirEnSpoiler(det, dentro.childNodes)
     A.after(det)
     if (detras.textContent.trim() || detras.querySelector?.('img')) {
       const cola = doc.createElement(/^(P|H2|H3)$/.test(B.tagName) ? B.tagName.toLowerCase() : 'p')

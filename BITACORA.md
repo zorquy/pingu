@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (634) — PINGU-Claude (1387 — Imágenes en fila dentro de un spoiler)
+
+**Hecho** (un usuario, vía PINGU: «en los spoilers no se pueden poner imágenes
+en fila como se puede fuera… solo funciona una debajo de otra»). Probado todo
+el recorrido: meter imágenes en un spoiler ya hecho, subirlas, «Fila de 2», el
+código `[spoiler]`, editar y pintar el mensaje iban bien. Lo que fallaba era
+ENVOLVER con el botón Spoiler lo ya escrito: `ponerSpoiler` metía la selección
+entera en UN `<p>` (párrafos dentro de un párrafo), así que «Fila de 2» decía
+«hace falta otra imagen justo detrás, sin texto en medio»; y si solo había
+imágenes seleccionadas (sin texto), se perdían.
+- `repartirEnSpoiler(det, nodos)` en `js/richtext-format.js` (la regla que ya
+  usaba `spoilersDeCodigo`, ahora compartida): lo suelto a párrafos, los
+  bloques tal cual, los vacíos fuera. `ponerSpoiler` la usa, deja un párrafo
+  donde seguir escribiendo si lo último es una pieza, y ya no tira las
+  imágenes.
+
+**Ficheros**: `js/richtext-format.js`, `js/richtext-editor.js`,
+`normas/comunidad.md`. Prueba `test-tanda-1387-pantalla.mjs` (rama `pruebas`:
+PC y móvil, fotos y cartas subidas, envolver y «Fila de 2»; con el código de
+antes, 10 rojos).
+
+**Pendiente**: nada.
+
 ## 2026-11-18 (633) — PINGU-Claude (1386 — Los errores del panel, arreglados o fuera)
 
 **Hecho** (PINGU, con el CSV agrupado de la 1385: «necesito arreglarlos»). De

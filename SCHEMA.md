@@ -55212,6 +55212,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1387 — Imágenes en fila dentro de un spoiler
+
+- `js/richtext-format.js` `repartirEnSpoiler(det, nodos)` (exportada): cada nodo
+  bloque (`SP_BLOQUE`) va tal cual si tiene texto, es `HR`/`TCG-DECK`/`YT-VIDEO`
+  o lleva imagen, lista o vídeo; lo suelto se agrupa en `<p>`; comentarios y
+  espacios sueltos, fuera. La usa `spoilersDeCodigo` (antes, el mismo bucle
+  dentro).
+- `js/richtext-editor.js` `ponerSpoiler`: `envuelve` = la selección tiene texto
+  o `img, tcg-deck, yt-video, hr` → `repartirEnSpoiler(det, dentro.childNodes)`;
+  si lo último del spoiler es el `summary` o un bloque opaco (`esBloqueOpaco`),
+  se añade `<p><br></p>` y el cursor va ahí.
+
 ## Tanda 1386 — Los errores del panel, arreglados o fuera
 
 - `js/error-log.js` `esRuido(mensaje, error)`: además de «Script error.» sin

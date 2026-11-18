@@ -10,6 +10,7 @@ import {
   anchuraPorcentaje,
   columnasParaCartas,
   COLUMNAS_MAX,
+  repartirEnSpoiler,
 } from './richtext-format.js'
 
 // El editor de la Documentación de una guía.
@@ -1098,12 +1099,18 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     sum.textContent = SPOILER_RESUMEN
     det.appendChild(sum)
 
-    const cuerpo = document.createElement('p')
-    // Lo que estuviera seleccionado se mete dentro; si no había nada,
-    // un párrafo vacío donde escribir.
-    if (dentro && dentro.textContent.trim()) cuerpo.appendChild(dentro)
-    else cuerpo.innerHTML = '<br>'
-    det.appendChild(cuerpo)
+    // Lo que estuviera seleccionado se mete dentro, en sus bloques (1387:
+    // antes iba todo a UN párrafo, y si solo había imágenes se perdían); si
+    // no había nada, un párrafo vacío donde escribir.
+    const envuelve = Boolean(dentro && (dentro.textContent.trim() || dentro.querySelector('img, tcg-deck, yt-video, hr')))
+    if (envuelve) repartirEnSpoiler(det, dentro.childNodes)
+    // Donde seguir escribiendo dentro: detrás de una pieza no se puede.
+    let cuerpo = det.lastElementChild
+    if (cuerpo === sum || esBloqueOpaco(cuerpo)) {
+      cuerpo = document.createElement('p')
+      cuerpo.innerHTML = '<br>'
+      det.appendChild(cuerpo)
+    }
 
     const bloque = bloqueDelCursor()
     // El spoiler nace DONDE ESTÁ EL CURSOR: si el cursor va por la mitad
@@ -1147,7 +1154,7 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
     // seleccionado y se sustituye al teclear; Enter baja al cuerpo. Si se
     // había seleccionado texto para meterlo dentro, el título ya importa
     // menos y el cursor va al cuerpo, como antes.
-    if (dentro && dentro.textContent.trim()) ponerCursorEn(cuerpo)
+    if (envuelve) ponerCursorEn(cuerpo)
     else {
       const t = sum.firstChild
       const r2 = document.createRange()
