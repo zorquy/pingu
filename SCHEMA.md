@@ -55212,6 +55212,17 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1393 — Torneo en modo juego: la arena y elegir mazo
+
+- `torneos.html`: `<h1>La arena</h1>` (la ceja sigue «Jugar · Torneos»).
+- `pintarVivo` (torneos.js): `span.torneo-vivo-ceja` «Tu combate» delante de
+  la chapa; la tarjeta con `miEstado === 'active'` lleva `torneo-tarjeta-mia`.
+- `abrirMazosGuardados` (torneo.js): cada `.torneo-mazo-opcion` lleva
+  `img.torneo-mazo-arte` (`artePokemonHtml(dexesDeNombre(nombre)[0])`) y la
+  clase `con-arte` cuando el nombre dice un Pokémon.
+- `css/torneos.css` (bloque 1393): `.torneo-vivo` en panel de juego,
+  `.torneo-tarjeta:hover`/`-mia`, `.torneo-mazo-opcion` como carta.
+
 ## Tanda 1392 — Torneo en modo juego: tabla con podio y mesas en mapa
 
 - `lideresHtml` y el podio del final llevan `<span class="torneo-peana">N</span>`

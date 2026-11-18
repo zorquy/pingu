@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Los torneos son ahora «La arena»: el que estás jugando sale arriba como «Tu combate», tus torneos brillan en la lista y, al elegir mazo para un torneo, cada uno sale en su carta con su Pokémon.", "enlace": "/torneos" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "La tabla de un torneo es un podio de verdad y, en el móvil, «Tú» te lleva a tu fila; las mesas se ven como un mapa de colores: jugando, en disputa o terminadas.", "enlace": "/torneos" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Los torneos se juegan con cara de juego: tu mesa es un cara a cara con un gran VS, ves tu camino ronda a ronda y, al acabar cada ronda, sale la pantalla de victoria (o de derrota) con la mascota.", "enlace": "/torneos" },
     { "fecha": "2026-11-18", "tipo": "nuevo", "texto": "Mis partidas estrena el Resumen: tu % de victorias en un anillo, tu mazo estrella en grande, tus últimas partidas en verde y rojo y contra qué mazos ganas y cuáles te cuestan.", "enlace": "/mis-partidas" },

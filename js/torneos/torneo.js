@@ -45,6 +45,8 @@ import { pintarCabecera } from './cabecera.js'
 import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo, engancharAbrirLista } from './hoy-tarjetas.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
+import { artePokemonHtml } from '../arte-pokemon.js'
+import { dexesDeNombre } from './arquetipos.js'
 
 // El módulo de las rondas, cuando llega (1011): antes, nada que leer de él.
 let ronda = null
@@ -1427,7 +1429,11 @@ async function abrirMazosGuardados() {
     caja.innerHTML = `<ul class="torneo-mazos-lista">${mazos
       .map((m) => {
         const n = (m.cards || []).reduce((t, c) => t + (c.n || 0), 0)
-        return `<li><button type="button" class="torneo-mazo-opcion" data-mazo="${escapeHtml(m.id)}">
+        // Como elegir personaje (1393, modo juego): cada mazo en su carta, con
+        // el dibujo de su Pokémon si el nombre lo dice.
+        const dex = dexesDeNombre(m.name || '')[0]
+        return `<li><button type="button" class="torneo-mazo-opcion${dex ? ' con-arte' : ''}" data-mazo="${escapeHtml(m.id)}">
+          ${dex ? artePokemonHtml(dex, 'torneo-mazo-arte') : ''}
           <strong>${escapeHtml(m.name)}</strong>
           <span class="subtext${n === 60 ? '' : ' torneo-cuenta-mal'}">${n}/60 cartas · ${formatos[m.format] || 'Estándar'} · ${fechaBonita(m.updated_at)}</span>
         </button></li>`

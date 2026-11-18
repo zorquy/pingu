@@ -291,3 +291,9 @@ el color de su estado (`estadoDeMesa`: jugando violeta y latiendo, disputa
 roja, terminada verde, sin empezar gris), la tuya rodeada y la leyenda con
 cuántas hay de cada. Un estado nuevo de mesa entra en `estadoDeMesa`, no en el
 CSS suelto.
+**/torneos es «La arena»** en su título (el menú, las migas y el `<title>`
+siguen diciendo Torneos: es como la busca la gente). El torneo que juegas sale
+arriba como **«Tu combate»**, en el panel de juego violeta (oscuro en los dos
+temas); tus torneos llevan su borde violeta en la lista; y elegir un mazo del
+constructor es como elegir personaje: cada mazo en su carta, con el dibujo de
+su Pokémon si el nombre lo dice (`dexesDeNombre`, el mismo que el Resumen).

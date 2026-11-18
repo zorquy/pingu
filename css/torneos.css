@@ -5083,3 +5083,50 @@ button.torneo-tj { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .torneo-mesa-jugando .torneo-mesa-num, .torneo-tu-flota:not([hidden]) { animation: none; }
 }
+
+/* ══ 1393 — Torneos en modo juego: la arena (SCHEMA 1393) ══ */
+/* «Tu combate»: la barra del torneo que juegas, en el panel de juego (el
+   violeta del duelo, oscuro en los dos temas) con su brillo. */
+.torneo-vivo {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #2b1f63 0%, #1d1b3f 55%, #16202b 100%);
+  border: 1px solid #4b3b9a;
+  box-shadow: 0 14px 40px rgba(76, 52, 180, 0.35);
+}
+.torneo-vivo::before {
+  content: '';
+  position: absolute;
+  right: -80px;
+  top: -90px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(155, 123, 255, 0.45), transparent 65%);
+  pointer-events: none;
+}
+.torneo-vivo > * { position: relative; }
+.torneo-vivo-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #c9b8ff; }
+.torneo-vivo-sub, .torneo-vivo-rotulo { color: #b7aee0; }
+.torneo-vivo-reloj b { color: #fde68a; text-shadow: 0 0 18px rgba(240, 192, 72, 0.45); }
+
+/* Las tarjetas como fichas de evento: al pasar se levantan con brillo; las
+   tuyas llevan el borde violeta. */
+.torneo-tarjeta { transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+@media (hover: hover) {
+  .torneo-tarjeta:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(76, 52, 180, 0.22); }
+}
+.torneo-tarjeta-mia { box-shadow: 0 0 0 2px #8b5cf6, 0 10px 28px rgba(139, 92, 246, 0.25); }
+
+/* Elegir mazo como elegir personaje: cada mazo en su carta con su dibujo. */
+.torneo-mazos-lista { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); max-height: 360px; padding: 4px; }
+.torneo-mazo-opcion { position: relative; overflow: hidden; min-height: 76px; justify-content: flex-end; border-radius: 14px; transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease); }
+.torneo-mazo-opcion.con-arte { padding-right: 84px; background: linear-gradient(135deg, var(--white), color-mix(in srgb, #8b5cf6 10%, var(--white))); }
+.torneo-mazo-arte { position: absolute; right: -6px; bottom: -10px; width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3)); pointer-events: none; }
+.torneo-mazo-opcion strong { position: relative; }
+.torneo-mazo-opcion:hover,
+.torneo-mazo-opcion:focus-visible { border-color: #8b5cf6; background: color-mix(in srgb, #8b5cf6 12%, var(--white)); box-shadow: 0 0 0 2px #8b5cf6, 0 10px 24px rgba(139, 92, 246, 0.3); transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .torneo-tarjeta, .torneo-mazo-opcion { transition: none; }
+  .torneo-tarjeta:hover, .torneo-mazo-opcion:hover { transform: none; }
+}

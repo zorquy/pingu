@@ -170,7 +170,7 @@ function tarjetaHtml(t, datos) {
   const sobran = Math.max(0, ocupadas - caras.length)
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   return `
-  <article class="torneo-tarjeta torneo-tarjeta-${viva ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}">
+  <article class="torneo-tarjeta torneo-tarjeta-${viva ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}${miEstado === 'active' ? ' torneo-tarjeta-mia' : ''}">
     <a class="torneo-tarjeta-enlace" href="${url}">
       <span class="torneo-arte torneo-arte-${arteDe(t)}" data-torneo="${escapeHtml(String(t.id))}">
         ${
@@ -299,6 +299,7 @@ async function pintarVivo(torneo) {
   caja.classList.remove('hidden')
   caja.innerHTML = `
     <span class="torneo-vivo-texto">
+      <span class="torneo-vivo-ceja">Tu combate</span>
       <span class="torneo-vivo-chapa"><span class="torneo-punto"></span>En juego</span>
       <strong>${escapeHtml(torneo.name)}</strong>
       ${total && total <= 12 ? `<span class="torneo-vivo-rondas" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${enCorte || (ronda && i + 1 < ronda.round_number) ? 'hecha' : ronda && i + 1 === ronda.round_number ? 'ahora' : ''}"></i>`).join('')}${torneo.top_cut_size ? `<i class="corte${enCorte ? ' ahora' : ''}"></i>` : ''}</span>` : ''}

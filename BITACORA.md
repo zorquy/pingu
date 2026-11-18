@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (640) — PINGU-Claude (1393 — Torneo en modo juego: la arena y elegir mazo)
+
+**Hecho** (la propuesta «Torneos en modo juego», D3 y D4 paso 3).
+- /torneos se titula **«La arena»**; el menú, las migas y la pestaña del
+  navegador siguen diciendo Torneos.
+- **«Tu combate»**: la barra del torneo que juegas, en el panel de juego
+  violeta con su brillo y el reloj en amarillo.
+- Las tarjetas se levantan al pasar por encima; las tuyas, con borde violeta.
+- **Elegir mazo** (Tu decklist › «Usar un mazo del constructor»): cada mazo
+  en su carta con el dibujo de su Pokémon, y al pasar se ilumina.
+
+**Ficheros**: `torneos.html`, `js/torneos/torneos.js`, `js/torneos/torneo.js`,
+`css/torneos.css`, `normas/jugar.md`. Prueba `test-tanda-1393-pantalla.mjs`;
+la 1358 se pone al día con la pestaña Resumen de la 1390. 1126, 1142, 1163,
+1164, 1215, 1216, 1233, 1239, 1303, 1341, 1347, 297, 312, 359 en verde (1040,
+1071, 1217 y 1359 ya fallaban antes).
+
+**Pendiente**: el campeón y «Tu torneo» (1394) y la vitrina (1395).
+
 ## 2026-11-18 (639) — PINGU-Claude (1392 — Torneo en modo juego: la tabla con podio y las mesas en mapa)
 
 **Hecho** (la propuesta «Torneos en modo juego», D4 paso 2).
