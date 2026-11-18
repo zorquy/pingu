@@ -98,6 +98,9 @@ function tarjetaHtml(m) {
   const tipo = tipoDelMazo(entradas, portada)
   const r = costes.get(m.id)
   const sprites = spritesDelMazo(m)
+  // Cada mazo un póster con UN botón (1398, «PokeDoc en modo app»): «Probar»
+  // a lo ancho; Editar y «A un torneo» van al «⋯». Tocar el mazo (la portada
+  // o el nombre) ya abre el constructor.
   return `
     <article class="cm-mazo-tarjeta" data-id="${escapeHtml(m.id)}"${tipo ? ` data-tipo="${escapeHtml(tipo)}"` : ''}>
       <a class="cm-mazo-portada${sprites.length ? ' con-sprites' : ''}" href="${enlace}" aria-hidden="true" tabindex="-1">
@@ -121,12 +124,12 @@ function tarjetaHtml(m) {
       </div>
       <div class="cm-mazo-pie">
         <p class="cm-mazo-coste${r && r.total && !r.faltan ? ' entero' : ''}" data-coste-caja aria-live="polite">${costeHtml(m)}</p>
-        <a class="btn-secondary cm-btn" href="${enlace}">Editar</a>
-        <a class="btn-secondary cm-btn" href="/laboratorio?mazo=${escapeHtml(m.id)}">Probar</a>
-        <a class="btn-secondary cm-btn" href="/torneos.html" data-a-torneo>A un torneo</a>
+        <a class="btn-primary cm-btn cm-mazo-probar" href="/laboratorio?mazo=${escapeHtml(m.id)}">${icono('zap', 18)} Probar</a>
         <details class="cm-mazo-mas">
           <summary class="btn-secondary cm-btn" aria-label="Más opciones de ${escapeHtml(m.name)}">${icono('moreHorizontal', 18)}</summary>
           <div class="cm-mazo-menu">
+            <a href="${enlace}">${icono('edit')} Editar</a>
+            <a href="/torneos.html" data-a-torneo>${icono('trophy')} A un torneo</a>
             <button type="button" data-portada>${icono('image')} Portada</button>
             <button type="button" data-duplicar>${icono('layers')} Duplicar</button>
             ${ajustesEnBase ? `<button type="button" data-predeterminado>${icono('star')} ${predeterminado?.user_deck_id === m.id ? 'Quitar de predeterminado' : 'Mi mazo predeterminado'}</button>` : ''}

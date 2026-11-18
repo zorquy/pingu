@@ -322,3 +322,10 @@ como otro párrafo. Jugadores es la sala: caras grandes, la tuya rodeada y las
 plazas libres (hasta siete y «+N»). En el móvil «Tu plaza» tiene que asomar en
 la primera pantalla (la 1145): si la sala crece, se aprieta en el bloque del
 móvil antes de empujarla.
+**El cartel y los pósteres** (1398): en /torneos, «Tu próximo torneo» es un
+cartel en el panel de juego con los días en una losa grande (`proximoHtml`:
+«13 DÍAS», «1 DÍA», «HOY» con la hora); en el móvil, sin la línea de datos. En
+/mazos cada mazo es un **póster** (oscuro en los dos temas, también en el
+móvil, que ya no es la fila de la 1150) con UN botón, «Probar»: Editar y «A un
+torneo» van los primeros en el «⋯», y tocar la portada o el nombre abre el
+constructor. Una acción nueva de un mazo va al «⋯», no al lado de «Probar».

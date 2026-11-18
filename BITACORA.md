@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (645) — PINGU-Claude (1398 — Tu próximo torneo en cartel y los mazos como póster)
+
+**Hecho** (PINGU: «lo de los mazos también me gusta… en el PC también se ve
+guay»; la parte de Jugar de «PokeDoc en modo app»).
+- **/torneos**: «Tu próximo torneo» es un cartel violeta con los días que
+  faltan en una losa dorada grande («HOY» con la hora el mismo día); en el
+  móvil, sin la línea de datos.
+- **/mazos**: cada mazo es un póster oscuro con la portada grande, el nombre
+  en grande y un solo botón, **Probar**. Editar y «A un torneo» pasan al
+  «⋯». En el móvil deja de ser la fila de la 1150.
+
+**Ficheros**: `js/torneos/torneos.js` (`proximoHtml`), `css/torneos.css`,
+`js/mazos.js`, `css/mazos.css`, `normas/jugar.md`. Prueba
+`test-tanda-1398-pantalla.mjs`; puestas al día la 1150 (el móvil ya es
+póster), la 836 (la leyenda va escondida) y la 1358 (Editar y «A un torneo»
+en el «⋯»); 1215, 1303 y 1393 en verde (836, 1040, 1217 y 413 ya fallaban
+antes en lo suyo).
+
+**Pendiente**: 1399 (las pantallas que celebran).
+
 ## 2026-11-18 (644) — PINGU-Claude (1397 — La sala de espera del torneo)
 
 **Hecho** (PINGU: «me gusta que toques lo de los torneos… en el PC también

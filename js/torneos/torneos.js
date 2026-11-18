@@ -135,6 +135,9 @@ function estructuraCorta(t) {
 // Tu próximo torneo, en la banda (1215, de la propuesta del repaso): cuándo
 // es (y cuánto falta), las plazas, desde qué hora es el check-in y los dos
 // caminos: tu lista (la pestaña Jugar de la ficha) y el torneo. Puro.
+// Desde la 1398 («PokeDoc en modo app», PINGU: «más visual, no demasiado
+// texto») es un cartel: los días que faltan en una losa grande y la línea de
+// datos se queda en el día, la hora y las plazas.
 export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
   const inicio = new Date(t.start_at)
   const dias = Math.max(0, Math.round((new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()) - new Date(new Date(ahora).getFullYear(), new Date(ahora).getMonth(), new Date(ahora).getDate())) / 864e5))
@@ -143,9 +146,12 @@ export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
   const checkin = Number(t.checkin_minutes) > 0 ? `check-in desde las ${hora(new Date(inicio.getTime() - Number(t.checkin_minutes) * 6e4))}` : ''
   const plazas = t.max_players == null ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas} de ${t.max_players} plazas`
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
-  return `<span class="t-proximo-ceja">Tu próximo torneo · ${escapeHtml(cuando)}</span>
+  // La losa lee «12 días» al lector de pantalla; «hoy» lleva la hora debajo.
+  const losa = dias === 0 ? ['HOY', hora(inicio)] : [String(dias), dias === 1 ? 'DÍA' : 'DÍAS']
+  return `<span class="t-proximo-dias" aria-label="${escapeHtml(dias === 0 ? `Hoy a las ${hora(inicio)}` : dias === 1 ? 'Mañana' : `Faltan ${dias} días`)}"><b>${losa[0]}</b><small>${escapeHtml(losa[1])}</small></span>
+    <span class="t-proximo-ceja">Tu próximo torneo<span class="sr-only"> · ${escapeHtml(cuando)}</span></span>
     <a class="t-proximo-nombre" href="${url}">${escapeHtml(t.name)}</a>
-    <span class="t-proximo-datos">${escapeHtml([`${inicio.getDate()} ${inicio.toLocaleString('es-ES', { month: 'long' })}, ${hora(inicio)}`, 'Estás inscrito', plazas, checkin].filter(Boolean).join(' · '))}</span>
+    <span class="t-proximo-datos">${escapeHtml([`${inicio.getDate()} ${inicio.toLocaleString('es-ES', { month: 'short' }).replace('.', '')} · ${hora(inicio)}`, plazas, checkin].filter(Boolean).join(' · '))}</span>
     <span class="t-proximo-botones"><a class="btn-secondary" href="${url}&ver=jugar">Tu lista</a><a class="btn-primary" href="${url}">Ver el torneo</a></span>`
 }
 

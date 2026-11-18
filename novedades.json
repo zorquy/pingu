@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Tus mazos son ahora pósteres con un solo botón, «Probar» (editar y llevarlo a un torneo están en «⋯»), y tu próximo torneo sale como un cartel con los días que faltan en grande.", "enlace": "/mazos" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Antes de empezar, un torneo es una sala de espera: cuenta atrás grande, quién está dentro, tus misiones para estar listo y el botón «¡ESTOY!» para confirmar que juegas.", "enlace": "/torneos" },
     { "fecha": "2026-11-18", "tipo": "arreglo", "texto": "A la mascota ya no se le corta la gorra por arriba, ni cuando salta o la lanza.", "enlace": "/" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "La pestaña Torneos de cada perfil abre con su vitrina: torneos jugados, mejor puesto, podios, medallas y el mazo que más ha llevado en los torneos de PokeDoc.", "enlace": "/perfil" },

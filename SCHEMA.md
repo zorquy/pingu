@@ -55212,6 +55212,23 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1398 — Tu próximo torneo en cartel y los mazos como póster
+
+- `js/torneos/torneos.js` (`proximoHtml`): antepone
+  `span.t-proximo-dias` (`<b>` con los días o «HOY», `<small>` con «DÍA(S)» o
+  la hora; `aria-label` «Faltan N días» / «Mañana» / «Hoy a las…»), la ceja
+  queda en «Tu próximo torneo» (el «· en N días» va en `.sr-only`) y los datos
+  pierden «Estás inscrito».
+- `css/torneos.css` (bloque 1398): con `.con-proximo` la banda pierde su fondo
+  y `.torneos-heroe .t-proximo` es el panel de juego en rejilla (losa a la
+  izquierda); en el móvil sin `.t-proximo-datos`.
+- `js/mazos.js` (`tarjetaHtml`): el pie lleva solo
+  `a.btn-primary.cm-mazo-probar` (al laboratorio) y el `<details>`; en
+  `.cm-mazo-menu` entran primero `<a>` Editar y `<a data-a-torneo>`.
+- `css/mazos.css` (bloque 1398): `.cm-mazo-tarjeta` en el panel de juego,
+  sin `.cm-mazo-meta`, leyenda ni chapas de formato y de público; en el
+  móvil vuelve a columna con la portada de 170 px.
+
 ## Tanda 1397 — La sala de espera del torneo
 
 - `js/torneos/sala.js` (nuevo): `ANTES_DE_EMPEZAR` (draft,

@@ -5244,3 +5244,35 @@ button.torneo-tj { cursor: pointer; }
   .sala-gente { padding: 8px 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .sala-estoy { transition: none; } }
+
+/* ══ 1398 — PokeDoc en modo app: «Tu próximo torneo» como cartel (SCHEMA
+   1398). La banda deja su fondo y el cartel lleva el panel de juego (oscuro
+   en los dos temas, como la sala de la 1397): los días en una losa dorada,
+   el nombre grande y los dos caminos. En el móvil, sin la línea de datos. ══ */
+.torneos-heroe.banda-s.con-proximo { background: none; border: 0; box-shadow: none; padding: 0; }
+.torneos-heroe.con-proximo::before, .torneos-heroe.con-proximo::after { display: none; }
+.torneos-heroe .t-proximo {
+  grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px var(--e-md); margin-top: var(--e-sm);
+  padding: var(--e-md); border-radius: 20px; color: #f2eefc; border: 1px solid #3a2f7a;
+  background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 45%, #16202b 100%);
+}
+.torneos-heroe .t-proximo > :not(.t-proximo-dias) { grid-column: 2; min-width: 0; }
+.t-proximo-dias { grid-column: 1; grid-row: 1 / span 4; display: grid; justify-items: center; align-content: center; min-width: 78px; padding: 8px 6px; border-radius: 16px; background: #141a33; border: 1px solid #2a2f5a; }
+.t-proximo-dias b { font: 900 2.4rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 16px rgba(240, 192, 72, 0.45); font-variant-numeric: tabular-nums; }
+.t-proximo-dias small { margin-top: 3px; font: 800 0.62rem var(--font-marca); letter-spacing: 0.12em; color: #c9b8ff; }
+.torneos-heroe .t-proximo-ceja { color: #c9b8ff; font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.torneos-heroe .t-proximo-nombre { color: #fff; font-family: var(--font-marca); font-size: var(--t-xl); font-weight: 900; line-height: 1.1; }
+.torneos-heroe .t-proximo-nombre:hover { color: #c9b8ff; }
+.torneos-heroe .t-proximo-datos { color: #b7aee0; font-size: var(--t-xs); }
+.torneos-heroe .t-proximo-botones { margin-top: 4px; }
+.torneos-heroe .t-proximo-botones .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; border-color: transparent; }
+@media (max-width: 599px) {
+  .torneos-heroe.con-proximo.torneos-heroe-vacia { padding: 0; border: 0; }
+  .torneos-heroe .t-proximo { grid-template-columns: auto minmax(0, 1fr); row-gap: 2px; margin-top: 0; padding: 12px; }
+  .torneos-heroe .t-proximo > :not(.t-proximo-dias) { grid-column: 2; }
+  .torneos-heroe .t-proximo-datos { display: none; }
+  .torneos-heroe .t-proximo-botones { grid-column: 2; grid-row: auto; align-self: start; margin-top: 4px; }
+  .t-proximo-dias { grid-row: 1 / span 3; min-width: 70px; }
+  .t-proximo-dias b { font-size: 2.1rem; }
+  .torneos-heroe .t-proximo-nombre { font-size: var(--t-lg); }
+}
