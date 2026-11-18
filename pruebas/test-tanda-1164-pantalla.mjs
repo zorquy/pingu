@@ -69,10 +69,10 @@ console.log('── J2: Mis partidas ──')
     const seg = document.getElementById('partidasTabs').getBoundingClientRect()
     const f = document.getElementById('listaFiltrar').getBoundingClientRect()
     const acciones = document.getElementById('partidasAcciones')
-    return { donde: b.parentElement.id, redondo: Math.round(rb.width) === 44 && Math.round(rb.height) === 44, delante: rb.right <= seg.left, mismaFila: Math.abs(rb.top - f.top) < 6, palabra: b.querySelector('.cab-palabra').getBoundingClientRect().width, etiqueta: b.getAttribute('aria-label'), accionesVacias: acciones.children.length === 0 && getComputedStyle(acciones).display === 'none', primera: Math.round(document.querySelector('#partidasHero').getBoundingClientRect().top) }
+    return { donde: b.parentElement.id, redondo: Math.round(rb.width) === 44 && Math.round(rb.height) === 44, delante: rb.right <= seg.left, mismaFila: Math.abs(rb.top - f.top) < 6, palabra: b.querySelector('.cab-palabra').getBoundingClientRect().width, etiqueta: b.getAttribute('aria-label'), accionesVacias: acciones.children.length === 0 && getComputedStyle(acciones).display === 'none', primera: Math.round(document.querySelector('#partidasTabs').getBoundingClientRect().top) }
   })
   check('el «+» redondo de 44, delante de las pestañas y en su fila, con su etiqueta', r.donde === 'partidasMandosMas' && r.redondo && r.delante && r.mismaFila && r.palabra === 0 && r.etiqueta === 'Apuntar una partida', JSON.stringify(r))
-  check('  …y arriba no queda una fila para el botón solo: el resumen empieza antes de 160 px', r.accionesVacias && r.primera < 160, JSON.stringify(r))
+  check('  …y arriba no queda una fila para el botón solo: las pestañas empiezan antes de 160 px', r.accionesVacias && r.primera < 160, JSON.stringify(r))
   const fila = await p.evaluate(() => {
     const f = [...document.querySelectorAll('#partidasLista .partidas-fila')].find((x) => x.querySelector('.partidas-chapa-mazo'))
     if (!f) return null

@@ -91,7 +91,7 @@ console.log('── 6. Mis partidas: el anillo se dibuja y las filas entran en c
 {
   const { ctx, p, errores } = await abrir('/mis-partidas')
   const r = await p.evaluate(() => ({
-    anillo: getComputedStyle(document.querySelector('.partidas-hero-anillo') || document.body, '::after').animationName,
+    anillo: getComputedStyle(document.querySelector('.pr-anillo') || document.body, '::after').animationName,
     cascada: Boolean(document.querySelector('.partidas-mes-lista.en-cascada')),
     fila: getComputedStyle(document.querySelector('.partidas-mes-lista.en-cascada > *') || document.body).animationName,
   }))
@@ -106,7 +106,7 @@ console.log('── 6. Mis partidas: el anillo se dibuja y las filas entran en c
   const p = await (await b.newContext({ reducedMotion: 'reduce' })).newPage()
   await p.goto(`${BASE}/mis-partidas`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(800)
-  const n = await p.evaluate(() => getComputedStyle(document.querySelector('.partidas-hero-anillo') || document.body, '::after').animationName)
+  const n = await p.evaluate(() => getComputedStyle(document.querySelector('.pr-anillo') || document.body, '::after').animationName)
   check('con «menos movimiento», el anillo no se anima', n === 'none' || n === '', n)
   await p.close()
 }

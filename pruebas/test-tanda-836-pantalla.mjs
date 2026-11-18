@@ -121,8 +121,10 @@ console.log('── 3. El constructor ──')
 console.log('── 4. Mis partidas ──')
 {
   const { page, errores, ctx } = await abrir('/mis-partidas')
-  check('arriba, el resumen de todo lo jugado', await page.isVisible('#partidasHero') && /68 %/.test(await page.textContent('#partidasHero')) && /7-3-1/.test(await page.textContent('#partidasHero')), await page.textContent('#partidasHero'))
-  check('  …con tu mazo más jugado', /Psyduck/.test(await page.textContent('#partidasHero')))
+  // Desde la 1390 el resumen es la pestaña Resumen (con su 68 %, 7-3-1 y el mazo estrella).
+  const res = await page.evaluate(() => { const r = document.getElementById('partidasResumenJuego'); return { visible: Boolean(r?.getClientRects().length), texto: r?.textContent || '', vde: ['.pr-v b', '.pr-d b', '.pr-e b'].map((s) => r?.querySelector(s)?.textContent).join('-') } })
+  check('arriba, el resumen de todo lo jugado (la pestaña Resumen, 1390)', res.visible && /68\s?%/.test(res.texto) && res.vde === '7-3-1', JSON.stringify(res).slice(0, 200))
+  check('  …con tu mazo más jugado', /Psyduck/.test(res.texto))
   // Sin torneos en el fixture la página abre en «Partidas sueltas» (1013):
   // a la pestaña de torneos primero.
   await page.click('#partidasTabs .seg-btn[data-vista="torneos"]')

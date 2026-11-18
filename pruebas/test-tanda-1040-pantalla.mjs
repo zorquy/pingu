@@ -38,7 +38,7 @@ const LISTAS = [
   ['/tiendas', '#tagRejilla .tag-tarjeta:not(.skeleton), #tagRejilla .tag-vacio'],
   ['/avisos', '.av-lista .nav-bell-item'],
   ['/torneos', '#torneosLigas:not([hidden]) .lc-tarjeta, .torneos-rejilla > *'],
-  ['/mis-partidas', '#partidasHero'],
+  ['/mis-partidas', '#partidasResumenJuego .pr-resumen, #partidasResumenJuego .empty-state'],
   ['/laboratorio', 'section.lp-bloque'],
   ['/repeticiones', '#repTexto'],
 ]
@@ -99,8 +99,8 @@ console.log('── 3. Torneos: una sola fila con el calendario y «+» delante 
 console.log('── 4. Mis partidas: el resumen en dos filas y «Desde una repetición» dentro ──')
 {
   const { ctx, page } = await abrir('/mis-partidas?ver=sueltas')
-  const h = await page.evaluate(() => ({ alto: Math.round(document.getElementById('partidasHero').getBoundingClientRect().height), forma: document.querySelectorAll('#partidasHero .partidas-forma').length }))
-  check('el resumen mide menos de 260 px y no lleva las últimas diez', h.alto < 260 && h.forma === 0, JSON.stringify(h))
+  const h = await page.evaluate(() => ({ franja: Boolean(document.getElementById('partidasHero')), resumen: Boolean(document.querySelector('#vista-resumen #partidasResumenJuego')) }))
+  check('arriba ya no hay franja: el resumen vive en su pestaña (1390)', !h.franja && h.resumen, JSON.stringify(h))
   check('«Desde una repetición» no es un botón suelto', !(await visto(page, '#btnDesdeRepeticion')))
   await page.click('#btnApuntarPartida')
   await page.waitForTimeout(300)
