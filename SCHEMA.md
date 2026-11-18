@@ -55212,6 +55212,20 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1385 — Los errores, agrupados y sin el ruido del antivirus
+
+- Migración 1385: índice `client_errors_estado_mensaje (status, message)`;
+  `errores_agrupados(p_estado text default 'new')` → `(mensaje, veces, personas,
+  paginas text[≤8], primero, ultimo, traza)` (500 grupos, los más repetidos
+  primero; `language sql stable`, invoker); `descartar_errores(p_mensaje)` →
+  cuántas pasa a `dismissed`; `delete` de los CSP con `nsvcs.net`.
+- `js/error-log.js`: `cspEsNuestra(sourceFile, origen)` (exportada) en el oyente
+  de `securitypolicyviolation`; `yaEnEstaVisita(clave)` con
+  `sessionStorage['pd-errores-vistos']` (60 claves) dentro de `logError`.
+- `admin/js/admin.js`: `loadClientErrors` → `rpc('errores_agrupados')` →
+  `pintarErroresAgrupados` (o `loadClientErrorsSueltos` sin la función);
+  `csvDeErrores(grupos)` (exportada) y la descarga con BOM.
+
 ## Tanda 1384 — Coreano y chino al editar y al añadir varias
 
 - `mi-coleccion.js`: `idiomasParaEditar(idioma, delSet = null, market)` → en

@@ -1239,7 +1239,79 @@ async function loadAccountDeletionRequests() {
 }
 
 // ── Errores de cliente (registrados automáticamente desde error-log.js) ──
+//
+// AGRUPADOS (1385, PINGU: «tenemos más de 9k errores… ¿cómo los puedo
+// exportar?»): un error por fila con cuántas veces ha pasado, a cuánta gente
+// y dónde, «Descartar todos» del grupo y «Exportar CSV» de la lista. Lo da
+// la base (`errores_agrupados`, migración 1385); sin ella, la lista de antes.
+const csvCelda = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+export function csvDeErrores(grupos) {
+  const cab = ['mensaje', 'veces', 'personas', 'paginas', 'primero', 'ultimo', 'traza']
+  const filas = grupos.map((g) => [g.mensaje, g.veces, g.personas, (g.paginas || []).join(' | '), g.primero, g.ultimo, g.traza].map(csvCelda).join(','))
+  return [cab.join(','), ...filas].join('\n')
+}
+
+function descargarCsv(texto, nombre) {
+  const url = URL.createObjectURL(new Blob(['\ufeff' + texto], { type: 'text/csv;charset=utf-8' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nombre
+  document.body.append(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 async function loadClientErrors() {
+  const { data: grupos, error: sinGrupos } = await supabase.rpc('errores_agrupados', { p_estado: 'new' })
+  if (!sinGrupos && Array.isArray(grupos)) return pintarErroresAgrupados(grupos)
+  return loadClientErrorsSueltos()
+}
+
+function pintarErroresAgrupados(grupos) {
+  const total = grupos.reduce((n, g) => n + Number(g.veces || 0), 0)
+  ponerContadorNav('errors', grupos.length)
+  const container = document.getElementById('errorsTable')
+  if (!grupos.length) {
+    container.innerHTML = `<p class="empty-state">No hay errores nuevos.</p>`
+    return
+  }
+  container.innerHTML = `
+    <div class="admin-row-actions" style="margin-bottom: 12px; align-items: center;">
+      <span class="admin-note" style="margin: 0;">${grupos.length} errores distintos · ${total.toLocaleString('es-ES')} veces en total</span>
+      <button type="button" data-errores-csv>Exportar CSV</button>
+    </div>
+    <table class="admin-table">
+      <thead><tr><th>Mensaje</th><th>Veces</th><th>Personas</th><th>Páginas</th><th>Último</th><th></th></tr></thead>
+      <tbody>
+        ${grupos
+          .map((g, i) => `
+          <tr>
+            <td title="${escapeHtml(g.traza || '')}">${escapeHtml(g.mensaje)}</td>
+            <td>${Number(g.veces).toLocaleString('es-ES')}</td>
+            <td>${Number(g.personas).toLocaleString('es-ES')}</td>
+            <td>${escapeHtml((g.paginas || []).slice(0, 3).join(', '))}${(g.paginas || []).length > 3 ? '…' : ''}</td>
+            <td>${new Date(g.ultimo).toLocaleString('es-ES')}</td>
+            <td class="admin-row-actions"><button data-errores-descartar="${i}">Descartar ${Number(g.veces) === 1 ? '' : `las ${Number(g.veces).toLocaleString('es-ES')}`}</button></td>
+          </tr>`)
+          .join('')}
+      </tbody>
+    </table>`
+  container.querySelector('[data-errores-csv]')?.addEventListener('click', () => {
+    descargarCsv(csvDeErrores(grupos), `errores-pokedoc-${new Date().toISOString().slice(0, 10)}.csv`)
+  })
+  container.querySelectorAll('[data-errores-descartar]').forEach((btn) =>
+    btn.addEventListener('click', async () => {
+      const g = grupos[Number(btn.dataset.erroresDescartar)]
+      if (!g) return
+      btn.disabled = true
+      await supabase.rpc('descartar_errores', { p_mensaje: g.mensaje })
+      loadClientErrors()
+    })
+  )
+}
+
+async function loadClientErrorsSueltos() {
   const { data } = await supabase
     .from('client_errors')
     .select('*')

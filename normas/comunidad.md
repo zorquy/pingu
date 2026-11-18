@@ -338,6 +338,16 @@
   en `retos_mover`/`retos_vista`/`retos_resultado` y su prueba en
   `test-tanda-1268`; y si cuenta algo que la web también cuenta (las casillas
   de la carta), la prueba compara las dos.
+- **Los errores del panel se miran AGRUPADOS y sin ruido ajeno** (tanda 1385,
+  PINGU: «tenemos más de 9k errores… ¿cómo los puedo exportar?»). /admin →
+  Errores pide `errores_agrupados` (uno por mensaje: veces, personas, páginas,
+  primero, último y traza), descarta un grupo entero con `descartar_errores` y
+  exporta CSV (`csvDeErrores`). Y lo que entra pasa dos filtros en
+  `js/error-log.js`: un aviso de CSP solo si lo lanza código de nuestro origen
+  (`cspEsNuestra`: la extensión del antivirus, Norton/Avast, llenó la tabla con
+  «connect-src: …nsvcs.net»), y el mismo mensaje una vez por visita
+  (`sessionStorage`). Un registro nuevo de errores pasa por `logError`, que ya
+  hace las dos cosas.
 - **La entrada de /admin es «Hoy»** (tanda 1119, `admin/js/hoy.js`): lo que
   espera a alguien va en `ESPERAS` (tabla, filtro y fecha) y sale en tarjeta y
   con su número en el menú (`ponerContadorNav`); una cola nueva que espere al

@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (632) — PINGU-Claude (1385 — Los errores, agrupados y sin el ruido del antivirus)
+
+**Hecho** (PINGU, con el panel de Errores: «tenemos más de 9k errores…
+¿cómo los puedo exportar? ¿hay alguna sql? necesito arreglarlos»). Casi todos
+eran «CSP (informe) connect-src: https://ingesteer.services-prod.nsvcs.net»: la
+extensión del antivirus (Norton/Avast, de Gen Digital) llamando a su servidor
+desde nuestras páginas, apuntado en cada página que abría cada persona.
+- **Migración `supabase-migration-1385-errores-agrupados.sql`** (HAY QUE
+  EJECUTARLA): `errores_agrupados(estado)` y `descartar_errores(mensaje)` (de
+  quien llama: la RLS deja solo al admin), un índice (status, message) y la
+  limpieza de los informes de nsvcs.net.
+- **/admin → Errores, agrupados**: un error por fila con veces, personas,
+  páginas y último; «Descartar las N» por grupo y «Exportar CSV» (con la traza).
+  Sin la migración, la lista de antes.
+- **`js/error-log.js`**: un aviso de CSP solo si lo lanza código de nuestro
+  origen (`cspEsNuestra`), y el mismo mensaje una vez por visita.
+
+**Ficheros**: `js/error-log.js`, `admin/js/admin.js`,
+`supabase-migration-1385-errores-agrupados.sql`, `normas/comunidad.md`. Prueba
+`test-tanda-1385.mjs` (rama `pruebas`: la migración contra PostgreSQL y el filtro
+en un navegador).
+
+**Pendiente**: ejecutar la migración y, con el CSV, arreglar los errores de
+verdad que queden.
+
 ## 2026-11-17 (631) — PINGU-Claude (1384 — Coreano y chino al editar y al añadir varias, como al añadir una)
 
 **Hecho** (un usuario por Twitter, vía PINGU: «a la hora de editar una carta

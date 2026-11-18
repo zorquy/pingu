@@ -10,11 +10,27 @@ let loggedCount = 0
 // duplicaba todo el listado del panel.
 const yaRegistrados = new Set()
 
+// Y UNA VEZ POR VISITA (1385): con 9.000 filas en el panel, casi todas eran
+// el mismo aviso repetido en cada página que abría la misma persona. El
+// mismo mensaje en la misma pestaña ya está apuntado; lo dice la primera.
+const CLAVE_VISTOS = 'pd-errores-vistos'
+function yaEnEstaVisita(clave) {
+  try {
+    const vistos = JSON.parse(sessionStorage.getItem(CLAVE_VISTOS) || '[]')
+    if (vistos.includes(clave)) return true
+    sessionStorage.setItem(CLAVE_VISTOS, JSON.stringify([...vistos, clave].slice(-60)))
+  } catch {
+    // Sin sessionStorage (modo privado estricto), se queda el tope por carga.
+  }
+  return false
+}
+
 async function logError(message, stack) {
   if (loggedCount >= MAX_ERRORS_PER_LOAD) return
   const clave = String(message || '').slice(0, 200)
   if (yaRegistrados.has(clave)) return
   yaRegistrados.add(clave)
+  if (yaEnEstaVisita(clave)) return
   loggedCount++
   try {
     const { data: { session } } = await supabase.auth.getSession()
@@ -113,6 +129,19 @@ export function recargarSiDesajuste(error) {
   return true
 }
 
+// UN AVISO DE CSP SOLO SI LO CAUSA NUESTRO CÓDIGO (1385). El panel tenía
+// miles de «CSP (informe) connect-src: https://ingesteer.services-prod.
+// nsvcs.net»: es la extensión del antivirus (Norton/Avast, de Gen Digital),
+// que mete su script en la página y llama a su servidor. No es nuestro ni se
+// arregla aquí. Lo que lanza una extensión trae su `sourceFile` en
+// `chrome-extension://…` (o vacío, si lo inyecta en línea); lo nuestro, en
+// nuestro origen.
+export function cspEsNuestra(sourceFile, origen = globalThis.location?.origin || '') {
+  const f = String(sourceFile || '')
+  if (!f || !origen) return false
+  return f === origen || f.startsWith(`${origen}/`)
+}
+
 export function initErrorLogging() {
   window.addEventListener('error', (e) => apuntar(e.message, e.error))
   window.addEventListener('unhandledrejection', (e) => {
@@ -124,6 +153,7 @@ export function initErrorLogging() {
   })
   // La CSP en modo informe (1313): lo que bloquearía, a los errores del panel.
   document.addEventListener('securitypolicyviolation', (e) => {
+    if (!cspEsNuestra(e.sourceFile)) return
     let de = e.blockedURI || ''
     try { de = new URL(de).origin } catch { /* «inline», «eval»… */ }
     logError(`CSP ${e.disposition === 'report' ? '(informe)' : ''} ${e.effectiveDirective}: ${de}`, `${e.sourceFile || ''}:${e.lineNumber || ''}`)
