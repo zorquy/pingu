@@ -62,6 +62,10 @@
   Una pantalla nueva solo enlaza con `rutaDeCarta`; lo que deba IR a la
   ficha lleva `data-ficha-completa` (el «Ficha completa» del pop-up de Mi
   colección no la llevaba y, hasta la 1237b, volvía a abrir el mismo pop-up).
+  La excepción es la lupa (1388): sus enlaces `/cartas?ver=buscar…&carta=`
+  NO se convierten en la ficha rápida fuera de Mi colección y /cartas, sino
+  que navegan a Cartas › Buscar y abren allí `#mcEditor` (PINGU: «sale este
+  pop-up raro… que saliese el pop-up de siempre»).
 - **/carta y el pop-up enseñan una carta con LO MISMO** (tanda 998, PINGU:
   «cojamos solo un sitio»): las versiones son las chapas del precio y salen de
   `versionesDeCartas` (con las de a mano), la rareza de `rarezaCrudaDeCarta`
@@ -69,6 +73,9 @@
   un segundo bloque de versiones debajo. Y una carta del buscador se abre en el
   pop-up: la lupa de arriba lleva a `/cartas?ver=buscar&q=…&carta=<id>`
   (`rutaDeCartaEnBuscar`); /carta queda para Google y para los enlaces.
+  Cambiar de versión cambia también LA FOTO (1388, `fotoDeVersion` en
+  `js/carta-mercado.js`, con `imagen` de `tcg_card_versions`); sin foto
+  propia, vuelve la de la carta.
 - **Un cambio entre dos personas es una PROPUESTA** (tanda 942): las cartas
   de cada lado (la copia concreta, con su línea), el dinero APUNTADO (quién,
   cuánto y cómo; PokeDoc no cobra ni comprueba) y su estado. Todo pasa por

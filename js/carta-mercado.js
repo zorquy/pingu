@@ -193,6 +193,19 @@ export async function pintarMercado(carta) {
     })
     // Las últimas ventas de gradeadas, al abrir «Gradeadas» (1364).
     engancharVentasGradeadas($('cmPrecios'), carta.id)
+    fotoDeVersion()
+  }
+  // La foto de la versión elegida (1388, PINGU: «cuando cambias entre las
+  // versiones, entre normal, Winner Stamp, Jumbo…, la imagen de la carta no
+  // cambia»). Las chapas cambiaban solo el precio; la ficha de Mi colección
+  // ya enseñaba la foto propia de la versión (`escaneoDeVersion`, 934). Sin
+  // foto propia, la de la carta, que se guarda la primera vez.
+  function fotoDeVersion() {
+    const img = document.querySelector('#cartaNucleo .carta-scan img')
+    if (!img) return
+    if (img.dataset.fotoCarta === undefined) img.dataset.fotoCarta = img.getAttribute('src') || ''
+    const quiere = versionDeVariante({ versiones }, estado.variante)?.imagen || img.dataset.fotoCarta
+    if (quiere && img.getAttribute('src') !== quiere) img.setAttribute('src', quiere)
   }
   // Los idiomas en los que salió su set (911): llegan después y repintan.
   let idiomasDelSet = null

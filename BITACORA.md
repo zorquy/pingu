@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (635) — PINGU-Claude (1388 — La carta del buscador en el pop-up de siempre, y la foto de cada versión)
+
+**Hecho** (PINGU: «cuando buscas una carta y le das, te sale este pop-up raro…
+que saliese el pop-up de siempre» y «cuando cambias entre las versiones —normal,
+winner stamp, jumbo winner stamp— la imagen de la carta no cambia»).
+- La lupa: sus enlaces `/cartas?ver=buscar&q=…&carta=<id>` los cazaba el oyente
+  de la 1043 (`abrirCartaEnPopup` en `js/app.js`) y fuera de Mi colección y
+  /cartas abría la ficha rápida. Ahora, si la página no tiene
+  `window.pokedocAbrirCarta`, el enlace navega a Cartas › Buscar y abre allí
+  `#mcEditor`. El resto de enlaces a cartas siguen con la ficha rápida.
+- Las versiones: las chapas de `js/carta-mercado.js` solo cambiaban el precio.
+  `fotoDeVersion()` (al final de `pintarPrecio`) pone la `imagen` de la versión
+  en la foto de `#cartaNucleo` y, si no tiene, vuelve a la de la carta. Vale en
+  /carta, la ficha rápida y el pop-up de Mi colección.
+
+**Ficheros**: `js/app.js`, `js/carta-mercado.js`, `normas/coleccion.md`.
+Pruebas `test-tanda-1388-pantalla.mjs` (nueva; con el código de antes, 5 rojos)
+y `test-tanda-1043-pantalla.mjs` (la paleta ahora espera Cartas › Buscar), en
+la rama `pruebas`.
+
+**Pendiente**: nada.
+
 ## 2026-11-18 (634) — PINGU-Claude (1387 — Imágenes en fila dentro de un spoiler)
 
 **Hecho** (un usuario, vía PINGU: «en los spoilers no se pueden poner imágenes

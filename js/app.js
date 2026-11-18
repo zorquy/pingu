@@ -899,6 +899,11 @@ function abrirCartaEnPopup(e) {
   const url = new URL(a.href, location.href)
   if (url.origin !== location.origin || /^\/carta(\/|\.html|$)/.test(location.pathname)) return
   if (!/^\/carta\//.test(url.pathname) && !(/^\/cartas(\.html)?$/.test(url.pathname) && url.searchParams.has('carta'))) return
+  // Lo que se busca con la lupa va a Cartas › Buscar y abre allí el pop-up
+  // de siempre (998). Sin esto, fuera de Mi colección y /cartas salía la
+  // ficha rápida (1388, PINGU: «sale este pop-up raro… que saliese el pop-up
+  // de siempre»). Donde ya hay ese pop-up, se abre ahí sin irse.
+  if (url.searchParams.get('ver') === 'buscar' && typeof window.pokedocAbrirCarta !== 'function') return
   e.preventDefault()
   import('./ficha-rapida.js')
     .then((m) => m.abrirCartaDeEnlace(url))

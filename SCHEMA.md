@@ -55212,6 +55212,16 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1388 — La carta del buscador en el pop-up de siempre, y la foto de cada versión
+
+- `js/app.js` `abrirCartaEnPopup` (oyente de la 1043): si el enlace lleva
+  `ver=buscar` y la página no tiene `window.pokedocAbrirCarta`, no se intercepta
+  y el navegador va a `/cartas?ver=buscar&q=…&carta=<id>`, que abre `#mcEditor`.
+- `js/carta-mercado.js` `pintarMercado` → `fotoDeVersion()`: guarda la foto
+  original en `data-foto-carta` del `img` de `#cartaNucleo .carta-scan` y pone
+  `versionDeVariante({ versiones }, estado.variante)?.imagen` o vuelve a la
+  original. Se llama al final de `pintarPrecio`, así que sigue a cada chapa.
+
 ## Tanda 1387 — Imágenes en fila dentro de un spoiler
 
 - `js/richtext-format.js` `repartirEnSpoiler(det, nodos)` (exportada): cada nodo
