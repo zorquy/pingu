@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (641) — PINGU-Claude (1394 — Torneo en modo juego: el campeón y «Tu torneo»)
+
+**Hecho** (la propuesta «Torneos en modo juego», D4 paso 4, y «Tu torneo» de
+la de Mis partidas, D3).
+- **La pantalla de campeón**: si acabas en el podio de un torneo recién
+  cerrado, al abrir su ficha sale «¡CAMPEÓN!» en oro (o «¡Finalista!»,
+  «¡Podio!») con el trofeo, el confeti, tu puesto, tu récord y la mascota
+  bailando. Una vez por torneo; uno de hace más de tres días no celebra nada.
+- **Mis partidas › Torneos**: arriba, «Tu último torneo» en el panel de
+  juego: el puesto con su medalla, el récord, ronda a ronda y Compartir.
+- **Inicio**: la ficha del torneo dice «Tu torneo · ¡Campeón!» (o «2.º
+  puesto») esos días y lleva a la tabla.
+- La 1017 me paró: Inicio no hace consultas sueltas. El podio va en
+  `portada_hoy()` (**migración 1394**); sin ella, la ficha de siempre.
+
+**Ficheros**: `js/torneos/celebrar.js` (`celebrarFinal`), `js/torneos/ronda.js`
+(`celebrarMiPodio`), `js/mis-partidas.js` (`tuTorneoHtml`), `js/hoy.js`
+(`podioDe`), `css/torneos.css`, `css/partidas-resumen.css`,
+`supabase-migration-1394-portada-podio.sql`, `normas/jugar.md`. Pruebas
+`test-tanda-1394.mjs` (PostgreSQL) y `test-tanda-1394-pantalla.mjs`; el doble
+de Supabase trae el podio en `portada_hoy` (`__SIN_1394__` para el sin); 1366
+al día con el Resumen; 1017, 1010, 1012, 1070, 1133, 1143, 1301, 1374, 1390 y
+251 en verde.
+
+**Pendiente**: ejecutar la **1394** en el SQL Editor; la vitrina del perfil (1395).
+
 ## 2026-11-18 (640) — PINGU-Claude (1393 — Torneo en modo juego: la arena y elegir mazo)
 
 **Hecho** (la propuesta «Torneos en modo juego», D3 y D4 paso 3).

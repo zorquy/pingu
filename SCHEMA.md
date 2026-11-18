@@ -55212,6 +55212,23 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1394 — Torneo en modo juego: el campeón y «Tu torneo»
+
+- `supabase-migration-1394-portada-podio.sql`: `portada_hoy()` igual que la
+  1017 y, en cada uno de `torneos`, `podium` y `updated_at`.
+- `js/hoy.js`: `podioDe(torneos, uid, ahora)` (puro): el torneo `finished`
+  más reciente con `podium` que te incluye y `updated_at` a menos de 3 días →
+  `{ slug, name, puesto }`. Se calcula de `d.torneos` (o de la consulta de
+  respaldo, que pide también `podium, updated_at`). `fichasHtml({ podio })`:
+  sin un torneo tuyo por venir, la ficha «Tu torneo» (`destaca`).
+- `js/torneos/celebrar.js`: `celebrarFinal({ torneoId, puesto, nombre,
+  jugadores, record })` → `dialog.torneo-celebra.torneo-celebra-final(.torneo-celebra-oro)`
+  con `.torneo-celebra-trofeo-N`; una vez (`pd-campeon-<id>`).
+- `js/torneos/ronda.js`: `celebrarMiPodio(podio, tabla)` tras pintar la
+  clasificación general (torneo `finished`, `updated_at` < 3 días).
+- `js/mis-partidas.js`: `tuTorneoHtml(t)` (`section.pr-caja.pr-juego.tu-torneo`)
+  arriba de `#partidasTorneos` con la lista sin filtrar y el orden de siempre.
+
 ## Tanda 1393 — Torneo en modo juego: la arena y elegir mazo
 
 - `torneos.html`: `<h1>La arena</h1>` (la ceja sigue «Jugar · Torneos»).

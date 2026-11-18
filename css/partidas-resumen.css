@@ -116,3 +116,25 @@
 @media (prefers-reduced-motion: reduce) {
   .pr-anillo::after { animation: none; display: none; }
 }
+
+/* «Tu último torneo» (1394, «Torneos en modo juego»): arriba de Torneos, en
+   el mismo panel de juego que el mazo estrella. */
+.tu-torneo { display: grid; gap: 6px; margin-bottom: var(--e-md); }
+.tu-torneo > :not(.pr-brillo):not(.tu-torneo-mazo) { position: relative; z-index: 1; }
+.tu-torneo h3 { font-family: var(--font-marca); font-size: var(--t-xl); color: #fff; max-width: 70%; margin: 0; }
+.tu-torneo-mazo { position: absolute; right: 12px; top: 12px; display: flex; }
+.tu-torneo-mazo .partidas-sprite { width: 72px; height: 72px; }
+.tu-torneo-mazo .partidas-sprite + .partidas-sprite { margin-left: -20px; width: 56px; height: 56px; }
+.tu-torneo-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.tu-torneo-puesto { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 999px; font-family: var(--font-marca); font-weight: 800; font-size: var(--t-lg); color: #fff; background: rgba(255, 255, 255, 0.12); }
+.tu-torneo-puesto.oro { color: #3b2a00; background: linear-gradient(180deg, #f6c945, #d9a406); box-shadow: 0 0 18px rgba(240, 192, 72, 0.45); }
+.tu-torneo-puesto.plata { color: #1f2933; background: linear-gradient(180deg, #e2e8f0, #9aa7b8); }
+.tu-torneo-puesto.bronce { color: #2b1608; background: linear-gradient(180deg, #e3a877, #a3643a); }
+.tu-torneo-record { color: #b7aee0; font-size: var(--t-sm); font-weight: 600; }
+.tu-torneo-rondas { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.tu-torneo-rondas li { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; font-size: var(--t-xs); }
+.tu-torneo .pr-win { background: rgba(52, 211, 153, 0.18); color: #34d399; }
+.tu-torneo .pr-loss { background: rgba(248, 113, 113, 0.18); color: #f87171; }
+.tu-torneo .pr-draw { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+.tu-torneo-acciones { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin-top: 6px; }
+@media (max-width: 520px) { .tu-torneo-mazo .partidas-sprite { width: 52px; height: 52px; } .tu-torneo h3 { max-width: 62%; } }

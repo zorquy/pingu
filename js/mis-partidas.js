@@ -686,6 +686,32 @@ function tarjetaTorneoHtml(t) {
     </div>`
 }
 
+// «Tu último torneo» (1394, la propuesta «Torneos en modo juego»): el puesto
+// en grande, el récord, ronda a ronda como fichas de color y tu mazo, en el
+// panel de juego del Resumen (.pr-juego). Compartir es el de cada tarjeta.
+function tuTorneoHtml(t) {
+  const rondas = t.rondas.slice().sort(ordenDeRondas)
+  const p = Number(t.puesto) || 0
+  const medalla = p === 1 ? 'oro' : p === 2 ? 'plata' : p === 3 ? 'bronce' : ''
+  const titulo = p === 1 ? '¡Campeón!' : p ? `${p}.º puesto` : recordDe(t.rondas)
+  return `
+    <section class="pr-caja pr-juego tu-torneo" aria-label="Tu último torneo">
+      <span class="pr-brillo" aria-hidden="true"></span>
+      <span class="tu-torneo-mazo">${spritesDeMazoHtml(t.mazo, t.mazoClave)}</span>
+      <small class="pr-kick">TU ÚLTIMO TORNEO</small>
+      <h3>${escapeHtml(t.nombre)}</h3>
+      <div class="tu-torneo-fila">
+        <span class="tu-torneo-puesto${medalla ? ` ${medalla}` : ''}">${p === 1 ? icons.trophy(22) : ''}${escapeHtml(titulo)}</span>
+        <span class="tu-torneo-record">${recordDe(t.rondas)}${t.mazo ? ` · ${escapeHtml(t.mazo)}` : ''}</span>
+      </div>
+      <ol class="tu-torneo-rondas" aria-label="Ronda a ronda">${rondas.map((r, i) => `<li class="pr-${r.resultado}" title="${escapeHtml(`${r.rotuloRonda || `R${i + 1}`}: ${r.tipo === 'bye' ? 'bye' : r.rivalNombre || ''}`)}">${LETRA_RESULTADO[r.resultado] || '?'}</li>`).join('')}</ol>
+      <div class="tu-torneo-acciones">
+        <button type="button" class="btn-primary" data-compartir-torneo="${escapeHtml(t.id)}">Compartir</button>
+        ${t.enlace ? `<a class="btn-secondary" href="${escapeHtml(t.enlace)}">Ver el torneo</a>` : ''}
+      </div>
+    </section>`
+}
+
 function accionesDeTorneoHtml(t) {
   // Compartir (997): en todos, con alguna ronda que enseñar.
   const compartir = t.rondas.length ? `<button class="btn-secondary" data-compartir-torneo="${escapeHtml(t.id)}">Compartir</button>` : ''
@@ -830,7 +856,13 @@ function pintarTorneos() {
   const ocultos = casan.length - visibles.length
 
   tarjetasPintadas = new Map(visibles.map((t) => [t.id, t]))
+  // «Tu último torneo» (1394), arriba y solo con la lista sin filtrar: el de
+  // PokeDoc más reciente, en el panel de juego.
+  const sinFiltro = !$('torneoBuscar')?.value && !$('torneoEstado')?.value && signo < 0
+  const ultimo = sinFiltro ? tarjetas.find((t) => !t.aMano && t.rondas.length) : null
+  if (ultimo) tarjetasPintadas.set(ultimo.id, ultimo)
   caja.innerHTML =
+    (ultimo ? tuTorneoHtml(ultimo) : '') +
     visibles.map(tarjetaTorneoHtml).join('') +
     (ocultos > 0
       ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTorneosLog">Ver ${ocultos} más</button>`

@@ -172,7 +172,21 @@ function fichaForo(hilos) {
 }
 
 // Las cuatro fichas, con lo que se sepa de cada una. Puro.
-export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hilos = null } = {}, ahora = Date.now()) {
+// El podio de los últimos tres días (1394): de TUS torneos (los que trae
+// `portada_hoy()` desde su migración 1394, o la consulta de respaldo), el más
+// reciente en el que acabaste en el podio congelado (`podium`, 388) y que se
+// cerró hace menos de tres días. Sin `podium` (la migración sin ejecutar),
+// nada: la ficha sigue siendo la de siempre. Pura para la prueba.
+export function podioDe(torneos, uid, ahora = Date.now()) {
+  const recientes = (torneos || [])
+    .filter((t) => t?.status === 'finished' && Array.isArray(t.podium) && t.podium.includes(uid) && ahora - Date.parse(t.updated_at || '') < 3 * DIA)
+    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))
+  const t = recientes[0]
+  return t ? { slug: t.slug, name: t.name, puesto: t.podium.indexOf(uid) + 1 } : null
+}
+let podioDeHoy = null
+
+export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hilos = null, podio = null } = {}, ahora = Date.now()) {
   const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
   // Con la hora si es hoy o mañana (879): «Torneo hoy a las 19:00».
   const jornadas = Array.isArray(torneo?.matchday_dates) ? torneo.matchday_dates.length : 0
@@ -182,7 +196,11 @@ export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hi
     // el cuestionario, que era la de antes, ya no existe).
     fichaRetosHtml(retos),
     ficha(
-      torneo
+      // «Tu torneo» (1394): si acabas de quedar en el podio y no tienes otro
+      // torneo a la vista, la ficha lo celebra unos días.
+      podio && !torneo?.mio
+        ? { href: `/torneo?slug=${encodeURIComponent(podio.slug)}&ver=clasificacion`, icono: 'trophy', sec: 'jugar', rotulo: 'Tu torneo', titular: podio.puesto === 1 ? '¡Campeón!' : `${podio.puesto}.º puesto`, sub: nombreCorto(podio.name), destaca: true }
+        : torneo
         ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', sec: 'jugar', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: subDeTorneo(torneo, jornadas), pct: torneo.jornada && jornadas ? (torneo.jornada / jornadas) * 100 : null }
         : { href: '/torneos.html', icono: 'trophy', sec: 'jugar', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
@@ -331,6 +349,7 @@ async function deLaBase(d, uid, hoy, productosP, ahoraP) {
     if (!Number(ahora.lineas)) return []
     return conElValorDeAhora(historia, ahora.valor, hoy)
   })()
+  podioDeHoy = podioDe(d.torneos, uid)
   const conCita = (d.torneos || []).map((t) => ({ t, cita: proximaCita(t) })).filter((x) => x.cita)
   conCita.sort((a, b) => Date.parse(a.cita.fecha) - Date.parse(b.cita.fecha))
   const mio = conCita[0] ? { ...conCita[0].t, start_at: conCita[0].cita.fecha, jornada: conCita[0].cita.jornada } : null
@@ -369,6 +388,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   const productosP = intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid))
   // Y lo que vale AHORA, como en el Panel, en paralelo con todo lo demás.
   const ahoraP = intentar(() => valorDeAhora(uid))
+  podioDeHoy = null
   const datos = await datosDeHoy(uid)
   const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = datos ? await deLaBase(datos, uid, hoy, productosP, ahoraP) : await Promise.all([
     intentar(async () => {
@@ -391,7 +411,8 @@ export async function montarHoy(session, { doc = document } = {}) {
       // Sin filtrar por `start_at` en la consulta (879): una liga empezó hace
       // semanas y su cita es la próxima JORNADA (`proximaCita`), que es lo
       // que se ordena. Son tus torneos vivos: pocos.
-      const { data } = await supabase.from('tournaments').select('id, slug, name, start_at, status, format, matchday_dates').in('id', ids)
+      const { data } = await supabase.from('tournaments').select('id, slug, name, start_at, status, format, matchday_dates, podium, updated_at').in('id', ids)
+      podioDeHoy = podioDe(data, uid)
       const conCita = (data || []).map((t) => ({ t, cita: proximaCita(t) })).filter((x) => x.cita)
       conCita.sort((a, b) => Date.parse(a.cita.fecha) - Date.parse(b.cita.fecha))
       const x = conCita[0]
@@ -416,7 +437,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   // El logo, el mismo que la miniatura de la portada sin cuenta (home.js).
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date, logo: sets[0].logo_scrydex || sets[0].logo_tcggo || '' } : null
-  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null })
+  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null, podio: podioDeHoy })
   // Lo que dice la mascota (1301): un bocadillo al lado del abanico, con lo
   // de hoy; si llega después lo que más sube (escaparate.js), se rehace.
   const decir = () => {

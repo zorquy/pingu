@@ -297,3 +297,11 @@ arriba como **«Tu combate»**, en el panel de juego violeta (oscuro en los dos
 temas); tus torneos llevan su borde violeta en la lista; y elegir un mazo del
 constructor es como elegir personaje: cada mazo en su carta, con el dibujo de
 su Pokémon si el nombre lo dice (`dexesDeNombre`, el mismo que el Resumen).
+**El final** (1394): si acabas en el podio de un torneo cerrado hace menos de
+tres días (`updated_at`), al abrirlo sale la pantalla de campeón
+(`celebrarFinal`, una vez por torneo: `pd-campeon-<id>`); un torneo viejo no
+celebra nada aunque se abra por primera vez. Mis partidas › Torneos lleva
+arriba «Tu último torneo» (el de PokeDoc más reciente, solo con la lista sin
+filtrar). Inicio dice «Tu torneo · ¡Campeón!» esos mismos días, con el podio
+que trae `portada_hoy()` (migración 1394): **Inicio no hace consultas sueltas**
+(la 1017 lo vigila), así que lo que necesite va en esa función.

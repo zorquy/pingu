@@ -8,6 +8,7 @@
 // no la repite. Un bye no se celebra (no se ha jugado). Un toque la cierra;
 // con «menos movimiento», sin confeti.
 import { escapeHtml } from '../html.js'
+import { icons } from '../icons.js'
 
 const LLAVE = (id) => `pd-celebrada-${id}`
 
@@ -50,5 +51,40 @@ export function celebrarRonda({ matchId, res, rival = '', marcador = '', ronda =
   d.showModal()
   d.querySelector('[data-cerrar]')?.focus()
   if (res === 'V') import('../app.js').then(({ burstConfetti }) => burstConfetti?.(60)).catch(() => {})
+  return d
+}
+
+// El final (1394, «Torneos en modo juego»): si acabas en el podio de un torneo
+// que se acaba de cerrar, la pantalla entera UNA vez por torneo y navegador
+// (`pd-campeon-<id>`): campeón con trofeo, confeti y la mascota bailando;
+// finalista o semifinalista con su medalla y la mascota contenta.
+const PUESTOS = ['¡CAMPEÓN!', '¡Finalista!', '¡Podio!', '¡Podio!']
+export function celebrarFinal({ torneoId, puesto, nombre = '', jugadores = null, record = '' }) {
+  const llave = `pd-campeon-${torneoId}`
+  if (!torneoId || !puesto || puesto > 4) return null
+  try { if (localStorage.getItem(llave) === '1') return null; localStorage.setItem(llave, '1') } catch { return null }
+  const oro = puesto === 1
+  const d = document.createElement('dialog')
+  d.className = `torneo-celebra torneo-celebra-final${oro ? ' torneo-celebra-oro' : ''}`
+  d.setAttribute('aria-labelledby', 'torneoFinalTitulo')
+  d.innerHTML = `
+    <div class="torneo-celebra-caja">
+      <span class="torneo-celebra-mascota mascota-3d" data-mascota="${oro ? 'bailar' : 'contento'}" data-sin-globo></span>
+      <span class="torneo-celebra-trofeo torneo-celebra-trofeo-${puesto}" aria-hidden="true">${oro ? icons.trophy(44) : icons.medal(40)}</span>
+      <small class="torneo-celebra-ronda">${escapeHtml(nombre.toUpperCase())}</small>
+      <h2 class="torneo-celebra-titulo" id="torneoFinalTitulo">${PUESTOS[puesto - 1]}</h2>
+      <div class="torneo-celebra-cifras">
+        <span><b>${puesto}º</b><small>${jugadores ? `de ${jugadores}` : 'puesto'}</small></span>
+        ${record ? `<span><b>${escapeHtml(record)}</b><small>V-D-E</small></span>` : ''}
+      </div>
+      <button type="button" class="btn-primary torneo-celebra-seguir" data-cerrar>Seguir</button>
+    </div>`
+  document.body.appendChild(d)
+  const cerrar = () => { d.close(); d.remove() }
+  d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-cerrar]')) cerrar() })
+  d.addEventListener('cancel', (e) => { e.preventDefault(); cerrar() })
+  d.showModal()
+  d.querySelector('[data-cerrar]')?.focus()
+  import('../app.js').then(({ burstConfetti }) => burstConfetti?.(oro ? 120 : 50)).catch(() => {})
   return d
 }

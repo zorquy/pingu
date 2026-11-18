@@ -30,7 +30,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
-import { celebrarRonda, yaCelebrada } from './celebrar.js'
+import { celebrarRonda, celebrarFinal, yaCelebrada } from './celebrar.js'
 import { apuntarEnTablon } from './tablon.js'
 import { misJornadas, listaAnterior, enviarListaJornada, cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
 import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
@@ -3409,6 +3409,7 @@ function pintarClasificacion() {
   if (yaEstaPintado('clasificacion', htmlClasif)) return
   $('clasificacionContenido').innerHTML = htmlClasif
   vigilarMiFila(tabla)
+  if (general) celebrarMiPodio(podio, tabla)
 
   // Las pestañitas y los «Ver lista», recién pintados: se enganchan aquí.
   document.querySelectorAll('[data-ver-clasif]').forEach((b) =>
@@ -3434,6 +3435,19 @@ function pintarClasificacion() {
   // Las cartas de las chapas llegan después: el HTML se construye de una
   // vez y resolverlas es ir a la base.
   void rellenarChapasArquetipo(caja)
+}
+
+// El final (1394): si acabas en el podio de un torneo cerrado hace menos de
+// tres días, la pantalla de campeón (una vez por torneo; `celebrarFinal`).
+// Un torneo viejo no celebra nada aunque se abra por primera vez.
+function celebrarMiPodio(podio, tabla) {
+  const yo = miId()
+  const puesto = podio.indexOf(yo) + 1
+  if (!puesto || ctx.torneo.status !== 'finished') return
+  const cerrado = Date.parse(ctx.torneo.updated_at || '')
+  if (!Number.isFinite(cerrado) || Date.now() - cerrado > 3 * 86400e3) return
+  const e = tabla.find((x) => x.playerId === yo)
+  celebrarFinal({ torneoId: ctx.torneo.id, puesto, nombre: ctx.torneo.name, jugadores: tabla.length || null, record: e ? `${e.wins}-${e.losses}-${e.draws}` : '' })
 }
 
 // «Tú» a mano en la Tabla (1392, modo juego): en el móvil, con tu fila fuera
