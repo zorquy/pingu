@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (637) — PINGU-Claude (1390 — El Resumen de Mis partidas, con cara de juego)
+
+**Hecho** (la propuesta «Jugar con cara de juego», PINGU: «dale con todo lo
+recomendado»: D1 paneles de juego, D2 pestaña nueva y la primera).
+- Pestaña **Resumen**, la primera de Partidas, y la que se abre si hay
+  partidas: el anillo del % (el mismo que Estadísticas), V-D-E en color, la
+  racha y las últimas 10; **tu mazo estrella** en un panel violeta de juego,
+  con el arte oficial de su Pokémon, sus partidas, su % y a qué gana y qué le
+  cuesta; las **últimas 6** como cartas verdes, rojas o grises; **contra lo
+  que más ganas** y **lo que más te cuesta** (3 partidas o más) y **dónde
+  juegas**. «Ver las N» lleva a Partidas sueltas.
+- Fuera la franja de arriba (838): lo suyo está en el Resumen. Las llaves de
+  la pestaña recordada y de la vista guardada cambian, así que todo el mundo
+  abre una vez en el Resumen y no reaparece la franja guardada.
+
+**Ficheros**: `js/partidas-resumen.js` (nuevo), `css/partidas-resumen.css`
+(nuevo), `js/mis-partidas.js`, `mis-partidas.html`, `normas/jugar.md`. Prueba
+`test-tanda-1390-pantalla.mjs` (rama `pruebas`) y al día 836, 1013, 1040,
+1133, 1164 y 1216.
+
+**Pendiente**: nada.
+
 ## 2026-11-18 (636) — PINGU-Claude (1389 — La mascota en 3D por toda la web)
 
 **Hecho** (PINGU, con las propuestas «La mascota en 3D» y «Dónde viviría la

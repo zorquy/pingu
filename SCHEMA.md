@@ -55212,6 +55212,23 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1390 — El Resumen de Mis partidas
+
+- `js/partidas-resumen.js`: `datosDelResumen(jugadas)` → `{ total, racha,
+  forma, estrella, mejor, peor, ultimas, gana, cuesta, donde }` con `cuenta`,
+  `porGrupo`, `rachas` y `ultimas` de `estadisticas-partidas.js`; `gana` y
+  `cuesta` solo con grupos de ≥3 partidas; `mejor`/`peor` del mazo estrella,
+  con ≥2. `resumenHtml(jugadas, { sprites })` lo pinta; el arte grande es
+  `artePokemonHtml(dexesDeNombre(nombre)[0])`.
+- `mis-partidas.html`: botón `data-vista="resumen"` (icono `zap`) y
+  `#vista-resumen > #partidasResumenJuego.pr`. Sin `#partidasHero`.
+- `js/mis-partidas.js`: `pintarResumenJuego(todas.filter(seJugo))` en
+  `repintar`; la pestaña inicial pendiente es `resumen` si hay partidas;
+  `CLAVE_VISTA = 'pokedoc-partidas-vista-1390'` y `vistaVigilada` con
+  `mis-partidas-1390`.
+- `css/partidas-resumen.css`: `.pr-*`; `.pr-juego` es el panel violeta (fijo
+  en los dos temas); el anillo se abre con `partidas-anillo-abre` (1216).
+
 ## Tanda 1389 — La mascota en 3D
 
 - Hueco: `<span class="… mascota-3d" data-mascota="<gesto>" [data-vacio]

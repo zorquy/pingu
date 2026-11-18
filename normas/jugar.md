@@ -101,6 +101,14 @@
   solo la primera impresión con ese nombre hizo que una lista con 3 + 1
   dijera que la cuarta copia «no estaba en la lista». Lo que viene de un
   registro se cuenta por NOMBRE, sumando todas las impresiones.
+- **Mis partidas abre en «Resumen»** (tanda 1390, «Jugar con cara de
+  juego»): el anillo, el mazo estrella en su panel de juego (violeta en los
+  dos temas), las últimas partidas como cartas de color y contra qué ganas y
+  pierdes, en `js/partidas-resumen.js` (las cuentas son las de
+  `estadisticas-partidas.js`, no otras) y `css/partidas-resumen.css`. Un dato
+  nuevo «de un vistazo» va ahí; las gráficas, en Estadísticas. «Contra quién»
+  pide 3 partidas o más (un 100 % de una partida no dice nada). La franja de
+  arriba (838) ya no existe: no la vuelvas a poner encima de las pestañas.
 - **Una cifra nueva al lado de una vieja usa la MISMA definición** (tanda
   628). Las estadísticas nuevas de /mis-partidas sacaban el porcentaje como
   victorias sobre el total, y la matriz de siempre cuenta el empate como

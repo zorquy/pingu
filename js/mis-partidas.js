@@ -50,6 +50,7 @@ import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
+import { resumenHtml } from './partidas-resumen.js'
 import { montarElegirMazo, filaDePredeterminado } from './partidas-elegir-mazo.js'
 
 const $ = (id) => document.getElementById(id)
@@ -993,7 +994,8 @@ function repintar() {
   $('filtroCuenta').textContent = filtrado ? `${n} de ${todas.filter(seJugo).length} partidas con estos filtros.` : ''
   pintarResumen(m)
   pintarExtra(jugadas)
-  pintarHero(todas.filter(seJugo))
+  // La franja de arriba (838) se va: lo suyo está en la pestaña Resumen (1390).
+  pintarResumenJuego(todas.filter(seJugo))
   ultimasJugadas = jugadas
   pintarGraficos()
   pintarMatriz(m)
@@ -1033,40 +1035,11 @@ function rellenarFiltroYSugerencias() {
 const TEXTO_RACHA = { win: ['victoria', 'victorias'], loss: ['derrota', 'derrotas'], draw: ['empate', 'empates'] }
 const enPalabras = (n, r) => `${n} ${TEXTO_RACHA[r][n === 1 ? 0 : 1]}`
 
-// El resumen de arriba (838): de TODO lo jugado, sin los filtros de
-// Estadísticas, para que se vea al entrar sin tocar nada. Mismas cuentas
-// que la pestaña (`porcentaje` cuenta el empate como media victoria).
-function pintarHero(jugadas) {
-  const caja = $('partidasHero')
-  if (!jugadas.length) {
-    caja.classList.add('hidden')
-    caja.innerHTML = ''
-    return
-  }
-  const c = { ganadas: 0, perdidas: 0, empatadas: 0, total: jugadas.length }
-  for (const p of jugadas) {
-    if (p.resultado === 'win') c.ganadas++
-    else if (p.resultado === 'loss') c.perdidas++
-    else c.empatadas++
-  }
-  const pctTotal = porcentaje(c)
-  const torneos = new Set(jugadas.filter((p) => p.deTorneo || p.torneoId).map((p) => p.torneoId)).size
-  const masJugado = porGrupo(jugadas, (p) => p.mio, (p) => p.mioNombre)[0]
-  const grados = Math.round((c.ganadas / c.total) * 360)
-  const gradosE = Math.round(((c.ganadas + c.empatadas) / c.total) * 360)
-  caja.innerHTML = `
-    <div class="partidas-hero-anillo" style="--v:${grados}deg;--e:${gradosE}deg" role="img" aria-label="${pctTotal == null ? '' : `${Math.round(pctTotal * 100)} % de victorias`}">
-      <b>${pctTotal == null ? '—' : `${Math.round(pctTotal * 100)} %`}<small>victorias</small></b>
-    </div>
-    <div class="partidas-hero-datos">
-      <div class="partidas-hero-cifras">
-        <div><b>${c.ganadas}-${c.perdidas}-${c.empatadas}</b><small>V-D-E</small></div>
-        <div><b>${c.total}</b><small>${c.total === 1 ? 'partida' : 'partidas'}</small></div>
-        <div><b>${torneos}</b><small>${torneos === 1 ? 'torneo' : 'torneos'}</small></div>
-      </div>
-    </div>
-    ${masJugado ? `<div class="partidas-hero-mazo">${spritesDeMazoHtml(masJugado.nombre, masJugado.clave) || ''}<div><small class="subtext">Tu mazo más jugado</small><b>${escapeHtml(masJugado.nombre)}</b><small class="subtext">${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'}${masJugado.pct == null ? '' : ` · ${Math.round(masJugado.pct * 100)} %`}</small></div></div>` : ''}`
-  caja.classList.remove('hidden')
+// La pestaña Resumen (1390): de TODO lo jugado, como la franja que sustituye.
+function pintarResumenJuego(jugadas) {
+  const caja = $('partidasResumenJuego')
+  if (!caja) return
+  caja.innerHTML = resumenHtml(jugadas, { sprites: spritesDeMazoHtml }) || `<p class="empty-state">Aquí saldrá tu resumen en cuanto apuntes partidas: tu % de victorias, tu mazo estrella y contra qué ganas y pierdes.</p>`
 }
 
 function pintarExtra(jugadas) {
@@ -1526,7 +1499,8 @@ function rellenarFormConPartida(p, esRonda) {
 // anterior —como en trainingcourt—, hasta que la partida está decidida.
 // El resultado de la partida no se elige: sale de los juegos.
 const CLAVE_FORMATO = 'pokedoc-partidas-formato'
-const CLAVE_VISTA = 'pokedoc-partidas-vista'
+// La llave cambia con la 1390: todo el mundo abre una vez en el Resumen.
+const CLAVE_VISTA = 'pokedoc-partidas-vista-1390'
 // Hasta que llegan los datos no se sabe qué pestaña tiene algo (1013, L1).
 let pestaniaInicialPendiente = false
 const PALABRA_JUEGO = { W: 'Ganado', L: 'Perdido', T: 'Empate' }
@@ -1981,7 +1955,8 @@ async function cargar() {
   repintar()
   if (pestaniaInicialPendiente) {
     pestaniaInicialPendiente = false
-    const inicial = pestaniaConAlgo({ torneos: (torneosLog || []).length + todas.filter((p) => p.deTorneo).length, sueltas: apuntadas.length })
+    // Con partidas, el Resumen (1390); sin ninguna, la que tenga algo.
+    const inicial = todas.some(seJugo) ? 'resumen' : pestaniaConAlgo({ torneos: (torneosLog || []).length + todas.filter((p) => p.deTorneo).length, sueltas: apuntadas.length })
     if (inicial !== 'torneos') document.querySelector(`#partidasTabs .seg-btn[data-vista="${inicial}"]`)?.click()
   }
 }
@@ -2002,7 +1977,8 @@ async function init() {
     return
   }
   // Lo de la última vez, ya (984): el resumen y los torneos, mientras llegan.
-  vistaVigilada(claveDeVista('mis-partidas', session.user.id), ['partidasHero', 'partidasTorneos'], { atributos: ['partidasHero'] })
+  // La llave cambia con la 1390: la vista guardada traía la franja de arriba.
+  vistaVigilada(claveDeVista('mis-partidas-1390', session.user.id), ['partidasResumenJuego', 'partidasTorneos'])
 
   // El catálogo, una vez: lo necesitan tanto los arquetipos de torneo
   // como las partidas escritas a mano, para que caigan en la misma
@@ -2098,7 +2074,7 @@ async function init() {
   document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((btn) =>
     btn.addEventListener('click', () => {
       document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
-      for (const v of ['torneos', 'sueltas', 'stats']) {
+      for (const v of ['resumen', 'torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }
       colocarMandos(btn.dataset.vista)
@@ -2125,6 +2101,11 @@ async function init() {
     else pestaniaInicialPendiente = !boton
   }
   document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((btn) => btn.addEventListener('click', () => { try { localStorage.setItem(CLAVE_VISTA, btn.dataset.vista) } catch {} }))
+  // «Ver las N» del Resumen lleva a sus partidas.
+  $('partidasResumenJuego')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-pr-ver]')
+    if (b) document.querySelector(`#partidasTabs .seg-btn[data-vista="${CSS.escape(b.dataset.prVer)}"]`)?.click()
+  })
 
   $('btnApuntarPartida').addEventListener('click', () => {
     // Si ya está abierto en modo suelto, el botón lo cierra; si está en

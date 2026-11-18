@@ -1,0 +1,118 @@
+/* El Resumen de Mis partidas (1390, «Jugar con cara de juego»; SCHEMA 1390).
+   Las tarjetas siguen el tema; el mazo estrella lleva el panel de juego
+   violeta en los dos (D1 A). Verde gana, rojo pierde, gris empata. */
+.pr { display: grid; gap: var(--e-md); }
+.pr h3 { margin: 0; font-size: var(--t-md); }
+.pr-caja { background: var(--white); border: 1px solid var(--border); border-radius: 18px; padding: var(--e-md); }
+.pr-arriba { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: var(--e-md); }
+.pr-abajo { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--e-md); }
+@media (max-width: 760px) { .pr-arriba { grid-template-columns: minmax(0, 1fr); } }
+
+/* Tu resumen: el anillo y el marcador */
+.pr-resumen { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-md); align-items: center; }
+.pr-anillo { position: relative; width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--success) 0 var(--v), var(--text-dim) var(--v) var(--e), var(--danger) var(--e) 360deg); }
+.pr-anillo::before { content: ''; position: absolute; inset: 11px; border-radius: 50%; background: var(--white); }
+.pr-anillo b { position: relative; font-family: var(--font-marca); font-size: var(--t-2xl); line-height: 1; text-align: center; }
+.pr-anillo small { display: block; margin-top: 2px; font-size: var(--t-2xs); font-weight: 600; color: var(--text-mid); }
+.pr-marcador { display: grid; gap: var(--e-xs); min-width: 0; }
+.pr-vde { display: flex; gap: var(--e-md); }
+.pr-vde span { display: grid; }
+.pr-vde b { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1; }
+.pr-vde small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; color: var(--text-dim); }
+.pr-v b { color: var(--success); } .pr-d b { color: var(--danger); } .pr-e b { color: var(--text-mid); }
+.pr-racha { justify-self: start; font-size: var(--t-xs); font-weight: 700; border-radius: 999px; padding: 2px 9px; }
+.pr-racha-win { background: var(--success-bg); color: var(--success); }
+.pr-racha-loss { background: var(--danger-bg); color: var(--danger); }
+.pr-racha-draw { background: var(--ice); color: var(--text-mid); }
+.pr-forma { grid-column: 1 / -1; display: flex; gap: 4px; }
+.pr-forma i { flex: 1; height: 24px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: var(--t-2xs); }
+.pr-forma i:last-child { outline: 2px solid currentColor; outline-offset: 1px; }
+.pr-win { background: var(--success-bg); color: var(--success); }
+.pr-loss { background: var(--danger-bg); color: var(--danger); }
+.pr-draw { background: var(--ice); color: var(--text-mid); }
+.pr-forma-pie { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: -6px; font-size: var(--t-2xs); color: var(--text-dim); }
+
+/* El mazo estrella: panel de juego, en los dos temas */
+.pr-juego { position: relative; overflow: hidden; color: #f2eefc; border-color: #3a2f7a; background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 40%, #16202b 100%); }
+.pr-brillo { position: absolute; right: -60px; top: -60px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(155, 123, 255, 0.45), transparent 65%); pointer-events: none; }
+.pr-estrella { display: grid; align-content: start; gap: 6px; min-height: 220px; }
+.pr-estrella > :not(.pr-brillo):not(.pr-estrella-arte):not(.pr-estrella-sprites) { position: relative; z-index: 1; }
+.pr-estrella-arte { position: absolute; right: -10px; top: 0; width: min(46%, 230px); height: auto; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5)); }
+.pr-estrella-sprites { position: absolute; right: 12px; top: 16px; display: flex; }
+.pr-estrella-sprites .partidas-sprite { width: 96px; height: 96px; }
+.pr-kick { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.1em; color: #c9b8ff; }
+.pr-estrella h3 { font-family: var(--font-marca); font-size: var(--t-2xl); line-height: 1.05; max-width: 58%; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+.pr-cifras { display: flex; gap: var(--e-md); margin-top: 4px; }
+.pr-cifras span { display: grid; }
+.pr-cifras b { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.pr-cifras small { font-size: var(--t-2xs); color: #b7aee0; font-weight: 600; }
+.pr-barra { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--ice); }
+.pr-juego .pr-barra { width: 58%; background: rgba(255, 255, 255, 0.12); }
+.pr-barra i { display: block; height: 100%; }
+.pr-bv { background: var(--success); } .pr-be { background: var(--text-dim); } .pr-bd { background: var(--danger); }
+.pr-datos { display: grid; gap: 6px; width: 62%; margin-top: 6px; }
+.pr-dato { display: flex; align-items: center; gap: var(--e-sm); background: rgba(11, 18, 25, 0.55); border-radius: 12px; padding: 5px 8px; }
+.pr-dato-caras { display: flex; flex: none; }
+.pr-dato-caras .partidas-sprite { width: 30px; height: 30px; }
+.pr-dato > span:nth-child(2) { display: grid; min-width: 0; }
+.pr-dato small { font-size: var(--t-2xs); color: #b7aee0; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.pr-dato b { font-size: var(--t-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-dato-pct { margin-left: auto; font-family: var(--font-marca); font-weight: 800; }
+.pr-bien { color: var(--success); } .pr-mal { color: var(--danger); }
+.pr-juego .pr-bien { color: #34d399; } .pr-juego .pr-mal { color: #f87171; }
+@media (max-width: 520px) {
+  .pr-estrella-arte { width: 52%; top: 36px; right: -24px; }
+  .pr-datos, .pr-juego .pr-barra { width: 66%; }
+}
+
+/* Las últimas partidas: cartas de color */
+.pr-ultimas-caja { display: grid; gap: var(--e-sm); }
+.pr-titulo { display: flex; justify-content: space-between; align-items: center; }
+.pr-ver { border: 0; background: none; color: var(--acento, var(--navy)); font-weight: 700; font-size: var(--t-sm); cursor: pointer; min-height: 32px; }
+.pr-ultimas { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(124px, 1fr); gap: var(--e-sm); overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.pr-partida { position: relative; display: grid; gap: 2px; padding: var(--e-sm); border-radius: 14px; border: 1px solid transparent; min-width: 0; }
+.pr-partida.pr-win { border-color: color-mix(in srgb, var(--success) 45%, transparent); }
+.pr-partida.pr-loss { border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.pr-partida.pr-draw { border-color: var(--border-strong); }
+.pr-partida b { font-size: var(--t-sm); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-partida small { font-size: var(--t-2xs); color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-letra { position: absolute; top: 6px; right: 8px; font-family: var(--font-marca); font-weight: 900; font-size: var(--t-md); }
+.pr-caras { display: flex; align-items: center; gap: 2px; height: 48px; }
+.pr-caras small { font-size: 9px; font-weight: 800; color: var(--text-dim); }
+.pr-caras span { display: flex; }
+.pr-yo .partidas-sprite { width: 30px; height: 30px; opacity: 0.85; }
+.pr-yo .partidas-sprite + .partidas-sprite { display: none; }
+.pr-el .partidas-sprite { width: 46px; height: 46px; }
+.pr-el .partidas-sprite + .partidas-sprite { margin-left: -16px; width: 34px; height: 34px; }
+
+/* Contra quién y dónde */
+.pr-lista { display: grid; gap: var(--e-sm); align-content: start; }
+.pr-lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-sm); }
+.pr-gana h3::before { content: '▲ '; color: var(--success); font-size: 0.8em; }
+.pr-cuesta h3::before { content: '▼ '; color: var(--danger); font-size: 0.8em; }
+.pr-rival { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-sm); align-items: center; }
+.pr-donde .pr-rival { grid-template-columns: minmax(0, 1fr) auto; }
+.pr-rival-caras { display: flex; width: 40px; height: 40px; border-radius: 10px; background: var(--ice); align-items: center; justify-content: center; }
+.pr-rival-caras .partidas-sprite { width: 36px; height: 36px; }
+.pr-rival-caras .partidas-sprite + .partidas-sprite { display: none; }
+.pr-rival-nombre { display: grid; gap: 4px; min-width: 0; }
+.pr-rival-nombre b { font-size: var(--t-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr-rival-nombre small { color: var(--text-dim); font-weight: 600; }
+.pr-rival-pct { text-align: right; font-family: var(--font-marca); font-weight: 800; font-size: var(--t-md); }
+.pr-rival-pct small { display: block; font-family: inherit; font-size: var(--t-2xs); font-weight: 600; color: var(--text-dim); }
+
+/* El anillo se dibuja al entrar (el de la 1216, que llevaba la franja de
+   arriba): una capa del color del fondo que se abre en redondo. */
+.pr-anillo::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(transparent 0 calc(360deg - var(--anillo-abre)), var(--white) calc(360deg - var(--anillo-abre)) 360deg);
+  animation: partidas-anillo-abre 0.9s var(--ease) both;
+}
+.pr-anillo b { z-index: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .pr-anillo::after { animation: none; display: none; }
+}

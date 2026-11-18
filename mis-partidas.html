@@ -67,6 +67,7 @@
        la portada anda justa de presupuesto (norma de CLAUDE.md). -->
   <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="css/partidas.css" />
+  <link rel="stylesheet" href="css/partidas-resumen.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -172,14 +173,13 @@
            vistas — Torneos (la principal), Partidas sueltas (su
            «Battle Logs») y Estadísticas (su «Stats»). Mismas pestañas
            que el perfil (components.css). -->
-      <!-- El resumen de todo lo jugado (838): lo pinta mis-partidas.js. -->
-      <section class="partidas-hero hidden" id="partidasHero" aria-label="Tu resumen"></section>
 
       <div class="partidas-mandos">
         <!-- En el móvil, el «+» de la pestaña abierta (1164, J2): un icono
              redondo delante de las pestañas, como en Torneos. -->
         <span class="partidas-mandos-mas" id="partidasMandosMas"></span>
         <div class="seg partidas-tabs seg-iconos" id="partidasTabs" role="group" aria-label="Qué ver">
+          <button type="button" class="seg-btn" data-vista="resumen" aria-pressed="false"><span class="seg-ico" data-seg-icono="zap" aria-hidden="true"></span><span class="seg-txt">Resumen</span></button>
           <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true"><span class="seg-ico" data-seg-icono="trophy" aria-hidden="true"></span><span class="seg-txt">Torneos</span></button>
           <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false"><span class="seg-ico" data-seg-icono="gamepad" aria-hidden="true"></span><span class="seg-txt">Partidas<span class="cab-largo"> sueltas</span></span></button>
           <button type="button" class="seg-btn" data-vista="stats" aria-pressed="false"><span class="seg-ico" data-seg-icono="barChart" aria-hidden="true"></span><span class="seg-txt">Estadísticas</span></button>
@@ -189,6 +189,9 @@
         <!-- «Filtrar» de la pestaña abierta, en el móvil (893). -->
         <span class="partidas-mandos-extra" id="partidasMandosExtra"></span>
       </div>
+
+      <!-- El Resumen (1390): lo pinta js/partidas-resumen.js. -->
+      <div class="tab-panel" id="vista-resumen"><div class="pr" id="partidasResumenJuego"></div></div>
 
       <div class="tab-panel active" id="vista-torneos">
       <div class="partidas-barra">
