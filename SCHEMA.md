@@ -55212,6 +55212,41 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1386 — Los errores del panel, arreglados o fuera
+
+- `js/error-log.js` `esRuido(mensaje, error)`: además de «Script error.» sin
+  traza y las transiciones (910: el navegador las cancela si cambia el alto o
+  la página ya se enseñó; la navegación sigue sin animación), fuera
+  `^Skipping view transition`, `^Old view transition aborted`,
+  `^ResizeObserver loop`, y —si la traza no pasa por un `/js/…js` nuestro
+  (`nuestro(pila)`, quitando antes las URL de `FUERA`)— lo que viene de `FUERA`
+  (`/.netlify/scripts/`, `*-extension://`, `iabjs://`, `webkit-masked-url:`), lo
+  que nombra un objeto ajeno de `window` (`EN_WINDOW_AJENO`: ethereum,
+  __firefox__, _META, webkit.messageHandlers, M_ID, MetaMask, Talisman, «Java
+  exception») y los fallos de red `DE_RED`. Un fallo de red CON fichero nuestro
+  se apunta con `contexto()` (red, pestaña, segundos abierta).
+- `DESAJUSTE` (910: una página con módulos de dos despliegues; se vacían las
+  cachés `pokedoc-(ficheros|paginas)-` y se recarga, una vez cada cinco minutos
+  y solo con red; `recargarSiDesajuste` para un `import()` atrapado, 1236) suma
+  «Indirectly exported binding name», «is not a valid JavaScript MIME type» y
+  `\b(icons|datos|ctx)\.\w+ is not a function`.
+- `cspEsNuestra(sourceFile, origen, bloqueado)`: con `bloqueado` de
+  `HOSTS_AJENOS` (facebook.net, facebook.com, nsvcs.net) es false aunque el
+  `sourceFile` sea nuestra página. El oyente le pasa `e.blockedURI`.
+- `js/page-views.js` `esFalloDeVerdad(error)` (exportada): false con «Failed to
+  fetch», «Load failed», «NetworkError», «network connection was lost»,
+  «Network request failed» o «JWT expired»; `logPageView` no apunta esos.
+- `js/ajustes.js` `seSigueViendo(el)` = `el?.isConnected`: tras cada `await` de
+  `montarCuenta` (cumpleaños, Play!), `montarDireccion` y `montarCobro`.
+- `js/repeticiones/carrera.js`: el turno del cursor, `Math.min(turnoEn(ev),
+  carrera.length - 1)` (con un punto, `T` es 1 igual).
+- `js/carta-mercado.js` `refrescarTengo`, `js/mi-coleccion.js`
+  `pintarCompartir`, `btnLevelInfo` en `js/usuario.js` y `js/perfil.js`: sin su
+  elemento, no hacen nada.
+- Migración 1386 (tres sentencias sueltas): `delete` del ruido con las mismas
+  reglas; `update … 'dismissed'` de los desajustes nuevos; `update …
+  'reviewed'` de los arreglados (por traza o mensaje).
+
 ## Tanda 1385 — Los errores, agrupados y sin el ruido del antivirus
 
 - Migración 1385: índice `client_errors_estado_mensaje (status, message)`;

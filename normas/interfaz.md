@@ -225,7 +225,10 @@
   puntero de generación), una página que llega de la red durante una
   renovación ya es de la nueva, y lo que se escribe desde una generación
   pasada no se guarda (`test-tanda-982.mjs`). Y si aun así llega una
-  mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Y un `import()` que se ATRAPA en un `try` pasa
+  mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`); desde la 1386
+  también cuando la mezcla se ve por un namespace (`icons.gift is not a
+  function`, `datos.firmaDeLineas…`, `ctx.…`) o un módulo borrado llega como
+  HTML («is not a valid JavaScript MIME type»). Y un `import()` que se ATRAPA en un `try` pasa
   el error por `recargarSiDesajuste` (1236b): si no, la pantalla pinta el
   «Importing binding name…» y la recarga no salta nunca. Un error de
   import en el panel justo después de un push es esto antes que un export

@@ -281,6 +281,8 @@ export async function logPageView(session) {
       const { is_bot: _fuera, ...sinColumna } = fila
       ;({ error } = await supabase.from('page_views').insert(sinColumna))
     }
+    // Red o sesión caducada: no se apunta (1386).
+    if (error && !esFalloDeVerdad(error)) return
     if (error) {
       // Al registro de errores del admin, que es donde se mira. Solo los
       // errores DEL SERVIDOR (con código de PostgREST): un fallo de red es
@@ -293,4 +295,10 @@ export async function logPageView(session) {
   } catch {
     // Red caída o bloqueador: la visita se pierde y no pasa nada más.
   }
+}
+
+export function esFalloDeVerdad(error) {
+  const m = String(error?.message || '')
+  if (/Failed to fetch|Load failed|NetworkError|network connection was lost|JWT expired|Network request failed/i.test(m)) return false
+  return true
 }

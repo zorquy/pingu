@@ -106,8 +106,11 @@ function dibujo(caja, { jugadores, carrera }, { colorDe, alIr }) {
     return Math.max(0, Math.min(T, Math.round(((px - M.izq) / w) * T)))
   }
   tapa.addEventListener('pointermove', (ev) => {
-    const k = turnoEn(ev)
+    // Con un solo punto (la partida sin turnos) el eje va de 0 a 1 igual, y
+    // el 1 no tiene fila: se queda en la última (tanda 1386, 7 veces).
+    const k = Math.min(turnoEn(ev), carrera.length - 1)
     const c = carrera[k]
+    if (!c) return
     raya.setAttribute('x1', x(k))
     raya.setAttribute('x2', x(k))
     jugadores.forEach((n, i) => {

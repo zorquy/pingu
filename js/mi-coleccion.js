@@ -7090,10 +7090,12 @@ function pintarCabecera(nueva = pestania) {
 
 function pintarCompartir() {
   pintarCabecera()
-  if (!esMia) return
-  $('mcCompartir').classList.remove('hidden')
+  // Sin la franja (un HTML guardado de antes que el JS, tanda 1386: 23 veces
+  // en el panel) no hay nada que pintar; no es motivo para parar la página.
+  if (!esMia || !$('mcPublicaEstado')) return
+  $('mcCompartir')?.classList.remove('hidden')
   $('mcPublicaEstado').textContent = dueno.coleccion_publica ? 'Colección pública' : 'Colección privada'
-  $('mcCopiarEnlace').classList.toggle('hidden', !dueno.coleccion_publica || !dueno.username)
+  $('mcCopiarEnlace')?.classList.toggle('hidden', !dueno.coleccion_publica || !dueno.username)
 }
 
 function prepararOpcionesDeFormulario() {

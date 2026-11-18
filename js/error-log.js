@@ -1,18 +1,12 @@
 import { supabase } from './supabase.js'
 
-// Tope por carga de página para no inundar la tabla si algo entra en un
-// bucle de errores (por ejemplo, un fallo que se repite en cada frame de
-// una animación).
+// Tope por carga (un fallo en bucle no inunda la tabla).
 const MAX_ERRORS_PER_LOAD = 5
 let loggedCount = 0
-// Un módulo que no carga dispara los dos manejadores globales, así que el
-// mismo "Failed to fetch" entraba dos veces por cada carga de página y
-// duplicaba todo el listado del panel.
+// Un módulo que no carga dispara los dos manejadores: uno vale.
 const yaRegistrados = new Set()
 
-// Y UNA VEZ POR VISITA (1385): con 9.000 filas en el panel, casi todas eran
-// el mismo aviso repetido en cada página que abría la misma persona. El
-// mismo mensaje en la misma pestaña ya está apuntado; lo dice la primera.
+// Y una vez por visita (1385).
 const CLAVE_VISTOS = 'pd-errores-vistos'
 function yaEnEstaVisita(clave) {
   try {
@@ -54,28 +48,30 @@ export function logClientError(message, stack) {
   return logError(message, stack)
 }
 
-// LO QUE NO SE APUNTA (910): ruido que no dice nada que se pueda arreglar.
-// «Script error.» es lo que el navegador deja ver de un error de un script
-// de OTRO origen —una extensión, el navegador de dentro de Instagram—: sin
-// fichero, sin línea, sin traza (la web no carga scripts de fuera). Y las
-// transiciones entre páginas (`@view-transition`) que el propio navegador
-// cancela porque cambió el alto de la ventana (la barra del móvil al hacer
-// scroll) o porque la página ya se había enseñado: la navegación sigue sin
-// la animación, que es lo que tiene que pasar.
+// LO QUE NO SE APUNTA (910, 1386; el porqué, en SCHEMA): «Script error.»
+// sin traza, las transiciones que cancela el navegador, lo que no lanza
+// NUESTRO código y los fallos de red sin un /js/ nuestro en la traza.
+const FUERA = '(\\/\\.netlify\\/scripts\\/|(chrome|moz|safari|safari-web)-extension:\\/\\/|iabjs:\\/\\/|webkit-masked-url:)'
+const DE_FUERA = new RegExp(FUERA)
+const EN_WINDOW_AJENO = /\b(window\.)?(ethereum|__firefox__|_META|webkit\.messageHandlers|__gCrWeb|TalismanEnabled|tronWeb|solana)\b|\bM_ID\b|MetaMask|Talisman|Java exception/
+const DE_RED = /^(TypeError: )?(Failed to fetch|Load failed|NetworkError when attempting to fetch resource\.?|The network connection was lost\.?)$/
+const URL_DE_FUERA = new RegExp(`\\S*${FUERA}\\S*`, 'g')
+const nuestro = (pila) => /\/js\/[\w./-]+\.js/.test(String(pila || '').replace(URL_DE_FUERA, ''))
 export function esRuido(mensaje, error) {
   const m = String(mensaje || '')
+  const pila = String(error?.stack || '')
   if (/^Script error\.?$/.test(m) && !error?.stack) return true
-  if (/^Transition was (aborted|skipped)\b/.test(m)) return true
+  if (/^Transition was (aborted|skipped)\b|^Skipping view transition\b|^Old view transition aborted\b/.test(m)) return true
+  if (/^ResizeObserver loop\b/.test(m)) return true
+  if (DE_FUERA.test(pila) && !nuestro(pila)) return true
+  if (EN_WINDOW_AJENO.test(m) && !nuestro(pila)) return true
+  if (DE_RED.test(m) && !nuestro(pila)) return true
   return false
 }
 
-// UNA PÁGINA CON MÓDULOS DE DOS DESPLIEGUES (910). Si un módulo pide a otro
-// algo que ese no exporta, es que uno llegó nuevo y el otro viejo de la
-// caché (o del navegador): la página está rota entera y no se arregla sola.
-// Se vacían las cachés de la casa y se recarga UNA vez cada cinco minutos
-// —si vuelve a pasar, es un fallo de verdad y se queda apuntado—. Sin red,
-// no: recargar llevaría a «Sin conexión» por un trozo que no ha llegado.
-export const DESAJUSTE = /Importing binding name|does not provide an export named|doesn't provide an export named|Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed/i
+// UNA PÁGINA CON MÓDULOS DE DOS DESPLIEGUES (910, 1386; SCHEMA): se vacían
+// las cachés de la casa y se recarga, una vez cada cinco minutos y con red.
+export const DESAJUSTE = /Importing binding name|Indirectly exported binding name|does not provide an export named|doesn't provide an export named|Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|is not a valid JavaScript MIME type|\b(icons|datos|ctx)\.\w+ is not a function/i
 const CLAVE_RECARGA = 'pd-recarga-despliegue'
 
 export function tocaRecargar(mensaje, { ahora = Date.now(), almacen = globalThis.sessionStorage, enLinea = globalThis.navigator?.onLine !== false } = {}) {
@@ -97,9 +93,7 @@ async function vaciarYRecargar() {
   location.reload()
 }
 
-// Un «Failed to fetch» suelto no dice qué petición ni en qué momento; esto
-// sí: si había red, si la pestaña estaba a la vista y cuánto llevaba
-// abierta (una app que vuelve de segundo plano pide antes de tener red).
+// El contexto de un fallo de red: red, pestaña y tiempo abierta.
 function contexto() {
   const s = Math.round(performance.now() / 1000)
   return `[en línea: ${navigator.onLine ? 'sí' : 'no'} · pestaña: ${document.visibilityState} · a los ${s} s de abrir]`
@@ -116,12 +110,7 @@ function apuntar(mensaje, error) {
   logError(mensaje, pila)
 }
 
-// Lo mismo para un error que alguien ATRAPA (1236): el Mercado cargaba su
-// módulo en un `try` y pintaba «Importing binding name … is not found» en la
-// rejilla, así que la recarga de arriba no saltaba nunca y la pantalla se
-// quedaba rota. Quien atrapa un `import()` pasa el error por aquí: si es un
-// desajuste de despliegues, se apunta, se vacía la caché y se recarga (una
-// vez cada cinco minutos) y devuelve true; si no, false y lo pinta él.
+// Lo mismo para un `import()` que alguien ATRAPA (1236): true si recarga.
 export function recargarSiDesajuste(error) {
   const mensaje = error?.message || String(error || '')
   if (!tocaRecargar(mensaje)) return false
@@ -129,16 +118,16 @@ export function recargarSiDesajuste(error) {
   return true
 }
 
-// UN AVISO DE CSP SOLO SI LO CAUSA NUESTRO CÓDIGO (1385). El panel tenía
-// miles de «CSP (informe) connect-src: https://ingesteer.services-prod.
-// nsvcs.net»: es la extensión del antivirus (Norton/Avast, de Gen Digital),
-// que mete su script en la página y llama a su servidor. No es nuestro ni se
-// arregla aquí. Lo que lanza una extensión trae su `sourceFile` en
-// `chrome-extension://…` (o vacío, si lo inyecta en línea); lo nuestro, en
-// nuestro origen.
-export function cspEsNuestra(sourceFile, origen = globalThis.location?.origin || '') {
+// UN AVISO DE CSP SOLO SI LO CAUSA NUESTRO CÓDIGO (1385, 1386; SCHEMA): ni
+// extensiones (el antivirus y su nsvcs.net) ni un host ajeno metido en la
+// página (el navegador de dentro de Facebook).
+const HOSTS_AJENOS = /(^|\.)(facebook\.net|facebook\.com|nsvcs\.net)$/
+export function cspEsNuestra(sourceFile, origen = globalThis.location?.origin || '', bloqueado = '') {
   const f = String(sourceFile || '')
   if (!f || !origen) return false
+  try {
+    if (bloqueado && HOSTS_AJENOS.test(new URL(bloqueado).hostname)) return false
+  } catch { /* «inline», «eval»… */ }
   return f === origen || f.startsWith(`${origen}/`)
 }
 
@@ -153,7 +142,7 @@ export function initErrorLogging() {
   })
   // La CSP en modo informe (1313): lo que bloquearía, a los errores del panel.
   document.addEventListener('securitypolicyviolation', (e) => {
-    if (!cspEsNuestra(e.sourceFile)) return
+    if (!cspEsNuestra(e.sourceFile, undefined, e.blockedURI)) return
     let de = e.blockedURI || ''
     try { de = new URL(de).origin } catch { /* «inline», «eval»… */ }
     logError(`CSP ${e.disposition === 'report' ? '(informe)' : ''} ${e.effectiveDirective}: ${de}`, `${e.sourceFile || ''}:${e.lineNumber || ''}`)

@@ -65,7 +65,8 @@ async function loadProfile(session, { fresco = false } = {}) {
 
   // El nivel y la racha, en la franja de debajo (1273).
   pintarFranja({ xp, racha: profile?.current_streak })
-  document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
+  // Sin la franja (un HTML guardado de antes que el JS) no hay botón (1386).
+  document.getElementById('btnLevelInfo')?.addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return profile
 }

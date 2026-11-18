@@ -354,6 +354,9 @@ function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, esta
       // Sin la migración no hay colección: el botón lo dirá al pulsarlo.
       mias = []
     }
+    // La ficha puede haberse cambiado (o cerrado) mientras se pedía: sin su
+    // barra no hay nada que repintar (tanda 1386).
+    if (!$('cartaAcciones') || !$('cmAnadir')) return
     const n = mias.reduce((a, l) => a + (Number(l.cantidad) || 0), 0)
     const con = n > 0
     $('cartaAcciones').classList.toggle('mc-sin-copias', !con)

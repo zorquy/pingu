@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-18", "tipo": "arreglo", "texto": "Ajustes ya no se queda a medias si cambias de apartado mientras carga, y arreglados varios fallos pequeños en Repeticiones, en la ficha de una carta y en tu perfil.", "enlace": "/ajustes" },
     { "fecha": "2026-11-17", "tipo": "arreglo", "texto": "En los sets japoneses ya puedes poner tus cartas en coreano o en chino también al editarlas, y al añadir varias de golpe eliges idioma y estado.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Escribir en el foro es más cómodo: la barra de botones se queda contigo en mensajes largos, el spoiler se titula al ponerlo (o con [spoiler=Título]…[/spoiler]) y te avisa si mencionas a alguien que no existe.", "enlace": "/foro" },
     { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Las menciones del foro: ahora se enlazan todas aunque un mensaje nombre a mucha gente, y los nombres con punto (como @Sergio.M) llevan a la persona correcta.", "enlace": "/foro" },

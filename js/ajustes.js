@@ -276,6 +276,7 @@ function montarCuenta(panel) {
     const campo = panel.querySelector('#ajCumple')
     const { leerCumple, guardarCumple } = await import('./cumple.js')
     const { fecha, privado } = await leerCumple(supabase, session.user.id, perfil)
+    if (!seSigueViendo(campo)) return
     campo.value = fecha
     campo.disabled = false
     campo.addEventListener('change', async (e) => {
@@ -290,6 +291,7 @@ function montarCuenta(panel) {
     const { leerDatosPlay, guardarDatosPlay, MIGRACION_PLAY } = await import('./play-pokemon.js')
     const play = await leerDatosPlay(session.user.id)
     const aviso = panel.querySelector('#ajPlayAviso')
+    if (!seSigueViendo(aviso)) return
     if (play.estado !== 'ok') {
       aviso.textContent = play.estado === 'falta' ? `Todavía no se puede guardar: falta ejecutar ${MIGRACION_PLAY}.` : 'No se ha podido leer lo que tenías guardado. Vuelve en un rato.'
       return
@@ -314,6 +316,12 @@ function montarCuenta(panel) {
   })()
 }
 
+// Un apartado que espera a sus módulos o a la base puede volver cuando ya
+// no está: en el móvil «atrás» vacía el panel, y tocar otro apartado lo
+// cambia. Sin esto, el `innerHTML` de una caja que ya no existe era un error
+// (tanda 1386: «Cannot set properties of null», 27 veces en el panel).
+const seSigueViendo = (el) => Boolean(el?.isConnected)
+
 // ── Dirección de envío (1102) ──
 // La de los cambios por correo: solo la ves tú, y la otra persona de un
 // trato por correo que hayáis aceptado (una copia en ese trato).
@@ -331,6 +339,7 @@ async function montarDireccion(panel) {
   const { miDireccion, guardarMiDireccion, borrarMiDireccion, camposHtml, MIGRACION_DIRECCION } = await import('./cambio-direccion.js')
   const { validarDireccion } = await import('./cambio-propuesta-puro.js')
   const caja = panel.querySelector('#ajDireccion')
+  if (!seSigueViendo(caja)) return
   const pintarla = (fila) => {
     caja.innerHTML = `<form class="aj-form aj-direccion" id="ajDirForm" novalidate>${camposHtml(fila || {})}
       <p class="cp-dir-error" id="ajDirError" role="alert" hidden></p>
@@ -362,6 +371,7 @@ async function montarDireccion(panel) {
   }
   void montarCobro(panel)
   const fila = await miDireccion(session.user.id)
+  if (!seSigueViendo(caja)) return
   if (fila === undefined) {
     caja.innerHTML = `<p class="aj-nota">Todavía no se puede guardar: falta ejecutar ${escapeHtml(MIGRACION_DIRECCION)}.</p>`
     return
@@ -374,7 +384,9 @@ async function montarCobro(panel) {
   const { miCobro, guardarMiCobro, MIGRACION_COBRO } = await import('./cambio-direccion.js')
   const { validarCobro, COMOS_CON_DATO, datoBonito } = await import('./cambio-propuesta-puro.js')
   const caja = panel.querySelector('#ajCobro')
+  if (!seSigueViendo(caja)) return
   const fila = await miCobro(session.user.id)
+  if (!seSigueViendo(caja)) return
   if (fila === undefined) {
     caja.innerHTML = `<p class="aj-nota">Todavía no se puede guardar: falta ejecutar ${escapeHtml(MIGRACION_COBRO)}.</p>`
     return

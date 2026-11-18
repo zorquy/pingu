@@ -112,7 +112,8 @@ async function loadHeader() {
 
   // El nivel y la racha, en la franja de debajo (1273).
   pintarFranja({ xp, racha: rachaVisible(profile) })
-  document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
+  // Sin la franja (un HTML guardado de antes que el JS) no hay botón (1386).
+  document.getElementById('btnLevelInfo')?.addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return true
 }

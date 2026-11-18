@@ -348,6 +348,16 @@
   «connect-src: …nsvcs.net»), y el mismo mensaje una vez por visita
   (`sessionStorage`). Un registro nuevo de errores pasa por `logError`, que ya
   hace las dos cosas.
+- **Un error que no lanza NUESTRO código no se apunta** (tanda 1386: de 9.000
+  filas, 4.194 eran del script de analítica de Netlify). `esRuido` mira la
+  TRAZA, no solo el mensaje: si no pasa por un `/js/…js` nuestro y viene de
+  `/.netlify/scripts/`, de una extensión o del navegador de dentro de otra app
+  (`ethereum`, `_META`, `__firefox__`…), fuera; un fallo de red sin fichero
+  nuestro, fuera. Lo que SÍ es nuestro con un fallo de red se queda, con su
+  `contexto()`. Un ruido nuevo se añade a `esRuido` (y a la limpieza de su
+  migración), no se descarta a mano cada semana. Y un apartado que se monta
+  tras un `await` comprueba que su caja sigue en la página
+  (`seSigueViendo` en `js/ajustes.js`): el usuario puede haberse ido.
 - **La entrada de /admin es «Hoy»** (tanda 1119, `admin/js/hoy.js`): lo que
   espera a alguien va en `ESPERAS` (tabla, filtro y fecha) y sale en tarjeta y
   con su número en el menú (`ponerContadorNav`); una cola nueva que espere al

@@ -4,6 +4,52 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (633) — PINGU-Claude (1386 — Los errores del panel, arreglados o fuera)
+
+**Hecho** (PINGU, con el CSV agrupado de la 1385: «necesito arreglarlos»). De
+las ~9.000 filas, casi todo era ruido ajeno; lo que era nuestro, arreglado:
+- **Ruido que ya no se apunta** (`js/error-log.js` `esRuido`, que ahora mira la
+  TRAZA): el script de analítica de Netlify (`/.netlify/scripts/rum`, 4.194
+  «Failed to fetch» él solo), extensiones y navegadores de dentro de otra app
+  (carteras MetaMask/Talisman, `ethereum`, `_META` de Instagram,
+  `__firefox__`, `webkit.messageHandlers`, `iabjs://`, `M_ID`), el resto de
+  avisos de transiciones, `ResizeObserver loop` y los fallos de red sin un
+  `/js/` nuestro en la traza. La CSP de connect.facebook.net (el navegador de
+  dentro de Facebook mete su script en la página) tampoco. Y
+  `js/page-views.js` ya no apunta una visita que no entró por la red o por un
+  «JWT expired» (`esFalloDeVerdad`): su comentario lo prometía y no lo hacía.
+- **Desajustes de despliegue**: la recarga sola salta también con un namespace
+  (`icons.gift is not a function`, `datos.firmaDeLineas…`, `ctx.…`), con
+  «Indirectly exported binding name» y con un módulo borrado que llega como
+  HTML. Eran ~60 filas en días de push.
+- **Fallos de verdad**: Ajustes pintaba en una caja que ya no estaba al cambiar
+  de apartado (o volver a la lista en el móvil) mientras cargaba (27 veces,
+  `seSigueViendo`); la carrera de premios de Repeticiones con un solo punto
+  (7); «Tienes N» de una ficha ya cerrada; la franja de compartir de Mi
+  colección y el botón del nivel del perfil con un HTML guardado de antes.
+- **Migración `supabase-migration-1386-errores-limpieza.sql`** (HAY QUE
+  EJECUTARLA, después de la 1385): borra el ruido guardado, descarta los
+  desajustes y marca como revisados los arreglados (si vuelven, entran como
+  nuevos).
+- Lo que ya estaba arreglado: el «Database error saving new user» (2, el
+  15-11) lo arregló la 1361; `torneo.js`, `home.js loadRecent`,
+  `actividadCargada`, `currentInset` y `CONFIG` eran de código que ya no existe.
+- La portada BAJA 0,3 KB: los comentarios largos de `error-log.js` se fueron al
+  SCHEMA.
+
+**Ficheros**: `js/error-log.js`, `js/page-views.js`, `js/ajustes.js`,
+`js/mi-coleccion.js`, `js/usuario.js`, `js/perfil.js`,
+`js/repeticiones/carrera.js`, `js/carta-mercado.js`,
+`supabase-migration-1386-errores-limpieza.sql`, `normas/comunidad.md`,
+`normas/interfaz.md`. Prueba `test-tanda-1386.mjs` (rama `pruebas`: la migración
+contra PostgreSQL con 22 casos del CSV, los filtros en un navegador y Ajustes
+cambiando de apartado con los módulos lentos — con el código de antes, rojo con
+el mismo error de producción). Ajustadas 910, 1015 (L11, por la 1381b) y 1385.
+
+**Pendiente**: ejecutar la 1385 y la 1386. Con el panel ya limpio, lo que
+quede en «nuevos» es de verdad. Si se quiere quitar el ruido de raíz, Netlify →
+Analytics → desactivar «Real User Monitoring» (es el script `rum`).
+
 ## 2026-11-18 (632) — PINGU-Claude (1385 — Los errores, agrupados y sin el ruido del antivirus)
 
 **Hecho** (PINGU, con el panel de Errores: «tenemos más de 9k errores…
