@@ -55212,6 +55212,26 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1397 — La sala de espera del torneo
+
+- `js/torneos/sala.js` (nuevo): `ANTES_DE_EMPEZAR` (draft,
+  registration_open, registration_closed), `cuentaAtras(fecha, ahora)` →
+  `{ d, h, m }` o null, `salaHtml(t, gente, { ahora })` (cartel con
+  `.mascota-3d[data-mascota=saludar]`, `.sala-cuenta` con `[data-d|h|m]`,
+  `.sala-gente`, cuatro `.sala-losa`), `montarSala(caja, t, gente)` (antepone
+  `.torneo-sala` en `#torneoInfoCaja`, pone `.con-sala`, repinta solo si
+  cambia algo más que los números y mueve el reloj cada 20 s) y
+  `misionesHtml({ tcg, listaHecha, confirmado })` (anillo `--p`, misiones
+  `hecha`/`toca`/`cerrada`, `[data-abrir-lista]`, `#btnEditarTcg` y el
+  `.sala-estoy#btnConfirmarParticipacion`).
+- `js/torneos/torneo.js`: `montarSala` tras la barra de plazas;
+  `pintarMiPlazaDentro` con `checklistDosPasos()` pinta las misiones,
+  `#cajaEditarTcg` y «Darme de baja»; `pintarInscritos` marca `.yo` y, sin
+  mando, abierto y con `max_players`, añade `.sala-libre` (hasta 7 y «+N»).
+- `css/torneos.css` (bloque 1397): `.sala-*`, el mosaico de Jugadores como
+  sala (caras de 56 px; 50 y 4 columnas en el móvil) y el bloque del móvil
+  más apretado.
+
 ## Tanda 1396 — A la mascota no se le corta la gorra
 
 - `js/mascota.js` (`arrancarMotor`): cámara en `(0.55, 2.6, 8.4)` mirando a

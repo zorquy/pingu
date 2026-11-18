@@ -310,3 +310,15 @@ medallas y el **mazo de torneo** en el panel de juego. Ese mazo sale SOLO de
 sus listas de torneos de PokeDoc terminados (`mazoMasJugado`, con
 `arquetipoDeMazo`), nunca de las partidas sueltas, que se apuntan a mano y no
 se comprueban; ni de un torneo en juego, cuya lista no se ve (230).
+**La sala de espera** (1397, «PokeDoc en modo app»): antes de empezar
+(`ANTES_DE_EMPEZAR` en `js/torneos/sala.js`), Info abre con el cartel (con la
+mascota), la cuenta atrás en tres losas, «N/M en la sala» con caras y el
+formato en cuatro losas; el día, las chapas y la barra de plazas de antes se
+esconden con `.con-sala` y vuelven al empezar. «Tu plaza», con la inscripción
+en dos pasos, son **misiones** (`misionesHtml`: inscrito, tu lista, confirmar)
+y confirmar es el botón redondo «¡ESTOY!», que conserva el id
+`btnConfirmarParticipacion`. Un paso nuevo antes de jugar entra como misión, no
+como otro párrafo. Jugadores es la sala: caras grandes, la tuya rodeada y las
+plazas libres (hasta siete y «+N»). En el móvil «Tu plaza» tiene que asomar en
+la primera pantalla (la 1145): si la sala crece, se aprieta en el bloque del
+móvil antes de empujarla.

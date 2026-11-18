@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-18 (644) — PINGU-Claude (1397 — La sala de espera del torneo)
+
+**Hecho** (PINGU: «me gusta que toques lo de los torneos… en el PC también
+se ve guay»; la parte de Jugar de «PokeDoc en modo app»).
+- Antes de empezar, Info es una **sala**: cartel con la mascota, cuenta atrás
+  en días/horas/minutos, «6/16 en la sala» con caras y el formato en cuatro
+  losas (rondas, top, minutos, BO).
+- «Tu plaza» son **misiones** con su anillo (1/3, 2/3, 3/3): inscrito, tu
+  lista («Elegir mazo») y confirmar con el botón grande **¡ESTOY!**.
+- **Jugadores** como sala: caras grandes, la tuya rodeada y las plazas libres.
+- En el móvil se aprieta un poco para que «Tu plaza» asome en la primera
+  pantalla (la 1145).
+
+**Ficheros**: `js/torneos/sala.js` (nuevo), `js/torneos/torneo.js`,
+`css/torneos.css`, `normas/jugar.md`. Prueba `test-tanda-1397-pantalla.mjs`;
+1145, 1340–1394 del torneo en verde.
+
+**Pendiente**: 1398 (cartel de «Tu próximo torneo» y mazos como póster), 1399
+(celebraciones).
+
 ## 2026-11-18 (643) — PINGU-Claude (1396 — A la mascota no se le corta la gorra)
 
 **Hecho** (PINGU: «se le corta el gorro a la mascota, por arriba, siempre»).

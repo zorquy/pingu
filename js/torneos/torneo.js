@@ -44,6 +44,7 @@ import { montarPestanas, pintarPestanas, irAPestana } from './pestanas.js'
 import { pintarCabecera } from './cabecera.js'
 import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo, engancharAbrirLista } from './hoy-tarjetas.js'
 import { textoDePrecio } from './torneo-tienda.js'
+import { montarSala, misionesHtml } from './sala.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 import { artePokemonHtml } from '../arte-pokemon.js'
 import { dexesDeNombre } from './arquetipos.js'
@@ -346,6 +347,9 @@ function pintarFicha() {
   )
   document.querySelector('.torneo-plazas-barra')?.classList.toggle('hidden', aforoSinLimite)
   if (!aforoSinLimite) $('torneoPlazasRelleno').style.width = `${Math.min(100, (ocupadas / torneo.max_players) * 100)}%`
+  // La sala de espera (1397, «PokeDoc en modo app»): antes de empezar, el
+  // cartel, la cuenta atrás, quién está dentro y el formato en losas.
+  montarSala($('torneoInfoCaja'), torneo, inscripciones.filter((i) => i.status === 'active'))
 
   // El cuadro de cierre con rondas (tanda 228) sobrevive a los
   // repintados del sondeo mientras las inscripciones sigan abiertas —
@@ -1035,6 +1039,18 @@ function pintarMiPlazaDentro(caja) {
     return
   }
 
+  // Tus misiones (1397, T2/T4): con la inscripción en dos pasos, «Tu plaza»
+  // son tres misiones y el «¡ESTOY!» grande, en vez de las frases.
+  if (miInscripcion?.status === 'active' && checklistDosPasos()) {
+    if (!pintarSiCambia(caja, `
+      ${misionesHtml({ tcg: miInscripcion.tcg_live_username, listaHecha: !!miDecklist, confirmado: !!miInscripcion.participation_confirmed_at })}
+      <div id="cajaEditarTcg"></div>
+      <button type="button" class="link-btn sala-baja" id="btnBaja">Darme de baja</button>`)) return
+    engancharConfirmarParticipacion()
+    engancharEditarTcgLive()
+    engancharBaja()
+    return
+  }
   if (miInscripcion?.status === 'active') {
     if (!pintarSiCambia(caja, `
       <p class="torneo-entrada-ok">${icons.checkCircle(18)} Estás dentro${torneo.max_players != null ? ` · ${activos()} de ${torneo.max_players} plazas` : ''}</p>
@@ -1670,7 +1686,7 @@ function pintarInscritos() {
           ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
           : ''
       return `
-      <div class="torneo-inscrito">
+      <div class="torneo-inscrito${i.user_id === session?.user?.id ? ' yo' : ''}">
         <span class="torneo-inscrito-nombre">${caraDe(i.perfil, nombre)}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}"${atributosDeRango(i.perfil)}>${escapeHtml(nombre)}</a>${retirado}</span>
         ${tcgLiveDe(i)}
         ${decklist}${confirmado}${expulsar}
@@ -1697,7 +1713,14 @@ function pintarInscritos() {
   // Quien juega ve a la gente en mosaico, con la cara grande (1351); quien
   // organiza sigue con filas, que lleva chapas y «Expulsar» por persona.
   $('listaInscritos').classList.toggle('torneo-inscritos-mosaico', !mando())
-  if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlCola)) return
+  // La sala (1397, T3): antes de empezar, las plazas libres como huecos
+  // punteados, para que se vea cuánto falta para llenarla.
+  const libres = !mando() && ['registration_open'].includes(torneo.status) && torneo.max_players != null ? Math.max(0, torneo.max_players - activos()) : 0
+  const htmlLibres = libres
+    ? Array.from({ length: Math.min(libres, 7) }, () => '<div class="torneo-inscrito sala-libre" aria-hidden="true"><span class="torneo-inscrito-nombre"><span class="sala-libre-cara">+</span>libre</span></div>').join('') +
+      (libres > 7 ? `<div class="torneo-inscrito sala-libre" aria-hidden="true"><span class="torneo-inscrito-nombre"><span class="sala-libre-cara">+${libres - 7}</span>libres</span></div>` : '')
+    : ''
+  if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlLibres + htmlCola)) return
   filtrarGente()
   document.querySelectorAll('[data-expulsar]').forEach((b) =>
     b.addEventListener('click', async () => {

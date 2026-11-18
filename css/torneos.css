@@ -5143,3 +5143,104 @@ button.torneo-tj { cursor: pointer; }
    con aire arriba para la mascota, que salta al bailar. */
 .torneo-celebra { margin: auto; max-height: calc(100dvh - 32px); overflow-y: auto; }
 .torneo-celebra-final .torneo-celebra-caja { padding-top: 44px; }
+
+/* ══ 1397 — PokeDoc en modo app: la sala de espera del torneo (SCHEMA 1397).
+   El cartel, la cuenta atrás, quién está dentro, el formato en losas, tus
+   misiones con el «¡ESTOY!» y los jugadores como sala. Paneles de juego
+   oscuros en los dos temas, como el duelo de la 1391. ══ */
+.torneo-info.con-sala > .torneo-cuando-fila,
+.torneo-info.con-sala > .torneo-formato,
+.torneo-info.con-sala > .torneo-plazas { display: none; }
+.torneo-sala { display: grid; gap: var(--e-sm); margin-bottom: var(--e-sm); }
+.sala-cartel {
+  position: relative; overflow: hidden; display: grid; gap: 6px; align-content: start; min-height: 168px;
+  padding: var(--e-md); border-radius: 22px; color: #f2eefc; border: 1px solid #3a2f7a;
+  background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 45%, #16202b 100%);
+}
+.sala-cartel > :not(.sala-brillo):not(.sala-mascota) { position: relative; z-index: 1; max-width: 62%; }
+.sala-brillo { position: absolute; right: -70px; top: -80px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(155, 123, 255, 0.45), transparent 65%); pointer-events: none; }
+.sala-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.13em; color: #c9b8ff; }
+.sala-nombre { font-family: var(--font-marca); font-size: clamp(1.6rem, 6vw, 2.3rem); font-weight: 900; line-height: 1.02; color: #fff; text-wrap: balance; }
+.sala-cuando { font-size: var(--t-sm); color: #b7aee0; font-weight: 600; }
+.sala-mascota { position: absolute; right: 0; bottom: -6px; width: min(40%, 170px); aspect-ratio: 1; z-index: 0; }
+.sala-cuenta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-xs); }
+.sala-cuenta > div { display: grid; justify-items: center; padding: 10px 0 8px; border-radius: 16px; background: #141a33; border: 1px solid #2a2f5a; }
+.sala-cuenta b { font-family: var(--font-marca); font-size: clamp(1.9rem, 8vw, 2.6rem); font-weight: 900; line-height: 1; color: #fde68a; text-shadow: 0 0 16px rgba(240, 192, 72, 0.45); font-variant-numeric: tabular-nums; }
+.sala-cuenta small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.13em; color: #c9b8ff; margin-top: 2px; }
+.sala-gente { display: flex; align-items: center; gap: var(--e-sm); padding: 10px 12px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); }
+.sala-caras { display: flex; flex: none; }
+.sala-caras > .torneo-jcara, .sala-cara-mas { width: 32px; height: 32px; margin-left: -9px; border: 2px solid var(--white); }
+.sala-caras > :first-child { margin-left: 0; }
+.sala-cara-mas { display: grid; place-items: center; border-radius: 50%; background: var(--ice); color: var(--text-mid); font: 800 var(--t-2xs) var(--font-marca); }
+.sala-gente-texto { flex: 1; display: grid; gap: 5px; min-width: 0; }
+.sala-gente-texto b { font-family: var(--font-marca); font-size: var(--t-md); }
+.sala-gente-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.sala-barra { height: 7px; border-radius: 999px; background: var(--ice); overflow: hidden; }
+.sala-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #10b981); }
+.sala-losas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-xs); }
+.sala-losa { display: grid; justify-items: center; gap: 3px; padding: 10px 2px 8px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); text-align: center; min-width: 0; }
+.sala-losa svg { color: var(--acento, var(--navy)); }
+.sala-losa b { font-family: var(--font-marca); font-size: var(--t-lg); font-weight: 900; line-height: 1; white-space: nowrap; }
+.sala-losa small { font-size: var(--t-2xs); color: var(--text-mid); font-weight: 600; }
+
+/* Tus misiones */
+.sala-misiones-cab { display: flex; align-items: center; gap: var(--e-sm); margin-bottom: var(--e-sm); }
+.sala-misiones-cab > span:last-child { display: grid; }
+.sala-misiones-cab strong { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.1; }
+.sala-misiones-cab .sala-ceja { color: var(--acento, var(--navy)); }
+.sala-anillo { --p: 33; flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--ice) 0); }
+.sala-anillo b { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--white); font: 900 var(--t-md) var(--font-marca); }
+.sala-misiones { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-xs); }
+.sala-mision { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--e-sm); padding: 10px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); }
+.sala-mision-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; }
+.sala-mision-texto { display: grid; min-width: 0; }
+.sala-mision-texto b { font-family: var(--font-marca); font-size: var(--t-md); }
+.sala-mision-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.sala-mision.hecha .sala-mision-ico { background: var(--success-bg); color: var(--success); }
+.sala-mision.hecha b { color: var(--success); }
+.sala-mision.toca { border: 2px solid #8b5cf6; background: linear-gradient(135deg, color-mix(in srgb, #8b5cf6 14%, var(--white)), var(--white)); box-shadow: 0 0 22px rgba(139, 92, 246, 0.28); }
+.sala-mision.toca .sala-mision-ico { background: #8b5cf6; color: #fff; }
+.sala-mision.cerrada { opacity: 0.6; }
+.sala-mision.cerrada .sala-mision-ico { background: var(--ice); color: var(--text-dim); }
+.sala-mision-boton { min-height: 40px; padding-inline: 14px; white-space: nowrap; }
+.sala-cambiar { display: inline; min-height: 0; padding: 0; font-size: inherit; }
+.sala-baja { margin-top: var(--e-sm); font-size: var(--t-xs); color: var(--text-mid); }
+/* «¡ESTOY!»: confirmar que juegas, un botón redondo y gordo. */
+.sala-estoy { display: grid; place-items: center; width: 168px; height: 168px; margin: var(--e-md) auto var(--e-xs); padding: 10px; border: 0; border-radius: 50%; cursor: pointer;
+  background: conic-gradient(#fde68a 0 100%); box-shadow: 0 0 40px rgba(240, 192, 72, 0.35); transition: transform 0.1s; }
+.sala-estoy > span { width: 100%; height: 100%; border-radius: 50%; display: grid; place-content: center; text-align: center; color: #fff;
+  background: radial-gradient(circle at 50% 35%, #34d399, #0d9e6e 72%); box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.22); font: 900 1.9rem/1 var(--font-marca); }
+.sala-estoy small { display: block; margin-top: 6px; font: 700 var(--t-xs) var(--font-body, inherit); opacity: 0.9; }
+.sala-estoy:active { transform: scale(0.95); }
+.sala-estoy:focus-visible { outline: 3px solid var(--acento, var(--navy)); outline-offset: 4px; }
+.sala-estoy:disabled { opacity: 0.7; }
+
+/* Los jugadores como sala: la cara grande arriba, el nombre debajo. */
+.torneo-inscritos.torneo-inscritos-mosaico { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: var(--e-sm) var(--e-xs); }
+.torneo-inscritos-mosaico .torneo-inscrito,
+.torneo-inscritos-mosaico .torneo-inscrito:last-child { padding: 6px 2px; border: 0; background: none; justify-items: center; text-align: center; }
+.torneo-inscritos-mosaico .torneo-inscrito-nombre { flex-direction: column; gap: 4px; font-size: var(--t-xs); font-weight: 700; max-width: 100%; }
+.torneo-inscritos-mosaico .torneo-inscrito-nombre > a { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.torneo-inscritos-mosaico .torneo-inscrito-nombre > .torneo-jcara,
+.torneo-inscritos-mosaico .torneo-inscrito-nombre > .mini-avatar,
+.sala-libre-cara { width: 56px; height: 56px; border-radius: 50%; font-size: var(--t-xl); }
+.torneo-inscritos-mosaico .torneo-inscrito > .subtext { display: none; }
+.torneo-inscritos-mosaico .torneo-inscrito.yo .torneo-jcara { box-shadow: 0 0 0 3px var(--white), 0 0 0 5px #8b5cf6; }
+.torneo-inscritos-mosaico .torneo-inscrito.yo a { color: #8b5cf6; }
+.sala-libre { color: var(--text-dim); }
+.sala-libre-cara { display: grid; place-items: center; border: 2px dashed var(--border-strong); color: var(--text-dim); font-family: var(--font-marca); font-weight: 800; }
+@media (max-width: 560px) {
+  .torneo-inscritos.torneo-inscritos-mosaico { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .torneo-inscritos-mosaico .torneo-inscrito-nombre > .torneo-jcara,
+  .torneo-inscritos-mosaico .torneo-inscrito-nombre > .mini-avatar,
+  .sala-libre-cara { width: 50px; height: 50px; }
+  /* Más apretado en el móvil para que «Tu plaza» asome en la primera pantalla
+     (lo vigila test-tanda-1145-pantalla.mjs). */
+  .sala-cartel { min-height: 124px; }
+  .torneo-sala { gap: 6px; }
+  .sala-cuenta > div { padding: 7px 0 5px; }
+  .sala-cuenta b { font-size: 1.8rem; }
+  .sala-losa { padding: 7px 2px 5px; gap: 2px; }
+  .sala-gente { padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .sala-estoy { transition: none; } }
