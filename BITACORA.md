@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-19 (649) — PINGU-Claude (1402 — Entre rondas y la entrada a cada ronda)
+
+**Hecho** («El torneo, más sencillo», T3 y T4; la entrada en todas las
+rondas, D3 = A).
+- **Entre rondas**: con tu mesa terminada, en vez de «Mesa 1 — ¡Ganaste esta
+  ronda!», una tarjeta con tu resultado en grande («¡Ganaste a marina!»,
+  ronda, marcador, mesa, +3 y la mascota del gesto que toca) y debajo
+  «Siguiente: ronda 2…» con las mesas terminadas en una barra y cuáles
+  faltan. En una liga, tus rondas de la jornada como casillas; en la última
+  de la jornada, «Hoy ya has terminado. Siguiente: jornada 2».
+- **La entrada a cada ronda**: al empezar, «¡RONDA 2!» con las dos caras, el
+  VS, la mesa, los minutos y el TCG Live del rival, y «¡A jugar!». Una vez por
+  mesa y solo en los diez primeros minutos; en Android vibra; con «menos
+  movimiento», quieta y sin vibrar.
+
+**Ficheros**: `js/torneos/ronda.js` (`entreRondasHtml`, la llamada a
+`entrarEnRonda`), `js/torneos/celebrar.js` (`entrarEnRonda`,
+`MINUTOS_DE_ENTRADA`), `css/torneos.css` (bloque 1402), `normas/jugar.md`.
+Prueba `test-tanda-1402-pantalla.mjs`; las 25 de torneos de la 1401 siguen en
+verde (la 1401 incluida).
+
+**Pendiente**: 1403 (la tabla sin podio hasta que acabe la ronda 1). Subir
+1396–1402 cuando PINGU diga «sube».
+
 ## 2026-11-19 (648) — PINGU-Claude (1401 — Tu mesa en una pieza y esperando a tu rival)
 
 **Hecho** (la propuesta «El torneo, más sencillo», T1 y T2; PINGU: «dale con

@@ -30,7 +30,7 @@ import { pintarDecklistVisual, chapaArquetipoHtml, rellenarChapasArquetipo } fro
 import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
-import { celebrarRonda, celebrarFinal, yaCelebrada } from './celebrar.js'
+import { celebrarRonda, celebrarFinal, yaCelebrada, entrarEnRonda, MINUTOS_DE_ENTRADA } from './celebrar.js'
 import { apuntarEnTablon } from './tablon.js'
 import { misJornadas, listaAnterior, enviarListaJornada, cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
 import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
@@ -2700,10 +2700,10 @@ function pintarMiPartida() {
     return
   }
   if (TERMINALES.has(mia.status)) {
-    const r = resultadoDe(mia.id)
-    const texto =
-      r?.winner_id === miId() ? '¡Ganaste esta ronda!' : r?.result === 'draw' ? 'Empate.' : 'Esta ronda no cayó de tu lado.'
-    const html = `<p class="torneo-partida-nota">Mesa ${mia.table_number} — ${texto}</p>${repeticionesDeMesaHtml(mia)}`
+    // ENTRE RONDAS (1402, «El torneo, más sencillo», T3): antes, una línea
+    // («Mesa 1 — ¡Ganaste esta ronda!») y a esperar sin saber a qué. Ahora tu
+    // resultado en grande y, debajo, lo que viene y cuánto falta.
+    const html = `${entreRondasHtml(mia, soyA, rival, actual)}${repeticionesDeMesaHtml(mia)}`
     if (!yaEstaPintado('miPartida', html)) {
       contenido.innerHTML = html
       engancharRepeticiones(contenido)
@@ -2842,6 +2842,21 @@ function pintarMiPartida() {
   if (yaEstaPintado('miPartida', html)) return
   contenido.innerHTML = html
   tictacYa?.()
+  // La entrada a la ronda (1402, T4): al empezar, una vez por mesa.
+  const empezo = Date.parse(actual.started_at || '')
+  if (actual.status === 'active' && mia.status === 'active' && !miReporte && Number.isFinite(empezo) && Date.now() - empezo < MINUTOS_DE_ENTRADA * 60e3) {
+    const liga = esLiga() && actual.phase !== 'top_cut'
+    entrarEnRonda({
+      matchId: mia.id,
+      ceja: liga ? `Jornada ${jornadaDeRonda(ctx.torneo, actual.round_number)} · ${ctx.torneo.name}` : ctx.torneo.name,
+      titulo: actual.phase === 'top_cut' ? '¡TOP CUT!' : `¡RONDA ${liga ? rondaEnJornada(ctx.torneo, actual.round_number) : actual.round_number}!`,
+      yo: { inicial: miNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(miNombre) },
+      rival: { nombre: rivalNombre, inicial: rivalNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(rivalNombre) },
+      mesa: mia.table_number,
+      minutos: actual.phase === 'top_cut' ? null : Number(ctx.torneo.round_time_minutes) || null,
+      tcg: rival?.tcg_live_username || '',
+    })
+  }
   engancharRepeticiones(contenido)
   engancharRegistro(contenido, mia, juego, adjuntable, bo)
   void rellenarChapasArquetipo(contenido)
@@ -2878,6 +2893,77 @@ function pintarMiPartida() {
       }
     })
   )
+}
+
+// Tu mesa ya está y la ronda sigue (1402, T3): tu resultado en una tarjeta
+// (con la mascota del gesto que toca, el marcador y los puntos) y «Siguiente»
+// con las mesas que faltan en una barra. En una liga, además, las rondas de
+// la jornada como casillas: es lo que se pregunta quien espera («¿cuántas
+// me quedan hoy?»). En un suizo eso ya lo dice «Tu camino», al lado.
+const ENTRE = {
+  V: { clase: 'gana', gesto: 'contento', titulo: (r) => `¡Ganaste a ${r}!`, pts: 3 },
+  D: { clase: 'pierde', gesto: 'triste', titulo: (r) => `Perdiste contra ${r}`, pts: 0 },
+  E: { clase: 'empata', gesto: 'guino', titulo: (r) => `Empate con ${r}`, pts: 1 },
+}
+function entreRondasHtml(mia, soyA, rival, actual) {
+  const res = resultadoParaJugadorEn(mia, miId()).texto
+  const t = ENTRE[res] || ENTRE.E
+  const r = resultadoDe(mia.id)
+  const marcador = r && (r.score_a != null || r.score_b != null) ? `${soyA ? r.score_a : r.score_b}-${soyA ? r.score_b : r.score_a}` : ''
+  const liga = esLiga() && actual.phase !== 'top_cut'
+  const porJornada = liga ? rondasPorJornada(ctx.torneo) : 0
+  const jornada = liga ? jornadaDeRonda(ctx.torneo, actual.round_number) : 0
+  const enJornada = liga ? rondaEnJornada(ctx.torneo, actual.round_number) : 0
+  const rotulo = actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : liga && porJornada > 1 ? `Ronda ${enJornada} de la jornada ${jornada}` : liga ? `Jornada ${jornada}` : `Ronda ${actual.round_number}`
+  const resultado = `<div class="torneo-entre-res torneo-entre-${t.clase}">
+      <span class="torneo-entre-mascota mascota-3d" data-mascota="${t.gesto}" data-sin-globo aria-hidden="true"></span>
+      <span class="torneo-entre-texto"><b>${escapeHtml(t.titulo(rival?.perfil?.username || 'tu rival'))}</b><small>${escapeHtml([rotulo, marcador, `mesa ${mia.table_number}`].filter(Boolean).join(' · '))}</small></span>
+      <span class="torneo-entre-pts" aria-label="${t.pts} ${t.pts === 1 ? 'punto' : 'puntos'}">+${t.pts}</span>
+    </div>`
+
+  // Qué viene después de esta ronda.
+  const totalSuizo = Number(ctx.torneo.swiss_rounds) || 0
+  const corte = Number(ctx.torneo.top_cut_size) || 0
+  let siguiente = ''
+  if (actual.phase === 'top_cut') siguiente = res === 'V' ? 'Siguiente: la próxima ronda del top' : ''
+  else if (liga) {
+    if (enJornada < porJornada) siguiente = `Siguiente: ronda ${enJornada + 1} de la jornada ${jornada}`
+    else if (jornada < numJornadas(ctx.torneo)) siguiente = `Hoy ya has terminado. Siguiente: jornada ${jornada + 1}`
+    else siguiente = 'Era la última ronda de la liga'
+  } else if (!totalSuizo || actual.round_number < totalSuizo) siguiente = `Siguiente: ronda ${actual.round_number + 1}${totalSuizo ? ` de ${totalSuizo}` : ''}`
+  else siguiente = corte ? `Siguiente: el Top ${corte}` : 'Era la última ronda'
+
+  const mesasRonda = partidas.filter((m) => m.round_id === actual.id)
+  const progreso = progresoDeMesas(mesasRonda)
+  const faltan = mesasQueFaltan(mesasRonda)
+  const pct = progreso.total ? Math.round((progreso.terminadas / progreso.total) * 100) : 100
+  // Si lo siguiente se juega hoy, espera a estas mesas; si no, solo cierran la ronda.
+  const seguida = /^Siguiente: (ronda|el Top|la próxima)/.test(siguiente)
+  const queFalta = progreso.todas
+    ? 'Todas las mesas han terminado: en cuanto el organizador cierre la ronda, sale lo siguiente.'
+    : `${seguida ? 'Empieza cuando acaben' : 'La ronda se cierra cuando acaben'} las mesas que quedan${faltan.pendientes.length && faltan.pendientes.length <= 4 ? ` (falta${faltan.pendientes.length > 1 ? 'n las' : ' la'} ${escapeHtml(fraseDeMesas(faltan.pendientes))})` : ''}${faltan.disputas.length ? `; ${faltan.disputas.length === 1 ? 'hay una disputa' : `hay ${faltan.disputas.length} disputas`} y un juez está en ello` : ''}.`
+  let casillas = ''
+  if (liga && porJornada > 1) {
+    const primera = (jornada - 1) * porJornada + 1
+    const pasos = []
+    for (let k = 0; k < porJornada; k++) {
+      const ronda = rondas.find((x) => x.phase !== 'top_cut' && x.round_number === primera + k)
+      const mesa = ronda && partidas.find((m) => m.round_id === ronda.id && (m.player_a_id === miId() || m.player_b_id === miId()))
+      const letra = mesa && TERMINALES.has(mesa.status) ? resultadoParaJugadorEn(mesa, miId()).texto : ''
+      const clase = { V: 'gana', Bye: 'gana', D: 'pierde', E: 'empata' }[letra] || (k === enJornada ? 'ya' : '')
+      pasos.push(`<li class="torneo-entre-casilla ${clase}"${letra ? ` aria-label="Ronda ${k + 1}: ${letra === 'V' || letra === 'Bye' ? 'ganada' : letra === 'D' ? 'perdida' : 'empate'}"` : ''}>R${k + 1}</li>`)
+    }
+    casillas = `<div class="torneo-entre-camino"><ol aria-label="Tus rondas de hoy">${pasos.join('')}</ol><em>Jornada ${jornada} de ${numJornadas(ctx.torneo)}</em></div>`
+  }
+  const sig = siguiente
+    ? `<div class="torneo-entre-sig">
+        <h4>${escapeHtml(siguiente)}</h4>
+        <p>${queFalta} <b>${progreso.terminadas} de ${progreso.total}</b> terminadas</p>
+        <div class="torneo-entre-barra" role="progressbar" aria-valuemin="0" aria-valuemax="${progreso.total}" aria-valuenow="${progreso.terminadas}" aria-label="Mesas terminadas"><i style="width:${pct}%"></i></div>
+        ${casillas}
+      </div>`
+    : ''
+  return `<div class="torneo-entre">${resultado}${sig}</div>`
 }
 
 // La pantalla de victoria o derrota de TU mesa (1391): una vez por mesa, y

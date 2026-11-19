@@ -342,3 +342,13 @@ parte mandado sale la tarjeta de espera con «Me he equivocado»
 derecha en el PC) y **se oculta con `hidden`, no con `:empty`**: las pestañas
 deciden si Hoy tiene algo mirando qué hijos del panel no llevan `hidden`, y
 con `:empty` el visitante abría la ficha en Hoy (lo cazó la 298).
+**Entre rondas y la entrada** (1402, T3 y T4): con tu mesa terminada y la
+ronda viva, «Tu partida» es `entreRondasHtml`: tu resultado en grande y
+«Siguiente» con las mesas terminadas en una barra (en una liga, las rondas de
+la jornada como casillas; la última de la jornada dice «Hoy ya has
+terminado»). Al empezar una ronda sale `entrarEnRonda` (celebrar.js): una vez
+por mesa (`pd-entrada-<id>`) y solo en los primeros `MINUTOS_DE_ENTRADA` (10):
+quien abre la ficha a media partida va a su mesa, no a un cartel. Antes de
+poner un nombre de clase nuevo en torneos.css, búscalo: `.torneo-entrada` ya
+era «tu plaza» (1342), y la ventana nueva le quitaba el borde verde; por eso
+es `.torneo-ronda-entra`.

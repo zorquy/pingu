@@ -88,3 +88,45 @@ export function celebrarFinal({ torneoId, puesto, nombre = '', jugadores = null,
   import('../app.js').then(({ burstConfetti }) => burstConfetti?.(oro ? 120 : 50)).catch(() => {})
   return d
 }
+
+// La entrada a cada ronda (1402, «El torneo, más sencillo», T4; PINGU eligió
+// que salga en TODAS): «¡RONDA 2!», las dos caras con el VS, la mesa, el
+// tiempo y el TCG Live del rival, y «¡A jugar!». Una vez por mesa y
+// navegador (`pd-entrada-<id>`), y solo en los primeros minutos de la ronda:
+// abrir la ficha a media partida no te para con un cartel, te deja en tu mesa.
+// En Android vibra (no con «menos movimiento»).
+const LLAVE_ENTRADA = (id) => `pd-entrada-${id}`
+export const MINUTOS_DE_ENTRADA = 10
+
+export function entrarEnRonda({ matchId, ceja = '', titulo, yo, rival, mesa = null, minutos = null, tcg = '' }) {
+  if (!matchId || !titulo) return null
+  try {
+    if (localStorage.getItem(LLAVE_ENTRADA(matchId)) === '1') return null
+    localStorage.setItem(LLAVE_ENTRADA(matchId), '1')
+  } catch {
+    return null
+  }
+  const cara = (p, quien) => `<span class="torneo-ronda-entra-jugador"><i style="background:${p.color}">${escapeHtml(p.inicial)}</i>${escapeHtml(quien)}</span>`
+  const datos = [mesa ? `Mesa ${mesa}` : '', minutos ? `${minutos} minutos` : 'Sin límite de tiempo'].filter(Boolean).join(' · ')
+  const d = document.createElement('dialog')
+  d.className = 'torneo-ronda-entra'
+  d.setAttribute('aria-labelledby', 'torneoRondaEntraTitulo')
+  d.innerHTML = `
+    <div class="torneo-ronda-entra-caja">
+      ${ceja ? `<small class="torneo-ronda-entra-ceja">${escapeHtml(ceja.toUpperCase())}</small>` : ''}
+      <h2 class="torneo-ronda-entra-titulo" id="torneoRondaEntraTitulo">${escapeHtml(titulo)}</h2>
+      <div class="torneo-ronda-entra-caras">${cara(yo, 'Tú')}<b class="torneo-ronda-entra-vs" aria-label="contra">VS</b>${cara(rival, rival.nombre)}</div>
+      <p class="torneo-ronda-entra-datos">${escapeHtml(datos)}${tcg ? ` · TCG Live: <b>${escapeHtml(tcg)}</b>` : ''}</p>
+      <button type="button" class="torneo-ronda-entra-jugar" data-cerrar>¡A jugar!</button>
+    </div>`
+  document.body.appendChild(d)
+  const cerrar = () => { d.close(); d.remove() }
+  d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-cerrar]')) cerrar() })
+  d.addEventListener('cancel', (e) => { e.preventDefault(); cerrar() })
+  d.showModal()
+  d.querySelector('[data-cerrar]')?.focus()
+  if (!matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    try { navigator.vibrate?.([70, 50, 70]) } catch {}
+  }
+  return d
+}

@@ -55212,6 +55212,31 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1402 — Entre rondas y la entrada a cada ronda
+
+- `js/torneos/ronda.js` · `entreRondasHtml(mia, soyA, rival, actual)` (rama
+  `TERMINALES` de `pintarMiPartida`): `.torneo-entre` con
+  `.torneo-entre-res.torneo-entre-{gana|pierde|empata}` (mascota
+  contento/triste/guino, «¡Ganaste a X!» / «Perdiste contra X» / «Empate con
+  X», rótulo · marcador · mesa, `+3/+0/+1`) y `.torneo-entre-sig` (h4
+  «Siguiente: …», texto con `mesasQueFaltan`/`fraseDeMesas`, barra
+  `role=progressbar` con `progresoDeMesas`; en liga con varias rondas por
+  jornada, `.torneo-entre-casilla` gana/pierde/empata/ya y «Jornada N de M»).
+  Lo siguiente: ronda siguiente, «el Top N», «Hoy ya has terminado.
+  Siguiente: jornada N+1», «Era la última ronda…»; en el top cut, solo si
+  ganaste.
+- `js/torneos/celebrar.js` · `entrarEnRonda({ matchId, ceja, titulo, yo,
+  rival, mesa, minutos, tcg })`: `dialog.torneo-ronda-entra` modal, llave
+  `pd-entrada-<matchId>` (sin localStorage no sale), «¡A jugar!» con el foco,
+  `navigator.vibrate([70,50,70])` salvo con `prefers-reduced-motion`.
+  `MINUTOS_DE_ENTRADA = 10`. La llama `pintarMiPartida` al pintar una mesa
+  `active` de una ronda `active` sin tu parte mandado y con `started_at` de
+  hace menos de diez minutos. Título «¡RONDA N!» (en liga, la ronda de la
+  jornada) o «¡TOP CUT!»; ceja el torneo (en liga, «Jornada N · nombre»).
+- `css/torneos.css` bloque 1402 (oscuro en los dos temas; animaciones fuera
+  con «menos movimiento»). La clase es `.torneo-ronda-entra` porque
+  `.torneo-entrada` ya es «tu plaza» de la 1342.
+
 ## Tanda 1401 — Tu mesa en una pieza y esperando a tu rival
 
 - `js/torneos/ronda.js` · `pintarMiPartida`: cabecera `.torneo-mesa-cab` con

@@ -5345,3 +5345,64 @@ button.torneo-tj { cursor: pointer; }
   #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria,
   #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 58px; }
 }
+
+/* ══ 1402 — Entre rondas y la entrada a cada ronda («El torneo, más
+   sencillo», T3 y T4). Panel de juego oscuro en los dos temas, como el VS. ══ */
+.torneo-entre { display: grid; gap: 14px; }
+.torneo-entre-res { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 20px; color: #fff; border: 1px solid #3a2f7a; background: radial-gradient(circle at 20% 30%, #3b2f7a, #1d1b3f 70%, #0b1219); }
+.torneo-entre-gana { border-color: #1f6e4f; background: radial-gradient(circle at 20% 30%, #1f6e4f, #12261f 70%, #0b1219); }
+.torneo-entre-pierde { border-color: #6b2a30; background: radial-gradient(circle at 20% 30%, #4a1d22, #26171a 70%, #0b1219); }
+.torneo-entre-mascota { width: 60px; height: 60px; }
+.torneo-entre-texto { display: grid; gap: 2px; min-width: 0; }
+.torneo-entre-texto b { font: 900 1.4rem/1.1 var(--font-marca); overflow-wrap: anywhere; }
+.torneo-entre-gana .torneo-entre-texto b { color: #6ee7b7; }
+.torneo-entre-pierde .torneo-entre-texto b { color: #fca5a5; }
+.torneo-entre-texto small { color: #d1dde3; font-size: var(--t-xs); }
+.torneo-entre-pts { font: 900 1.6rem var(--font-marca); color: #fde68a; font-variant-numeric: tabular-nums; }
+.torneo-entre-sig { padding: 16px 18px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); }
+.torneo-entre-sig h4 { margin: 0 0 4px; font: 900 var(--t-lg) var(--font-marca); }
+.torneo-entre-sig p { margin: 0 0 10px; color: var(--text-mid); font-size: var(--t-sm); }
+.torneo-entre-sig p b { color: var(--text); white-space: nowrap; }
+.torneo-entre-barra { height: 10px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
+.torneo-entre-barra i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #a78bfa, #7c3aed); transition: width 0.6s ease; }
+.torneo-entre-camino { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+.torneo-entre-camino ol { display: flex; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.torneo-entre-casilla { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--ice); color: var(--text-mid); font: 900 var(--t-sm) var(--font-marca); }
+.torneo-entre-casilla.gana { background: #059669; color: #fff; }
+.torneo-entre-casilla.pierde { background: #b91c1c; color: #fff; }
+.torneo-entre-casilla.empata { background: #64748b; color: #fff; }
+.torneo-entre-casilla.ya { outline: 3px solid #8b5cf6; outline-offset: 2px; color: var(--text); }
+.torneo-entre-camino em { font-style: normal; color: var(--text-mid); font-size: var(--t-sm); }
+@media (max-width: 560px) {
+  .torneo-entre-res { gap: 10px; padding: 14px; }
+  .torneo-entre-mascota { width: 48px; height: 48px; }
+  .torneo-entre-texto b { font-size: 1.15rem; }
+}
+
+.torneo-ronda-entra { margin: auto; max-height: calc(100dvh - 32px); overflow-y: auto; border: 0; padding: 0; width: min(560px, calc(100vw - 32px)); border-radius: 28px; color: #fff; background: #0b1219; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+.torneo-ronda-entra::backdrop { background: rgba(4, 7, 10, 0.82); }
+.torneo-ronda-entra-caja { display: grid; justify-items: center; gap: 4px; text-align: center; padding: 28px 22px 22px; background: radial-gradient(circle at 25% 45%, #4c1d95 0%, transparent 55%), radial-gradient(circle at 75% 45%, #7f1d1d 0%, transparent 55%), #0b1219; }
+.torneo-ronda-entra-ceja { font: 800 0.72rem var(--font-marca); letter-spacing: 0.14em; color: #e9d5ff; }
+.torneo-ronda-entra-titulo { margin: 4px 0 18px; font: italic 900 2.6rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 24px rgba(240, 192, 72, 0.6); animation: torneo-ronda-entra-golpe 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.torneo-ronda-entra-caras { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; width: 100%; }
+.torneo-ronda-entra-jugador { display: grid; justify-items: center; gap: 6px; min-width: 0; font: 800 1.05rem var(--font-marca); overflow-wrap: anywhere; animation: torneo-ronda-entra-izq 0.45s 0.15s ease-out both; }
+.torneo-ronda-entra-jugador:last-child { animation-name: torneo-ronda-entra-der; }
+.torneo-ronda-entra-jugador i { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 26px; font: normal 900 2rem var(--font-marca); color: #fff; border: 3px solid #fff; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45); }
+.torneo-ronda-entra-vs { padding: 4px 14px; border-radius: 12px; font: italic 900 2rem var(--font-marca); color: #111; background: #fde68a; transform: rotate(-8deg); box-shadow: 0 0 22px rgba(240, 192, 72, 0.55); }
+.torneo-ronda-entra-datos { margin: 16px 0; color: #c9b8ff; font-size: var(--t-sm); }
+.torneo-ronda-entra-datos b { color: #fff; }
+.torneo-ronda-entra-jugar { width: 100%; min-height: 54px; border: 0; border-radius: var(--radius-pill); font: 900 1.15rem var(--font-marca); color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 5px 0 #4c1d95; cursor: pointer; }
+.torneo-ronda-entra-jugar:active { transform: translateY(4px); box-shadow: 0 1px 0 #4c1d95; }
+.torneo-ronda-entra-jugar:focus-visible { outline: 3px solid #fde68a; outline-offset: 3px; }
+@keyframes torneo-ronda-entra-golpe { from { transform: scale(2.2); opacity: 0; } }
+@keyframes torneo-ronda-entra-izq { from { transform: translateX(-60px); opacity: 0; } }
+@keyframes torneo-ronda-entra-der { from { transform: translateX(60px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .torneo-ronda-entra-titulo, .torneo-ronda-entra-jugador { animation: none; }
+  .torneo-entre-barra i { transition: none; }
+}
+@media (max-width: 560px) {
+  .torneo-ronda-entra-titulo { font-size: 2.2rem; }
+  .torneo-ronda-entra-jugador i { width: 68px; height: 68px; font-size: 1.7rem; }
+  .torneo-ronda-entra-vs { font-size: 1.5rem; }
+}
