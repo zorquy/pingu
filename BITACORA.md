@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-19 (650) — PINGU-Claude (1403 — La tabla arranca cuando acaba la ronda 1)
+
+**Hecho** («El torneo, más sencillo», T5; lo que se vio en las capturas de la
+Liga del Friki: un podio con gente a cero puntos y «Mandar mi lista jornada 2»
+en mitad de la jornada 1).
+- **Tabla**: hasta que se cierra la primera ronda, en vez del podio, «La tabla
+  arranca cuando acabe la ronda 1 de la jornada 1: van 2 de 4 mesas». La tabla
+  de debajo sigue. Con una ronda cerrada, el podio vuelve.
+- **Hoy**: con tu mesa terminada y la ronda en marcha, no sale «Tu mazo» (que
+  pedía la lista de la jornada siguiente).
+
+**Ficheros**: `js/torneos/ronda.js` (`tablaArrancaHtml`), `css/torneos.css`
+(bloque 1403), `normas/jugar.md`. Prueba `test-tanda-1403-pantalla.mjs`;
+1341, 1347, 1376, 1378, 1392, 1402 y torneos-21/22 en verde.
+
+**Pendiente**: subir 1396–1403 cuando PINGU diga «sube».
+
 ## 2026-11-19 (649) — PINGU-Claude (1402 — Entre rondas y la entrada a cada ronda)
 
 **Hecho** («El torneo, más sencillo», T3 y T4; la entrada en todas las

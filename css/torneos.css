@@ -5406,3 +5406,11 @@ button.torneo-tj { cursor: pointer; }
   .torneo-ronda-entra-jugador i { width: 68px; height: 68px; font-size: 1.7rem; }
   .torneo-ronda-entra-vs { font-size: 1.5rem; }
 }
+
+/* ══ 1403 — La tabla arranca («El torneo, más sencillo», T5): hasta que se
+   cierra una ronda, el aviso en vez del podio. Y mientras juegas o esperas
+   la siguiente ronda, Hoy no te pide la lista de la jornada que viene. ══ */
+.torneo-tabla-arranca { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; background: #1d1b3f; border: 1px solid #3a2f7a; color: #e9d5ff; font-size: var(--t-sm); }
+.torneo-tabla-arranca svg { flex: none; color: #fde68a; }
+.torneo-tabla-arranca b { color: #fde68a; }
+.torneo-panel[data-panel='jugar']:has(#miPartidaContenido .torneo-entre) > #torneoMazoCaja { display: none; }

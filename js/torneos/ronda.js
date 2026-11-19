@@ -3419,6 +3419,18 @@ function lideresHtml(tabla) {
     .join('')}</div>`
 }
 
+// LA TABLA ARRANCA (1403, «El torneo, más sencillo», T5): con la primera
+// ronda aún en juego, el podio salía con quien hubiera acabado antes, y al
+// lado gente a cero puntos («¿por qué va tercero si no ha jugado?»). Hasta
+// que se cierra una ronda, el aviso de lo que falta en vez del podio; la
+// tabla de debajo sigue, que es la cuenta de verdad.
+function tablaArrancaHtml() {
+  const actual = rondaActual()
+  if (!actual) return ''
+  const { terminadas, total } = progresoDeMesas(partidas.filter((m) => m.round_id === actual.id))
+  return `<p class="torneo-tabla-arranca" role="status">${icons.trophy?.(18) || ''}<span>La tabla arranca cuando acabe la <b>${escapeHtml(nombreDeRonda(actual.round_number))}</b>: van <b>${terminadas} de ${total}</b> mesas. El podio sale en cuanto haya algo que contar.</span></p>`
+}
+
 function pintarClasificacion() {
   const caja = $('torneoClasificacionCaja')
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
@@ -3520,7 +3532,9 @@ function pintarClasificacion() {
     : campeon
       ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
       : ctx.torneo.status === 'in_progress' && tabla.length >= 3
-        ? lideresHtml(tabla)
+        ? rondas.some((r) => r.status === 'finished' && r.phase !== 'top_cut' && !rondaSaltada(r))
+          ? lideresHtml(tabla)
+          : tablaArrancaHtml()
         : ''
   const htmlClasif = `
     ${banner}

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-19", "tipo": "mejora", "texto": "La clasificación de un torneo ya no enseña un podio a medias en la primera ronda: te dice cuántas mesas faltan para que arranque.", "enlace": "/torneos" },
     { "fecha": "2026-11-19", "tipo": "nuevo", "texto": "En los torneos, cada ronda empieza con su pantalla: «¡Ronda 2!», tú contra tu rival, la mesa y su usuario de TCG Live. Y cuando acabas tu partida, ves tu resultado en grande y cuántas mesas faltan para la siguiente ronda.", "enlace": "/torneos" },
     { "fecha": "2026-11-19", "tipo": "mejora", "texto": "Tu mesa en un torneo, más sencilla: el reloj dentro del cara a cara, el usuario de TCG Live de tu rival para copiarlo, Victoria y Derrota en grande y, si ya has reportado, una tarjeta que te dice que falta tu rival con «Me he equivocado» por si te has confundido. En el ordenador, el chat de la mesa va al lado.", "enlace": "/torneos" },
     { "fecha": "2026-11-19", "tipo": "arreglo", "texto": "El menú «⋯» de los mensajes del foro ya se cierra al elegir una opción o al tocar fuera: antes se quedaba abierto encima del editor al pulsar Editar.", "enlace": "/foro" },

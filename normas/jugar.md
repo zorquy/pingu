@@ -352,3 +352,8 @@ quien abre la ficha a media partida va a su mesa, no a un cartel. Antes de
 poner un nombre de clase nuevo en torneos.css, búscalo: `.torneo-entrada` ya
 era «tu plaza» (1342), y la ventana nueva le quitaba el borde verde; por eso
 es `.torneo-ronda-entra`.
+**La tabla arranca** (1403, T5): el podio de «van» (`lideresHtml`) solo sale
+con alguna ronda suiza ya cerrada; antes, `tablaArrancaHtml` dice cuántas
+mesas faltan (un podio con gente a cero puntos se lee como un fallo). Y con
+tu mesa terminada (`.torneo-entre`), Hoy no enseña tu mazo: lo que pedía era
+la lista de la jornada que viene, a mitad de la de hoy.

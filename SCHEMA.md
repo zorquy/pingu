@@ -55212,6 +55212,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1403 — La tabla arranca cuando acaba la ronda 1
+
+- `js/torneos/ronda.js` · `pintarClasificacion`: con el torneo en juego, sin
+  podio final ni campeón y con 3 o más filas, `lideresHtml(tabla)` solo si
+  hay una ronda suiza `finished` que no esté saltada (`rondaSaltada`); si no,
+  `tablaArrancaHtml()`: `p.torneo-tabla-arranca[role=status]` con el trofeo,
+  el nombre de la ronda actual (`nombreDeRonda`) y «van X de Y mesas»
+  (`progresoDeMesas` de esa ronda).
+- `css/torneos.css` bloque 1403: el aviso (panel violeta oscuro) y
+  `#torneoMazoCaja` oculto en Hoy mientras `#miPartidaContenido` tenga
+  `.torneo-entre` (como ya pasaba con `.torneo-duelo` desde la 1401).
+
 ## Tanda 1402 — Entre rondas y la entrada a cada ronda
 
 - `js/torneos/ronda.js` · `entreRondasHtml(mia, soyA, rival, actual)` (rama
