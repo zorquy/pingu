@@ -70,7 +70,7 @@ for (const movil of [false, true]) {
         fondo: duelo ? getComputedStyle(duelo).backgroundImage.includes('gradient') : false,
         vs: vs?.textContent.trim(),
         rival: duelo?.textContent.includes('marina'),
-        botones: [...document.querySelectorAll('#miPartidaContenido .torneo-boton-resultado')].map((b) => [b.textContent.trim(), getComputedStyle(b).backgroundColor]),
+        botones: [...document.querySelectorAll('#miPartidaContenido .torneo-boton-resultado')].map((b) => [b.textContent.trim(), (getComputedStyle(b).backgroundImage.includes('gradient') ? 'degradado' : getComputedStyle(b).backgroundColor)]),
         camino: [...document.querySelectorAll('#torneoComoVas .torneo-camino-paso')].map((p) => `${p.querySelector('b').textContent}:${p.className.replace('torneo-camino-paso', '').trim() || '-'}`),
         celebra: Boolean(document.querySelector('.torneo-celebra[open]')),
         ancho: document.documentElement.scrollWidth <= innerWidth + 1,
