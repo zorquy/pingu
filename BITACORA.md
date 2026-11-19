@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-19 (647) — PINGU-Claude (1400 — El «⋯» de un mensaje del foro se cierra)
+
+**Hecho** (PINGU, con captura: «cuando estoy en el apartado de editar, esta
+pestaña no se cierra y entorpece»).
+- El menú «⋯» de cada mensaje (Editar, Borrar, Marcar como solución,
+  Reportar) se queda abierto hasta que lo cerrabas a mano, y al pulsar Editar
+  tapaba el editor. Ahora se cierra al elegir una opción, al tocar fuera, con
+  Esc y al abrir el de otro mensaje.
+
+**Ficheros**: `js/tema.js` (`atarMenusDelForo`), `normas/interfaz.md`. Prueba
+`test-tanda-1400-pantalla.mjs` (fallaba antes del arreglo, en verde después);
+789, 1116, 1183, 1205 y 1239 en verde.
+
+**Pendiente**: subir 1396–1400 cuando PINGU diga «sube».
+
 ## 2026-11-18 (646) — PINGU-Claude (1399 — Las pantallas que celebran)
 
 **Hecho** (PINGU: «y luego las pantallas que celebran… también me gusta»).

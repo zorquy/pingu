@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-19", "tipo": "arreglo", "texto": "El menú «⋯» de los mensajes del foro ya se cierra al elegir una opción o al tocar fuera: antes se quedaba abierto encima del editor al pulsar Editar.", "enlace": "/foro" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Subir de nivel, llegar a 7, 30 o 100 días de racha y completar una expansión se celebran ahora a lo grande, con una pantalla entera y la mascota.", "enlace": "/retos" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Tus mazos son ahora pósteres con un solo botón, «Probar» (editar y llevarlo a un torneo están en «⋯»), y tu próximo torneo sale como un cartel con los días que faltan en grande.", "enlace": "/mazos" },
     { "fecha": "2026-11-18", "tipo": "mejora", "texto": "Antes de empezar, un torneo es una sala de espera: cuenta atrás grande, quién está dentro, tus misiones para estar listo y el botón «¡ESTOY!» para confirmar que juegas.", "enlace": "/torneos" },

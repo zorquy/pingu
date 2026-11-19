@@ -478,6 +478,13 @@
   `test-tanda-1396-pantalla.mjs`. Lo que vuela (confeti, zetas, corazones)
   sí puede irse por arriba. Y un hueco nuevo no lleva `overflow: hidden` en
   sus padres: la prueba mira que nada recorte el lienzo.
+- **Un «⋯» hecho con `<details>` se cierra solo** (tanda 1400, PINGU: «en
+  editar, esta pestaña no se cierra y entorpece»). El navegador no cierra un
+  `<details>` al pulsar lo de dentro: el del foro se quedaba encima del editor
+  al pulsar Editar. Un menú así se cierra al elegir una opción, al tocar
+  fuera, con Esc (y el foco vuelve al «⋯») y al abrir otro igual; en el foro
+  lo hace `atarMenusDelForo` (`js/tema.js`), un solo escuchador en el
+  documento. Un «⋯» nuevo hace lo mismo.
 - **Un momento que se celebra es una pantalla, y tiene UN molde**
   (tanda 1399, PINGU: «las pantallas que celebran… también me gusta»):
   `celebrarMomento` de `js/celebrar-momento.js` (la mascota, una insignia, la

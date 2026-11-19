@@ -55212,6 +55212,13 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1400 — El «⋯» de un mensaje del foro se cierra
+
+- `js/tema.js`: `atarMenusDelForo()` (una vez, desde `enganchar`): un `click`
+  en el documento cierra el `details.foro-mas` cuya opción (`button`/`a` de
+  `.foro-mas-menu`) se pulsa y cualquier otro abierto que no sea donde se ha
+  tocado; `Escape` cierra el abierto y devuelve el foco a su `summary`.
+
 ## Tanda 1399 — Las pantallas que celebran
 
 - `js/celebrar-momento.js` (nuevo): `celebrarMomento({ llave, id, tono

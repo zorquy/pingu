@@ -918,7 +918,36 @@ let citadosExtra = new Set()
 // Los perfiles de la página, para nombrar a todos los citados en el aviso.
 let perfilesCitados = new Map()
 
+// El «⋯» de un mensaje es un <details> y nadie lo cerraba (PINGU: «cuando
+// estoy en editar, esta pestaña no se cierra y entorpece»): pulsabas Editar
+// y el menú se quedaba encima del editor. Se cierra al elegir una opción, al
+// tocar fuera, con Esc y al abrir otro. Un solo escuchador para todo el hilo
+// (los mensajes se repintan; el documento no), puesto la primera vez.
+let menusDelForoAtados = false
+function atarMenusDelForo() {
+  if (menusDelForoAtados) return
+  menusDelForoAtados = true
+  const abiertos = () => [...document.querySelectorAll('details.foro-mas[open]')]
+  document.addEventListener('click', (e) => {
+    const dentro = e.target.closest('details.foro-mas')
+    // Una opción del menú: hace lo suyo (su propio escuchador) y el menú se va.
+    if (dentro && e.target.closest('.foro-mas-menu button, .foro-mas-menu a')) {
+      dentro.removeAttribute('open')
+      return
+    }
+    for (const d of abiertos()) if (d !== dentro) d.removeAttribute('open')
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return
+    const d = abiertos()[0]
+    if (!d) return
+    d.removeAttribute('open')
+    d.querySelector('summary')?.focus()
+  })
+}
+
 function enganchar(perfiles) {
+  atarMenusDelForo()
   // El «⋯» de cada mensaje (748): en el móvil saca editar, borrar, marcar
   // como solución y denunciar, que en una burbuja eran cuatro enlaces.
   elMensajes.querySelectorAll('[data-mas-mensaje]').forEach((b) =>
