@@ -329,3 +329,16 @@ cartel en el panel de juego con los días en una losa grande (`proximoHtml`:
 móvil, que ya no es la fila de la 1150) con UN botón, «Probar»: Editar y «A un
 torneo» van los primeros en el «⋯», y tocar la portada o el nombre abre el
 constructor. Una acción nueva de un mazo va al «⋯», no al lado de «Probar».
+**Tu mesa en una pieza** (1401, «El torneo, más sencillo», T1 y T2): la
+cabecera de tu mesa es «Mesa N» y tu puesto (`puestoCorto`, solo con alguna
+mesa ya cerrada: con todo a cero es el orden de inscripción); la ronda va en
+el reloj, DENTRO del VS (`#mesaReloj` sigue siendo el id que busca el tictac,
+y el anillo se queda escondido para él). El TCG Live del rival es una pastilla
+con «Copiar». El registro, la repetición y el juez son una línea «¿Algo
+raro?» que abre o pulsa los de siempre (plegados en `.torneo-mesa-plegado`):
+un recurso nuevo de la mesa entra en esa línea, no como otra caja. Con tu
+parte mandado sale la tarjeta de espera con «Me he equivocado»
+(`torneos_desreportar`). El chat es su propia tarjeta (`#miPartidaExtra`, a la
+derecha en el PC) y **se oculta con `hidden`, no con `:empty`**: las pestañas
+deciden si Hoy tiene algo mirando qué hijos del panel no llevan `hidden`, y
+con `:empty` el visitante abría la ficha en Hoy (lo cazó la 298).

@@ -55212,6 +55212,39 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1401 — Tu mesa en una pieza y esperando a tu rival
+
+- `js/torneos/ronda.js` · `pintarMiPartida`: cabecera `.torneo-mesa-cab` con
+  «Mesa N» y `.torneo-mesa-cab-puesto` (`puestoCorto()`: «N.º · X pts» de
+  `computeStandings`, vacío si ninguna mesa está en `TERMINALES`). El reloj
+  es `.torneo-duelo-reloj#mesaReloj` dentro de `.torneo-duelo-medio` (cifra
+  `#mesaRelojCifra`, rótulo `small`, estado `#mesaRelojEstado`; el anillo
+  `#mesaAnillo` sigue, oculto, para el tictac de `arrancarReloj`, que pone
+  `data-fase` en la caja). Top cut: `∞ · SIN LÍMITE`. Pendiente: «Ronda N: aún
+  no ha empezado.». El TCG Live del rival es `button.torneo-duelo-tcg
+  [data-copiar-tcg]` (portapapeles y toast «Copiado: X»).
+- Al mejor de 1 con tu parte mandado: `.torneo-espera[role=status]` (mascota
+  `pensar`, «Has dicho …», «Esperando a que X lo confirme…», `[data-quitar=0]`
+  «Me he equivocado» → `desreportar`). Sin parte: `.torneo-reportar` con un
+  `h4.sr-only`.
+- `.torneo-algo-raro` con `[data-raro=registro|repeticion|juez]`: abre
+  `#torneoRegistro` (añade `.abierto` a `.torneo-mesa-plegado` y enfoca el
+  cuadro), pulsa `[data-adjuntar-rep]` o `#btnLlamarJuez`. Plegados por CSS
+  hasta entonces; el botón del juez de `#zonaLlamarJuez` no se ve mientras
+  exista la línea.
+- `torneo.html`: `#miPartidaExtra` sale de `#torneoMiPartida` y es una
+  `simple-card.torneo-mesa-extra` hermana, `hidden` de inicio;
+  `jueces.js/pintarMiPartidaExtra` la muestra solo con mesa (no bye). En el
+  PC (≥ 1000 px) va en la columna 2, encima de «Tu puesto». El título «Tu
+  partida» queda visualmente oculto cuando hay cabecera de mesa.
+- `css/torneos.css` bloque 1401: reloj dorado (rojo en `final`/`fuera`, el
+  estado en ámbar en `checkin`, oculto en `juego`), pastilla TCG, Victoria y
+  Derrota en degradado con sombra (solo los del mejor de 1:
+  `#miPartidaContenido > .torneo-reportar`, el BO3 se queda como estaba, que
+  a 320 px no cabe con más hueco), tarjeta de espera, «¿Algo raro?» y
+  `#torneoMazoCaja` oculto con un duelo en Hoy. Móvil (≤ 560 px): el reloj al
+  lado del VS y botones de 58 px.
+
 ## Tanda 1400 — El «⋯» de un mensaje del foro se cierra
 
 - `js/tema.js`: `atarMenusDelForo()` (una vez, desde `enganchar`): un `click`

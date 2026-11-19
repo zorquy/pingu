@@ -4825,7 +4825,7 @@ button.torneo-tj { cursor: pointer; }
 @media (min-width: 1000px) {
   .torneo-panel[data-panel='jugar']:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden)) { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-auto-flow: row dense; }
   .torneo-panel[data-panel='jugar'] > :is(#torneoProximaCaja, #torneoMiPartida) { grid-column: 1; grid-row: span 3; }
-  .torneo-panel[data-panel='jugar'] > :is(#torneoComoVas, #torneoMazoCaja) { grid-column: 2; }
+  .torneo-panel[data-panel='jugar'] > :is(#miPartidaExtra, #torneoComoVas, #torneoMazoCaja) { grid-column: 2; }
   .torneo-panel[data-panel='jugar']:not(:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden))) > :is(#torneoComoVas, #torneoMazoCaja) { grid-column: auto; }
   .torneo-panel[data-panel='jugar']:not(:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden))) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -5275,4 +5275,73 @@ button.torneo-tj { cursor: pointer; }
   .t-proximo-dias { grid-row: 1 / span 3; min-width: 70px; }
   .t-proximo-dias b { font-size: 2.1rem; }
   .torneos-heroe .t-proximo-nombre { font-size: var(--t-lg); }
+}
+
+/* ══ 1401 — Tu mesa en una pieza y esperando a tu rival («El torneo, más
+   sencillo», T1 y T2). El reloj entra en el VS, gordo y dorado (el anillo
+   se queda para el tictac, pero no se ve); el TCG Live del rival es una
+   pastilla con «Copiar»; Victoria y Derrota, botones de juego; el registro,
+   la repetición y el juez, una línea «¿Algo raro?» que los abre. ══ */
+.torneo-mesa-cab { padding-bottom: 10px; }
+.torneo-mesa-cab-puesto { margin-left: auto; padding: 3px 10px; border-radius: var(--radius-pill); background: #2b1f63; color: #fde68a; font-family: var(--font-display); font-size: var(--t-xs); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* «Tu partida» y «Mesa 1» decían lo mismo dos veces: el título se queda
+   para quien lee con lector de pantalla. */
+#torneoMiPartida:has(.torneo-mesa-cab) > h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.torneo-duelo .torneo-duelo-medio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.torneo-duelo-reloj { display: grid; justify-items: center; gap: 2px; }
+.torneo-duelo-reloj .torneo-mesa-anillo { display: none; }
+.torneo-duelo-reloj > b { font: 900 2rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 14px rgba(240, 192, 72, 0.5); font-variant-numeric: tabular-nums; }
+.torneo-duelo-reloj > small { font: 800 0.62rem var(--font-marca); letter-spacing: 0.12em; color: #e9d5ff; opacity: 0.85; }
+.torneo-duelo-reloj .torneo-mesa-reloj-estado { padding: 1px 10px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.12); color: #d6cdf5; font-size: var(--t-2xs); font-weight: 700; }
+.torneo-duelo-reloj .torneo-mesa-reloj-estado:empty { display: none; }
+.torneo-duelo-reloj[data-fase='checkin'] .torneo-mesa-reloj-estado { background: #fde68a; color: #3b2a05; }
+.torneo-duelo-reloj[data-fase='final'] > b,
+.torneo-duelo-reloj[data-fase='fuera'] > b { color: #fca5a5; text-shadow: 0 0 14px rgba(248, 113, 113, 0.55); }
+.torneo-duelo-reloj[data-fase='final'] .torneo-mesa-reloj-estado,
+.torneo-duelo-reloj[data-fase='fuera'] .torneo-mesa-reloj-estado { background: #b91c1c; color: #fff; }
+.torneo-duelo-reloj[data-fase='juego'] .torneo-mesa-reloj-estado { display: none; }
+.torneo-duelo-tcg { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 10px; border: 0; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.14); color: #fff; font: 700 var(--t-xs) var(--font-body, inherit); cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
+.torneo-duelo-tcg i { font-style: normal; font-size: var(--t-2xs); opacity: 0.75; }
+.torneo-duelo-tcg:hover { background: rgba(255, 255, 255, 0.24); }
+.torneo-duelo-tcg:focus-visible { outline: 2px solid #fde68a; outline-offset: 2px; }
+
+#miPartidaContenido > .torneo-reportar { gap: 12px; margin-top: 14px; }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria,
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 64px; border: 0; border-radius: 18px; color: #fff; font: 900 1.25rem var(--font-marca); transition: transform 0.1s, box-shadow 0.1s, filter 0.15s; }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria { background: linear-gradient(180deg, #34d399, #059669); box-shadow: 0 5px 0 #065f46; }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { background: linear-gradient(180deg, #f87171, #b91c1c); box-shadow: 0 5px 0 #7f1d1d; }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria:active,
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
+
+.torneo-espera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 16px; margin-top: 14px; padding: 16px 18px; border-radius: 20px; background: linear-gradient(155deg, #2b1f63, #1d1b3f 50%, #16202b); border: 1px solid #3a2f7a; color: #f2eefc; }
+.torneo-espera-mascota { width: 64px; height: 64px; grid-row: span 3; }
+.torneo-espera > b { font: 900 1.15rem var(--font-marca); }
+.torneo-espera > span:not(.torneo-espera-mascota) { color: #c9b8ff; font-size: var(--t-sm); }
+.torneo-espera i { font-style: normal; animation: torneo-espera-puntos 1.2s infinite; }
+@keyframes torneo-espera-puntos { 50% { opacity: 0.2; } }
+.torneo-espera .torneo-espera-error { justify-self: start; color: #fca5a5; font-size: var(--t-xs); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .torneo-espera i { animation: none; } }
+
+.torneo-algo-raro { margin: 14px 0 0; text-align: center; font-size: var(--t-xs); color: var(--text-mid); }
+.torneo-algo-raro .link-btn { font-size: inherit; font-weight: 700; }
+.torneo-algo-raro .link-btn + .link-btn::before { content: '·'; display: inline-block; margin: 0 6px; color: var(--text-dim); font-weight: 400; }
+/* Plegados hasta que «¿Algo raro?» los pide; tus repeticiones ya subidas
+   sí se ven siempre. */
+.torneo-mesa-plegado:not(.abierto) #torneoRegistro,
+.torneo-mesa-plegado:not(.abierto) [data-adjuntar-rep] { display: none; }
+.torneo-panel[data-panel='jugar']:has(.torneo-algo-raro) #zonaLlamarJuez #btnLlamarJuez { display: none; }
+/* Mientras juegas, tu mazo sobra en Hoy (ya está en Info y en tu mesa). */
+.torneo-panel[data-panel='jugar']:has(#miPartidaContenido .torneo-duelo) > #torneoMazoCaja { display: none; }
+/* El chat, tarjeta aparte (1401): vacía o sin tu mesa, no se ve. */
+#miPartidaExtra.torneo-mesa-extra { max-width: none; margin: 0; }
+#miPartidaExtra:empty,
+#torneoMiPartida.hidden + #miPartidaExtra { display: none; }
+@media (max-width: 560px) {
+  /* En el móvil, el reloj al lado del VS (y no encima): así Victoria y
+     Derrota entran en la primera pantalla. */
+  .torneo-duelo .torneo-duelo-medio { flex-direction: row; gap: 14px; }
+  .torneo-duelo-reloj > b { font-size: 1.7rem; }
+  .torneo-duelo { padding-top: 14px; }
+  #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria,
+  #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 58px; }
 }

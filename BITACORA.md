@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-19 (648) — PINGU-Claude (1401 — Tu mesa en una pieza y esperando a tu rival)
+
+**Hecho** (la propuesta «El torneo, más sencillo», T1 y T2; PINGU: «dale con
+todo lo recomendado»).
+- **Tu mesa**: la cabecera es «Mesa 1» y tu puesto («3.º · 3 pts»); fuera las
+  chapas de ronda y «A una partida». El reloj va dentro del VS, grande y
+  dorado, con la ronda debajo. El TCG Live del rival, bajo su nombre, con
+  «Copiar». Victoria y Derrota son botones de juego (degradado, 64 px; 58 en el
+  móvil, donde ahora entran en la primera pantalla con el reloj al lado del VS).
+- **«¿Algo raro?»**: registro de TCG Live, repetición y juez en una línea; los
+  de siempre siguen ahí, plegados hasta que se piden.
+- **Esperando a tu rival**: la línea gris pasa a una tarjeta con la mascota
+  pensando, «Has dicho Victoria · Esperando a que marina lo confirme…» y «Me
+  he equivocado» (retira tu parte con `torneos_desreportar`).
+- **El chat**, su propia tarjeta: a la derecha en el PC, debajo en el móvil.
+  Tu mazo no sale en Hoy mientras juegas.
+
+**Ficheros**: `js/torneos/ronda.js` (`pintarMiPartida`, `puestoCorto`),
+`js/torneos/jueces.js` (la tarjeta del chat con `hidden`), `torneo.html`
+(`#miPartidaExtra` fuera de «Tu partida»), `css/torneos.css` (bloque 1401 y la
+columna derecha), `normas/jugar.md`. Prueba `test-tanda-1401-pantalla.mjs`;
+actualizada la 1391 (los botones son degradado, no color liso). 298, 877,
+1145, 1340, 1341, 1347, 1352, 1375–1378, 1391–1394, 1397 y torneos-15…22 en
+verde; torneos-23 ya fallaba antes (las chapas de mazo con la CDN).
+
+**Pendiente**: 1402 (entre rondas y la entrada a cada ronda) y 1403 (la tabla
+sin podio hasta que acabe la ronda 1). Subir 1396–1401 cuando PINGU diga «sube».
+
 ## 2026-11-19 (647) — PINGU-Claude (1400 — El «⋯» de un mensaje del foro se cierra)
 
 **Hecho** (PINGU, con captura: «cuando estoy en el apartado de editar, esta

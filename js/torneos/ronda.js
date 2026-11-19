@@ -1375,6 +1375,20 @@ function estadoDeRondaHtml(faltan, progreso) {
   return trozos.join('')
 }
 
+// «7.º · 3 pts» para la cabecera de tu mesa (1401). Sin nada jugado aún, nada:
+// un «7.º de 8» con todos a cero es el orden de inscripción, no un puesto.
+function puestoCorto() {
+  try {
+    const yo = miId()
+    if (!yo || !partidas.some((m) => TERMINALES.has(m.status))) return ''
+    const tabla = computeStandings(montarSnapshot(rondas.length))
+    const i = tabla.findIndex((e) => e.playerId === yo)
+    return i >= 0 ? `${i + 1}.º · ${tabla[i].matchPoints} pts` : ''
+  } catch {
+    return ''
+  }
+}
+
 // Tu puesto en la clasificación de ahora mismo, o null si no se sabe.
 function posicionMia() {
   try {
@@ -2712,16 +2726,21 @@ function pintarMiPartida() {
   // TCG Live, reloj, check-in, botones— todos del mismo peso, y en un
   // BO3 había que echar la cuenta de cabeza para saber por dónde ibas.
   const bo = actual.phase === 'top_cut' ? ctx.torneo.top_cut_bo : ctx.torneo.swiss_bo
+  // TU MESA EN UNA PIEZA (1401, «El torneo, más sencillo», T1; PINGU: «dale
+  // con todo lo recomendado»): la cabecera es la mesa y tu puesto. La ronda
+  // va en el reloj, dentro del VS; «A una partida» sobraba (al mejor de 3
+  // ya lo dice el marcador) y el TCG Live del rival va bajo su nombre, con
+  // «Copiar». Antes la ronda salía tres veces en tu mesa.
+  const rotuloRonda = actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda ${actual.round_number}`
+  const puesto = puestoCorto()
   const cabecera = `
     <div class="torneo-mesa-cab">
       <span class="torneo-mesa-cab-t">Mesa ${mia.table_number}</span>
-      <span class="torneo-chapa torneo-chapa-neutra">${actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda suiza ${actual.round_number}`}</span>
-      <span class="torneo-chapa torneo-chapa-neutra">${bo === 3 ? 'Al mejor de 3' : 'A una partida'}</span>
-      <span class="torneo-mesa-cab-tcg">TCG Live: <strong>${escapeHtml(rival?.tcg_live_username || '—')}</strong></span>
+      ${puesto ? `<span class="torneo-mesa-cab-puesto">${escapeHtml(puesto)}</span>` : ''}
     </div>`
 
   if (mia.status === 'pending') {
-    const html = `${cabecera}<p class="subtext torneo-partida-nota">La ronda aún no ha empezado.</p>`
+    const html = `${cabecera}<p class="subtext torneo-partida-nota">${escapeHtml(rotuloRonda)}: aún no ha empezado.</p>`
     if (yaEstaPintado('miPartida', html)) return
     contenido.innerHTML = html
     void rellenarChapasArquetipo(contenido)
@@ -2735,18 +2754,18 @@ function pintarMiPartida() {
   // Y desde la 1343 VUELVE, en grande, dentro de tu mesa (propuesta de
   // PINGU: «el cronómetro de ronda debería estar en la mesa»). En las demás
   // pestañas queda la pastilla de arriba. Lo pinta el tictac de arrancarReloj.
+  // Desde la 1401 el reloj va DENTRO del VS, gordo y dorado (el anillo se
+  // queda, pequeño, para el tictac de arrancarReloj, que lo busca por id).
   const reloj =
     actual.status === 'active'
-      ? `<div class="torneo-mesa-reloj" id="mesaReloj">
-           <div class="torneo-viva-anillo torneo-mesa-anillo" id="mesaAnillo"><b>–:––</b></div>
-           <div class="torneo-mesa-reloj-texto">
-             <span class="torneo-mesa-reloj-rotulo">${actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda ${actual.round_number}`}</span>
-             <b id="mesaRelojCifra">–:––</b>
-             <span class="torneo-mesa-reloj-estado" id="mesaRelojEstado"></span>
-           </div>
+      ? `<div class="torneo-duelo-reloj" id="mesaReloj">
+           <span class="torneo-viva-anillo torneo-mesa-anillo" id="mesaAnillo" aria-hidden="true"><b>–:––</b></span>
+           <b id="mesaRelojCifra">–:––</b>
+           <small>${escapeHtml(rotuloRonda.toUpperCase())}</small>
+           <span class="torneo-mesa-reloj-estado" id="mesaRelojEstado"></span>
          </div>`
       : actual.phase === 'top_cut'
-        ? '<p class="torneo-cuenta-etiqueta torneo-partida-nota">Sin límite de tiempo — se juega a acabar.</p>'
+        ? `<div class="torneo-duelo-reloj"><b>∞</b><small>${escapeHtml(rotuloRonda.toUpperCase())} · SIN LÍMITE</small></div>`
         : ''
 
   // El check-in va DENTRO del duelo, bajo cada jugador: es un estado de
@@ -2769,6 +2788,7 @@ function pintarMiPartida() {
     <div class="torneo-duelo">
       ${jugador('Tú', escapeHtml(miNombre), miListo, miNombre.slice(0, 1), colorDeNombre(miNombre))}
       <div class="torneo-duelo-medio">
+        ${reloj}
         ${
           serie
             ? `<div class="torneo-duelo-marcador"><b class="${mias > suyas ? 'gana' : ''}">${mias}</b><i>—</i><b class="${suyas > mias ? 'gana' : ''}">${suyas}</b></div>
@@ -2776,7 +2796,7 @@ function pintarMiPartida() {
             : '<span class="torneo-duelo-vs">VS</span>'
         }
       </div>
-      ${jugador(rivalNombre, chapaDe(rivalId) || `<span class="subtext">${escapeHtml(rival?.tcg_live_username || '—')}</span>`, rivalListo, rivalNombre.slice(0, 1), colorDeNombre(rivalNombre))}
+      ${jugador(rivalNombre, `${chapaDe(rivalId) || ''}${rival?.tcg_live_username ? `<button type="button" class="torneo-duelo-tcg" data-copiar-tcg="${escapeHtml(rival.tcg_live_username)}" aria-label="Copiar ${escapeHtml(rival.tcg_live_username)}, su usuario de TCG Live">${escapeHtml(rival.tcg_live_username)} <i>Copiar</i></button>` : ''}`, rivalListo, rivalNombre.slice(0, 1), colorDeNombre(rivalNombre))}
     </div>
     ${
       faltaCheckin
@@ -2789,12 +2809,20 @@ function pintarMiPartida() {
   // jugando un BO3 lo que la gente tiene delante es la partida que acaba
   // de terminar, no el resultado final echando la cuenta de cabeza.
   const miReporte = reportes.find((r) => r.match_id === mia.id && r.reporter_id === miId() && (r.game_number ?? 0) === 0)
+  // ESPERANDO A TU RIVAL (1401, T2): antes, una línea gris. Ahora la tarjeta
+  // con la mascota pensando, lo que has dicho y «Me he equivocado», que retira
+  // tu parte (torneos_desreportar; la base no deja si el rival ya contestó).
   const botones =
     bo === 3
       ? panelBo3(mia, soyA)
       : miReporte
-        ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (se actualiza solo).</p>'
-        : `<h4 class="torneo-mesas-titulo">Reportar resultado</h4>
+        ? `<div class="torneo-espera" role="status">
+            <span class="torneo-espera-mascota mascota-3d" data-mascota="pensar" data-sin-globo aria-hidden="true"></span>
+            <b>Has dicho ${escapeHtml(NOMBRE_DE_REPORTE[miReporte.result] || miReporte.result)}</b>
+            <span>Esperando a que ${escapeHtml(rivalNombre)} lo confirme<i aria-hidden="true">…</i></span>
+            <button type="button" class="link-btn torneo-espera-error" data-quitar="0">Me he equivocado</button>
+          </div>`
+        : `<h4 class="sr-only">Reportar resultado</h4>
       <div class="torneo-reportar">
         <button class="torneo-boton-resultado victoria" data-reporte="win">Victoria</button>
         <button class="torneo-boton-resultado derrota" data-reporte="loss">Derrota</button>
@@ -2803,7 +2831,14 @@ function pintarMiPartida() {
   // Victoria y Derrota. Si el HTML es el mismo, no se toca nada.
   const juego = juegoPorReportar(mia, bo)
   const adjuntable = puedoAdjuntarA(mia)
-  const html = `${cabecera}${reloj}${checkin}${botones}${registroHtml(juego, adjuntable)}${repeticionesDeMesaHtml(mia)}`
+  // «¿Algo raro?» (1401): el registro de TCG Live, la repetición y el juez en
+  // UNA línea. Los de siempre siguen debajo (sus manejadores no cambian), pero
+  // plegados hasta que se piden: esta línea solo los abre o los pulsa.
+  const algoRaro = `<p class="torneo-algo-raro">¿Algo raro?
+      ${juego != null || adjuntable ? '<button type="button" class="link-btn" data-raro="registro">Pegar el registro de TCG Live</button>' : ''}
+      ${adjuntable ? '<button type="button" class="link-btn" data-raro="repeticion">Subir la repetición</button>' : ''}
+      <button type="button" class="link-btn" data-raro="juez">Llamar al juez</button></p>`
+  const html = `${cabecera}${checkin}${botones}${algoRaro}<div class="torneo-mesa-plegado">${registroHtml(juego, adjuntable)}${repeticionesDeMesaHtml(mia)}</div>`
   if (yaEstaPintado('miPartida', html)) return
   contenido.innerHTML = html
   tictacYa?.()
@@ -2817,6 +2852,32 @@ function pintarMiPartida() {
   contenido.querySelectorAll('[data-quitar]').forEach((b) => {
     b.addEventListener('click', () => desreportar(mia, Number(b.dataset.quitar)))
   })
+  // «Copiar» el TCG Live del rival (1401): para mandarle la invitación.
+  contenido.querySelector('[data-copiar-tcg]')?.addEventListener('click', async (e) => {
+    const nombre = e.currentTarget.dataset.copiarTcg
+    try {
+      await navigator.clipboard.writeText(nombre)
+      showToast(`Copiado: ${nombre}`, 'success')
+    } catch {
+      showToast(`Su usuario de TCG Live: ${nombre}`, 'info')
+    }
+  })
+  // «¿Algo raro?» (1401): abre el registro, pulsa «Adjuntar la repetición» o
+  // «Llamar al juez», que siguen siendo los de siempre.
+  contenido.querySelectorAll('[data-raro]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const que = b.dataset.raro
+      if (que === 'registro') {
+        const det = $('torneoRegistro')
+        if (det) { det.open = true; det.closest('.torneo-mesa-plegado')?.classList.add('abierto'); det.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); det.querySelector('textarea')?.focus({ preventScroll: true }) }
+      } else if (que === 'repeticion') {
+        contenido.querySelector('.torneo-mesa-plegado')?.classList.add('abierto')
+        contenido.querySelector('[data-adjuntar-rep]')?.click()
+      } else {
+        $('btnLlamarJuez')?.click()
+      }
+    })
+  )
 }
 
 // La pantalla de victoria o derrota de TU mesa (1391): una vez por mesa, y

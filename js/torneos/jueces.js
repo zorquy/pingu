@@ -466,6 +466,9 @@ function montarEscribiendo(marcador, tema) {
 
 function pintarMiPartidaExtra() {
   const zona = $('miPartidaExtra')
+  // Desde la 1401 es su propia tarjeta (a la derecha en el PC): sin mesa,
+  // `hidden`, que es lo que miran las pestañas para saber si Hoy tiene algo.
+  zona?.classList.toggle('hidden', !miPartida || miPartida.status === 'bye')
   if (!miPartida || miPartida.status === 'bye') {
     pintarSiCambia(zona, '')
     return
