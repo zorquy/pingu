@@ -2,7 +2,7 @@
 // sencillo», T3 y T4; PINGU: «dale con todo lo recomendado», la entrada en
 // TODAS las rondas):
 //   · con TU mesa terminada y la ronda en marcha: tu resultado en una tarjeta
-//     («¡Ganaste a marina!», ronda, marcador, mesa, +3, la mascota contenta) y
+//     («¡Ganaste a marina!», ronda, marcador, mesa, +3; sin mascota desde la 1404) y
 //     «Siguiente» con las mesas terminadas en una barra; en una liga, las
 //     rondas de la jornada como casillas (R1 ganada, R2 la que viene);
 //   · la última ronda de una jornada dice «Hoy ya has terminado»;
@@ -101,7 +101,7 @@ for (const movil of [false, true]) {
       }
     })
     check(`${q}: «¡Ganaste a marina!» con ronda, marcador, mesa y +3`, r && /gana/.test(r.clase) && r.titulo === '¡Ganaste a marina!' && r.sub === 'Ronda 1 de la jornada 1 · 1-0 · mesa 1' && r.pts === '+3', JSON.stringify(r))
-    check(`${q}: …con la mascota contenta`, r?.mascota === 'contento', r?.mascota)
+    check(`${q}: …sin mascota (1404: ya salió en la celebración)`, !r?.mascota, r?.mascota)
     check(`${q}: «Siguiente: ronda 2 de la jornada 1» y 2 de 4 mesas en la barra`, r?.sig === 'Siguiente: ronda 2 de la jornada 1' && /Empieza cuando acaben las mesas que quedan \(faltan las mesas 2 y 4\)\. 2 de 4 terminadas/.test(r.texto) && r.barra === '2/4' && r.ancho === '50%', JSON.stringify(r))
     check(`${q}: las rondas de la jornada: R1 ganada, R2 la que viene, R3`, r?.casillas.join(',') === 'R1:gana,R2:ya,R3:-' && r.jornada === 'Jornada 1 de 3', JSON.stringify(r?.casillas))
     check(`${q}: no sale la entrada de ronda (tu mesa ya está)`, !(await page.$('.torneo-ronda-entra[open]')))

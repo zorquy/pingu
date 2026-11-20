@@ -31,13 +31,13 @@ for (const movil of [false, true]) {
     const datos = t?.querySelector('.t-proximo-datos')
     return {
       dias: dias?.querySelector('b')?.textContent, rotulo: dias?.querySelector('small')?.textContent, alto: Math.round(dias?.getBoundingClientRect().height || 0),
-      panel: /gradient/.test(fondo), nombre: t?.querySelector('.t-proximo-nombre')?.textContent,
+      panel: !/gradient/.test(fondo), nombre: t?.querySelector('.t-proximo-nombre')?.textContent,
       datos: datos ? getComputedStyle(datos).display !== 'none' : false,
       botones: [...(t?.querySelectorAll('.t-proximo-botones a') || [])].filter((a) => a.getClientRects().length).map((a) => a.textContent.trim()),
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
     }
   })
-  check('el cartel en el panel de juego, con los días en su losa grande', r.panel && /^\d+$/.test(r.dias || '') && /DÍAS?/.test(r.rotulo || '') && r.alto >= 60, JSON.stringify(r))
+  check('el cartel con los días en su losa grande, con el tema (1404: ya no es panel de juego)', r.panel && /^\d+$/.test(r.dias || '') && /DÍAS?/.test(r.rotulo || '') && r.alto >= 60, JSON.stringify(r))
   check('el nombre del torneo y sus caminos', /Copa Delta/.test(r.nombre || '') && r.botones[0] === 'Tu lista' && r.botones.length === (movil ? 1 : 2), JSON.stringify(r.botones))
   check(movil ? 'en el móvil, sin la línea de datos' : 'en el PC, con el día, la hora y las plazas', movil ? !r.datos : r.datos)
   check('nada se sale de lado y sin errores', r.ancho && !errores.length, errores.join(' | '))

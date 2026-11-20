@@ -4,7 +4,7 @@
 //     ronda y «A una partida» (la ronda va en el reloj);
 //   · el reloj, DENTRO del VS, gordo; el TCG Live del rival es una pastilla
 //     con «Copiar»;
-//   · Victoria y Derrota, botones de juego (degradado, ≥ 56 px) que en el
+//   · Victoria y Derrota, botones de la web (pastilla, sin degradado desde la 1404; ≥ 52 px) que en el
 //     móvil entran en la primera pantalla;
 //   · registro de TCG Live, repetición y juez: una línea «¿Algo raro?» que
 //     los abre (el registro y el botón del juez, plegados hasta entonces);
@@ -100,7 +100,7 @@ for (const movil of [false, true]) {
     check(`${q}: «Tu partida» queda solo para el lector de pantalla`, r.h3Oculto)
     check(`${q}: el reloj va dentro del VS, gordo, con la ronda`, r.reloj && /^\d+:\d\d$/.test(r.reloj.cifra) && /RONDA 2/.test(r.reloj.rotulo) && r.reloj.tam >= 26, JSON.stringify(r.reloj))
     check(`${q}: el TCG Live del rival, en pastilla con «Copiar»`, r.tcg === 'TCG_marina Copiar', r.tcg)
-    check(`${q}: Victoria y Derrota de juego (degradado, ≥ 56 px)`, r.botones.length === 2 && r.botones.every(([, g, h]) => g && h >= 56), JSON.stringify(r.botones))
+    check(`${q}: Victoria y Derrota, botones de la casa (sin degradado, ≥ 52 px)`, r.botones.length === 2 && r.botones.every(([, g, h]) => !g && h >= 52), JSON.stringify(r.botones))
     if (movil) check('Móvil: Victoria y Derrota entran en la primera pantalla (sobre la barra de abajo)', r.botones.every(([, , , b]) => b <= r.barra), JSON.stringify([r.botones, r.barra]))
     check(`${q}: «¿Algo raro?» con registro, repetición y juez`, r.raro.join(',') === 'registro,repeticion,juez', r.raro.join(','))
     check(`${q}: el registro y el botón del juez, plegados`, !r.registroVisible && r.juezExiste && !r.juezVisible, JSON.stringify([r.registroVisible, r.juezVisible]))
