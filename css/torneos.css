@@ -3401,7 +3401,6 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   color: var(--text-mid);
 }
 
-
 /* ── 748: mientras juegas, la ronda primero (J2; SCHEMA 748) ── */
 /* (1341: el formato, las plazas y la descripción ya no van en la cabecera
    sino en Info, así que solo se aparta lo que queda en ella.) */
@@ -4911,8 +4910,8 @@ button.torneo-tj { cursor: pointer; }
   overflow: hidden;
   padding: 22px 12px 16px;
   margin: 8px 0 4px;
-  background: linear-gradient(105deg, #2b1f63 0%, #1d1b3f 46%, #2a1210 54%, #5a1f14 100%);
-  color: #f2eefc;
+  background: linear-gradient(105deg, var(--juego-fondo-alto) 0%, var(--juego-fondo) 46%, #2a1210 54%, #5a1f14 100%);
+  color: var(--juego-texto);
 }
 .torneo-duelo::before {
   content: '';
@@ -4922,8 +4921,8 @@ button.torneo-tj { cursor: pointer; }
   pointer-events: none;
 }
 .torneo-duelo > * { position: relative; }
-.torneo-duelo .torneo-duelo-nombre { color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
-.torneo-duelo .torneo-duelo-sub { color: #d6cdf5; }
+.torneo-duelo .torneo-duelo-nombre { color: var(--blanco-fijo); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.torneo-duelo .torneo-duelo-sub { color: var(--juego-claro); }
 .torneo-duelo .torneo-duelo-cara { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85), 0 8px 18px rgba(0, 0, 0, 0.45); }
 .torneo-duelo .torneo-duelo-vs {
   display: inline-block;
@@ -4933,14 +4932,13 @@ button.torneo-tj { cursor: pointer; }
   font-style: italic;
   font-weight: 900;
   letter-spacing: 0;
-  color: #fde68a;
-  background: #0b1219;
-  border: 3px solid #f0c048;
+  color: var(--juego-oro);
+  background: var(--juego-hondo);
+  border: 3px solid var(--juego-oro-fuerte);
   border-radius: 12px;
   transform: rotate(-6deg);
-  box-shadow: 0 0 22px rgba(240, 192, 72, 0.55);
 }
-.torneo-duelo .torneo-duelo-marcador b { color: #b7aee0; }
+.torneo-duelo .torneo-duelo-marcador b { color: var(--juego-tenue); }
 .torneo-duelo .torneo-duelo-marcador b.gana { color: #34d399; }
 .torneo-duelo .torneo-duelo-marcador + .torneo-duelo-vs { font-size: var(--t-2xs); margin-top: 8px; transform: none; border-width: 2px; }
 
@@ -4953,26 +4951,26 @@ button.torneo-tj { cursor: pointer; }
 /* Tu camino: las rondas como niveles, unidas por una línea. */
 .torneo-camino { list-style: none; margin: var(--e-md) 0 var(--e-sm); padding: 0; display: flex; position: relative; }
 .torneo-camino::before { content: ''; position: absolute; left: 16px; right: 16px; top: 15px; height: 3px; background: var(--border-strong); }
-.torneo-camino-paso { position: relative; flex: 1; display: grid; justify-items: center; gap: 3px; }
+.torneo-camino-paso { position: relative; flex: 1; display: grid; justify-items: center; gap: 4px; }
 .torneo-camino-paso b { font-family: var(--font-display); font-size: var(--t-2xs); color: var(--text-mid); }
 .torneo-camino-bola { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--white); border: 2px solid var(--border-strong); color: var(--text-dim); font-family: var(--font-marca); font-weight: 800; font-size: var(--t-xs); }
 .torneo-camino-paso.gana .torneo-camino-bola { background: var(--success-bg); border-color: var(--success); color: var(--success); }
 .torneo-camino-paso.pierde .torneo-camino-bola { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 .torneo-camino-paso.empata .torneo-camino-bola { border-color: var(--text-mid); color: var(--text-mid); }
 .torneo-camino-paso.vivo .torneo-camino-bola { background: var(--acento); border-color: color-mix(in srgb, var(--acento) 55%, white); }
-.torneo-camino-paso.vivo .torneo-camino-bola i { width: 10px; height: 10px; border-radius: 50%; background: var(--acento-texto, #fff); animation: torneo-camino-late 1.4s infinite; }
-.torneo-camino-paso.top .torneo-camino-bola { color: #c99a1c; border-color: color-mix(in srgb, #f0c048 60%, transparent); }
-.torneo-camino-paso.top.dentro .torneo-camino-bola { background: #f0c048; color: #3a2a05; border-color: #f0c048; }
+.torneo-camino-paso.vivo .torneo-camino-bola i { width: 10px; height: 10px; border-radius: 50%; background: var(--acento-texto); animation: torneo-camino-late 1.4s infinite; }
+.torneo-camino-paso.top .torneo-camino-bola { color: #c99a1c; border-color: color-mix(in srgb, var(--juego-oro-fuerte) 60%, transparent); }
+.torneo-camino-paso.top.dentro .torneo-camino-bola { background: var(--juego-oro-fuerte); color: #3a2a05; border-color: var(--juego-oro-fuerte); }
 @keyframes torneo-camino-late { 50% { transform: scale(1.5); opacity: 0.6; } }
 @media (prefers-reduced-motion: reduce) { .torneo-camino-paso.vivo .torneo-camino-bola i { animation: none; } }
 
 /* La celebración: un <dialog> a pantalla entera. */
-.torneo-celebra { border: 0; padding: 0; width: min(440px, calc(100vw - 32px)); border-radius: 26px; overflow: hidden; color: #fff; background: #0b1219; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+.torneo-celebra { border: 0; padding: 0; width: min(440px, calc(100vw - 32px)); border-radius: 26px; overflow: hidden; color: var(--blanco-fijo); background: var(--juego-hondo); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
 .torneo-celebra::backdrop { background: rgba(4, 7, 10, 0.75); }
 .torneo-celebra-caja { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 28px 22px 22px; }
-.torneo-celebra-gana .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #1f6e4f 0%, #12261f 60%, #0b1219 100%); }
-.torneo-celebra-pierde .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #4a1d22 0%, #26171a 60%, #0b1219 100%); }
-.torneo-celebra-empata .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #2c3a46 0%, #1c2731 60%, #0b1219 100%); }
+.torneo-celebra-gana .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #1f6e4f 0%, #12261f 60%, var(--juego-hondo) 100%); }
+.torneo-celebra-pierde .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #4a1d22 0%, #26171a 60%, var(--juego-hondo) 100%); }
+.torneo-celebra-empata .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #2c3a46 0%, #1c2731 60%, var(--juego-hondo) 100%); }
 .torneo-celebra-mascota { width: 96px; }
 .torneo-celebra-ronda { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.1em; opacity: 0.85; }
 .torneo-celebra-titulo { margin: 0; font-family: var(--font-marca); font-style: italic; font-weight: 900; font-size: clamp(2.2rem, 10vw, 3rem); line-height: 1; }
@@ -5019,7 +5017,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-podio-4 .torneo-peana { height: 44px; background: linear-gradient(180deg, #d39867, #a3643a); }
 .torneo-lider-1 { padding-block: 0; }
 .torneo-lider.yo { box-shadow: none; }
-.torneo-lider.yo .torneo-peana { outline: 3px solid var(--acento, var(--navy)); outline-offset: 2px; }
+.torneo-lider.yo .torneo-peana { outline: 3px solid var(--acento); outline-offset: 2px; }
 .torneo-lider .torneo-arquetipo,
 .torneo-podio-puesto .torneo-arquetipo { max-width: 100%; }
 .torneo-podio { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: var(--e-xs); max-width: 620px; margin-inline: auto; }
@@ -5031,7 +5029,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-podio-4 { order: 4; }
 
 /* La tabla: el 1.º en oro, tu fila con su borde y, en el móvil, «Tú» a mano. */
-.torneo-clasificacion-tabla tr.torneo-fila-yo { background: color-mix(in srgb, var(--acento, var(--navy)) 14%, transparent); box-shadow: inset 3px 0 0 var(--acento, var(--navy)); }
+.torneo-clasificacion-tabla tr.torneo-fila-yo { background: color-mix(in srgb, var(--acento) 14%, transparent); box-shadow: inset 3px 0 0 var(--acento); }
 .torneo-tu-flota { display: none; }
 @media (max-width: 900px) {
   .torneo-tu-flota:not([hidden]) {
@@ -5063,22 +5061,22 @@ button.torneo-tj { cursor: pointer; }
 .torneo-mesas-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-md); margin: 0 0 var(--e-sm); font-size: var(--t-sm); color: var(--text-mid); }
 .torneo-mesas-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
 .torneo-mesas-leyenda i { width: 10px; height: 10px; border-radius: 50%; }
-.torneo-leyenda-jugando i { background: #8b5cf6; }
+.torneo-leyenda-jugando i { background: var(--juego-violeta); }
 .torneo-leyenda-disputa i { background: var(--danger); }
 .torneo-leyenda-cerrada i { background: var(--success); }
 .torneo-leyenda-espera i { background: var(--text-dim); }
 .torneo-mesas-mapa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap: var(--e-sm); max-width: none; }
 .torneo-mesas-mapa .torneo-mesa { border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius-md); background: var(--white); }
 .torneo-mesas-mapa .torneo-mesa:last-child { border-bottom: 1px solid var(--border); }
-.torneo-mesas-mapa .torneo-mesa-jugando { border-left-color: #8b5cf6; }
+.torneo-mesas-mapa .torneo-mesa-jugando { border-left-color: var(--juego-violeta); }
 .torneo-mesas-mapa .torneo-mesa-disputa { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, var(--white)); }
 .torneo-mesas-mapa .torneo-mesa-cerrada { border-left-color: var(--success); }
 .torneo-mesas-mapa .torneo-mesa-espera { border-left-color: var(--text-dim); }
-.torneo-mesa-jugando .torneo-mesa-num { color: #fff; background: #8b5cf6; border-color: #8b5cf6; animation: torneo-mesa-late 1.8s ease-in-out infinite; }
-.torneo-mesa-disputa .torneo-mesa-num { color: #fff; background: var(--danger); border-color: var(--danger); }
+.torneo-mesa-jugando .torneo-mesa-num { color: var(--blanco-fijo); background: var(--juego-violeta); border-color: var(--juego-violeta); animation: torneo-mesa-late 1.8s ease-in-out infinite; }
+.torneo-mesa-disputa .torneo-mesa-num { color: var(--blanco-fijo); background: var(--danger); border-color: var(--danger); }
 .torneo-mesa-cerrada .torneo-mesa-num { color: var(--success); background: var(--success-bg); border-color: transparent; }
-.torneo-mesas-mapa .torneo-mesa.mia { background: color-mix(in srgb, var(--acento, var(--navy)) 8%, var(--white)); box-shadow: 0 0 0 2px var(--acento, var(--navy)); }
-.torneo-mesas-mapa .torneo-mesa.mia .torneo-mesa-num { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--acento, var(--navy)); }
+.torneo-mesas-mapa .torneo-mesa.mia { background: color-mix(in srgb, var(--acento) 8%, var(--white)); box-shadow: 0 0 0 2px var(--acento); }
+.torneo-mesas-mapa .torneo-mesa.mia .torneo-mesa-num { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--acento); }
 @keyframes torneo-mesa-late { 50% { box-shadow: 0 0 0 5px rgba(139, 92, 246, 0.25); } }
 @media (prefers-reduced-motion: reduce) {
   .torneo-mesa-jugando .torneo-mesa-num, .torneo-tu-flota:not([hidden]) { animation: none; }
@@ -5090,7 +5088,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-vivo {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(120deg, #2b1f63 0%, #1d1b3f 55%, #16202b 100%);
+  background: var(--juego-panel);
   border: 1px solid #4b3b9a;
   box-shadow: 0 14px 40px rgba(76, 52, 180, 0.35);
 }
@@ -5106,9 +5104,9 @@ button.torneo-tj { cursor: pointer; }
   pointer-events: none;
 }
 .torneo-vivo > * { position: relative; }
-.torneo-vivo-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #c9b8ff; }
-.torneo-vivo-sub, .torneo-vivo-rotulo { color: #b7aee0; }
-.torneo-vivo-reloj b { color: #fde68a; text-shadow: 0 0 18px rgba(240, 192, 72, 0.45); }
+.torneo-vivo-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--juego-suave); }
+.torneo-vivo-sub, .torneo-vivo-rotulo { color: var(--juego-tenue); }
+.torneo-vivo-reloj b { color: var(--juego-oro); }
 
 /* Las tarjetas como fichas de evento: al pasar se levantan con brillo; las
    tuyas llevan el borde violeta. */
@@ -5116,27 +5114,27 @@ button.torneo-tj { cursor: pointer; }
 @media (hover: hover) {
   .torneo-tarjeta:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(76, 52, 180, 0.22); }
 }
-.torneo-tarjeta-mia { box-shadow: 0 0 0 2px #8b5cf6, 0 10px 28px rgba(139, 92, 246, 0.25); }
+.torneo-tarjeta-mia { box-shadow: 0 0 0 2px var(--juego-violeta), 0 10px 28px rgba(139, 92, 246, 0.25); }
 
 /* Elegir mazo como elegir personaje: cada mazo en su carta con su dibujo. */
 .torneo-mazos-lista { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); max-height: 360px; padding: 4px; }
 .torneo-mazo-opcion { position: relative; overflow: hidden; min-height: 76px; justify-content: flex-end; border-radius: 14px; transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease); }
-.torneo-mazo-opcion.con-arte { padding-right: 84px; background: linear-gradient(135deg, var(--white), color-mix(in srgb, #8b5cf6 10%, var(--white))); }
+.torneo-mazo-opcion.con-arte { padding-right: 84px; background: linear-gradient(135deg, var(--white), color-mix(in srgb, var(--juego-violeta) 10%, var(--white))); }
 .torneo-mazo-arte { position: absolute; right: -6px; bottom: -10px; width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3)); pointer-events: none; }
 .torneo-mazo-opcion strong { position: relative; }
 .torneo-mazo-opcion:hover,
-.torneo-mazo-opcion:focus-visible { border-color: #8b5cf6; background: color-mix(in srgb, #8b5cf6 12%, var(--white)); box-shadow: 0 0 0 2px #8b5cf6, 0 10px 24px rgba(139, 92, 246, 0.3); transform: translateY(-2px); }
+.torneo-mazo-opcion:focus-visible { border-color: var(--juego-violeta); background: color-mix(in srgb, var(--juego-violeta) 12%, var(--white)); box-shadow: 0 0 0 2px var(--juego-violeta), 0 10px 24px rgba(139, 92, 246, 0.3); transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) {
   .torneo-tarjeta, .torneo-mazo-opcion { transition: none; }
   .torneo-tarjeta:hover, .torneo-mazo-opcion:hover { transform: none; }
 }
 
 /* ══ 1394 — Torneos en modo juego: el final (SCHEMA 1394) ══ */
-.torneo-celebra-final .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, #3a2f7a 0%, #1d1b3f 60%, #0b1219 100%); }
-.torneo-celebra-oro .torneo-celebra-caja { background: radial-gradient(circle at 50% 28%, #8a6206 0%, #3a2a06 55%, #0b1219 100%); }
-.torneo-celebra-final .torneo-celebra-titulo { color: #e9d5ff; text-shadow: 0 0 24px rgba(155, 123, 255, 0.6); }
-.torneo-celebra-oro .torneo-celebra-titulo { color: #fde68a; text-shadow: 0 0 28px rgba(240, 192, 72, 0.75); }
-.torneo-celebra-trofeo { display: grid; place-items: center; width: 64px; height: 64px; margin-top: -18px; border-radius: 50%; color: #fff; background: linear-gradient(180deg, #9aa7b8, #6b7889); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
+.torneo-celebra-final .torneo-celebra-caja { background: radial-gradient(circle at 50% 30%, var(--juego-borde) 0%, var(--juego-fondo) 60%, var(--juego-hondo) 100%); }
+.torneo-celebra-oro .torneo-celebra-caja { background: radial-gradient(circle at 50% 28%, #8a6206 0%, #3a2a06 55%, var(--juego-hondo) 100%); }
+.torneo-celebra-final .torneo-celebra-titulo { color: var(--juego-lila); text-shadow: 0 0 24px rgba(155, 123, 255, 0.6); }
+.torneo-celebra-oro .torneo-celebra-titulo { color: var(--juego-oro); text-shadow: 0 0 28px rgba(240, 192, 72, 0.75); }
+.torneo-celebra-trofeo { display: grid; place-items: center; width: 64px; height: 64px; margin-top: -18px; border-radius: 50%; color: var(--blanco-fijo); background: linear-gradient(180deg, #9aa7b8, #6b7889); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
 .torneo-celebra-trofeo-1 { color: #3b2a00; background: linear-gradient(180deg, #f6c945, #c48a0a); box-shadow: 0 0 30px rgba(240, 192, 72, 0.6); }
 .torneo-celebra-trofeo-3, .torneo-celebra-trofeo-4 { background: linear-gradient(180deg, #d39867, #a3643a); }
 /* Centrada también en el móvil (algún estilo común de <dialog> la subía) y
@@ -5154,32 +5152,32 @@ button.torneo-tj { cursor: pointer; }
 .torneo-sala { display: grid; gap: var(--e-sm); margin-bottom: var(--e-sm); }
 .sala-cartel {
   position: relative; overflow: hidden; display: grid; gap: 6px; align-content: start; min-height: 168px;
-  padding: var(--e-md); border-radius: 22px; color: #f2eefc; border: 1px solid #3a2f7a;
-  background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 45%, #16202b 100%);
+  padding: var(--e-md); border-radius: var(--radius-xl); color: var(--text); border: 1px solid var(--border);
+  background: var(--white);
 }
 .sala-cartel > :not(.sala-brillo):not(.sala-mascota) { position: relative; z-index: 1; max-width: 62%; }
-.sala-brillo { position: absolute; right: -70px; top: -80px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(155, 123, 255, 0.45), transparent 65%); pointer-events: none; }
-.sala-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.13em; color: #c9b8ff; }
-.sala-nombre { font-family: var(--font-marca); font-size: clamp(1.6rem, 6vw, 2.3rem); font-weight: 900; line-height: 1.02; color: #fff; text-wrap: balance; }
-.sala-cuando { font-size: var(--t-sm); color: #b7aee0; font-weight: 600; }
+.sala-brillo { position: absolute; right: -70px; top: -80px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--acento) 14%, transparent), transparent 65%); pointer-events: none; }
+.sala-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--text-mid); }
+.sala-nombre { font-family: var(--font-marca); font-size: var(--t-3xl); font-weight: 800; line-height: 1.05; color: var(--text); text-wrap: balance; }
+.sala-cuando { font-size: var(--t-sm); color: var(--text-mid); font-weight: 600; }
 .sala-mascota { position: absolute; right: 0; bottom: -6px; width: min(40%, 170px); aspect-ratio: 1; z-index: 0; }
 .sala-cuenta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-xs); }
-.sala-cuenta > div { display: grid; justify-items: center; padding: 10px 0 8px; border-radius: 16px; background: #141a33; border: 1px solid #2a2f5a; }
-.sala-cuenta b { font-family: var(--font-marca); font-size: clamp(1.9rem, 8vw, 2.6rem); font-weight: 900; line-height: 1; color: #fde68a; text-shadow: 0 0 16px rgba(240, 192, 72, 0.45); font-variant-numeric: tabular-nums; }
-.sala-cuenta small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.13em; color: #c9b8ff; margin-top: 2px; }
+.sala-cuenta > div { display: grid; justify-items: center; padding: var(--e-sm) 0; border-radius: var(--radius-lg); background: var(--ice); }
+.sala-cuenta b { font-family: var(--font-marca); font-size: var(--t-3xl); font-weight: 800; line-height: 1; color: var(--navy); font-variant-numeric: tabular-nums; }
+.sala-cuenta small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--text-mid); margin-top: 2px; }
 .sala-gente { display: flex; align-items: center; gap: var(--e-sm); padding: 10px 12px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); }
 .sala-caras { display: flex; flex: none; }
-.sala-caras > .torneo-jcara, .sala-cara-mas { width: 32px; height: 32px; margin-left: -9px; border: 2px solid var(--white); }
+.sala-caras > .torneo-jcara, .sala-cara-mas { width: 32px; height: 32px; margin-left: -8px; border: 2px solid var(--white); }
 .sala-caras > :first-child { margin-left: 0; }
 .sala-cara-mas { display: grid; place-items: center; border-radius: 50%; background: var(--ice); color: var(--text-mid); font: 800 var(--t-2xs) var(--font-marca); }
-.sala-gente-texto { flex: 1; display: grid; gap: 5px; min-width: 0; }
+.sala-gente-texto { flex: 1; display: grid; gap: 4px; min-width: 0; }
 .sala-gente-texto b { font-family: var(--font-marca); font-size: var(--t-md); }
 .sala-gente-texto small { color: var(--text-mid); font-size: var(--t-xs); }
 .sala-barra { height: 7px; border-radius: 999px; background: var(--ice); overflow: hidden; }
-.sala-barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #10b981); }
+.sala-barra i { display: block; height: 100%; border-radius: 999px; background: var(--success); }
 .sala-losas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-xs); }
-.sala-losa { display: grid; justify-items: center; gap: 3px; padding: 10px 2px 8px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); text-align: center; min-width: 0; }
-.sala-losa svg { color: var(--acento, var(--navy)); }
+.sala-losa { display: grid; justify-items: center; gap: 4px; padding: 10px 2px 8px; border-radius: 16px; background: var(--white); border: 1px solid var(--border); text-align: center; min-width: 0; }
+.sala-losa svg { color: var(--acento); }
 .sala-losa b { font-family: var(--font-marca); font-size: var(--t-lg); font-weight: 900; line-height: 1; white-space: nowrap; }
 .sala-losa small { font-size: var(--t-2xs); color: var(--text-mid); font-weight: 600; }
 
@@ -5187,7 +5185,7 @@ button.torneo-tj { cursor: pointer; }
 .sala-misiones-cab { display: flex; align-items: center; gap: var(--e-sm); margin-bottom: var(--e-sm); }
 .sala-misiones-cab > span:last-child { display: grid; }
 .sala-misiones-cab strong { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.1; }
-.sala-misiones-cab .sala-ceja { color: var(--acento, var(--navy)); }
+.sala-misiones-cab .sala-ceja { color: var(--acento); }
 .sala-anillo { --p: 33; flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--ice) 0); }
 .sala-anillo b { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--white); font: 900 var(--t-md) var(--font-marca); }
 .sala-misiones { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-xs); }
@@ -5198,8 +5196,8 @@ button.torneo-tj { cursor: pointer; }
 .sala-mision-texto small { color: var(--text-mid); font-size: var(--t-xs); }
 .sala-mision.hecha .sala-mision-ico { background: var(--success-bg); color: var(--success); }
 .sala-mision.hecha b { color: var(--success); }
-.sala-mision.toca { border: 2px solid #8b5cf6; background: linear-gradient(135deg, color-mix(in srgb, #8b5cf6 14%, var(--white)), var(--white)); box-shadow: 0 0 22px rgba(139, 92, 246, 0.28); }
-.sala-mision.toca .sala-mision-ico { background: #8b5cf6; color: #fff; }
+.sala-mision.toca { border: 2px solid var(--juego-violeta); background: linear-gradient(135deg, color-mix(in srgb, var(--juego-violeta) 14%, var(--white)), var(--white)); }
+.sala-mision.toca .sala-mision-ico { background: var(--juego-violeta); color: var(--blanco-fijo); }
 .sala-mision.cerrada { opacity: 0.6; }
 .sala-mision.cerrada .sala-mision-ico { background: var(--ice); color: var(--text-dim); }
 .sala-mision-boton { min-height: 40px; padding-inline: 14px; white-space: nowrap; }
@@ -5207,12 +5205,12 @@ button.torneo-tj { cursor: pointer; }
 .sala-baja { margin-top: var(--e-sm); font-size: var(--t-xs); color: var(--text-mid); }
 /* «¡ESTOY!»: confirmar que juegas, un botón redondo y gordo. */
 .sala-estoy { display: grid; place-items: center; width: 168px; height: 168px; margin: var(--e-md) auto var(--e-xs); padding: 10px; border: 0; border-radius: 50%; cursor: pointer;
-  background: conic-gradient(#fde68a 0 100%); box-shadow: 0 0 40px rgba(240, 192, 72, 0.35); transition: transform 0.1s; }
-.sala-estoy > span { width: 100%; height: 100%; border-radius: 50%; display: grid; place-content: center; text-align: center; color: #fff;
-  background: radial-gradient(circle at 50% 35%, #34d399, #0d9e6e 72%); box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.22); font: 900 1.9rem/1 var(--font-marca); }
+  background: conic-gradient(var(--juego-oro) 0 100%); transition: transform 0.1s; }
+.sala-estoy > span { width: 100%; height: 100%; border-radius: 50%; display: grid; place-content: center; text-align: center; color: var(--blanco-fijo);
+  background: radial-gradient(circle at 50% 35%, #34d399, #0d9e6e 72%); font-family: var(--font-marca); font-size: var(--t-2xl); font-weight: 800; line-height: 1; }
 .sala-estoy small { display: block; margin-top: 6px; font: 700 var(--t-xs) var(--font-body, inherit); opacity: 0.9; }
 .sala-estoy:active { transform: scale(0.95); }
-.sala-estoy:focus-visible { outline: 3px solid var(--acento, var(--navy)); outline-offset: 4px; }
+.sala-estoy:focus-visible { outline: 3px solid var(--acento); outline-offset: 4px; }
 .sala-estoy:disabled { opacity: 0.7; }
 
 /* Los jugadores como sala: la cara grande arriba, el nombre debajo. */
@@ -5225,8 +5223,8 @@ button.torneo-tj { cursor: pointer; }
 .torneo-inscritos-mosaico .torneo-inscrito-nombre > .mini-avatar,
 .sala-libre-cara { width: 56px; height: 56px; border-radius: 50%; font-size: var(--t-xl); }
 .torneo-inscritos-mosaico .torneo-inscrito > .subtext { display: none; }
-.torneo-inscritos-mosaico .torneo-inscrito.yo .torneo-jcara { box-shadow: 0 0 0 3px var(--white), 0 0 0 5px #8b5cf6; }
-.torneo-inscritos-mosaico .torneo-inscrito.yo a { color: #8b5cf6; }
+.torneo-inscritos-mosaico .torneo-inscrito.yo .torneo-jcara { box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--juego-violeta); }
+.torneo-inscritos-mosaico .torneo-inscrito.yo a { color: var(--juego-violeta); }
 .sala-libre { color: var(--text-dim); }
 .sala-libre-cara { display: grid; place-items: center; border: 2px dashed var(--border-strong); color: var(--text-dim); font-family: var(--font-marca); font-weight: 800; }
 @media (max-width: 560px) {
@@ -5238,9 +5236,9 @@ button.torneo-tj { cursor: pointer; }
      (lo vigila test-tanda-1145-pantalla.mjs). */
   .sala-cartel { min-height: 124px; }
   .torneo-sala { gap: 6px; }
-  .sala-cuenta > div { padding: 7px 0 5px; }
+  .sala-cuenta > div { padding: 8px 0 4px; }
   .sala-cuenta b { font-size: 1.8rem; }
-  .sala-losa { padding: 7px 2px 5px; gap: 2px; }
+  .sala-losa { padding: 8px 2px 4px; gap: 2px; }
   .sala-gente { padding: 8px 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .sala-estoy { transition: none; } }
@@ -5253,19 +5251,19 @@ button.torneo-tj { cursor: pointer; }
 .torneos-heroe.con-proximo::before, .torneos-heroe.con-proximo::after { display: none; }
 .torneos-heroe .t-proximo {
   grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px var(--e-md); margin-top: var(--e-sm);
-  padding: var(--e-md); border-radius: 20px; color: #f2eefc; border: 1px solid #3a2f7a;
-  background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 45%, #16202b 100%);
+  padding: var(--e-md); border-radius: var(--radius-xl); color: var(--text); border: 1px solid var(--border);
+  background: var(--white);
 }
 .torneos-heroe .t-proximo > :not(.t-proximo-dias) { grid-column: 2; min-width: 0; }
-.t-proximo-dias { grid-column: 1; grid-row: 1 / span 4; display: grid; justify-items: center; align-content: center; min-width: 78px; padding: 8px 6px; border-radius: 16px; background: #141a33; border: 1px solid #2a2f5a; }
-.t-proximo-dias b { font: 900 2.4rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 16px rgba(240, 192, 72, 0.45); font-variant-numeric: tabular-nums; }
-.t-proximo-dias small { margin-top: 3px; font: 800 0.62rem var(--font-marca); letter-spacing: 0.12em; color: #c9b8ff; }
-.torneos-heroe .t-proximo-ceja { color: #c9b8ff; font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
-.torneos-heroe .t-proximo-nombre { color: #fff; font-family: var(--font-marca); font-size: var(--t-xl); font-weight: 900; line-height: 1.1; }
-.torneos-heroe .t-proximo-nombre:hover { color: #c9b8ff; }
-.torneos-heroe .t-proximo-datos { color: #b7aee0; font-size: var(--t-xs); }
+.t-proximo-dias { grid-column: 1; grid-row: 1 / span 4; display: grid; justify-items: center; align-content: center; min-width: 78px; padding: var(--e-sm); border-radius: var(--radius-lg); background: var(--ice); }
+.t-proximo-dias b { font-family: var(--font-marca); font-size: var(--t-3xl); font-weight: 800; line-height: 1; color: var(--navy); font-variant-numeric: tabular-nums; }
+.t-proximo-dias small { margin-top: 4px; font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--text-mid); }
+.torneos-heroe .t-proximo-ceja { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.torneos-heroe .t-proximo-nombre { color: var(--text); font-family: var(--font-marca); font-size: var(--t-xl); font-weight: 800; line-height: 1.1; }
+.torneos-heroe .t-proximo-nombre:hover { color: var(--navy); }
+.torneos-heroe .t-proximo-datos { color: var(--text-mid); font-size: var(--t-xs); }
 .torneos-heroe .t-proximo-botones { margin-top: 4px; }
-.torneos-heroe .t-proximo-botones .btn-secondary { background: rgba(255, 255, 255, 0.1); color: #fff; border-color: transparent; }
+
 @media (max-width: 599px) {
   .torneos-heroe.con-proximo.torneos-heroe-vacia { padding: 0; border: 0; }
   .torneos-heroe .t-proximo { grid-template-columns: auto minmax(0, 1fr); row-gap: 2px; margin-top: 0; padding: 12px; }
@@ -5273,7 +5271,7 @@ button.torneo-tj { cursor: pointer; }
   .torneos-heroe .t-proximo-datos { display: none; }
   .torneos-heroe .t-proximo-botones { grid-column: 2; grid-row: auto; align-self: start; margin-top: 4px; }
   .t-proximo-dias { grid-row: 1 / span 3; min-width: 70px; }
-  .t-proximo-dias b { font-size: 2.1rem; }
+  .t-proximo-dias b { font-size: var(--t-2xl); }
   .torneos-heroe .t-proximo-nombre { font-size: var(--t-lg); }
 }
 
@@ -5282,48 +5280,48 @@ button.torneo-tj { cursor: pointer; }
    se queda para el tictac, pero no se ve); el TCG Live del rival es una
    pastilla con «Copiar»; Victoria y Derrota, botones de juego; el registro,
    la repetición y el juez, una línea «¿Algo raro?» que los abre. ══ */
-.torneo-mesa-cab { padding-bottom: 10px; }
-.torneo-mesa-cab-puesto { margin-left: auto; padding: 3px 10px; border-radius: var(--radius-pill); background: #2b1f63; color: #fde68a; font-family: var(--font-display); font-size: var(--t-xs); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.torneo-mesa-cab { padding-bottom: var(--e-sm); }
+.torneo-mesa-cab-puesto { margin-left: auto; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--ice); color: var(--navy); font-family: var(--font-display); font-size: var(--t-xs); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* «Tu partida» y «Mesa 1» decían lo mismo dos veces: el título se queda
    para quien lee con lector de pantalla. */
 #torneoMiPartida:has(.torneo-mesa-cab) > h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.torneo-duelo .torneo-duelo-medio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.torneo-duelo .torneo-duelo-medio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--e-sm); }
 .torneo-duelo-reloj { display: grid; justify-items: center; gap: 2px; }
 .torneo-duelo-reloj .torneo-mesa-anillo { display: none; }
-.torneo-duelo-reloj > b { font: 900 2rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 14px rgba(240, 192, 72, 0.5); font-variant-numeric: tabular-nums; }
-.torneo-duelo-reloj > small { font: 800 0.62rem var(--font-marca); letter-spacing: 0.12em; color: #e9d5ff; opacity: 0.85; }
-.torneo-duelo-reloj .torneo-mesa-reloj-estado { padding: 1px 10px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.12); color: #d6cdf5; font-size: var(--t-2xs); font-weight: 700; }
+.torneo-duelo-reloj > b { font-family: var(--font-marca); font-size: var(--t-3xl); font-weight: 800; line-height: 1; color: var(--juego-oro); font-variant-numeric: tabular-nums; }
+.torneo-duelo-reloj > small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--juego-lila); }
+.torneo-duelo-reloj .torneo-mesa-reloj-estado { padding: 2px 10px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.12); color: var(--juego-claro); font-size: var(--t-2xs); font-weight: 700; }
 .torneo-duelo-reloj .torneo-mesa-reloj-estado:empty { display: none; }
-.torneo-duelo-reloj[data-fase='checkin'] .torneo-mesa-reloj-estado { background: #fde68a; color: #3b2a05; }
+.torneo-duelo-reloj[data-fase='checkin'] .torneo-mesa-reloj-estado { background: var(--juego-oro); color: #3b2a05; }
 .torneo-duelo-reloj[data-fase='final'] > b,
-.torneo-duelo-reloj[data-fase='fuera'] > b { color: #fca5a5; text-shadow: 0 0 14px rgba(248, 113, 113, 0.55); }
+.torneo-duelo-reloj[data-fase='fuera'] > b { color: #fca5a5; }
 .torneo-duelo-reloj[data-fase='final'] .torneo-mesa-reloj-estado,
-.torneo-duelo-reloj[data-fase='fuera'] .torneo-mesa-reloj-estado { background: #b91c1c; color: #fff; }
+.torneo-duelo-reloj[data-fase='fuera'] .torneo-mesa-reloj-estado { background: #b91c1c; color: var(--blanco-fijo); }
 .torneo-duelo-reloj[data-fase='juego'] .torneo-mesa-reloj-estado { display: none; }
-.torneo-duelo-tcg { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 10px; border: 0; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.14); color: #fff; font: 700 var(--t-xs) var(--font-body, inherit); cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
+.torneo-duelo-tcg { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 4px 10px; border: 0; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.14); color: var(--blanco-fijo); font: 700 var(--t-xs) var(--font-body, inherit); cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
 .torneo-duelo-tcg i { font-style: normal; font-size: var(--t-2xs); opacity: 0.75; }
 .torneo-duelo-tcg:hover { background: rgba(255, 255, 255, 0.24); }
-.torneo-duelo-tcg:focus-visible { outline: 2px solid #fde68a; outline-offset: 2px; }
+.torneo-duelo-tcg:focus-visible { outline: 2px solid var(--juego-oro); outline-offset: 2px; }
 
-#miPartidaContenido > .torneo-reportar { gap: 12px; margin-top: 14px; }
+#miPartidaContenido > .torneo-reportar { gap: var(--e-md); margin-top: var(--e-md); }
 #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria,
-#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 64px; border: 0; border-radius: 18px; color: #fff; font: 900 1.25rem var(--font-marca); transition: transform 0.1s, box-shadow 0.1s, filter 0.15s; }
-#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria { background: linear-gradient(180deg, #34d399, #059669); box-shadow: 0 5px 0 #065f46; }
-#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { background: linear-gradient(180deg, #f87171, #b91c1c); box-shadow: 0 5px 0 #7f1d1d; }
-#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria:active,
-#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 56px; border: 0; border-radius: var(--radius-pill); color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-lg); font-weight: 700; transition: filter 0.15s var(--ease); }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria { background: var(--success-solid); }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { background: var(--danger-solid); }
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria:hover,
+#miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota:hover { filter: brightness(1.08); }
 
-.torneo-espera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 16px; margin-top: 14px; padding: 16px 18px; border-radius: 20px; background: linear-gradient(155deg, #2b1f63, #1d1b3f 50%, #16202b); border: 1px solid #3a2f7a; color: #f2eefc; }
+.torneo-espera { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px var(--e-lg); margin-top: var(--e-md); padding: var(--e-lg); border-radius: var(--radius-xl); background: var(--white); border: 1px solid var(--border); color: var(--text); }
 .torneo-espera-mascota { width: 64px; height: 64px; grid-row: span 3; }
-.torneo-espera > b { font: 900 1.15rem var(--font-marca); }
-.torneo-espera > span:not(.torneo-espera-mascota) { color: #c9b8ff; font-size: var(--t-sm); }
+.torneo-espera > b { font-family: var(--font-display); font-size: var(--t-xl); font-weight: 700; }
+.torneo-espera > span:not(.torneo-espera-mascota) { color: var(--text-mid); font-size: var(--t-sm); }
 .torneo-espera i { font-style: normal; animation: torneo-espera-puntos 1.2s infinite; }
 @keyframes torneo-espera-puntos { 50% { opacity: 0.2; } }
-.torneo-espera .torneo-espera-error { justify-self: start; color: #fca5a5; font-size: var(--t-xs); font-weight: 700; }
+.torneo-espera .torneo-espera-error { justify-self: start; color: var(--danger); background: var(--danger-bg); font-size: var(--t-xs); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .torneo-espera i { animation: none; } }
 
-.torneo-algo-raro { margin: 14px 0 0; text-align: center; font-size: var(--t-xs); color: var(--text-mid); }
-.torneo-algo-raro .link-btn { font-size: inherit; font-weight: 700; }
+.torneo-algo-raro { margin: var(--e-md) 0 0; text-align: center; font-size: var(--t-xs); color: var(--text-mid); }
+.torneo-algo-raro .link-btn { font-size: inherit; font-weight: 700; text-decoration: none; }
 .torneo-algo-raro .link-btn + .link-btn::before { content: '·'; display: inline-block; margin: 0 6px; color: var(--text-dim); font-weight: 400; }
 /* Plegados hasta que «¿Algo raro?» los pide; tus repeticiones ya subidas
    sí se ven siempre. */
@@ -5343,57 +5341,56 @@ button.torneo-tj { cursor: pointer; }
   .torneo-duelo-reloj > b { font-size: 1.7rem; }
   .torneo-duelo { padding-top: 14px; }
   #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.victoria,
-  #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 58px; }
+  #miPartidaContenido > .torneo-reportar .torneo-boton-resultado.derrota { min-height: 52px; }
 }
 
 /* ══ 1402 — Entre rondas y la entrada a cada ronda («El torneo, más
    sencillo», T3 y T4). Panel de juego oscuro en los dos temas, como el VS. ══ */
-.torneo-entre { display: grid; gap: 14px; }
-.torneo-entre-res { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 20px; color: #fff; border: 1px solid #3a2f7a; background: radial-gradient(circle at 20% 30%, #3b2f7a, #1d1b3f 70%, #0b1219); }
-.torneo-entre-gana { border-color: #1f6e4f; background: radial-gradient(circle at 20% 30%, #1f6e4f, #12261f 70%, #0b1219); }
-.torneo-entre-pierde { border-color: #6b2a30; background: radial-gradient(circle at 20% 30%, #4a1d22, #26171a 70%, #0b1219); }
-.torneo-entre-mascota { width: 60px; height: 60px; }
+.torneo-entre { display: grid; gap: var(--e-md); }
+.torneo-entre-res { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--e-md); padding: var(--e-lg); border-radius: var(--radius-xl); color: var(--text); border: 1px solid var(--border); background: var(--white); }
+.torneo-entre-gana { border-color: color-mix(in srgb, var(--success) 35%, transparent); background: var(--success-bg); }
+.torneo-entre-pierde { border-color: color-mix(in srgb, var(--danger) 35%, transparent); background: var(--danger-bg); }
+
 .torneo-entre-texto { display: grid; gap: 2px; min-width: 0; }
-.torneo-entre-texto b { font: 900 1.4rem/1.1 var(--font-marca); overflow-wrap: anywhere; }
-.torneo-entre-gana .torneo-entre-texto b { color: #6ee7b7; }
-.torneo-entre-pierde .torneo-entre-texto b { color: #fca5a5; }
-.torneo-entre-texto small { color: #d1dde3; font-size: var(--t-xs); }
-.torneo-entre-pts { font: 900 1.6rem var(--font-marca); color: #fde68a; font-variant-numeric: tabular-nums; }
-.torneo-entre-sig { padding: 16px 18px; border-radius: 20px; background: var(--bg); border: 1px solid var(--border); }
-.torneo-entre-sig h4 { margin: 0 0 4px; font: 900 var(--t-lg) var(--font-marca); }
-.torneo-entre-sig p { margin: 0 0 10px; color: var(--text-mid); font-size: var(--t-sm); }
+.torneo-entre-texto b { font-family: var(--font-display); font-size: var(--t-xl); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.torneo-entre-gana .torneo-entre-texto b { color: var(--success); }
+.torneo-entre-pierde .torneo-entre-texto b { color: var(--danger); }
+.torneo-entre-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.torneo-entre-pts { font-family: var(--font-marca); font-size: var(--t-2xl); font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.torneo-entre-sig { padding: var(--e-lg); border-radius: var(--radius-xl); background: var(--bg); border: 1px solid var(--border); }
+.torneo-entre-sig h4 { margin: 0 0 4px; font-family: var(--font-display); font-size: var(--t-lg); font-weight: 700; }
+.torneo-entre-sig p { margin: 0 0 var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
 .torneo-entre-sig p b { color: var(--text); white-space: nowrap; }
 .torneo-entre-barra { height: 10px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
-.torneo-entre-barra i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #a78bfa, #7c3aed); transition: width 0.6s ease; }
-.torneo-entre-camino { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
-.torneo-entre-camino ol { display: flex; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.torneo-entre-casilla { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--ice); color: var(--text-mid); font: 900 var(--t-sm) var(--font-marca); }
-.torneo-entre-casilla.gana { background: #059669; color: #fff; }
-.torneo-entre-casilla.pierde { background: #b91c1c; color: #fff; }
-.torneo-entre-casilla.empata { background: #64748b; color: #fff; }
-.torneo-entre-casilla.ya { outline: 3px solid #8b5cf6; outline-offset: 2px; color: var(--text); }
+.torneo-entre-barra i { display: block; height: 100%; border-radius: inherit; background: var(--acento); transition: width 0.6s ease; }
+.torneo-entre-camino { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); margin-top: var(--e-md); }
+.torneo-entre-camino ol { display: flex; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.torneo-entre-casilla { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--ice); color: var(--text-mid); font-family: var(--font-display); font-size: var(--t-sm); font-weight: 700; }
+.torneo-entre-casilla.gana { background: var(--success-solid); color: var(--blanco-fijo); }
+.torneo-entre-casilla.pierde { background: var(--danger-solid); color: var(--blanco-fijo); }
+.torneo-entre-casilla.empata { background: var(--text-mid); color: var(--blanco-fijo); }
+.torneo-entre-casilla.ya { outline: 2px solid var(--acento); outline-offset: 2px; color: var(--text); }
 .torneo-entre-camino em { font-style: normal; color: var(--text-mid); font-size: var(--t-sm); }
 @media (max-width: 560px) {
-  .torneo-entre-res { gap: 10px; padding: 14px; }
-  .torneo-entre-mascota { width: 48px; height: 48px; }
-  .torneo-entre-texto b { font-size: 1.15rem; }
+  .torneo-entre-res { padding: var(--e-md); }
+  .torneo-entre-texto b { font-size: var(--t-lg); }
 }
 
-.torneo-ronda-entra { margin: auto; max-height: calc(100dvh - 32px); overflow-y: auto; border: 0; padding: 0; width: min(560px, calc(100vw - 32px)); border-radius: 28px; color: #fff; background: #0b1219; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+.torneo-ronda-entra { margin: auto; max-height: calc(100dvh - 32px); overflow-y: auto; border: 0; padding: 0; width: min(560px, calc(100vw - 32px)); border-radius: 28px; color: var(--blanco-fijo); background: var(--juego-hondo); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
 .torneo-ronda-entra::backdrop { background: rgba(4, 7, 10, 0.82); }
-.torneo-ronda-entra-caja { display: grid; justify-items: center; gap: 4px; text-align: center; padding: 28px 22px 22px; background: radial-gradient(circle at 25% 45%, #4c1d95 0%, transparent 55%), radial-gradient(circle at 75% 45%, #7f1d1d 0%, transparent 55%), #0b1219; }
-.torneo-ronda-entra-ceja { font: 800 0.72rem var(--font-marca); letter-spacing: 0.14em; color: #e9d5ff; }
-.torneo-ronda-entra-titulo { margin: 4px 0 18px; font: italic 900 2.6rem/1 var(--font-marca); color: #fde68a; text-shadow: 0 0 24px rgba(240, 192, 72, 0.6); animation: torneo-ronda-entra-golpe 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.torneo-ronda-entra-caja { display: grid; justify-items: center; gap: 4px; text-align: center; padding: 28px 22px 22px; background: radial-gradient(circle at 25% 45%, var(--juego-violeta-sombra) 0%, transparent 55%), radial-gradient(circle at 75% 45%, #7f1d1d 0%, transparent 55%), var(--juego-hondo); }
+.torneo-ronda-entra-ceja { font: 800 0.72rem var(--font-marca); letter-spacing: 0.14em; color: var(--juego-lila); }
+.torneo-ronda-entra-titulo { margin: 4px 0 18px; font: italic 900 2.6rem/1 var(--font-marca); color: var(--juego-oro); text-shadow: 0 0 24px rgba(240, 192, 72, 0.6); animation: torneo-ronda-entra-golpe 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
 .torneo-ronda-entra-caras { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; width: 100%; }
 .torneo-ronda-entra-jugador { display: grid; justify-items: center; gap: 6px; min-width: 0; font: 800 1.05rem var(--font-marca); overflow-wrap: anywhere; animation: torneo-ronda-entra-izq 0.45s 0.15s ease-out both; }
 .torneo-ronda-entra-jugador:last-child { animation-name: torneo-ronda-entra-der; }
-.torneo-ronda-entra-jugador i { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 26px; font: normal 900 2rem var(--font-marca); color: #fff; border: 3px solid #fff; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45); }
-.torneo-ronda-entra-vs { padding: 4px 14px; border-radius: 12px; font: italic 900 2rem var(--font-marca); color: #111; background: #fde68a; transform: rotate(-8deg); box-shadow: 0 0 22px rgba(240, 192, 72, 0.55); }
-.torneo-ronda-entra-datos { margin: 16px 0; color: #c9b8ff; font-size: var(--t-sm); }
-.torneo-ronda-entra-datos b { color: #fff; }
-.torneo-ronda-entra-jugar { width: 100%; min-height: 54px; border: 0; border-radius: var(--radius-pill); font: 900 1.15rem var(--font-marca); color: #fff; background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 5px 0 #4c1d95; cursor: pointer; }
-.torneo-ronda-entra-jugar:active { transform: translateY(4px); box-shadow: 0 1px 0 #4c1d95; }
-.torneo-ronda-entra-jugar:focus-visible { outline: 3px solid #fde68a; outline-offset: 3px; }
+.torneo-ronda-entra-jugador i { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 26px; font: normal 900 2rem var(--font-marca); color: var(--blanco-fijo); border: 3px solid var(--blanco-fijo); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45); }
+.torneo-ronda-entra-vs { padding: 4px 14px; border-radius: 12px; font: italic 900 2rem var(--font-marca); color: #111; background: var(--juego-oro); transform: rotate(-8deg); box-shadow: 0 0 22px rgba(240, 192, 72, 0.55); }
+.torneo-ronda-entra-datos { margin: 16px 0; color: var(--juego-suave); font-size: var(--t-sm); }
+.torneo-ronda-entra-datos b { color: var(--blanco-fijo); }
+.torneo-ronda-entra-jugar { width: 100%; min-height: 54px; border: 0; border-radius: var(--radius-pill); font: 900 1.15rem var(--font-marca); color: var(--blanco-fijo); background: linear-gradient(180deg, var(--juego-violeta-claro), var(--juego-violeta-hondo)); box-shadow: 0 5px 0 var(--juego-violeta-sombra); cursor: pointer; }
+.torneo-ronda-entra-jugar:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--juego-violeta-sombra); }
+.torneo-ronda-entra-jugar:focus-visible { outline: 3px solid var(--juego-oro); outline-offset: 3px; }
 @keyframes torneo-ronda-entra-golpe { from { transform: scale(2.2); opacity: 0; } }
 @keyframes torneo-ronda-entra-izq { from { transform: translateX(-60px); opacity: 0; } }
 @keyframes torneo-ronda-entra-der { from { transform: translateX(60px); opacity: 0; } }
@@ -5410,7 +5407,7 @@ button.torneo-tj { cursor: pointer; }
 /* ══ 1403 — La tabla arranca («El torneo, más sencillo», T5): hasta que se
    cierra una ronda, el aviso en vez del podio. Y mientras juegas o esperas
    la siguiente ronda, Hoy no te pide la lista de la jornada que viene. ══ */
-.torneo-tabla-arranca { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 14px 16px; border-radius: 16px; background: #1d1b3f; border: 1px solid #3a2f7a; color: #e9d5ff; font-size: var(--t-sm); }
-.torneo-tabla-arranca svg { flex: none; color: #fde68a; }
-.torneo-tabla-arranca b { color: #fde68a; }
+.torneo-tabla-arranca { display: flex; align-items: center; gap: var(--e-md); margin: 0 0 var(--e-md); padding: var(--e-md) var(--e-lg); border-radius: var(--radius-lg); background: var(--ice); color: var(--text); font-size: var(--t-sm); }
+.torneo-tabla-arranca svg { flex: none; color: var(--navy); }
+.torneo-tabla-arranca b { color: var(--navy); }
 .torneo-panel[data-panel='jugar']:has(#miPartidaContenido .torneo-entre) > #torneoMazoCaja { display: none; }

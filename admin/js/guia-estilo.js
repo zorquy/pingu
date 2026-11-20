@@ -36,6 +36,7 @@ export function grupoDeToken({ nombre, valor }) {
   if (/^--radius-/.test(nombre)) return 'radios'
   if (/^--(shadow|sombra)/.test(nombre)) return 'sombras'
   if (/^--font-/.test(nombre)) return 'fuentes'
+  if (/^--juego-/.test(nombre)) return 'juego'
   if (/^(#|rgb|hsl|oklch|color-mix|var\(--)/i.test(valor) || /gradient/.test(valor)) return 'colores'
   return 'otros'
 }
@@ -50,6 +51,7 @@ export const APARTADOS = [
   { id: 'chips', titulo: 'Chips, segmentos y pestañas', donde: 'components.css: `.chip-filtro`, `.seg`, `.tabs`; con icono, `.seg-iconos` (1366: Cartas, Mazos, Partidas)' },
   { id: 'chapas', titulo: 'Chapas de una carta', donde: 'estado, gradeo, versión e idioma: sus funciones, en toda la web' },
   { id: 'nombres', titulo: 'Nombres con rango', donde: 'js/rangos.js, `atributosDeRango`' },
+  { id: 'juego', titulo: 'El panel de juego', donde: '`.panel-juego` y las fichas `--juego-*` (1404): SOLO el escenario de Jugar (el cara a cara, «Tu combate», las pantallas que celebran); lo de alrededor, con las tarjetas del tema' },
   { id: 'vacio', titulo: 'Una pantalla vacía', donde: 'js/vacio.js, `vacioHtml` (1325)' },
   { id: 'avisos', titulo: 'Avisos y pop-ups', donde: 'js/toast.js, `showToast`; `.modal-overlay` en components.css' },
   { id: 'iconos', titulo: 'Iconos', donde: 'js/icons.js: nunca un emoji suelto' },
@@ -119,6 +121,9 @@ const nombresHtml = () => `<div class="gde-fila-libre">${[
   { username: 'ana', display_name: 'Una persona' },
 ].map((p) => `<strong ${atributosDeRango(p)}>${escapeHtml(p.display_name)}</strong>`).join('<span aria-hidden="true">·</span>')}</div>`
 
+// El escenario de Jugar (1404): el molde y sus fichas. Oscuro en los dos temas.
+const juegoHtml = (tokens) => `<div class="panel-juego gde-juego"><small>RONDA 2 · MESA 3</small><b>Tú <span>VS</span> marina</b></div>${coloresHtml(tokens)}`
+
 const vacioDemo = () => `<div class="gde-marco">${vacioHtml({ titulo: 'Aún no hay nada aquí', texto: 'Qué irá aquí, en una frase.', salidas: [{ texto: 'La salida buena', href: '#gde-vacio' }, { texto: 'Otra', href: '#gde-vacio' }] })}</div>`
 
 const avisosHtml = () => `<div class="gde-fila-libre">
@@ -146,6 +151,7 @@ export function guiaHtml(tokens) {
     chips: chipsHtml(),
     chapas: chapasHtml(),
     nombres: nombresHtml(),
+    juego: juegoHtml(de('juego')),
     vacio: vacioDemo(),
     avisos: avisosHtml(),
     iconos: iconosHtml(),

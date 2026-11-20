@@ -1541,6 +1541,10 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .gde-radio { width: 64px; height: 48px; background: var(--ice); border: 1px solid var(--border); }
 .gde-idioma { display: inline-flex; align-items: center; gap: var(--e-xs); font-size: var(--t-xs); font-weight: 600; }
 .gde-marco { border: 1px dashed var(--border); border-radius: var(--radius-md); }
+.gde-juego { display: grid; gap: var(--e-xs); justify-items: center; margin-bottom: var(--e-md); padding: var(--e-lg); }
+.gde-juego small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--juego-lila); }
+.gde-juego b { font-family: var(--font-marca); font-size: var(--t-xl); }
+.gde-juego b span { margin-inline: var(--e-sm); color: var(--juego-oro); }
 .gde-iconos { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--e-sm); }
 .gde-icono { display: flex; flex-direction: column; align-items: center; gap: var(--e-xs); padding: var(--e-sm); border-radius: var(--radius-md); color: var(--text); }
 .gde-icono code { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

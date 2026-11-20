@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-20 (651) — PINGU-Claude (1404 — Torneos de la casa)
+
+**Hecho** (PINGU, tras la propuesta «¿Nos hemos pasado con los torneos?»:
+«dale con lo recomendado, haz la 1404 y luego sube»; D1 = ajustar antes de
+subir, D2 = todo Jugar, D3 = sin mascota entre rondas).
+- **La regla**: el panel violeta oscuro es solo el escenario (el cara a cara,
+  la cabecera del torneo, «Tu combate», las pantallas que celebran, la
+  vitrina, el mazo póster y el Resumen de partidas). Lo de alrededor va con el
+  tema: la espera, entre rondas, el aviso de la tabla, tu puesto, la sala de
+  espera y el cartel de tu próximo torneo.
+- **Victoria y Derrota**: botones de la web (pastilla, verde y rojo sólidos,
+  56 px; 52 en el móvil), sin degradado ni sombra 3D.
+- **Fichas**: `--juego-*` y `--juego-panel` en `style.css`, el molde
+  `.panel-juego` y su apartado en /admin → Guía de estilo. Colores a mano:
+  torneos.css de 232 a 109, partidas-resumen 27→14, mazos 34→17, celebra
+  33→17, perfil 46→34. Nueva `--success-solid` (verde con blanco encima).
+- **Menos brillo**: fuera el resplandor dorado salvo en las pantallas de
+  momento; cifras y títulos con la escala de letra.
+- **Pruebas de la casa**: la 305 vuelve a verde, y de la 310 y la 315 todo lo
+  de Jugar (espacios impares, `#fff` a mano, fichas pedidas con respaldo),
+  incluido lo que estaba en producción desde la 1390, más las casas de
+  gradeo de la 1234. Siguen en rojo cosas viejas de otras zonas, que no son
+  de esta tanda: duraciones de transición, imágenes que pinta el JS sin carga
+  diferida (escaparate, mi-colección, temporada, tienda), dos de pestañas,
+  `--tag` en `avisos-pagina.css` y las tarjetas de arte de las guías.
+
+**Ficheros**: `css/style.css`, `css/torneos.css`, `css/partidas-resumen.css`,
+`css/mazos.css`, `css/celebra.css`, `css/perfil.css`, `css/components.css`,
+`js/torneos/ronda.js` (sin mascota en entre rondas), `admin/js/guia-estilo.js`,
+`admin/css/admin.css`, `normas/interfaz.md`, `normas/jugar.md`. Pruebas
+actualizadas: 1398 (el cartel ya no es panel), 1401 (botones sin degradado)
+y 1402 (sin mascota). En verde: 305, 1326b, 1390–1403, 1145, 1340–1378 de
+torneos, torneos-15…22, 298 y 877.
+
+**Pendiente**: los rojos viejos de la 310 y la 315 de arriba (otras zonas).
+Sube con 1396–1403.
+
 ## 2026-11-19 (650) — PINGU-Claude (1403 — La tabla arranca cuando acaba la ronda 1)
 
 **Hecho** («El torneo, más sencillo», T5; lo que se vio en las capturas de la

@@ -2,26 +2,26 @@
    (1394, .torneo-celebra en torneos.css) para toda la web. La baja
    js/celebrar-momento.js al celebrar, no la portada. Oscura en los dos
    temas, como los paneles de juego. */
-.celebra { border: 0; padding: 0; margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; border-radius: 26px; color: #fff; background: #0b1219; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+.celebra { border: 0; padding: 0; margin: auto; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; border-radius: 26px; color: var(--blanco-fijo); background: var(--juego-hondo); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
 .celebra::backdrop { background: rgba(4, 7, 10, 0.75); }
 .celebra-caja { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 30px 22px 22px; }
-.celebra-nivel .celebra-caja { background: radial-gradient(circle at 50% 30%, #3a2f7a 0%, #1d1b3f 60%, #0b1219 100%); }
-.celebra-racha .celebra-caja { background: radial-gradient(circle at 50% 30%, #7c2d12 0%, #2a1610 60%, #0b1219 100%); }
-.celebra-oro .celebra-caja { background: radial-gradient(circle at 50% 28%, #8a6206 0%, #3a2a06 55%, #0b1219 100%); }
-.celebra-set .celebra-caja { background: radial-gradient(circle at 50% 30%, #1f6e4f 0%, #12261f 60%, #0b1219 100%); }
+.celebra-nivel .celebra-caja { background: radial-gradient(circle at 50% 30%, var(--juego-borde) 0%, var(--juego-fondo) 60%, var(--juego-hondo) 100%); }
+.celebra-racha .celebra-caja { background: radial-gradient(circle at 50% 30%, #7c2d12 0%, #2a1610 60%, var(--juego-hondo) 100%); }
+.celebra-oro .celebra-caja { background: radial-gradient(circle at 50% 28%, #8a6206 0%, #3a2a06 55%, var(--juego-hondo) 100%); }
+.celebra-set .celebra-caja { background: radial-gradient(circle at 50% 30%, #1f6e4f 0%, #12261f 60%, var(--juego-hondo) 100%); }
 .celebra-mascota { width: 104px; }
 .celebra-insignia { display: grid; place-items: center; margin-top: -22px; }
 .celebra-icono { display: grid; place-items: center; width: 68px; height: 68px; border-radius: 50%; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
-.celebra-icono-nivel { color: #fff; background: var(--nivel, #8b5cf6); box-shadow: 0 0 30px color-mix(in srgb, var(--nivel, #8b5cf6) 70%, transparent); }
+.celebra-icono-nivel { color: var(--blanco-fijo); background: var(--nivel, var(--juego-violeta)); box-shadow: 0 0 30px color-mix(in srgb, var(--nivel, var(--juego-violeta)) 70%, transparent); }
 .celebra-icono-llama { color: #fff7ed; background: linear-gradient(180deg, #fb923c, #c2410c); box-shadow: 0 0 30px rgba(251, 146, 60, 0.6); }
 .celebra-icono-medalla { color: #3b2a00; background: linear-gradient(180deg, #f6c945, #c48a0a); box-shadow: 0 0 30px rgba(240, 192, 72, 0.6); }
 .celebra-logo { max-width: 180px; max-height: 56px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
-.celebra-ceja { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.12em; color: #c9b8ff; }
+.celebra-ceja { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.12em; color: var(--juego-suave); }
 .celebra-racha .celebra-ceja { color: #fdba74; }
-.celebra-oro .celebra-ceja, .celebra-set .celebra-ceja { color: #fde68a; }
-.celebra-titulo { margin: 0; font-family: var(--font-marca); font-style: italic; font-weight: 900; font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1.02; color: #e9d5ff; text-shadow: 0 0 24px rgba(155, 123, 255, 0.6); text-wrap: balance; }
+.celebra-oro .celebra-ceja, .celebra-set .celebra-ceja { color: var(--juego-oro); }
+.celebra-titulo { margin: 0; font-family: var(--font-marca); font-style: italic; font-weight: 900; font-size: clamp(2rem, 9vw, 2.8rem); line-height: 1.02; color: var(--juego-lila); text-shadow: 0 0 24px rgba(155, 123, 255, 0.6); text-wrap: balance; }
 .celebra-racha .celebra-titulo { color: #fed7aa; text-shadow: 0 0 24px rgba(251, 146, 60, 0.6); }
-.celebra-oro .celebra-titulo { color: #fde68a; text-shadow: 0 0 28px rgba(240, 192, 72, 0.75); }
+.celebra-oro .celebra-titulo { color: var(--juego-oro); text-shadow: 0 0 28px rgba(240, 192, 72, 0.75); }
 .celebra-set .celebra-titulo { font-size: clamp(1.6rem, 7vw, 2.2rem); color: #6ee7b7; text-shadow: 0 0 24px rgba(52, 211, 153, 0.6); }
 .celebra-texto { margin: 0; color: #d1dde3; font-size: var(--t-sm); max-width: 34ch; }
 .celebra-cifras { display: flex; gap: 10px; margin: 6px 0 10px; }
@@ -30,7 +30,7 @@
 .celebra-cifras small { font-size: var(--t-2xs); color: #a9bcc6; }
 .celebra-botones { display: flex; gap: var(--e-sm); width: 100%; }
 .celebra-botones > * { flex: 1; min-height: 48px; }
-.celebra-otro { background: rgba(255, 255, 255, 0.12); color: #fff; border-color: transparent; }
+.celebra-otro { background: rgba(255, 255, 255, 0.12); color: var(--blanco-fijo); border-color: transparent; }
 
 /* Sin capa (la expansión completa): arriba, y abajo libre para el Deshacer
    de la carta que la completó. */

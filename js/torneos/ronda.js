@@ -2896,14 +2896,15 @@ function pintarMiPartida() {
 }
 
 // Tu mesa ya está y la ronda sigue (1402, T3): tu resultado en una tarjeta
-// (con la mascota del gesto que toca, el marcador y los puntos) y «Siguiente»
+// (el marcador y los puntos; sin mascota desde la 1404: acaba de salir en la
+// celebración, justo antes) y «Siguiente»
 // con las mesas que faltan en una barra. En una liga, además, las rondas de
 // la jornada como casillas: es lo que se pregunta quien espera («¿cuántas
 // me quedan hoy?»). En un suizo eso ya lo dice «Tu camino», al lado.
 const ENTRE = {
-  V: { clase: 'gana', gesto: 'contento', titulo: (r) => `¡Ganaste a ${r}!`, pts: 3 },
-  D: { clase: 'pierde', gesto: 'triste', titulo: (r) => `Perdiste contra ${r}`, pts: 0 },
-  E: { clase: 'empata', gesto: 'guino', titulo: (r) => `Empate con ${r}`, pts: 1 },
+  V: { clase: 'gana', titulo: (r) => `¡Ganaste a ${r}!`, pts: 3 },
+  D: { clase: 'pierde', titulo: (r) => `Perdiste contra ${r}`, pts: 0 },
+  E: { clase: 'empata', titulo: (r) => `Empate con ${r}`, pts: 1 },
 }
 function entreRondasHtml(mia, soyA, rival, actual) {
   const res = resultadoParaJugadorEn(mia, miId()).texto
@@ -2916,7 +2917,6 @@ function entreRondasHtml(mia, soyA, rival, actual) {
   const enJornada = liga ? rondaEnJornada(ctx.torneo, actual.round_number) : 0
   const rotulo = actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : liga && porJornada > 1 ? `Ronda ${enJornada} de la jornada ${jornada}` : liga ? `Jornada ${jornada}` : `Ronda ${actual.round_number}`
   const resultado = `<div class="torneo-entre-res torneo-entre-${t.clase}">
-      <span class="torneo-entre-mascota mascota-3d" data-mascota="${t.gesto}" data-sin-globo aria-hidden="true"></span>
       <span class="torneo-entre-texto"><b>${escapeHtml(t.titulo(rival?.perfil?.username || 'tu rival'))}</b><small>${escapeHtml([rotulo, marcador, `mesa ${mia.table_number}`].filter(Boolean).join(' · '))}</small></span>
       <span class="torneo-entre-pts" aria-label="${t.pts} ${t.pts === 1 ? 'punto' : 'puntos'}">+${t.pts}</span>
     </div>`

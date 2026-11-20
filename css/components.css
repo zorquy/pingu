@@ -3166,8 +3166,8 @@ body.portada-compacta .page-content {
 :root {
   --casa-psa: #c8102e;
   --casa-bgs: #111;
-  --casa-bgs-texto: #fff;
-  --casa-cgc: #fff;
+  --casa-bgs-texto: var(--blanco-fijo);
+  --casa-cgc: var(--blanco-fijo);
   --casa-cgc-texto: #111;
   --casa-cgc-borde: rgb(0 0 0 / 30%);
   --casa-ace: #e8771d;

@@ -506,15 +506,15 @@
    y UN botón: «Probar». Editar y «A un torneo» viven en el «⋯». En el móvil
    deja de ser la fila de la 1150: un póster por pantalla, como un juego. ══ */
 .cm-mazo-tarjeta {
-  display: flex; flex-direction: column; border-radius: 22px; border-color: #3a2f7a; color: #f2eefc;
-  background: linear-gradient(170deg, #2b1f63 0%, #1d1b3f 50%, #16202b 100%);
+  display: flex; flex-direction: column; border-radius: 22px; border-color: var(--juego-borde); color: var(--juego-texto);
+  background: var(--juego-panel);
 }
-.cm-mazo-tarjeta:hover { border-color: #8b5cf6; }
-.cm-mazo-nombre { font-family: var(--font-marca); font-weight: 900; font-size: var(--t-xl); color: #fff; }
-.cm-mazo-nombre:hover { color: #c9b8ff; }
-.cm-mazo-chapas, .cm-mazo-coste { color: #b7aee0; }
-.mz-record b { color: #fff; }
-.cm-mazo-coste b { color: #fde68a; }
+.cm-mazo-tarjeta:hover { border-color: var(--juego-violeta); }
+.cm-mazo-nombre { font-family: var(--font-marca); font-weight: 900; font-size: var(--t-xl); color: var(--blanco-fijo); }
+.cm-mazo-nombre:hover { color: var(--juego-suave); }
+.cm-mazo-chapas, .cm-mazo-coste { color: var(--juego-tenue); }
+.mz-record b { color: var(--blanco-fijo); }
+.cm-mazo-coste b { color: var(--juego-oro); }
 .cm-mazo-coste.entero b { color: #34d399; }
 .cm-mazo-tarjeta .mz-barra { background: rgba(255, 255, 255, 0.12); }
 .cm-mazo-meta, .cm-mazo-tarjeta .mz-leyenda,
@@ -522,11 +522,11 @@
 .cm-mazo-chapas .mz-chip:not([class*='mz-chip-']) { display: none; }
 .cm-mazo-pie { padding: 0 var(--e-md) var(--e-md); border-top: 0; }
 .cm-mazo-pie .cm-mazo-probar {
-  flex: 1; justify-content: center; gap: var(--e-sm); min-height: 48px; font-size: var(--t-md); color: #fff;
-  background: linear-gradient(180deg, #a78bfa, #7c3aed); border: 0; box-shadow: 0 4px 0 #4c1d95;
+  flex: 1; justify-content: center; gap: var(--e-sm); min-height: 48px; font-size: var(--t-md); color: var(--blanco-fijo);
+  background: linear-gradient(180deg, var(--juego-violeta-claro), var(--juego-violeta-hondo)); border: 0; box-shadow: 0 4px 0 var(--juego-violeta-sombra);
 }
-.cm-mazo-pie .cm-mazo-probar:active { transform: translateY(2px); box-shadow: 0 2px 0 #4c1d95; }
-.cm-mazo-mas summary.cm-btn { min-height: 48px; background: rgba(255, 255, 255, 0.1); color: #fff; border-color: transparent; border-radius: 50%; }
+.cm-mazo-pie .cm-mazo-probar:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--juego-violeta-sombra); }
+.cm-mazo-mas summary.cm-btn { min-height: 48px; background: rgba(255, 255, 255, 0.1); color: var(--blanco-fijo); border-color: transparent; border-radius: 50%; }
 @media (max-width: 599px) {
   .cm-mazos { gap: var(--e-md); }
   .cm-mazo-tarjeta { display: flex; grid-template-areas: none; border-radius: 22px; }

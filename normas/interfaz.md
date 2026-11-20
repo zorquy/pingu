@@ -453,6 +453,23 @@
   Ese gris da 2,35 y es para un metadato de refilón: una fecha, un «hace
   2 h». Un botón hay que poder leerlo — `--text-mid`. La excepción es un
   control DESACTIVADO, donde el gris apagado es justo el mensaje.
+- **El panel de juego es el ESCENARIO, no el decorado** (tanda 1404, PINGU:
+  «dale con lo recomendado»). De la 1390 a la 1403 Jugar fue llenándose de
+  paneles violeta oscuro, cada uno con sus colores a mano (232 en
+  `torneos.css`, más que en `style.css`), botones de recreativa con sombra 3D
+  y brillos dorados; en el tema claro quedaban islas negras, y nadie lo vio
+  porque todo se probó en oscuro. La regla: **oscuro solo para el momento de
+  juego** —el cara a cara, la cabecera del torneo, «Tu combate», las
+  pantallas que salen y se van (entrada, celebración, campeón) y las piezas
+  que ya eran escenario (vitrina, mazo póster, Resumen de partidas)—; **lo de
+  alrededor, con las tarjetas, botones y colores del tema** (espera, entre
+  rondas, la sala, el cartel, avisos, chips, Victoria/Derrota). Sus colores
+  son fichas: `--juego-*` y `--juego-panel` en `style.css`, el molde
+  `.panel-juego` y su apartado en /admin → Guía de estilo. Un color nuevo de
+  panel entra como ficha, no a mano; y **una pantalla nueva de Jugar se mira
+  en los DOS temas antes del commit**. El verde que va de fondo con blanco
+  encima es `--success-solid` (como `--danger-solid`): `--success` se aclara
+  en oscuro y el blanco de encima dejaría de leerse.
 - **Los bordes también tienen escala** (tanda 309): un CONTORNO es de
   `1px` o de `2px`, y nada más. Un lado suelto (`border-left: 3px`) es una
   barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja

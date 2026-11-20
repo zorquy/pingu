@@ -21,7 +21,7 @@
 .pr-vde b { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1; }
 .pr-vde small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; color: var(--text-dim); }
 .pr-v b { color: var(--success); } .pr-d b { color: var(--danger); } .pr-e b { color: var(--text-mid); }
-.pr-racha { justify-self: start; font-size: var(--t-xs); font-weight: 700; border-radius: 999px; padding: 2px 9px; }
+.pr-racha { justify-self: start; font-size: var(--t-xs); font-weight: 700; border-radius: 999px; padding: 2px 8px; }
 .pr-racha-win { background: var(--success-bg); color: var(--success); }
 .pr-racha-loss { background: var(--danger-bg); color: var(--danger); }
 .pr-racha-draw { background: var(--ice); color: var(--text-mid); }
@@ -34,29 +34,29 @@
 .pr-forma-pie { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: -6px; font-size: var(--t-2xs); color: var(--text-dim); }
 
 /* El mazo estrella: panel de juego, en los dos temas */
-.pr-juego { position: relative; overflow: hidden; color: #f2eefc; border-color: #3a2f7a; background: linear-gradient(155deg, #2b1f63 0%, #1d1b3f 40%, #16202b 100%); }
+.pr-juego { position: relative; overflow: hidden; color: var(--juego-texto); border-color: var(--juego-borde); background: var(--juego-panel); }
 .pr-brillo { position: absolute; right: -60px; top: -60px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(155, 123, 255, 0.45), transparent 65%); pointer-events: none; }
 .pr-estrella { display: grid; align-content: start; gap: 6px; min-height: 220px; }
 .pr-estrella > :not(.pr-brillo):not(.pr-estrella-arte):not(.pr-estrella-sprites) { position: relative; z-index: 1; }
 .pr-estrella-arte { position: absolute; right: -10px; top: 0; width: min(46%, 230px); height: auto; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5)); }
 .pr-estrella-sprites { position: absolute; right: 12px; top: 16px; display: flex; }
 .pr-estrella-sprites .partidas-sprite { width: 96px; height: 96px; }
-.pr-kick { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.1em; color: #c9b8ff; }
-.pr-estrella h3 { font-family: var(--font-marca); font-size: var(--t-2xl); line-height: 1.05; max-width: 58%; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+.pr-kick { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.1em; color: var(--juego-suave); }
+.pr-estrella h3 { font-family: var(--font-marca); font-size: var(--t-2xl); line-height: 1.05; max-width: 58%; color: var(--blanco-fijo); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
 .pr-cifras { display: flex; gap: var(--e-md); margin-top: 4px; }
 .pr-cifras span { display: grid; }
-.pr-cifras b { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.1; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
-.pr-cifras small { font-size: var(--t-2xs); color: #b7aee0; font-weight: 600; }
+.pr-cifras b { font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.1; color: var(--blanco-fijo); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.pr-cifras small { font-size: var(--t-2xs); color: var(--juego-tenue); font-weight: 600; }
 .pr-barra { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--ice); }
 .pr-juego .pr-barra { width: 58%; background: rgba(255, 255, 255, 0.12); }
 .pr-barra i { display: block; height: 100%; }
 .pr-bv { background: var(--success); } .pr-be { background: var(--text-dim); } .pr-bd { background: var(--danger); }
 .pr-datos { display: grid; gap: 6px; width: 62%; margin-top: 6px; }
-.pr-dato { display: flex; align-items: center; gap: var(--e-sm); background: rgba(11, 18, 25, 0.55); border-radius: 12px; padding: 5px 8px; }
+.pr-dato { display: flex; align-items: center; gap: var(--e-sm); background: rgba(11, 18, 25, 0.55); border-radius: 12px; padding: 4px 8px; }
 .pr-dato-caras { display: flex; flex: none; }
 .pr-dato-caras .partidas-sprite { width: 30px; height: 30px; }
 .pr-dato > span:nth-child(2) { display: grid; min-width: 0; }
-.pr-dato small { font-size: var(--t-2xs); color: #b7aee0; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.pr-dato small { font-size: var(--t-2xs); color: var(--juego-tenue); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
 .pr-dato b { font-size: var(--t-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pr-dato-pct { margin-left: auto; font-family: var(--font-marca); font-weight: 800; }
 .pr-bien { color: var(--success); } .pr-mal { color: var(--danger); }
@@ -69,7 +69,7 @@
 /* Las últimas partidas: cartas de color */
 .pr-ultimas-caja { display: grid; gap: var(--e-sm); }
 .pr-titulo { display: flex; justify-content: space-between; align-items: center; }
-.pr-ver { border: 0; background: none; color: var(--acento, var(--navy)); font-weight: 700; font-size: var(--t-sm); cursor: pointer; min-height: 32px; }
+.pr-ver { border: 0; background: none; color: var(--acento); font-weight: 700; font-size: var(--t-sm); cursor: pointer; min-height: 32px; }
 .pr-ultimas { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(124px, 1fr); gap: var(--e-sm); overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .pr-partida { position: relative; display: grid; gap: 2px; padding: var(--e-sm); border-radius: 14px; border: 1px solid transparent; min-width: 0; }
 .pr-partida.pr-win { border-color: color-mix(in srgb, var(--success) 45%, transparent); }
@@ -79,7 +79,7 @@
 .pr-partida small { font-size: var(--t-2xs); color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pr-letra { position: absolute; top: 6px; right: 8px; font-family: var(--font-marca); font-weight: 900; font-size: var(--t-md); }
 .pr-caras { display: flex; align-items: center; gap: 2px; height: 48px; }
-.pr-caras small { font-size: 9px; font-weight: 800; color: var(--text-dim); }
+.pr-caras small { font-size: var(--t-2xs); font-weight: 800; color: var(--text-dim); }
 .pr-caras span { display: flex; }
 .pr-yo .partidas-sprite { width: 30px; height: 30px; opacity: 0.85; }
 .pr-yo .partidas-sprite + .partidas-sprite { display: none; }
@@ -121,16 +121,16 @@
    el mismo panel de juego que el mazo estrella. */
 .tu-torneo { display: grid; gap: 6px; margin-bottom: var(--e-md); }
 .tu-torneo > :not(.pr-brillo):not(.tu-torneo-mazo) { position: relative; z-index: 1; }
-.tu-torneo h3 { font-family: var(--font-marca); font-size: var(--t-xl); color: #fff; max-width: 70%; margin: 0; }
+.tu-torneo h3 { font-family: var(--font-marca); font-size: var(--t-xl); color: var(--blanco-fijo); max-width: 70%; margin: 0; }
 .tu-torneo-mazo { position: absolute; right: 12px; top: 12px; display: flex; }
 .tu-torneo-mazo .partidas-sprite { width: 72px; height: 72px; }
 .tu-torneo-mazo .partidas-sprite + .partidas-sprite { margin-left: -20px; width: 56px; height: 56px; }
 .tu-torneo-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
-.tu-torneo-puesto { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 999px; font-family: var(--font-marca); font-weight: 800; font-size: var(--t-lg); color: #fff; background: rgba(255, 255, 255, 0.12); }
-.tu-torneo-puesto.oro { color: #3b2a00; background: linear-gradient(180deg, #f6c945, #d9a406); box-shadow: 0 0 18px rgba(240, 192, 72, 0.45); }
+.tu-torneo-puesto { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-family: var(--font-marca); font-weight: 800; font-size: var(--t-lg); color: var(--blanco-fijo); background: rgba(255, 255, 255, 0.12); }
+.tu-torneo-puesto.oro { color: #3b2a00; background: linear-gradient(180deg, #f6c945, #d9a406); }
 .tu-torneo-puesto.plata { color: #1f2933; background: linear-gradient(180deg, #e2e8f0, #9aa7b8); }
 .tu-torneo-puesto.bronce { color: #2b1608; background: linear-gradient(180deg, #e3a877, #a3643a); }
-.tu-torneo-record { color: #b7aee0; font-size: var(--t-sm); font-weight: 600; }
+.tu-torneo-record { color: var(--juego-tenue); font-size: var(--t-sm); font-weight: 600; }
 .tu-torneo-rondas { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .tu-torneo-rondas li { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; font-size: var(--t-xs); }
 .tu-torneo .pr-win { background: rgba(52, 211, 153, 0.18); color: #34d399; }

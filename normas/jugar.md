@@ -357,3 +357,9 @@ con alguna ronda suiza ya cerrada; antes, `tablaArrancaHtml` dice cuántas
 mesas faltan (un podio con gente a cero puntos se lee como un fallo). Y con
 tu mesa terminada (`.torneo-entre`), Hoy no enseña tu mazo: lo que pedía era
 la lista de la jornada que viene, a mitad de la de hoy.
+**Torneos de la casa** (1404): lo de las tandas 1397–1403 que no es el
+cara a cara pasó a ir con el tema (la espera, entre rondas sin mascota —ya
+sale en la celebración—, el aviso de la tabla, tu puesto, la sala y el cartel
+de tu próximo torneo) y Victoria y Derrota son los botones de la web
+(pastilla, `--success-solid` y `--danger-solid`, 56 px). La regla y las fichas
+del panel de juego viven en `normas/interfaz.md`.

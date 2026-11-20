@@ -55212,6 +55212,34 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1404 — Torneos de la casa
+
+- `css/style.css` `:root` (no se redefinen en oscuro): `--juego-fondo`,
+  `--juego-fondo-alto`, `--juego-noche`, `--juego-hondo`, `--juego-borde`,
+  `--juego-texto`, `--juego-claro`, `--juego-suave`, `--juego-lila`,
+  `--juego-tenue`, `--juego-oro`, `--juego-oro-fuerte`, `--juego-violeta`,
+  `--juego-violeta-claro`, `--juego-violeta-hondo`, `--juego-violeta-sombra`,
+  `--juego-panel` (degradado 155deg) y `--success-solid: #0b8a60`. Molde
+  `.panel-juego` al final de la hoja. `.mascota-globo` con padding par.
+- Las hojas de Jugar (`torneos`, `partidas-resumen`, `mazos`, `celebra`,
+  `perfil`) cambian esos hex por sus fichas y `#fff` por `--blanco-fijo`; los
+  degradados violeta→fondo→noche de `.mazo-poster`, `.pr-juego`,
+  `.perfil-vitrina` y «Tu combate», a `var(--juego-panel)`.
+- `torneos.css`: `.torneo-mesa-cab-puesto` en hielo; el reloj del duelo con
+  `--t-3xl` y sin `text-shadow`; Victoria/Derrota en pastilla con
+  `--success-solid`/`--danger-solid` y `:hover` con brillo (sin `:active` 3D);
+  `.torneo-espera`, `.torneo-entre-res` (`-gana` en `--success-bg`, `-pierde`
+  en `--danger-bg`), `.torneo-entre-casilla`, `.torneo-tabla-arranca`, la sala
+  (`.sala-cartel`, `.sala-cuenta`, `.sala-nombre`…) y el cartel
+  (`.t-proximo*`) con superficies y textos del tema. Fuera los resplandores de
+  `.torneo-vivo-reloj b`, la ficha VS, `.sala-estoy` y `.sala-mision.toca`.
+  Espacios impares a pasos pares.
+- `js/torneos/ronda.js` · `entreRondasHtml`: sin `.torneo-entre-mascota`; `ENTRE`
+  sin `gesto`.
+- `components.css`: `--casa-bgs-texto` y `--casa-cgc` a `var(--blanco-fijo)`.
+- `admin/js/guia-estilo.js`: apartado `juego` (molde + fichas `--juego-*`, que
+  `grupoDeToken` agrupa aparte); `admin/css/admin.css`: `.gde-juego`.
+
 ## Tanda 1403 — La tabla arranca cuando acaba la ronda 1
 
 - `js/torneos/ronda.js` · `pintarClasificacion`: con el torneo en juego, sin

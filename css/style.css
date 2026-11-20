@@ -43,6 +43,9 @@
   --rango-tienda: #0a7480;
   /* S780.3 */
   --danger-solid: #dc2626;
+  /* El verde que va de FONDO con blanco encima (1404, Victoria): como el rojo,
+     no se aclara en el oscuro; --success sí, y con blanco encima no se lee. */
+  --success-solid: #0b8a60;
   /* El blanco que NO es el del tema (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
   --blanco-fijo: #fff;
   /* S780.4 */
@@ -58,6 +61,26 @@
   --arte-cian: linear-gradient(135deg, #0891b2, #2a6b96 130%);
   --arte-morado: linear-gradient(135deg, #7c3aed, #4f46e5 130%);
   --arte-rosa: linear-gradient(135deg, #be185d, #7c3aed 130%);
+  /* El PANEL DE JUEGO (1404): el escenario de Jugar (el cara a cara, «Tu
+     combate», las pantallas que celebran). Oscuro en los dos temas a
+     propósito, como los sólidos: no se redefine en el oscuro. */
+  --juego-fondo: #1d1b3f;
+  --juego-fondo-alto: #2b1f63;
+  --juego-noche: #16202b;
+  --juego-hondo: #0b1219;
+  --juego-borde: #3a2f7a;
+  --juego-texto: #f2eefc;
+  --juego-claro: #d6cdf5;
+  --juego-suave: #c9b8ff;
+  --juego-lila: #e9d5ff;
+  --juego-tenue: #b7aee0;
+  --juego-oro: #fde68a;
+  --juego-oro-fuerte: #f0c048;
+  --juego-violeta: #8b5cf6;
+  --juego-violeta-claro: #a78bfa;
+  --juego-violeta-hondo: #7c3aed;
+  --juego-violeta-sombra: #4c1d95;
+  --juego-panel: linear-gradient(155deg, var(--juego-fondo-alto) 0%, var(--juego-fondo) 50%, var(--juego-noche) 100%);
   --warning: #c8720a;
   --warning-bg: #fdf1de;
   --indigo: #4f46e5;
@@ -2041,10 +2064,14 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
 .mascota-lienzo { position: absolute; left: 50%; bottom: 0; height: 100%; aspect-ratio: 1; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s ease; cursor: pointer; }
 .mascota-lista .mascota-lienzo { opacity: 1; }
 .mascota-dibujo { width: 100%; height: 100%; object-fit: contain; }
-.mascota-globo { position: absolute; bottom: 90%; left: 58%; z-index: 2; white-space: nowrap; background: var(--white); color: var(--text); border: 2px solid var(--text); border-radius: 12px; padding: 1px 9px; font-size: var(--t-sm); font-weight: 800; pointer-events: none; }
+.mascota-globo { position: absolute; bottom: 90%; left: 58%; z-index: 2; white-space: nowrap; background: var(--white); color: var(--text); border: 2px solid var(--text); border-radius: 12px; padding: 2px 8px; font-size: var(--t-sm); font-weight: 800; pointer-events: none; }
 .mascota-momento { position: fixed; z-index: 90; aspect-ratio: auto; pointer-events: none; }
 .mascota-se-va { opacity: 0; transition: opacity 0.35s ease; }
 :root[data-sin-mascota] .mascota-3d { display: none; }
 .vacio-titulo { margin: 0; font-family: var(--font-display); font-size: var(--t-xl); }
 .vacio-texto { margin: 0; color: var(--text-mid); }
 .vacio-salidas { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-sm); margin-top: var(--e-sm); }
+
+/* El molde del panel de juego (1404): el escenario de Jugar, oscuro en los
+   dos temas. Lo que rodea al escenario va con las tarjetas del tema. */
+.panel-juego { background: var(--juego-panel); color: var(--juego-texto); border: 1px solid var(--juego-borde); border-radius: var(--radius-xl); }
