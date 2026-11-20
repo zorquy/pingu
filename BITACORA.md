@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-20 (652) — PINGU-Claude (1405 — Arreglos de la Liga FDN en vivo)
+
+**Hecho** (PINGU, con capturas de la jornada 7 en juego; arreglo urgente, se
+sube solo):
+- **Las caras del cara a cara** salen con la foto de cada uno (antes, la
+  inicial siempre). También en la entrada «¡RONDA N!».
+- **El chat de la mesa ya no pierde mensajes**: si una consulta falla o
+  vuelve vacía cuando ya había mensajes (lo que pasa con la sesión de la
+  pestaña caducada: la base contesta «nada», no «error»), se queda lo que
+  había y avisa una vez para recargar. Antes pintaba «Sin mensajes todavía».
+- **«Llamar al juez»** (la línea «¿Algo raro?» de la 1401) llama de verdad y,
+  si ya tienes una llamada abierta, lo dice. Antes pulsaba un botón escondido
+  que podía no estar, y no pasaba nada. El fallo de permisos dice «recarga».
+- **El tablón en el PC**: la hoja ocupa la pantalla entera y, sin
+  `align-content: start`, repartía el alto entre sus filas; ahora va junta, y
+  el cuadro de texto a lo ancho.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/jueces.js`,
+`js/torneos/celebrar.js`, `css/torneos.css`, `normas/jugar.md`. Prueba
+`test-tanda-1405-pantalla.mjs` (6 fallos con el código de antes, verde
+después); 1340, 1341, 1376, 1391, 1401, 1402 y torneos-20 en verde.
+
+**Pendiente**: en local el chat y el juez funcionaban también antes; lo más
+probable es que en esa pestaña la sesión hubiera caducado. Si vuelve a pasar,
+con este arreglo sale el aviso de recargar en vez de perderse.
+
 ## 2026-11-20 (651) — PINGU-Claude (1404 — Torneos de la casa)
 
 **Hecho** (PINGU, tras la propuesta «¿Nos hemos pasado con los torneos?»:

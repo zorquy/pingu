@@ -106,7 +106,7 @@ export function entrarEnRonda({ matchId, ceja = '', titulo, yo, rival, mesa = nu
   } catch {
     return null
   }
-  const cara = (p, quien) => `<span class="torneo-ronda-entra-jugador"><i style="background:${p.color}">${escapeHtml(p.inicial)}</i>${escapeHtml(quien)}</span>`
+  const cara = (p, quien) => `<span class="torneo-ronda-entra-jugador"><i style="${p.foto || `background:${p.color}`}">${p.foto ? '' : escapeHtml(p.inicial)}</i>${escapeHtml(quien)}</span>`
   const datos = [mesa ? `Mesa ${mesa}` : '', minutos ? `${minutos} minutos` : 'Sin límite de tiempo'].filter(Boolean).join(' · ')
   const d = document.createElement('dialog')
   d.className = 'torneo-ronda-entra'

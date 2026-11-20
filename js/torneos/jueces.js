@@ -354,12 +354,26 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
   // Cada mensaje en su bocadillo: los tuyos a la derecha en navy, los
   // del otro a la izquierda — con quién y a qué hora.
   async function pintarMensajes() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from(tabla)
       .select('*')
       .eq(columna, id)
       .order('sent_at', { ascending: true })
       .limit(200)
+    // Un mensaje no se borra nunca (1405, PINGU: «puse un hello y al rato se
+    // borra y pone no hay mensajes todavía»). Si la consulta falla, o vuelve
+    // vacía cuando ya había mensajes (la sesión de la pestaña caducada: la
+    // base deja de dejarte verlos y contesta «nada», no «error»), se queda lo
+    // que había y se avisa una vez, en vez de pintar un chat vacío.
+    const habia = Boolean(lista.querySelector('.torneo-chat-linea'))
+    if (error || (habia && !data?.length)) {
+      if (!marcador.dataset.avisado) {
+        marcador.dataset.avisado = '1'
+        showToast('No se ha podido poner al día el chat. Si sigue así, recarga la página.', 'error')
+      }
+      return
+    }
+    delete marcador.dataset.avisado
     const mensajes = data || []
     await resolverNombres(mensajes.map((m) => m.sender_id))
     const html =
@@ -527,6 +541,24 @@ function pintarMiPartidaExtra() {
   }
 }
 
+// «Llamar al juez» desde la línea «¿Algo raro?» de tu mesa (1401). Antes
+// pulsaba el botón escondido de aquí, y si no estaba —ya tenías una llamada
+// abierta, o aún no se había pintado— no pasaba nada y nadie se enteraba
+// (1405, PINGU: «tampoco funciona el botón de llamar al juez»).
+document.addEventListener('torneo:llamar-juez', () => {
+  if (!miPartida) {
+    showToast('Aún no tienes mesa en esta ronda.', 'info')
+    return
+  }
+  const viva = llamadas.find((c) => c.match_id === miPartida.id && c.created_by === yo() && c.status !== 'resolved')
+  if (viva) {
+    showToast('Ya has llamado al juez: te contestará en la tarjeta del chat.', 'info')
+    $('zonaLlamarJuez')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    return
+  }
+  void llamarJuez()
+})
+
 // Idempotente (SPEC §10.2): una llamada viva por jugador y mesa se
 // reutiliza; solo se crea si no hay ninguna.
 async function llamarJuez() {
@@ -542,7 +574,10 @@ async function llamarJuez() {
     status: 'open',
   })
   if (error) {
-    showToast('No se ha podido llamar: ' + error.message, 'error')
+    // El fallo de permisos casi siempre es la sesión de la pestaña, caducada.
+    showToast(/row-level security|permission|JWT/i.test(error.message || '')
+      ? 'No se ha podido llamar al juez: recarga la página y vuelve a probar.'
+      : 'No se ha podido llamar: ' + error.message, 'error')
     return
   }
   showToast('Llamada enviada: un juez te atenderá en el chat.', 'success')

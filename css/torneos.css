@@ -1337,6 +1337,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-duelo-cara {
   width: 58px;
   height: 58px;
+  background-size: cover;
+  background-position: center;
   border-radius: var(--radius-xl);
   display: grid;
   place-items: center;
@@ -3589,11 +3591,11 @@ html.torneo-jugando #torneoNombre {
 .torneo-viva-aviso { flex-basis: 100%; display: flex; align-items: center; gap: var(--e-xs); flex-wrap: wrap; font-size: var(--t-sm); color: var(--text-mid); }
 .torneo-viva-aviso b { color: var(--text); }
 .torneo-viva-aviso-texto { color: var(--text); }
-.torneo-tablon { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--e-md); margin: 0 0 var(--e-md); display: grid; gap: var(--e-sm); }
+.torneo-tablon { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--e-md); margin: 0 0 var(--e-md); display: grid; gap: var(--e-sm); align-content: start; }
 .torneo-tablon-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
 .torneo-tablon-cab h3 { display: flex; align-items: center; gap: var(--e-xs); margin: 0; font-size: var(--t-lg); }
 .torneo-tablon-escribir { display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; }
-.torneo-tablon-escribir input[type='text'] { flex: 1; min-width: 200px; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 var(--e-md); font: inherit; background: var(--bg); color: var(--text); }
+.torneo-tablon-escribir input[type='text'] { flex: 1 1 100%; min-width: 0; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 var(--e-md); font: inherit; background: var(--bg); color: var(--text); }
 .torneo-tablon-escribir input[type='text']:focus { outline: none; box-shadow: var(--shadow-ring); }
 .torneo-tablon-push { display: inline-flex; align-items: center; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); min-height: 44px; }
 .torneo-tablon-items { list-style: none; margin: 0; padding: 0; }
@@ -5384,7 +5386,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-ronda-entra-caras { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; width: 100%; }
 .torneo-ronda-entra-jugador { display: grid; justify-items: center; gap: 6px; min-width: 0; font: 800 1.05rem var(--font-marca); overflow-wrap: anywhere; animation: torneo-ronda-entra-izq 0.45s 0.15s ease-out both; }
 .torneo-ronda-entra-jugador:last-child { animation-name: torneo-ronda-entra-der; }
-.torneo-ronda-entra-jugador i { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 26px; font: normal 900 2rem var(--font-marca); color: var(--blanco-fijo); border: 3px solid var(--blanco-fijo); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45); }
+.torneo-ronda-entra-jugador i { display: grid; place-items: center; background-size: cover; background-position: center; width: 84px; height: 84px; border-radius: 26px; font: normal 900 2rem var(--font-marca); color: var(--blanco-fijo); border: 3px solid var(--blanco-fijo); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45); }
 .torneo-ronda-entra-vs { padding: 4px 14px; border-radius: 12px; font: italic 900 2rem var(--font-marca); color: #111; background: var(--juego-oro); transform: rotate(-8deg); box-shadow: 0 0 22px rgba(240, 192, 72, 0.55); }
 .torneo-ronda-entra-datos { margin: 16px 0; color: var(--juego-suave); font-size: var(--t-sm); }
 .torneo-ronda-entra-datos b { color: var(--blanco-fijo); }

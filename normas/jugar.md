@@ -363,3 +363,9 @@ sale en la celebración—, el aviso de la tabla, tu puesto, la sala y el cartel
 de tu próximo torneo) y Victoria y Derrota son los botones de la web
 (pastilla, `--success-solid` y `--danger-solid`, 56 px). La regla y las fichas
 del panel de juego viven en `normas/interfaz.md`.
+**Un chat no se vacía solo** (1405): `pintarMensajes` no repinta con un
+error ni con una respuesta vacía si ya había mensajes; con la sesión de la
+pestaña caducada la base contesta «nada» (RLS), no «error», y el chat decía
+«Sin mensajes todavía» a mitad de partida. Y una acción de la mesa no pulsa
+un botón escondido de otro módulo (que puede no estar): lanza su evento
+(`torneo:llamar-juez`) y quien la lleva decide y AVISA siempre.

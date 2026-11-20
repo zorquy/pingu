@@ -55212,6 +55212,22 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1405 — Arreglos de la Liga FDN en vivo
+
+- `js/torneos/ronda.js` · `pintarMiPartida`: `jugador(…, perfil)` pinta
+  `.torneo-duelo-cara` con `avatarStyle(perfil)` si hay `avatar_url` (sin
+  inicial encima); `entrarEnRonda` recibe `foto` en `yo`/`rival`. «¿Algo
+  raro?» › juez lanza `CustomEvent('torneo:llamar-juez')` en `document`.
+- `js/torneos/jueces.js`: escucha `torneo:llamar-juez` (sin mesa → aviso; con
+  llamada viva → «Ya has llamado al juez» y lleva a `#zonaLlamarJuez`; si no,
+  `llamarJuez()`). `montarChat › pintarMensajes`: con `error`, o vacío cuando
+  la lista ya tenía `.torneo-chat-linea`, no repinta y avisa una vez
+  (`data-avisado` en el marcador). `llamarJuez`: error de permisos → «recarga
+  la página».
+- `css/torneos.css`: `.torneo-tablon { align-content: start }`; el texto del
+  formulario del tablón `flex: 1 1 100%`; `.torneo-duelo-cara` y
+  `.torneo-ronda-entra-jugador i` con `background-size: cover`.
+
 ## Tanda 1404 — Torneos de la casa
 
 - `css/style.css` `:root` (no se redefinen en oscuro): `--juego-fondo`,

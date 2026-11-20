@@ -12,6 +12,7 @@ import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { caraHtml, formaHtml, movimientoHtml, faltaPara } from './caras.js'
+import { avatarStyle } from '../avatar.js'
 import {
   activePlayersForRound,
   pairRound1,
@@ -2775,18 +2776,21 @@ function pintarMiPartida() {
   const serie = bo === 3 ? serieBo3(juegosDeMesa(mia).confirmados) : null
   const mias = serie ? (soyA ? serie.ganadasA : serie.ganadasB) : 0
   const suyas = serie ? (soyA ? serie.ganadasB : serie.ganadasA) : 0
-  const jugador = (nombre, sub, listo, inicial, color) => `
+  // Con la FOTO de cada uno (1405, PINGU: «no cargan los avatares de la
+  // gente ahí, en la mesa»); sin foto, la inicial con su color de siempre.
+  const jugador = (nombre, sub, listo, inicial, color, perfil) => `
     <div class="torneo-duelo-jugador">
-      <span class="torneo-duelo-cara" style="background:${color}">${escapeHtml(inicial)}</span>
+      <span class="torneo-duelo-cara" style="${perfil?.avatar_url ? avatarStyle(perfil) : `background:${color}`}">${perfil?.avatar_url ? '' : escapeHtml(inicial)}</span>
       <span class="torneo-duelo-nombre">${escapeHtml(nombre)}</span>
       <span class="torneo-duelo-sub">${sub}</span>
       <span class="torneo-duelo-checkin ${listo ? 'lista' : ''}">${listo ? '✓ Check-in hecho' : 'Check-in pendiente'}</span>
     </div>`
-  const miNombre = ctx.inscripciones.find((i) => i.user_id === miId())?.perfil?.username || 'Tú'
+  const miPerfil = ctx.inscripciones.find((i) => i.user_id === miId())?.perfil || null
+  const miNombre = miPerfil?.username || 'Tú'
   const rivalNombre = rival?.perfil?.username || 'Rival'
   const checkin = `
     <div class="torneo-duelo">
-      ${jugador('Tú', escapeHtml(miNombre), miListo, miNombre.slice(0, 1), colorDeNombre(miNombre))}
+      ${jugador('Tú', escapeHtml(miNombre), miListo, miNombre.slice(0, 1), colorDeNombre(miNombre), miPerfil)}
       <div class="torneo-duelo-medio">
         ${reloj}
         ${
@@ -2796,7 +2800,7 @@ function pintarMiPartida() {
             : '<span class="torneo-duelo-vs">VS</span>'
         }
       </div>
-      ${jugador(rivalNombre, `${chapaDe(rivalId) || ''}${rival?.tcg_live_username ? `<button type="button" class="torneo-duelo-tcg" data-copiar-tcg="${escapeHtml(rival.tcg_live_username)}" aria-label="Copiar ${escapeHtml(rival.tcg_live_username)}, su usuario de TCG Live">${escapeHtml(rival.tcg_live_username)} <i>Copiar</i></button>` : ''}`, rivalListo, rivalNombre.slice(0, 1), colorDeNombre(rivalNombre))}
+      ${jugador(rivalNombre, `${chapaDe(rivalId) || ''}${rival?.tcg_live_username ? `<button type="button" class="torneo-duelo-tcg" data-copiar-tcg="${escapeHtml(rival.tcg_live_username)}" aria-label="Copiar ${escapeHtml(rival.tcg_live_username)}, su usuario de TCG Live">${escapeHtml(rival.tcg_live_username)} <i>Copiar</i></button>` : ''}`, rivalListo, rivalNombre.slice(0, 1), colorDeNombre(rivalNombre), rival?.perfil)}
     </div>
     ${
       faltaCheckin
@@ -2850,8 +2854,8 @@ function pintarMiPartida() {
       matchId: mia.id,
       ceja: liga ? `Jornada ${jornadaDeRonda(ctx.torneo, actual.round_number)} · ${ctx.torneo.name}` : ctx.torneo.name,
       titulo: actual.phase === 'top_cut' ? '¡TOP CUT!' : `¡RONDA ${liga ? rondaEnJornada(ctx.torneo, actual.round_number) : actual.round_number}!`,
-      yo: { inicial: miNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(miNombre) },
-      rival: { nombre: rivalNombre, inicial: rivalNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(rivalNombre) },
+      yo: { inicial: miNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(miNombre), foto: miPerfil?.avatar_url ? avatarStyle(miPerfil) : '' },
+      rival: { nombre: rivalNombre, inicial: rivalNombre.slice(0, 1).toUpperCase(), color: colorDeNombre(rivalNombre), foto: rival?.perfil?.avatar_url ? avatarStyle(rival.perfil) : '' },
       mesa: mia.table_number,
       minutos: actual.phase === 'top_cut' ? null : Number(ctx.torneo.round_time_minutes) || null,
       tcg: rival?.tcg_live_username || '',
@@ -2889,7 +2893,7 @@ function pintarMiPartida() {
         contenido.querySelector('.torneo-mesa-plegado')?.classList.add('abierto')
         contenido.querySelector('[data-adjuntar-rep]')?.click()
       } else {
-        $('btnLlamarJuez')?.click()
+        document.dispatchEvent(new CustomEvent('torneo:llamar-juez'))
       }
     })
   )
