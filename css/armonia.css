@@ -1,0 +1,156 @@
+/* LA HOJA DE «SUGERIR» (tanda 1407). La entra armonia-panel.js con
+   `hojaInyectada('css/armonia.css')`: solo la baja quien la abre. Es una
+   `.mc-bandeja` (sube desde abajo en el móvil, centrada en el PC) con la
+   cabecera y el cuerpo de las demás hojas de Mi colección. */
+.mc-armonia {
+  --arm-ancho: 440px;
+}
+@media (min-width: 700px) {
+  .mc-armonia {
+    width: min(var(--arm-ancho), calc(100vw - 32px));
+    max-height: 86vh;
+  }
+}
+/* En el PC ancho, a la derecha: el álbum se sigue viendo y el hueco también. */
+@media (min-width: 1100px) {
+  .mc-armonia {
+    margin-right: max(24px, 4vw);
+    margin-left: auto;
+  }
+  .mc-armonia::backdrop {
+    background: rgba(13, 27, 42, 0.22);
+  }
+}
+.mc-armonia h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+.mc-armonia h2 small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.arm-chispa {
+  display: inline-flex;
+  color: var(--acento);
+}
+.arm-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+}
+.arm-modo {
+  justify-self: start;
+}
+/* Los colores de la página: tres franjas, anchas según cuánto pesan. */
+.arm-paleta {
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+}
+.arm-paleta:empty {
+  display: none;
+}
+.arm-paleta span {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 8px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--c);
+  /* La cifra, en blanco sobre un color oscuro y en oscuro sobre uno claro
+     (`claro` lo pone armonia-panel.js por la luz del color). Fijos, no del
+     tema: el fondo es el de la carta, no el de la web. */
+  color: var(--blanco-fijo);
+  font: 600 10px / 1 ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}
+.arm-paleta span.claro {
+  color: var(--juego-hondo);
+}
+.arm-estado:empty {
+  display: none;
+}
+.arm-lista {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.arm-fila {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: start;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.arm-fila:first-child {
+  border-color: var(--acento);
+  box-shadow: inset 0 0 0 1px var(--acento);
+}
+.arm-fila img {
+  width: 56px;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: var(--shadow-xs);
+}
+.arm-txt {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.arm-nom {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+.arm-nom b {
+  overflow: hidden;
+  font: 700 var(--t-md) / 1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arm-puntos {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: auto;
+  flex: none;
+}
+.arm-puntos i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.arm-puntos i.on {
+  background: var(--acento);
+}
+.arm-set {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+.arm-por {
+  color: var(--text);
+  font-size: var(--t-sm);
+  line-height: 1.35;
+}
+.arm-poner {
+  justify-self: start;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 6px 14px;
+  font-size: var(--t-sm);
+}
+.arm-mas {
+  justify-self: center;
+}

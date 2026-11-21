@@ -16168,3 +16168,87 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 @media (max-width: 599px) {
   .mc-estanteria-fila > .mc-cuantas { display: none; }
 }
+
+/* ── 1407: el hueco con «Sugerir» ──
+   El bolsillo vacío de un binder tuyo es una CAJA con dos botones (uno no
+   puede ir dentro de otro): el de elegir la ocupa entera y lleva el número y
+   el destello de siempre; «Sugerir» va abajo, en pastilla. Un bolsillo
+   pequeño (4×4 en el móvil) se queda con la chispa sola. */
+.mc-bolsillo-hueco {
+  container-type: inline-size;
+}
+.mc-hueco-elegir {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--e-xs);
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.mc-hueco-elegir:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -4px;
+}
+.mc-bolsillo-hueco:has(.mc-hueco-elegir:hover) .mc-hueco-destello {
+  opacity: 1;
+}
+.mc-hueco-sugerir {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font: 700 var(--t-xs) / 1 var(--font-display);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+/* La franja de 44 al dedo (la 1038): la pastilla mide 28 a la vista. */
+.mc-hueco-sugerir::after {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+.mc-hueco-sugerir:hover {
+  filter: brightness(1.08);
+}
+/* En el móvil el bolsillo mide 67-77 px: letra pequeña, y por debajo de 72
+   solo la chispa. Con la pastilla puesta, el destello del hueco sobra (serían
+   dos chispas en 70 px). */
+@container (max-width: 96px) {
+  .mc-hueco-sugerir { gap: 3px; padding: 4px 6px; font-size: 10px; }
+  .mc-hueco-sugerir svg { width: 12px; height: 12px; }
+  .mc-bolsillo-hueco:has(.mc-hueco-sugerir) .mc-hueco-destello { display: none; }
+}
+@container (max-width: 72px) {
+  .mc-hueco-sugerir span { display: none; }
+  .mc-hueco-sugerir { padding: 4px 7px; }
+}
+/* Las opciones del ⋯ con su línea de explicación (Ordenar, Llenar). */
+.mc-menu-opcion small.mc-menu-nota {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 500;
+}
+.mc-menu-opcion:has(.mc-menu-nota) {
+  padding-block: var(--e-xs);
+  text-align: left;
+}

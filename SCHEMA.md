@@ -55212,6 +55212,41 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1407 — Sugerir y Ordenar en los álbumes
+
+- `js/mi-coleccion/armonia.js` (puro salvo la foto y la caché): `oklab`,
+  `hexDe`; `huellaDePixeles(rgba 64×90)` → `{ labs[3], pesos[3], croma, luz,
+  bordes{izq,der,arr,aba} }` (ventana de 4 px de marco y hasta el 82 % del
+  alto; bordes = media OKLab de una franja del 18 %); `paletaDePagina(huellas)`
+  (k-medias con la distancia `dt`: tono ×1,4, luz ×0,6); `notaDeColor` (chamfer
+  en los dos sentidos + croma ×1,5 + luz ×0,4, e^(−x/0,13)); `notaDeEscena`
+  (borde contra el opuesto de cada vecina, e^(−d/0,16)); `vecinasDe(i, cols,
+  porPagina)` (dentro de su página); `sugerir({ candidatas, huellasDePagina,
+  vecinas, modo })` (`las-dos` = media; sin vecinas, el color); `porqueDe`
+  (color con tono antes que blanco/gris, «colores vivos/tonos suaves» si la
+  croma casa, y la vecina hacia la que sigue); `puntosDe` (44/38/30/20);
+  `costeDePagina` y `ordenarPagina(huellas, cols)` (≤ 9: todas las
+  permutaciones, Heap; más: intercambios desde 6 salidas; los huecos quietos)
+  → `{ orden, antes, despues }`; `huellaDeImagen(src)` (`crossOrigin`
+  anonymous, lienzo; null si ensucia o falla) y `huellasDe(cartas, fotoDe)` de
+  8 en 8 con la caché `localStorage['pd-armonia-v1']` (id → huella, 3 decimales).
+- `js/mi-coleccion/armonia-panel.js` (por `import()` desde albumes.js, con
+  `ctxArmonia()`): `abrirSugerir(c, indice)` (dialog `.mc-bandeja.mc-armonia`
+  `#mcArmonia`; candidatas = tus cartas del catálogo fuera del álbum con foto,
+  primero las del tipo mayoritario de la página y las de arte; tandas de 96
+  con «Mirar N cartas más»; ocho filas), `ordenarPaginas(c, paginas)` y
+  `llenarHuecos(c, paginas)`.
+- `albumes.js`: `huecoHtml` es una `div.mc-bolsillo.mc-bolsillo-vacio.
+  mc-bolsillo-hueco[data-indice]` con `button.mc-hueco-elegir[data-hueco]`
+  (lo de siempre) y, con cartas en su página, `button.mc-hueco-sugerir
+  [data-sugerir]`. `ctxArmonia`, `paginasVistas` (1 o 2), `sugerirPara`,
+  `cambiarCartasConDeshacer`, `ordenarLasPaginas`, `llenarLosHuecos`;
+  `#mcAlbOrdenar` / `#mcAlbLlenar` en el ⋯ (`mi-coleccion.html`), visibles en
+  tu binder (en `pintarVista`). Con «Tengo/Faltan» puesto, piden «Todas».
+- `css/armonia.css` (la hoja; a la derecha en el PC ≥ 1100 px con velo
+  suave) y, en `mi-coleccion.css`, el hueco (`container-type`; pastilla abajo,
+  letra de 10 px por debajo de 96 px y solo la chispa por debajo de 72).
+
 ## Tanda 1406 — Los avisos de un torneo borrado
 
 - `js/torneos/avisos-huerfanos.js` (nuevo): `slugDeAviso(aviso)` saca el slug

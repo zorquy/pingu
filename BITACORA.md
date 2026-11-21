@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-21 (654) — PINGU-Claude (1407 — Sugerir y Ordenar en los álbumes)
+
+**Hecho** (PINGU, con el post de EyeRis: «¿se podría implementar algo así?»;
+propuesta con imágenes y eligió lo recomendado: tus cartas, en el navegador y
+sin migración; «Sugerir» y «Ordenar»; los colores solo en la hoja):
+- **La huella de una ilustración** (`js/mi-coleccion/armonia.js`, puro): sus 3
+  colores en OKLab (k-medias), lo viva que es, lo clara, y el color con que la
+  escena sale por cada borde. De la foto pequeña de TCGdex (que deja leer sus
+  píxeles), una vez, y guardada en el navegador (`pd-armonia-v1`).
+- **«Sugerir»** en cada hueco vacío de un binder tuyo con alguna carta en su
+  página: una hoja con los 3 colores de la página, «Las dos · Color · Escena»
+  y tus cartas que mejor quedan AHÍ, con su porqué en palabras («Su azul es el
+  de la página; la escena sigue hacia Phione»), sus puntos y «Ponerla aquí».
+  Mira primero las del tipo de la página y las ilustraciones, de 96 en 96.
+- **En el ⋯ del álbum**: «Ordenar la página» (las 362.880 colocaciones de 9
+  cartas, en medio segundo; con más, por intercambios) y «Llenar los huecos»,
+  las dos de las páginas que se ven y con Deshacer.
+- Hacia dónde MIRA el Pokémon (las flechas a mano de EyeRis) no se calcula: sin
+  IA saldría al azar. Lo dice la propuesta.
+- **Carrusel de Instagram** (6 de 1080×1350, el marco de redes en el oro de
+  Colección): `herramientas/carrusel-armonia/` en la rama pruebas, con las
+  ilustraciones de verdad y las capturas de la función funcionando.
+
+**Ficheros**: `js/mi-coleccion/armonia.js` y `armonia-panel.js` (nuevos, por
+`import()`), `css/armonia.css` (nuevo, `hojaInyectada`),
+`js/mi-coleccion/albumes.js` (el hueco es una caja con dos botones, el puente y
+el ⋯), `css/mi-coleccion.css` (el hueco), `mi-coleccion.html` + `cartas.html`
+(generada), `normas/coleccion.md`. Pruebas `test-tanda-1407.mjs` (lo puro con
+las huellas de 62 ilustraciones reales, `pruebas/datos/`) y
+`test-tanda-1407-pantalla.mjs` (PC y móvil, claro y oscuro, con fotos de
+mentira con color y la cabecera CORS); los álbumes de antes (760, 766, 767,
+1031, 1032, 1048, 1052, 1180, 1182…) en verde. Rojos que ya estaban sin
+la 1407 (comprobado con el código de antes): 1049 y 1050 (botones de 36 donde
+piden 44), 766 («sin la función nueva»), 299 (clases `celebra-*` en 404 y
+ajustes) y 1040 (/glosario).
+
+**Pendiente**: «Todas las cartas» (sugerir del catálogo entero) pide la paleta
+de cada carta calculada de antemano: migración + pasada; si PINGU lo quiere,
+es la siguiente. Las cartas con foto de otro sitio que no sea TCGdex se saltan.
+
 ## 2026-11-21 (653) — PINGU-Claude (1406 — Los avisos de un torneo borrado)
 
 **Hecho** (PINGU, con la captura de un amigo: «le he dado a "Crear torneo" por

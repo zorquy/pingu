@@ -594,8 +594,21 @@ const esBinder = () => Boolean(actual) && !esDeSet(actual)
 
 // Un bolsillo vacío lleva SU número y un destello (766, AL5): se sabe
 // dónde va cada carta sin contar, y el destello dice «aquí se toca».
+//
+// Y su «Sugerir» (1407): la carta de las tuyas que mejor queda AHÍ por color
+// y escena (armonia-panel.js). Un botón no puede llevar otro dentro, así que
+// el bolsillo es una caja con los dos: el de elegir lo ocupa entero y el de
+// sugerir va abajo. Solo en una página que ya tiene alguna carta: las
+// sugerencias salen de sus colores.
 function huecoHtml(indice) {
-  return `<button type="button" class="mc-bolsillo mc-bolsillo-vacio mc-bolsillo-hueco" data-hueco="${indice}" data-indice="${indice}" aria-label="Bolsillo ${indice + 1}, vacío: elegir una carta"><span class="mc-hueco-destello" aria-hidden="true">${icons.sparkles(18)}</span><b class="mc-hueco-num" aria-hidden="true">${indice + 1}</b></button>`
+  const elegir = `<button type="button" class="mc-hueco-elegir" data-hueco="${indice}" aria-label="Bolsillo ${indice + 1}, vacío: elegir una carta"><span class="mc-hueco-destello" aria-hidden="true">${icons.sparkles(18)}</span><b class="mc-hueco-num" aria-hidden="true">${indice + 1}</b></button>`
+  const sugerir = paginaConCartas(indice) ? `<button type="button" class="mc-hueco-sugerir" data-sugerir="${indice}" aria-label="Sugerir una carta para el bolsillo ${indice + 1}">${icons.sparkles(14)}<span>Sugerir</span></button>` : ''
+  return `<div class="mc-bolsillo mc-bolsillo-vacio mc-bolsillo-hueco" data-indice="${indice}">${elegir}${sugerir}</div>`
+}
+function paginaConCartas(indice) {
+  const { porPagina } = forma()
+  const base = indice - (indice % porPagina)
+  return actual.cartas.slice(base, base + porPagina).some((c) => c?.id)
 }
 
 function cartaDe(id) {
@@ -954,6 +967,99 @@ function ponerEnElHueco(c, i) {
   showToast(`${nombreDe(c)}, en el bolsillo ${i + 1}.`, 'success')
 }
 
+// ── La armonía de una página (1407): «Sugerir», «Ordenar» y «Llenar» ──
+// El módulo entra por `import()` al pulsar. Lo que necesita del álbum va en
+// un contexto con lo de AHORA (el álbum cambia al guardar).
+let armoniaMod = null
+const armonia = () => (armoniaMod ||= import('./armonia-panel.js'))
+function fotoParaArmonia(c) {
+  const cadena = cadenaDeEscaneo(c, null, 'low')
+  // TCGdex deja leer los colores de sus fotos; las demás, se prueban igual.
+  return cadena.find((u) => u.startsWith('https://assets.tcgdex.net/')) || cadena[0] || null
+}
+function ctxArmonia() {
+  return {
+    album: actual,
+    forma: forma(),
+    cartaDe,
+    nombreDe,
+    extraDe,
+    fotoDe: fotoParaArmonia,
+    misIds: () => [...new Set(ctx.lineas().map((l) => l.card_id).filter(Boolean))],
+    traer: async (ids) => {
+      const faltan = ids.filter((id) => !cartaDe(id))
+      if (faltan.length) for (const [id, c] of await datos.cartasPorIds(faltan, ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
+      return ids.map(cartaDe).filter(Boolean)
+    },
+    poner: (c, i) => ponerEnElHueco(c, i),
+  }
+}
+// Las páginas que se ven: una en el móvil, dos en el PC.
+function paginasVistas() {
+  const deUnaVez = window.matchMedia('(min-width: 900px)').matches ? 2 : 1
+  return Array.from({ length: deUnaVez }, (_, k) => pagina + k)
+}
+async function sugerirPara(indice) {
+  try {
+    ;(await armonia()).abrirSugerir(ctxArmonia(), indice)
+  } catch (err) {
+    showToast(err.message || 'No se han podido mirar tus cartas.', 'error')
+  }
+}
+// Cambiar las cartas del álbum de golpe, con Deshacer (como quitar).
+function cambiarCartasConDeshacer(cartas, texto) {
+  const id = actual.id
+  const antes = { cartas: actual.cartas }
+  guardarLuego({ cartas: sinHuecosAlFinal(cartas) })
+  pintarDetalle()
+  calcularLoQueFalta()
+  showToast(texto, 'success', {
+    accion: {
+      texto: 'Deshacer',
+      alPulsar: () => {
+        if (actual?.id !== id) return void guardarAlbum(id, { cartas: sinHuecosAlFinal(antes.cartas) }).catch((err) => showToast(err.message, 'error'))
+        guardarLuego(antes)
+        pintarDetalle()
+        calcularLoQueFalta()
+      },
+    },
+  })
+}
+function soloConTodas() {
+  if (filtro === 'todas') return true
+  showToast('Pon «Todas» para ver la página entera y vuelve a probar.', 'info')
+  return false
+}
+async function ordenarLasPaginas() {
+  if (!actual || !esMio() || !esBinder() || !soloConTodas()) return
+  $('mcAlbEstado').textContent = 'Mirando los colores…'
+  try {
+    const paginas = paginasVistas()
+    const { cartas, cambiadas } = await (await armonia()).ordenarPaginas(ctxArmonia(), paginas)
+    $('mcAlbEstado').textContent = ''
+    if (!cambiadas) return void showToast('Ya está en el orden en que mejor sigue la escena (o tiene menos de 3 cartas con foto).', 'info')
+    cambiarCartasConDeshacer(cartas, paginas.length > 1 && cambiadas > 1 ? `Páginas ${paginas[0] + 1} y ${paginas[1] + 1} ordenadas: la escena sigue de carta en carta.` : 'Página ordenada: la escena sigue de carta en carta.')
+  } catch (err) {
+    $('mcAlbEstado').textContent = ''
+    showToast(err.message || 'No se ha podido ordenar.', 'error')
+  }
+}
+async function llenarLosHuecos() {
+  if (!actual || !esMio() || !esBinder() || !soloConTodas()) return
+  const estado = $('mcAlbEstado')
+  estado.textContent = 'Mirando tus cartas…'
+  try {
+    const { cartas, puestas } = await (await armonia()).llenarHuecos(ctxArmonia(), paginasVistas(), { alAvanzar: (h, t) => (estado.textContent = `Mirando tus cartas… ${h} de ${t}`) })
+    estado.textContent = ''
+    if (!puestas.length) return void showToast('No hay huecos que llenar en una página con cartas, o no te quedan cartas con foto fuera del álbum.', 'info')
+    for (const c of puestas) cartasDelAlbum.set(c.id, c)
+    cambiarCartasConDeshacer(cartas, puestas.length === 1 ? `${nombreDe(puestas[0])}, en el hueco que quedaba.` : `${puestas.length} cartas tuyas en los huecos, por color y escena.`)
+  } catch (err) {
+    estado.textContent = ''
+    showToast(err.message || 'No se han podido llenar los huecos.', 'error')
+  }
+}
+
 // Intercambiar dos bolsillos, o mandar una carta al final (tanda 578).
 //
 // INTERCAMBIO y no inserción, a propósito: un álbum son huecos, no una
@@ -1072,6 +1178,10 @@ function pintarVista() {
     ico.setAttribute('aria-pressed', String(!v.iconos))
     $('mcAlbIconosTexto').textContent = v.iconos ? 'Ocultar iconos' : 'Enseñar iconos'
   }
+  // Ordenar y llenar (1407), en tus binders: un álbum de set va por número.
+  const armonia = Boolean(actual) && esMio() && esBinder()
+  $('mcAlbOrdenar')?.classList.toggle('hidden', !armonia)
+  $('mcAlbLlenar')?.classList.toggle('hidden', !armonia)
 }
 
 // EL PLIEGO CABE EN LA PANTALLA (1182, PINGU: «no entra el álbum del todo y no
@@ -1368,6 +1478,15 @@ export function iniciarAlbumes(contexto) {
     cerrarMenu()
     void cambiarVista({ iconos: !vistaDeAlbum(actual).iconos })
   })
+  // La armonía de las páginas que se ven (1407).
+  $('mcAlbOrdenar')?.addEventListener('click', () => {
+    cerrarMenu()
+    void ordenarLasPaginas()
+  })
+  $('mcAlbLlenar')?.addEventListener('click', () => {
+    cerrarMenu()
+    void llenarLosHuecos()
+  })
   // El pliego cabe en la pantalla (1182): al cambiar el tamaño, se vuelve a medir.
   let encaje = 0
   window.addEventListener('resize', () => {
@@ -1430,6 +1549,8 @@ export function iniciarAlbumes(contexto) {
       }
       return
     }
+    const sug = e.target.closest('[data-sugerir]')
+    if (sug && esMio()) return void sugerirPara(Number(sug.dataset.sugerir))
     const hueco = e.target.closest('[data-hueco]')
     if (hueco && esMio()) return abrirElegir(Number(hueco.dataset.hueco))
     // El «+» y la ficha (767).

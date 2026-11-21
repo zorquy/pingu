@@ -354,6 +354,20 @@
   iconos» va en el ⋯ (PINGU). Gris e iconos son DEL ÁLBUM (`estilo.gris`,
   `estilo.sinIconos`, por `vistaDeAlbum` / `cambiarVista`): un campo nuevo de
   `estilo` se conserva en `estiloCompleto`, o Personalizar lo borra al guardar.
+- **La armonía de una página es UNA: `js/mi-coleccion/armonia.js`** (tanda
+  1407, PINGU con el post de EyeRis): la huella de una ilustración (3 colores
+  en OKLab, viveza, luz y el color de cada borde) sale de su FOTO pequeña de
+  TCGdex, una vez, y se guarda en el navegador (`pd-armonia-v1`). «Sugerir»
+  (el hueco), «Ordenar la página» y «Llenar los huecos» (el ⋯) son
+  `armonia-panel.js`, por `import()`. Lo que se sugiere sale de TUS cartas
+  (PINGU eligió lo recomendado: sin migración); sugerir del catálogo entero
+  pide la huella precalculada en la base, no pedir miles de fotos en el
+  navegador. Un camino nuevo que hable de cómo «queda» una carta junto a otras
+  pasa por ahí; el porqué se dice en PALABRAS (`porqueDe`), nunca con la nota.
+  Y hacia dónde MIRA el Pokémon no se inventa: sin IA de imágenes no se sabe,
+  y una sugerencia al azar engaña. El hueco de un binder tuyo es una CAJA con
+  dos botones (`.mc-hueco-elegir[data-hueco]` y `.mc-hueco-sugerir`): un botón
+  no lleva otro dentro.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,
