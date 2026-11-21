@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-21", "tipo": "arreglo", "texto": "Si se borra un torneo, su aviso ya no se queda colgado con el número en Jugar: al entrar en Torneos desaparece. Y un torneo recién creado espera unos minutos antes de anunciarse, por si era un error.", "enlace": "/torneos" },
     { "fecha": "2026-11-20", "tipo": "arreglo", "texto": "En los torneos: tu mesa enseña la foto de cada jugador, los mensajes del chat de la mesa ya no desaparecen, «Llamar al juez» avisa siempre de lo que pasa y el tablón se abre bien en el ordenador.", "enlace": "/torneos" },
     { "fecha": "2026-11-20", "tipo": "mejora", "texto": "Los torneos se ven más como el resto de PokeDoc, sobre todo en el tema claro: el cara a cara sigue siendo el protagonista y todo lo de alrededor usa las tarjetas y botones de siempre.", "enlace": "/torneos" },
     { "fecha": "2026-11-19", "tipo": "mejora", "texto": "La clasificación de un torneo ya no enseña un podio a medias en la primera ronda: te dice cuántas mesas faltan para que arranque.", "enlace": "/torneos" },

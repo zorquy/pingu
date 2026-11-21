@@ -369,3 +369,12 @@ pestaña caducada la base contesta «nada» (RLS), no «error», y el chat decí
 «Sin mensajes todavía» a mitad de partida. Y una acción de la mesa no pulsa
 un botón escondido de otro módulo (que puede no estar): lanza su evento
 (`torneo:llamar-juez`) y quien la lleva decide y AVISA siempre.
+
+**Un aviso a toda la comunidad no se queda huérfano** (1406): el anuncio de
+apertura de un torneo creado por error y borrado al momento dejó el «1» en
+Jugar a todo el mundo, apuntando a una ficha que ya no existía y que, por eso,
+nadie podía leer. Lo que se manda a todos espera un rato (el barredor, 10
+minutos desde que se crea el torneo); lo que se borra se lleva sus avisos (los
+disparadores de la 1406); y Torneos da por leídos los de torneos que ya no se
+ven. Un aviso que enlaza con algo que ya no está es un número que no se puede
+quitar.

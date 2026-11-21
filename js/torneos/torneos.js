@@ -20,6 +20,7 @@ import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.j
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
 import { esTorneoDeTienda, textoDePrecio, precioDelCampo } from './torneo-tienda.js'
+import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -1388,6 +1389,8 @@ function engancharFormulario(session, perfil) {
 async function init() {
   const session = await getSession()
   const perfil = session ? await getProfile(session.user.id) : null
+  // Los avisos de torneos que ya no existen (1406): por su lado, sin esperar.
+  if (session) leerAvisosHuerfanos(supabase, session.user.id).catch(() => {})
   // Esta página NO echa a nadie: la lista y el calendario se ven sin
   // cuenta (escaparate). Apuntarse ya se lo pide la ficha, que a quien
   // no tenga cuenta lo manda al registro.

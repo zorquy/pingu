@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-21 (653) — PINGU-Claude (1406 — Los avisos de un torneo borrado)
+
+**Hecho** (PINGU, con la captura de un amigo: «le he dado a "Crear torneo" por
+error… se me ha quedado la notificación colgando», y a PINGU también):
+- **Qué pasaba**: el torneo creado por error llegó a abrir inscripciones, el
+  barredor mandó «Inscripciones abiertas» a TODA la comunidad, y el torneo se
+  borró. El aviso no: se quedó sin leer, con el «1» en Jugar y en Torneos, y
+  enlazaba con una ficha que ya no existía, así que no había forma de leerlo.
+- **Que se vaya ya, sin la migración**: al entrar en Torneos
+  (`js/torneos/avisos-huerfanos.js`), los avisos de torneo sin leer cuyo
+  torneo ya no se ve se dan por leídos, y se quitan de la campana y de los
+  números de la barra. Los de un torneo que existe no se tocan.
+- **Que no vuelva a pasar**: el barredor no anuncia un torneo creado hace
+  menos de 10 minutos (`created_at=lt.`).
+- **La limpieza de verdad** (`supabase-migration-1406-avisos-de-torneos-borrados.sql`,
+  PARA EJECUTAR): borra los avisos huérfanos que ya hay y deja dos
+  disparadores: al BORRAR un torneo se van los avisos que enlazan con su
+  ficha (el de «se ha cancelado» enlaza con /torneos y se queda), y al
+  CANCELARLO, su anuncio de apertura.
+
+**Ficheros**: `js/torneos/avisos-huerfanos.js` (nuevo), `js/torneos/torneos.js`,
+`netlify/functions/torneos-barredor.mjs`, la migración, `normas/jugar.md`.
+Pruebas `test-tanda-1406.mjs` (lo puro, el barredor y la migración contra
+PostgreSQL, ejecutada dos veces) y `test-tanda-1406-pantalla.mjs` (8 fallos
+con el código de antes, verde después, PC y móvil).
+
+**Pendiente**: PINGU ejecuta la migración 1406 (no corre prisa: sin ella el
+número ya se va al entrar en Torneos). El timbre (1310) sigue tocando durante
+esos 10 minutos de margen; el barredor mira y no hace nada, que es barato.
+De paso: `correr.sh` daba por verdes las pruebas del barredor (337, 387,
+torneos-17) cuando faltaba `web-push` en el contenedor, porque el error de
+módulo no lleva «Error:»; con `web-push` instalado fuera del repo pasan de
+verdad.
+También en rojo, de antes y de otras áreas: 1168 (espera un tramo «Octubre»
+en /avisos y los avisos de la prueba son de los últimos 6 días: depende de la
+fecha) y 1310 (busca la orden de despliegue exacta de `netlify.toml`, que la
+1327 alargó con `generar-huellas.mjs`).
+
 ## 2026-11-20 (652) — PINGU-Claude (1405 — Arreglos de la Liga FDN en vivo)
 
 **Hecho** (PINGU, con capturas de la jornada 7 en juego; arreglo urgente, se

@@ -55212,6 +55212,30 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1406 — Los avisos de un torneo borrado
+
+- `js/torneos/avisos-huerfanos.js` (nuevo): `slugDeAviso(aviso)` saca el slug
+  de `…/torneo?slug=<slug>` (decodificado, sin `&…`/`#…`); `huerfanos(avisos,
+  slugs)` = sin leer, de tipo `torneo_*`/`tournament_*` y con un slug que no
+  está; `leerAvisosHuerfanos(supabase, uid)` pide los sin leer de torneo (200
+  como mucho), mira qué slugs existen (lo que la RLS deja ver: un borrador
+  ajeno cuenta como que no), marca `read_at` en los que no y los quita de
+  `window.__pdAvisos` con `pd-avisos-cambiados` — también cada vez que
+  notifications.js vuelva a dejar la lista (`pd-avisos`), por si llegó antes.
+  Sin la lista de torneos no marca nada. Lo llama `init()` de
+  `js/torneos/torneos.js` con sesión, sin esperarlo.
+- `netlify/functions/torneos-barredor.mjs` · aviso de apertura: la consulta
+  lleva `&created_at=lt.<ahora − 10 min>`.
+- `supabase-migration-1406-avisos-de-torneos-borrados.sql`:
+  `slug_de_aviso_de_torneo(link)` (immutable, split_part: un `_` del slug no
+  es comodín); borra los `user_notifications` con enlace a una ficha cuyo slug
+  no está en `tournaments`; `torneos_limpiar_avisos()` (SECURITY DEFINER,
+  `search_path=public`, sin permisos para anon/authenticated) en
+  `trg_torneos_limpiar_avisos_borrado` (AFTER DELETE: los avisos que enlazan
+  con su ficha) y `trg_torneos_limpiar_avisos_cancelado` (AFTER UPDATE OF
+  status, al pasar a `cancelled`: los `torneo_apertura` de su ficha).
+  Repetible; sin temporales.
+
 ## Tanda 1405 — Arreglos de la Liga FDN en vivo
 
 - `js/torneos/ronda.js` · `pintarMiPartida`: `jugador(…, perfil)` pinta

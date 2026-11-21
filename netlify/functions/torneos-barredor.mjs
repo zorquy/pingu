@@ -219,8 +219,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
   //    barrido de relojes de más abajo.
   if (mandar) {
     try {
+      // Con 10 minutos de margen desde que se CREA (1406): un torneo hecho por
+      // error («Crear torneo» en vez de «Crear partida») y borrado al momento
+      // dejaba «Inscripciones abiertas» en la campana de toda la comunidad,
+      // apuntando a una ficha que ya no existía.
+      const margenApertura = new Date(ahora.getTime() - 10 * 60e3).toISOString()
       const recienAbiertos = await rest(
         `tournaments?status=eq.registration_open&registration_notified_at=is.null` +
+          `&created_at=lt.${encodeURIComponent(margenApertura)}` +
           `&select=id,slug,name,start_at,swiss_rounds,swiss_bo,top_cut_size,max_players`,
         clave
       )
