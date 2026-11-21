@@ -55212,6 +55212,24 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1409 — Presume de página
+
+- `js/mi-coleccion/imagen-pagina.js`: `tituloDePagina(nombre)` (la última
+  palabra entre `*`), `textoDePagina({ nombre, pagina, nombres })`,
+  `medidasDeHoja(caja, { columnas, filas, conPaleta, apaisada })` → `{ w, h,
+  pad, hueco, hoja, tira }` (la hoja y la tira de 56 px —34 en X— centradas en
+  la caja del marco), `pintarPagina(lienzo, { fotos, columnas, filas, nombre,
+  pagina, paleta, formato })` (marco `coleccion`, chapa «Mi álbum», hoja
+  `#0e1a25`, huecos con raya, tira con el `hex` de `paletaDePagina` y su
+  código si cabe), `paginasParaEnsenar(cartas, porPagina, vistas)` y
+  `compartirPagina({ album, forma, cartaDe, nombreDe, fotoDe, paginas })`:
+  fotos `high` por `fotoParaElLienzo` y huellas por `huellasDe` (la caché de
+  la 1407), una vez por página; `abrirHojaCompartir` con `historiaPropia` y,
+  con dos páginas, `opciones.disenos` = `p<N>`.
+- `albumes.js`: `#mcAlbPagina` en el ⋯ (`mi-coleccion.html`), visible en un
+  álbum tuyo con alguna carta (`pintarVista`); `compartirLaPagina()` pasa
+  `paginasVistas()`.
+
 ## Tanda 1408 — El holo con el giroscopio
 
 - `js/carta-holo.js`: `montarHolo` llama a `montarGiro(caja, poner)` y le pasa

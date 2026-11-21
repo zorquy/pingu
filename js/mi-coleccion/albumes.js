@@ -1044,6 +1044,21 @@ async function ordenarLasPaginas() {
     showToast(err.message || 'No se ha podido ordenar.', 'error')
   }
 }
+// Presume de página (1409): la imagen de las páginas que se ven, por la hoja
+// de compartir. El dibujo entra por `import()` al pulsar.
+async function compartirLaPagina() {
+  if (!actual || !esMio()) return
+  const b = $('mcAlbPagina')
+  b.disabled = true
+  try {
+    const { compartirPagina } = await import('./imagen-pagina.js')
+    await compartirPagina({ album: actual, forma: forma(), cartaDe, nombreDe, fotoDe: fotoParaArmonia, paginas: paginasVistas() })
+  } catch (err) {
+    showToast(err.message || 'No se ha podido hacer la imagen.', 'error')
+  } finally {
+    b.disabled = false
+  }
+}
 async function llenarLosHuecos() {
   if (!actual || !esMio() || !esBinder() || !soloConTodas()) return
   const estado = $('mcAlbEstado')
@@ -1182,6 +1197,8 @@ function pintarVista() {
   const armonia = Boolean(actual) && esMio() && esBinder()
   $('mcAlbOrdenar')?.classList.toggle('hidden', !armonia)
   $('mcAlbLlenar')?.classList.toggle('hidden', !armonia)
+  // Presume de página (1409): de un álbum tuyo con alguna carta.
+  $('mcAlbPagina')?.classList.toggle('hidden', !(actual && esMio() && actual.cartas.some((c) => c?.id)))
 }
 
 // EL PLIEGO CABE EN LA PANTALLA (1182, PINGU: «no entra el álbum del todo y no
@@ -1479,6 +1496,10 @@ export function iniciarAlbumes(contexto) {
     void cambiarVista({ iconos: !vistaDeAlbum(actual).iconos })
   })
   // La armonía de las páginas que se ven (1407).
+  $('mcAlbPagina')?.addEventListener('click', () => {
+    cerrarMenu()
+    compartirLaPagina()
+  })
   $('mcAlbOrdenar')?.addEventListener('click', () => {
     cerrarMenu()
     void ordenarLasPaginas()

@@ -377,6 +377,9 @@
   y una sugerencia al azar engaña. El hueco de un binder tuyo es una CAJA con
   dos botones (`.mc-hueco-elegir[data-hueco]` y `.mc-hueco-sugerir`): un botón
   no lleva otro dentro.
+  La imagen de una página («Compartir la página», 1409) es
+  `imagen-pagina.js`: sus colores salen de `paletaDePagina`, no de otra cuenta,
+  y va por la hoja de compartir común, no por otro diálogo.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

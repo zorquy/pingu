@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-21 (656) — PINGU-Claude (1409 — Presume de página)
+
+**Hecho** (PINGU, de las siete ideas: «presume tu página, sí. Sí, eso sí»):
+- **En el ⋯ de un álbum tuyo con cartas, «Compartir la página»**: abre la hoja
+  de compartir de siempre (Instagram Historia o Publicación, X, Compartir y
+  Descargar) con una imagen de la página que se ve: el marco de redes en el oro
+  de Colección, el nombre del álbum de título con la última palabra en color,
+  la hoja oscura con cada carta en su bolsillo y los huecos como huecos, y
+  debajo una tira con sus tres colores (los de «Sugerir», con su código) del
+  ancho de su peso. Abajo, pokedoc.es, «Ordena la tuya en PokeDoc» y la chapa
+  «Página N». Con dos páginas a la vista (PC) se elige cuál.
+- Las fotos van por `fotoParaElLienzo` (la de la vitrina): si TCGdex manda la
+  cabecera de permiso dos veces —pasa con algunas, como la Quaxwell de
+  Evoluciones en Paldea— el navegador la rechaza y entra la función
+  `imagen-carta`, que la sirve bien.
+
+**Ficheros**: `js/mi-coleccion/imagen-pagina.js` (nuevo, por `import()`),
+`js/mi-coleccion/albumes.js` (`compartirLaPagina`, el botón y cuándo se ve),
+`mi-coleccion.html` + `cartas.html` (generada), `normas/coleccion.md`. Prueba
+`test-tanda-1409-pantalla.mjs` (lo puro, PC claro y móvil oscuro, las tres
+formas, dos páginas, álbum vacío); 1407, 649, 764, 1048, 1052, 1156 y 1182 en
+verde.
+
+**Pendiente**: nada. Va en el próximo push con la 1407 y la 1408.
+
 ## 2026-11-21 (655) — PINGU-Claude (1408 — El holo con el giroscopio)
 
 **Hecho** (PINGU, de la propuesta de las siete ideas: «lo del giroscopio sí,
