@@ -286,6 +286,22 @@
   `herramientas/tarjetas-1157.mjs` (rama pruebas). Una destacada de
   /novedades se saca en imagen con «Imagen para redes» (solo el equipo,
   `js/novedad-imagen.js`).
+- **Una mejora tocha se anuncia con UN carrusel, y solo cuando PINGU lo pide**
+  (PINGU, 2026-11-21, con el de «Sugerir»: «cada vez que metas una mejora
+  tocha, puedes hacer un carrusel de esos cuando yo te lo pida… necesito que
+  utilices imágenes de cartas, que sea la misma estructura porque está
+  perfecto»). El molde es `herramientas/carrusel-armonia/` (rama pruebas:
+  `carrusel.html` + `hacer.mjs`): seis láminas de 1080×1350 con el marco y el
+  color de la sección de la función, la palabra clave en color en cada título,
+  y por este orden: (1) la portada con la promesa en una frase y un abanico de
+  cartas DE VERDAD (las ilustraciones de TCGdex en `high`), (2) cómo se usa con
+  capturas REALES de la función funcionando, en móvil, (3–5) una idea por
+  lámina, cada una enseñada con cartas y datos calculados por el código de la
+  web (nada inventado: si dice un color o una cifra, sale de la función), y
+  (6) «Pruébalo» con tres pasos, el abanico y la dirección. Con él, el texto
+  del post (gancho, tres o cuatro líneas con emoji, «Pruébalo:» con el
+  camino, la dirección y los hashtags) en un `.txt`. Se manda con
+  `SendUserFile`; nada se publica solo.
 - **Una fiesta (Halloween, 1134) la decide la línea de `data-temporada` de la
   cabecera** de las 52 páginas, por fecha y antes del primer pintado, con su
   hoja (`css/temporada.css`) escrita solo ese día; lo que se enseña de más va
