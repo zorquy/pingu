@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-21 (655) — PINGU-Claude (1408 — El holo con el giroscopio)
+
+**Hecho** (PINGU, de la propuesta de las siete ideas: «lo del giroscopio sí,
+métela en el móvil. Solo en el móvil, pero no pongas ningún mensaje. En el
+ordenador sigue estando como ahora, con el ratón»):
+- **En el móvil, inclinar el teléfono gira la carta grande un poco** (hasta 7°,
+  el ratón llega a 12) y enciende el brillo de su rareza, el de siempre. En la
+  ficha de Mi colección, /cartas, /carta y el pop-up de una carta; en las
+  rejillas, nada (ahí el holo es solo del ratón).
+- El reposo es como TÚ tengas el móvil, no el móvil plano: la primera lectura
+  es la base y la base sigue despacio tu postura, así que si te recuestas la
+  carta vuelve sola al centro. Con el dedo apoyado en la carta manda el dedo.
+- Ningún texto nuestro. En iPhone el sensor necesita permiso del sistema y
+  Safari solo deja pedirlo tras un toque: se pide al primer toque EN la carta
+  y solo si no ha llegado ninguna lectura (Chrome también trae
+  `requestPermission` y dice que sí sin preguntar). El aviso que sale es el de
+  iOS; si dice que no, se queda el dedo como hasta ahora.
+- En el PC, igual que antes. Con «menos movimiento», nada.
+
+**Ficheros**: `js/carta-holo.js` (`montarGiro`, `GRADOS_GIRO`, `RANGO_GIRO`),
+`normas/coleccion.md`. Prueba `test-tanda-1408-pantalla.mjs` (Android, iPhone
+con el permiso, PC y «menos movimiento»); la 368, 373, 392 y 783 en verde.
+
+**Pendiente**: nada. Va en el próximo push con la 1407.
+
 ## 2026-11-21 (654) — PINGU-Claude (1407 — Sugerir y Ordenar en los álbumes)
 
 **Hecho** (PINGU, con el post de EyeRis: «¿se podría implementar algo así?»;

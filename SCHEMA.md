@@ -55212,6 +55212,22 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1408 — El holo con el giroscopio
+
+- `js/carta-holo.js`: `montarHolo` llama a `montarGiro(caja, poner)` y le pasa
+  quién escribe `pendiente`; `pintar` usa `GRADOS_GIRO` (7) si el punto trae
+  `giro`. `montarGiro` solo actúa con `.carta-scan-holo`, `pointer: coarse` y
+  `DeviceOrientationEvent`: escucha `deviceorientation` en `window`, pasa
+  beta/gamma a los ejes de la pantalla (`ejesDe`, con `screen.orientation.angle`
+  0/90/180/270), toma la primera lectura como base y la acerca un 2 % por
+  lectura; `(x − base) / RANGO_GIRO` (18°) acotado a ±1 es el punto; por debajo
+  de `CORTE_GIRO` (0,06) en los dos ejes, reposo (`poner(null)`, quita
+  `holo-activo`). Con el dedo apoyado (pointerdown touch) no escribe y al
+  soltar coge base nueva; sin la caja en el DOM se quita la escucha; sin cajas
+  a la vista (ficha cerrada) olvida la base. `requestPermission` se llama al
+  primer `touchend` en la carta solo si no ha llegado ninguna lectura
+  (`recibido`). Devuelve `apagar`, que también corre con «menos movimiento».
+
 ## Tanda 1407 — Sugerir y Ordenar en los álbumes
 
 - `js/mi-coleccion/armonia.js` (puro salvo la foto y la caché): `oklab`,

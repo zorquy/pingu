@@ -54,6 +54,15 @@
   una caja: tu idioma en grande y los demás en chips (`.pv-con-tarjetas`), en
   una fila en el PC para que quepa sin desplazarse (923). Un mando nuevo de la
   ficha sigue ese molde, no vuelve a las losetas cuadradas.
+- **El holo de la carta grande se mueve con el ratón, el dedo y, en el móvil,
+  el giroscopio** (`js/carta-holo.js`; 368, 783 y 1408, PINGU: «en el móvil, al
+  girar el móvil, se gira la carta un poquito… no pongas ningún mensaje»). El
+  giro solo va con `pointer: coarse` y en `.carta-scan-holo` (en las rejillas,
+  solo ratón), a 7° y no a 12, con el reposo en TU postura y el dedo por
+  encima. No se escribe ningún texto sobre el sensor: en iPhone el permiso se
+  pide al primer toque en la carta y solo si no llega ninguna lectura (Chrome
+  también trae `requestPermission`). Una carta nueva que deba brillar llama a
+  `montarHolo`; no montes otra escucha del sensor.
 - **Una carta se abre en su pop-up, en toda la web** (tanda 1043, PINGU:
   «a la ficha completa solo si le das a ver ficha completa»): un oyente de
   `app.js` convierte cualquier clic en un enlace a `/carta/…` o

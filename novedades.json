@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-21", "tipo": "mejora", "texto": "En el móvil, abre una carta e inclina el teléfono: la carta se gira un poco y brilla como si la tuvieras en la mano.", "enlace": "/cartas" },
     { "fecha": "2026-11-21", "tipo": "nuevo", "texto": "Tus álbumes, como un artista: toca «Sugerir» en un hueco y te enseña tus cartas que mejor quedan ahí por color y por escena, con el porqué. Y en el ⋯ del álbum, «Ordenar la página» y «Llenar los huecos».", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-11-21", "tipo": "arreglo", "texto": "Si se borra un torneo, su aviso ya no se queda colgado con el número en Jugar: al entrar en Torneos desaparece. Y un torneo recién creado espera unos minutos antes de anunciarse, por si era un error.", "enlace": "/torneos" },
     { "fecha": "2026-11-20", "tipo": "arreglo", "texto": "En los torneos: tu mesa enseña la foto de cada jugador, los mensajes del chat de la mesa ya no desaparecen, «Llamar al juez» avisa siempre de lo que pasa y el tablón se abre bien en el ordenador.", "enlace": "/torneos" },
