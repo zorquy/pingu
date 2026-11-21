@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="/css/style.css">
+<title>Carrusel armonía</title></head>
+<body style="background:#0b1219">
+<script type="module">
+// El carrusel de «Sugerir» y «Ordenar la página» (tanda 1407; PINGU: «hazme un
+// post… tamaño Instagram en carrusel, para anunciar la nueva función, es una
+// pasada»). Con EL MARCO de las redes (js/redes-marco.js, 1156) en el color de
+// Colección, las ilustraciones de VERDAD (TCGdex, en /carrusel-arte/) y las
+// capturas de la función funcionando (capturas-armonia.mjs). Los colores de la
+// página y el orden de la de fuego los calcula armonia.js, no están a mano.
+import { pintarMarco, prepararMarco, TITULAR, TEXTO, acentoDe } from '/js/redes-marco.js'
+import { redondeado } from '/js/imagen-compartir.js'
+import { paletaDePagina, huellaDeImagen, ordenarPagina, hexDe } from '/js/mi-coleccion/armonia.js'
+
+const ORO = acentoDe('coleccion')
+const TOTAL = 6
+const ENLACE = 'pokedoc.es/mi-coleccion'
+const alfa = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})` }
+const cargar = async (src) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.src = src; await i.decode(); return i }
+
+const AGUA = ['sv03.5-181', 'sv04-189', 'sv06-178', 'sv03.5-171', null, 'sv06-175', 'sv02-204', 'sv02-207', 'sv02-205']
+const SUGERIDA = 'sv06-169' // Sunflora: la primera que sugiere la web para el hueco 5
+const FUEGO = ['sv03.5-168', 'sv04-186', 'sv06-173', 'sv03.5-169', 'sv02-199', 'sv04-197', 'sv02-200', 'sv04-187', 'sv06-172']
+const ART = {}
+for (const id of [...AGUA.filter(Boolean), SUGERIDA, ...FUEGO]) ART[id] = await cargar(`/carrusel-arte/${id}.webp`)
+const PANTALLA = { hueco: await cargar('/carrusel-arte/pantalla-hueco.png'), hoja: await cargar('/carrusel-arte/pantalla-hoja.png') }
+
+// Lo que calcula la web, con sus fotos: la paleta de la página de agua y el
+// orden de la de fuego.
+const huella = async (id) => huellaDeImagen(`https://assets.tcgdex.net/en/sv/${id.replace('-', '/')}/low.webp`)
+const HAGUA = await Promise.all(AGUA.map((id) => (id ? huella(id) : null)))
+const PALETA = paletaDePagina(HAGUA.filter(Boolean))
+const HFUEGO = await Promise.all(FUEGO.map(huella))
+const ORDEN = ordenarPagina(HFUEGO, 3).orden.map((de) => FUEGO[de])
+
+function texto(ctx, t, x, y, { cuerpo = 24, peso = 600, color = '#e8f1f7', fuente = TEXTO, alinear = 'left', base = 'alphabetic' } = {}) {
+  ctx.save(); ctx.font = `${peso} ${cuerpo}px ${fuente}`; ctx.fillStyle = color; ctx.textAlign = alinear; ctx.textBaseline = base
+  ctx.fillText(t, x, y); const w = ctx.measureText(t).width; ctx.restore(); return w
+}
+function halo(ctx, cx, cy, r, color = ORO, a = 0.35) {
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+  g.addColorStop(0, alfa(color, a)); g.addColorStop(1, alfa(color, 0))
+  ctx.fillStyle = g; ctx.fillRect(cx - r, cy - r, r * 2, r * 2)
+}
+function pildora(ctx, t, { x, y, cuerpo, fondo = ORO, color = '#0b1219', alinear = 'left', peso = 800 }) {
+  ctx.save(); ctx.font = `${peso} ${cuerpo}px ${TITULAR}`
+  const w = ctx.measureText(t).width + cuerpo * 1.4, h = cuerpo * 1.9
+  const x0 = alinear === 'center' ? x - w / 2 : alinear === 'right' ? x - w : x
+  ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = cuerpo; ctx.shadowOffsetY = cuerpo * 0.3
+  ctx.fillStyle = fondo; redondeado(ctx, x0, y, w, h, h / 2); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x0 + w / 2, y + h / 2 + 1)
+  ctx.restore(); return { w, h, x0 }
+}
+// Una carta real con sus esquinas, su sombra y un brillo que la cruza.
+function carta(ctx, img, { x, y, w, angulo = 0, sombra = true, brillo = true, alfaImg = 1 }) {
+  const h = w * img.height / img.width, r = w * 0.045
+  ctx.save()
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate((angulo * Math.PI) / 180)
+  if (sombra) { ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = w * 0.14; ctx.shadowOffsetY = w * 0.06 }
+  ctx.fillStyle = '#0b1219'; redondeado(ctx, -w / 2, -h / 2, w, h, r); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.save(); redondeado(ctx, -w / 2, -h / 2, w, h, r); ctx.clip()
+  ctx.globalAlpha = alfaImg; ctx.drawImage(img, -w / 2, -h / 2, w, h); ctx.globalAlpha = 1
+  if (brillo) {
+    const g = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2)
+    g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.18)'); g.addColorStop(0.62, 'rgba(255,255,255,0)')
+    ctx.fillStyle = g; ctx.fillRect(-w / 2, -h / 2, w, h)
+  }
+  ctx.restore(); ctx.restore()
+  return h
+}
+// Una hoja de binder 3×3: el fondo oscuro de la web, las fundas y las cartas.
+function hoja(ctx, ids, { x, y, w, hueco = null, destacada = null, numeros = false }) {
+  const pad = w * 0.045, gap = w * 0.022
+  const cw = (w - pad * 2 - gap * 2) / 3, ch = cw * 342 / 245
+  const h = pad * 2 + ch * 3 + gap * 2
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 22
+  ctx.fillStyle = '#16212c'; redondeado(ctx, x, y, w, h, w * 0.035); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.strokeStyle = '#2a3b4c'; ctx.lineWidth = 3; ctx.stroke()
+  ctx.restore()
+  ids.forEach((id, i) => {
+    const cx = x + pad + (i % 3) * (cw + gap), cy = y + pad + Math.floor(i / 3) * (ch + gap)
+    ctx.save(); ctx.fillStyle = '#1e2c39'; redondeado(ctx, cx - 4, cy - 4, cw + 8, ch + 8, 10); ctx.fill(); ctx.restore()
+    if (id) carta(ctx, ART[id], { x: cx, y: cy, w: cw, sombra: false, brillo: false })
+    else {
+      ctx.save(); ctx.setLineDash([10, 8]); ctx.lineWidth = 3; ctx.strokeStyle = alfa(ORO, 0.9)
+      redondeado(ctx, cx + 4, cy + 4, cw - 8, ch - 8, 10); ctx.stroke(); ctx.restore()
+    }
+    if (numeros) texto(ctx, String(i + 1), cx + cw - 14, cy + ch - 14, { cuerpo: 26, peso: 800, color: '#ffffff', fuente: TITULAR, alinear: 'right' })
+  })
+  return { h, celda: (i) => ({ x: x + pad + (i % 3) * (cw + gap), y: y + pad + Math.floor(i / 3) * (ch + gap), w: cw, h: ch }) }
+}
+// Un móvil con una captura dentro (390×797 de la web, bajo una barra con la hora).
+function movil(ctx, img, { x, y, w, angulo = 0 }) {
+  const esc = w / 430, sw = 390, sh = 844, h = 930 * esc
+  ctx.save()
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate((angulo * Math.PI) / 180)
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 70 * esc; ctx.shadowOffsetY = 34 * esc
+  ctx.fillStyle = '#05090d'; redondeado(ctx, -w / 2, -h / 2, w, h, 64 * esc); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.strokeStyle = '#3a4c5c'; ctx.lineWidth = 3 * esc; ctx.stroke()
+  const bx = -w / 2 + 20 * esc, by = -h / 2 + 43 * esc
+  ctx.save(); redondeado(ctx, bx, by, sw * esc, sh * esc, 46 * esc); ctx.clip()
+  ctx.fillStyle = '#0f1a24'; ctx.fillRect(bx, by, sw * esc, sh * esc)
+  const est = 47 * esc
+  ctx.drawImage(img, bx, by + est, sw * esc, (sw * img.height / img.width) * esc)
+  ctx.fillStyle = '#0f1a24'; ctx.fillRect(bx, by, sw * esc, est)
+  texto(ctx, '9:41', bx + 34 * esc, by + 32 * esc, { cuerpo: 16 * esc, peso: 700, color: '#ffffff' })
+  ctx.restore()
+  ctx.fillStyle = '#05090d'; redondeado(ctx, -55 * esc, -h / 2 + 52 * esc, 110 * esc, 30 * esc, 15 * esc); ctx.fill()
+  ctx.restore()
+  return h
+}
+function flecha(ctx, x1, y1, x2, y2, { color = ORO, grosor = 8 } = {}) {
+  ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = grosor; ctx.lineCap = 'round'
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
+  const a = Math.atan2(y2 - y1, x2 - x1), l = grosor * 3
+  ctx.beginPath(); ctx.moveTo(x2 + Math.cos(a) * 4, y2 + Math.sin(a) * 4)
+  ctx.lineTo(x2 - l * Math.cos(a - 0.5), y2 - l * Math.sin(a - 0.5)); ctx.lineTo(x2 - l * Math.cos(a + 0.5), y2 - l * Math.sin(a + 0.5)); ctx.closePath(); ctx.fill()
+  ctx.restore()
+}
+// Las franjas de los 3 colores de la página, con su código.
+function paleta(ctx, { x, y, w, h, grande = false }) {
+  const tot = PALETA.pesos.reduce((s, p) => s + p, 0)
+  let cx = x
+  PALETA.hex.forEach((hx, i) => {
+    // Anchas según su peso, pero sin bajar de lo que ocupa el código.
+    const ww = (w - 16) * (0.18 + 0.46 * (PALETA.pesos[i] / tot))
+    ctx.save(); ctx.fillStyle = hx; redondeado(ctx, cx, y, ww, h, 16); ctx.fill(); ctx.restore()
+    const claro = PALETA.labs[i][0] > 0.72
+    texto(ctx, hx, cx + 18, y + h - 20, { cuerpo: grande ? 30 : 22, peso: 700, color: claro ? '#0b1219' : '#ffffff', fuente: 'ui-monospace, monospace' })
+    if (grande) texto(ctx, `${Math.round(PALETA.pesos[i] / tot * 100)} %`, cx + 18, y + 42, { cuerpo: 26, peso: 800, color: claro ? '#0b1219' : '#ffffff', fuente: TITULAR })
+    cx += ww + 8
+  })
+}
+
+const BASE = { seccion: 'coleccion', chapa: 'Nuevo · Álbumes', enlace: ENLACE }
+const PIEZAS = [
+  { nombre: 'armonia-1', chapaPie: `1/${TOTAL}`,
+    titulo: 'Tu álbum, ordenado *como un artista*', entradilla: 'PokeDoc mira los colores de cada ilustración y te dice qué carta queda mejor en cada hueco.',
+    pieza: async (ctx, k) => {
+      const w = Math.min(k.w * 0.62, (k.h - 100) / 1.345)
+      const x = k.x + (k.w - w) / 2 - 90, y = k.y + 6
+      halo(ctx, x + w / 2, y + k.h / 2, k.w * 0.6, '#53a6c8', 0.35)
+      const pag = hoja(ctx, AGUA, { x, y, w, hueco: 4 })
+      // La sugerida, saliendo del hueco 5 hacia fuera.
+      const c5 = pag.celda(4)
+      ctx.save(); ctx.setLineDash([10, 8]); ctx.lineWidth = 4; ctx.strokeStyle = ORO; redondeado(ctx, c5.x + 4, c5.y + 4, c5.w - 8, c5.h - 8, 10); ctx.stroke(); ctx.restore()
+      const sw = c5.w * 1.45
+      const sx = x + w + 10, sy = c5.y - c5.h * 0.35
+      flecha(ctx, sx + 10, sy + sw * 0.7, c5.x + c5.w * 0.75, c5.y + c5.h * 0.55)
+      carta(ctx, ART[SUGERIDA], { x: sx, y: sy, w: sw, angulo: 8 })
+      pildora(ctx, '✦ Sugerida', { x: sx + sw / 2 + 10, y: sy - 30, cuerpo: 26, alinear: 'center' })
+      paleta(ctx, { x, y: y + pag.h + 20, w, h: 64 })
+    } },
+  { nombre: 'armonia-2', chapaPie: `2/${TOTAL}`,
+    titulo: '*Sugerir* en cada hueco', entradilla: 'Toca «Sugerir» en un hueco vacío: te enseña tus cartas que mejor quedan ahí, y por qué.',
+    pieza: async (ctx, k) => {
+      const w = Math.min(400, Math.floor(k.h * 430 / 930))
+      const h = 930 * w / 430
+      halo(ctx, k.x + k.w * 0.3, k.y + k.h * 0.5, 420, '#53a6c8', 0.3)
+      halo(ctx, k.x + k.w * 0.75, k.y + k.h * 0.45, 400, ORO, 0.3)
+      movil(ctx, PANTALLA.hueco, { x: k.x + 10, y: k.y + (k.h - h) / 2 + 20, w, angulo: -5 })
+      movil(ctx, PANTALLA.hoja, { x: k.x + k.w - w - 10, y: k.y + (k.h - h) / 2 - 10, w, angulo: 4 })
+    } },
+  { nombre: 'armonia-3', chapaPie: `3/${TOTAL}`,
+    titulo: 'Los *colores* de la página', entradilla: 'Saca los 3 colores de cada ilustración y si son vivos o suaves. Son matemáticas con los colores, no IA.',
+    pieza: async (ctx, k) => {
+      const w = k.w * 0.5
+      const pag = hoja(ctx, AGUA, { x: k.x, y: k.y + 10, w })
+      halo(ctx, k.x + k.w * 0.78, k.y + k.h * 0.45, 380, '#53a6c8', 0.35)
+      // Las tres franjas grandes, en vertical, a la derecha.
+      const x = k.x + w + 50, ww = k.w - w - 50
+      const tot = PALETA.pesos.reduce((s, p) => s + p, 0)
+      let y = k.y + 10
+      const alto = pag.h
+      PALETA.hex.forEach((hx, i) => {
+        const hh = (alto - 24) * (PALETA.pesos[i] / tot)
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10
+        ctx.fillStyle = hx; redondeado(ctx, x, y, ww, hh, 22); ctx.fill(); ctx.restore()
+        const claro = PALETA.labs[i][0] > 0.72
+        texto(ctx, hx, x + 26, y + hh - 26, { cuerpo: 38, peso: 700, color: claro ? '#0b1219' : '#ffffff', fuente: 'ui-monospace, monospace' })
+        texto(ctx, `${Math.round(PALETA.pesos[i] / tot * 100)} %`, x + 26, y + 52, { cuerpo: 34, peso: 800, color: claro ? '#0b1219' : '#ffffff', fuente: TITULAR })
+        y += hh + 12
+      })
+    } },
+  { nombre: 'armonia-4', chapaPie: `4/${TOTAL}`,
+    titulo: 'Que la *escena siga*', entradilla: 'Mira el color con el que cada dibujo sale por sus bordes: si el agua de una carta sigue en la de al lado, la página se lee de corrido.',
+    pieza: async (ctx, k) => {
+      // Las tres cuyos bordes más siguen, de las de la prueba (huellas de la web).
+      const ids = ['sv02-204', 'sv04-189', 'sv03.5-171']
+      const gap = 26, w = Math.min((k.w - gap * 2) / 3, (k.h - 90) * 245 / 342)
+      const x0 = k.x + (k.w - (w * 3 + gap * 2)) / 2, y = k.y + 20
+      halo(ctx, k.x + k.w / 2, y + w * 0.7, k.w * 0.55, '#53a6c8', 0.35)
+      const h = w * 342 / 245
+      ids.forEach((id, i) => carta(ctx, ART[id], { x: x0 + i * (w + gap), y, w }))
+      // Las costuras: donde el dibujo de una pasa a la siguiente.
+      for (let i = 0; i < 2; i++) {
+        const sx = x0 + (i + 1) * (w + gap) - gap / 2
+        const g = ctx.createLinearGradient(sx - 40, 0, sx + 40, 0)
+        g.addColorStop(0, alfa(ORO, 0)); g.addColorStop(0.5, alfa(ORO, 0.85)); g.addColorStop(1, alfa(ORO, 0))
+        ctx.fillStyle = g; ctx.fillRect(sx - 40, y + h * 0.12, 80, h * 0.62)
+        flecha(ctx, sx - 60, y + h * 0.43, sx + 60, y + h * 0.43, { color: '#ffffff', grosor: 7 })
+      }
+      const nombres = ['Marill', 'Mantyke', 'Wartortle']
+      nombres.forEach((n, i) => texto(ctx, n, x0 + i * (w + gap) + w / 2, y + h + 46, { cuerpo: 30, peso: 800, fuente: TITULAR, alinear: 'center', color: '#e8f1f7' }))
+      // Debajo, el color con que sale cada una por su borde y con el que
+      // entra la de al lado (las huellas de la web): casi el mismo.
+      const H = await Promise.all(ids.map(huella))
+      const yb = y + h + 90
+      for (let i = 0; i < 2; i++) {
+        const sale = hexDe(H[i].bordes.der), entra = hexDe(H[i + 1].bordes.izq)
+        const cx = x0 + (i + 1) * (w + gap) - gap / 2
+        const lado = 92
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8
+        ctx.fillStyle = sale; redondeado(ctx, cx - lado - 8, yb, lado, lado, 20); ctx.fill()
+        ctx.fillStyle = entra; redondeado(ctx, cx + 8, yb, lado, lado, 20); ctx.fill(); ctx.restore()
+        texto(ctx, '≈', cx, yb + lado / 2 + 2, { cuerpo: 44, peso: 800, fuente: TITULAR, alinear: 'center', base: 'middle', color: '#ffffff' })
+        texto(ctx, sale, cx - lado / 2 - 8, yb + lado + 34, { cuerpo: 20, peso: 700, alinear: 'center', color: '#cfe3f1', fuente: 'ui-monospace, monospace' })
+        texto(ctx, entra, cx + lado / 2 + 8, yb + lado + 34, { cuerpo: 20, peso: 700, alinear: 'center', color: '#cfe3f1', fuente: 'ui-monospace, monospace' })
+      }
+      texto(ctx, 'Sale por un borde · entra por el de al lado', k.x + k.w / 2, yb + 170, { cuerpo: 26, peso: 600, alinear: 'center', color: '#9fb3bd' })
+    } },
+  { nombre: 'armonia-5', chapaPie: `5/${TOTAL}`,
+    titulo: '*Ordena* la página en un toque', entradilla: 'Prueba las 362.880 formas de colocar 9 cartas y se queda con la que mejor sigue la escena. Con Deshacer.',
+    pieza: async (ctx, k) => {
+      const gap = 90, w = Math.min((k.w - gap) / 2, (k.h - 70) * 0.72)
+      const y = k.y + 40
+      halo(ctx, k.x + k.w * 0.75, y + w * 0.6, 420, '#ff7a3d', 0.32)
+      const a = hoja(ctx, FUEGO, { x: k.x, y, w })
+      hoja(ctx, ORDEN, { x: k.x + w + gap, y, w })
+      flecha(ctx, k.x + w + 16, y + a.h / 2, k.x + w + gap - 16, y + a.h / 2, { grosor: 9 })
+      texto(ctx, 'Antes', k.x + w / 2, y - 14, { cuerpo: 30, peso: 800, fuente: TITULAR, alinear: 'center', color: '#9fb3bd' })
+      texto(ctx, 'Después', k.x + w + gap + w / 2, y - 14, { cuerpo: 30, peso: 800, fuente: TITULAR, alinear: 'center', color: ORO })
+    } },
+  { nombre: 'armonia-6', chapaPie: `6/${TOTAL}`,
+    titulo: 'Pruébalo en *tus álbumes*', entradilla: 'Gratis, con tus cartas y en tu navegador.',
+    pieza: async (ctx, k) => {
+      halo(ctx, k.x + k.w / 2, k.y + k.h / 2, k.w * 0.6, ORO, 0.3)
+      const pasos = [
+        ['1', 'Abre un álbum', 'Mi colección › Cartas › Álbumes'],
+        ['2', 'Toca «Sugerir»', 'en un hueco vacío de una página'],
+        ['3', 'O usa el ⋯', '«Ordenar la página» y «Llenar los huecos»'],
+      ]
+      const alto = Math.min(140, (k.h - 300) / 3)
+      pasos.forEach(([n, t, s], i) => {
+        const y = k.y + 10 + i * (alto + 18)
+        ctx.save(); ctx.fillStyle = 'rgba(255,255,255,0.07)'; redondeado(ctx, k.x, y, k.w, alto, 30); ctx.fill()
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore()
+        ctx.save(); ctx.fillStyle = ORO; ctx.beginPath(); ctx.arc(k.x + 80, y + alto / 2, 46, 0, Math.PI * 2); ctx.fill(); ctx.restore()
+        texto(ctx, n, k.x + 80, y + alto / 2 + 2, { cuerpo: 54, peso: 800, fuente: TITULAR, alinear: 'center', base: 'middle', color: '#0b1219' })
+        texto(ctx, t, k.x + 160, y + alto / 2 - 8, { cuerpo: 46, peso: 800, fuente: TITULAR, color: '#ffffff' })
+        texto(ctx, s, k.x + 160, y + alto / 2 + 40, { cuerpo: 28, peso: 500, color: '#cfe3f1' })
+      })
+      // Tres cartas en abanico, al lado de los pasos.
+      const yA = k.y + 10 + 3 * (alto + 18) + 10, cw = Math.min(170, (k.y + k.h - yA) * 245 / 342 - 10)
+      if (cw > 80) [['sv02-204', -12, -1], ['sv06-169', 0, 0], ['sv06-175', 12, 1]].forEach(([id, ang, i]) => carta(ctx, ART[id], { x: k.x + k.w / 2 - cw / 2 + i * cw * 0.72, y: yA + Math.abs(i) * 14, w: cw, angulo: ang }))
+    } },
+]
+
+await prepararMarco()
+const salida = {}
+for (const p of PIEZAS) {
+  const lienzo = document.createElement('canvas')
+  const { ctx, caja } = pintarMarco(lienzo, { ...BASE, formato: 'historia', titulo: p.titulo, entradilla: p.entradilla, chapaPie: p.chapaPie || '' })
+  await p.pieza(ctx, caja)
+  salida[p.nombre] = lienzo.toDataURL('image/png')
+}
+window.__carrusel = salida
+window.__orden = ORDEN
+window.__paleta = PALETA.hex
+</script>
+</body></html>
