@@ -55212,6 +55212,27 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1416 — Los enlaces de PokeDoc, con su vista previa
+
+- `js/enlaces-internos.js` (por `import()` desde tema.js, guia.js,
+  guide-forum.js y mensajes.js): `PAGINAS` (ruta → `{ sec, icono, chapa,
+  titulo, texto }`, las 17 de `TARJETAS_FIJAS` más /torneos, /retos y
+  /mi-coleccion), `destinoDe(href)` → `{ tipo, clave }` con tipo `tema`,
+  `evento`, `guia` (/guia, /noticias, /curso), `carta`, `expansion`,
+  `perfil` (/usuario, /tiendas), `torneo` o `pagina`; `esEnlaceDesnudo(texto,
+  href, origen)`, `URL_EN_TEXTO` (con o sin «https://»), `limpiarFinal`,
+  `vaSolo(a)` (solo en su párrafo o entre dos `<br>`), `grandeHtml(d)` y
+  `pastillaHtml(d)`. Datos: guías y temas en lote (`guides`, `categories`,
+  `forum_threads`, `forum_boards`, `user_profiles`); evento por
+  `evento_ficha`; carta por `candidatosDeRuta` + `tcg_card_prices`
+  (`cm_trend`/`cm_low`); expansión por `filtroDeColeccion`; torneo por
+  `tournaments` + cuenta de `tournament_registrations` activas. Solo la
+  grande pide la entradilla de un tema (primer `forum_posts`) y cuántos dan
+  una carta (`coleccion_quien_la_tiene_todos`, `da > 0`). Todo con memoria
+  por `tipo:clave` (el hilo de Mensajes se repinta).
+- El enlace queda con `enlace-tarjeta ep ep-grande|ep-pastilla ep-<sección>
+  enlace-<tipo>` y `data-enlace`. CSS en `css/enlaces.css` (`.ep-*`).
+
 ## Tanda 1415 — Quién tiene lo que buscas, en la ficha de un evento
 
 - `supabase-migration-1415-evento-cruces.sql`:

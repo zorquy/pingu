@@ -348,6 +348,15 @@
   `de_pokedoc`, y la web pinta «PokeDoc» con `firmaPokedoc` /
   `PERFIL_POKEDOC` (`js/foro-comun.js`). Algo nuevo que escriba en el foro
   como PokeDoc pasa por una función así, nunca por un insert del navegador.
+- **Un enlace de PokeDoc se ve como lo que es** (tanda 1416, PINGU: «esto sí
+  me gusta»): `js/enlaces-internos.js` lo convierte en tarjeta GRANDE si va
+  solo en su línea y en PASTILLA si va en una frase, en el foro, las guías,
+  los comentarios y Mensajes. Una página o una ficha nueva que se enlace
+  mucho entra en `destinoDe` y en su `de…`; una página fija, en `PAGINAS`
+  con la frase de su tarjeta para redes (la prueba 1416 compara las dos). Un
+  sitio nuevo con texto de la gente llama a `enriquecerEnlacesInternos` tras
+  pintar. Nunca se toca un enlace con texto puesto por quien escribe, ni uno a
+  otra web.
   Lo que se CRUZA entre los que van (Quién tiene lo que buscas, 1415) sale de
   lo público y nada más: lo que cada uno da para cambio (`cambio_libres_de`) y
   La quiero; nunca una colección privada, y quien va «sin decirlo» no sale a

@@ -124,6 +124,9 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
       <div id="forumReplyBanner"></div>
       <div id="forumCommentForm" style="margin-top:12px;"></div>`
 
+    // Los enlaces de PokeDoc en los comentarios, con su vista previa (1416).
+    const lista = containerEl.querySelector('#forumPostsList')
+    if (lista && /pokedoc\.es|href="\//i.test(lista.innerHTML)) import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(lista)).catch(() => {})
     containerEl.querySelector('#forumPrevPage')?.addEventListener('click', () => render(page - 1))
     containerEl.querySelector('#forumNextPage')?.addEventListener('click', () => render(page + 1))
 

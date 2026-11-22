@@ -1,0 +1,86 @@
+/* Los enlaces de PokeDoc con vista previa (tanda 1416): la tarjeta GRANDE
+   (el enlace solo en su línea) y la PASTILLA (en medio de una frase). Entra
+   con hojaInyectada desde js/enlaces-internos.js, solo si hay un enlace
+   nuestro en la página. El color es el de la sección de lo enlazado. */
+.ep { --c: var(--navy-solid); --c2: #5fa8d8; color: var(--text); text-decoration: none !important; }
+.ep-inicio { --c: #1e5175; --c2: #3f86b8; }
+.ep-comunidad { --c: #c62a5c; --c2: #e0598a; }
+.ep-cartas { --c: #9a5f06; --c2: #d39a2e; }
+.ep-aprender { --c: #0f7f55; --c2: #2fae78; }
+.ep-jugar { --c: #5f43d9; --c2: #8b72f2; }
+/* En oscuro el texto de la chapa va en el tono claro; el fondo, igual. */
+:root[data-theme='dark'] .ep { --ct: var(--c2); }
+.ep { --ct: var(--c); }
+
+/* ── La grande ── */
+.ep-grande {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  max-width: 560px;
+  margin: var(--e-md) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.ep-grande:hover { transform: translateY(-2px); border-color: var(--ct); box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); }
+.ep-grande:focus-visible { outline: 2px solid var(--ct); outline-offset: 2px; }
+.ep-img { position: relative; display: grid; place-items: center; min-height: 132px; overflow: hidden; background: linear-gradient(135deg, var(--c), var(--c2)); color: var(--blanco-fijo); }
+.ep-img-portada { background: var(--ice); }
+.ep-img-portada img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ep-img-icono svg { width: 52px; height: 52px; opacity: 0.95; }
+.ep-img-icono i { position: absolute; left: var(--e-md); bottom: var(--e-sm); font: 800 var(--t-xs) var(--font-display); font-style: normal; opacity: 0.85; }
+.ep-emoji { font-size: 56px; line-height: 1; }
+.ep-img-carta { background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%), var(--ice); padding: var(--e-md); }
+.ep-img-carta img { width: 84px; height: auto; aspect-ratio: 245 / 342; border-radius: 5px; box-shadow: 0 6px 16px rgb(0 0 0 / 0.35); transform: rotate(-4deg); }
+.ep-img-logo { --ev-color: var(--navy-solid); background: var(--ev-color); font: 900 28px/1 var(--font-display); }
+.ep-img-logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: var(--e-lg); background: var(--ev-color); }
+.ep-img-set { padding: var(--e-lg); }
+.ep-img-set img { max-width: 100%; max-height: 72px; filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35)); }
+.ep-img-set b { font: 800 var(--t-lg) var(--font-display); text-align: center; }
+.ep-img-avatar span { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; color: var(--blanco-fijo); font: 800 30px var(--font-display); background-size: cover; background-position: center; box-shadow: 0 0 0 4px rgb(255 255 255 / 0.9); }
+.ep-cuerpo { display: grid; align-content: center; gap: var(--e-xs); padding: var(--e-md) var(--e-lg); min-width: 0; }
+.ep-chapa { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--ct); font-size: var(--t-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.ep-chapa svg { width: 14px; height: 14px; flex: none; }
+.ep-titulo { font: 800 var(--t-lg)/1.25 var(--font-display); color: var(--text); }
+.ep-texto { color: var(--text-mid); font-size: var(--t-sm); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ep-pie { display: flex; align-items: center; gap: var(--e-sm); margin-top: var(--e-xs); color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; flex-wrap: wrap; }
+.ep-precio { color: var(--text); font-size: var(--t-sm); }
+.ep-av { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: var(--blanco-fijo); font-size: var(--t-2xs); font-weight: 800; background-size: cover; background-position: center; flex: none; }
+.ep-caras { display: inline-flex; }
+.ep-caras .ep-av + .ep-av { margin-left: calc(var(--e-sm) * -1); box-shadow: 0 0 0 2px var(--white); }
+
+/* ── La pastilla ── */
+.ep-pastilla {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  max-width: 100%;
+  padding: 2px var(--e-md) 2px 2px;
+  margin: 0 2px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  font-weight: 700;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+.ep-pastilla:hover { background: color-mix(in srgb, var(--c) 24%, transparent); }
+.ep-pastilla-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ep-pastilla img { width: 16px; height: 22px; object-fit: cover; border-radius: 2px; flex: none; }
+.ep-mini-ic, .ep-mini-av, .ep-mini-logo { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; flex: none; color: var(--blanco-fijo); background: var(--c); background-size: cover; background-position: center; font-size: var(--t-2xs); font-weight: 900; }
+.ep-mini-logo { --ev-color: var(--c); background: var(--ev-color); }
+.ep-mini-ic svg { width: 13px; height: 13px; }
+
+/* En una burbuja de Mensajes, la grande no pasa del ancho de la burbuja. */
+.msg-burbuja .ep-grande { max-width: 100%; }
+
+@media (max-width: 600px) {
+  .ep-grande { grid-template-columns: 1fr; }
+  .ep-img { min-height: 0; aspect-ratio: 2.4 / 1; }
+  .ep-img-carta { aspect-ratio: auto; padding: var(--e-lg); }
+  .ep-img-carta img { width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) { .ep-grande { transition: none; } .ep-grande:hover { transform: none; } }

@@ -634,6 +634,13 @@ async function renderThread(session, conversationId) {
             .join('')
     el.querySelectorAll('[data-delete-msg]').forEach((b) => b.addEventListener('click', () => pedirBorrar(b.dataset.deleteMsg, messages)))
     wireReportButtons(el, session)
+    // Los enlaces de PokeDoc, con su vista previa (1416). Solo si hay alguno:
+    // el módulo no entra en una conversación sin enlaces nuestros. Si el hilo
+    // estaba abajo del todo, se queda abajo cuando crecen las tarjetas.
+    if (/pokedoc\.es|href="\//i.test(el.innerHTML)) {
+      const abajo = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+      import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(el)).then(() => { if (abajo) el.scrollTop = el.scrollHeight }).catch(() => {})
+    }
   }
   // Lo que se pintó la última vez (1258): el sondeo de cada 10 s y el vivo
   // volvían a escribir el hilo ENTERO aunque no hubiera nada nuevo, y con las

@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (662) — PINGU-Claude (1416 — Los enlaces de PokeDoc, con su vista previa)
+
+**Hecho** (PINGU, con la propuesta «Los enlaces de PokeDoc, con su vista
+previa»: «esto sí me gusta, hazlo recomendado y súbelo»):
+- **Cualquier enlace de PokeDoc** pegado en el foro, en una guía o noticia, en
+  los comentarios de una guía o en Mensajes sale con su vista previa: guía o
+  noticia (portada, categoría, entradilla, autor y minutos), tema del foro (su
+  foro, el principio del primer mensaje, autor y respuestas), evento (logo,
+  fechas, sitio y quién va), carta (la carta de pie, número, rareza, precio de
+  Cardmarket y cuántos de PokeDoc la dan), expansión (logo, cartas y fecha),
+  perfil o tienda, torneo (fecha, plazas y estado) y las páginas de la web
+  (/aprender, /foro, /cartas, /meta… con su color e icono y la frase de su
+  tarjeta para redes).
+- **Dos formas** (lo recomendado): GRANDE si el enlace va solo en su línea,
+  PASTILLA con miniatura si va en medio de una frase. Cada una en el color de
+  su sección, en claro y oscuro.
+- Se reconoce también lo pegado sin «https://» (`pokedoc.es/aprender`) y sin
+  enlazar. Un enlace con texto propio («míralo aquí») y uno a otra web se
+  quedan como estaban; lo que no existe, también (salvo un evento borrado,
+  que lo dice, como desde la 1197).
+
+**Ficheros**: `js/enlaces-internos.js` (rehecho), `css/enlaces.css` (nuevo, por
+`hojaInyectada`; la tarjeta vieja sale de `components.css`), `js/mensajes.js` y
+`js/guide-forum.js` (lo llaman), `normas/comunidad.md`. Prueba
+`test-tanda-1416-pantalla.mjs`; la 1197 sigue en verde.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-22 (661) — PINGU-Claude (1415 — Quién tiene lo que buscas, en la ficha de un evento)
 
 **Hecho** (PINGU, de «Dónde va cada función»: «9, sí»):
