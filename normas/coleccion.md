@@ -393,6 +393,11 @@
   del Panel nuevas (`colores`, `ilustradores`) van en `PESTANAS`, en el
   `data-tambien` del botón Panel y en la lista de secciones de
   `cambiarPestania`; si falta una, la dirección abre el Panel a secas.
+- **Un PDF de la web se hace con lienzos y `pdfDeImagenes`** (tiendas-puro.js:
+  el Cierre del mes, las etiquetas, el Informe de tu colección de la 1413):
+  sin librerías de PDF en el cliente. Las columnas de una tabla caben en el
+  ancho MENOS los márgenes (la 1413 sacó el valor fuera de la hoja la primera
+  vez), y una lista que puede ser enorme lleva tope de hojas y lo dice.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

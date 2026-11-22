@@ -6046,6 +6046,12 @@ function enganchar() {
     if (!b) return
     void extrasModulo().then((m) => m.pulsar(b)).catch((err) => showToast(err.message || 'No se ha podido cargar.', 'error'))
   })
+  // El informe en PDF (1413): su módulo entra al pulsarlo.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('#mcInforme')
+    if (!b) return
+    void import('./mi-coleccion/informe.js').then((m) => m.hacerInforme(ctxPanel, b)).catch((err) => showToast(err.message || 'No se ha podido hacer el informe.', 'error'))
+  })
 
   // ── La nota, plegada (tanda 405) ──
   // ── Añadir, como en TCGGO (tanda 650) ──

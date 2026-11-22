@@ -55212,6 +55212,20 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1413 — Informe PDF de tu colección
+
+- `js/mi-coleccion/informe.js` (por `import()` desde el clic en `#mcInforme`,
+  loseta de `vistazoDeAcciones`): `filasDelInforme(lineas, { cartaDe, valorDe,
+  nombreDe })` → `{ nombre, set, fecha, numero, idioma, estado, copias, valor,
+  pagado, carta }` por fecha de la expansión (desc), nombre del set y número;
+  `cifrasDe(filas)` → `{ copias, distintas, expansiones, valor, pagado }`;
+  `porExpansion(filas, 14)`; `lasQueMasValen(filas, 12)` (por valor de una
+  copia, una vez cada carta); `hojasDeLista(filas, FILAS_POR_HOJA = 44,
+  HOJAS_MAXIMAS = 60)` → `{ hojas, cortada, fuera }`; `pdfDelInforme(ctx)` →
+  `{ bytes, paginas, cortada }` y `hacerInforme(ctx, boton)` (descarga
+  `mi-coleccion-AAAA-MM-DD.pdf`). Hojas de 210×297 mm a 6 px/mm, JPEG 0,86
+  (0,9 la portada), por `pdfDeImagenes` de `tiendas-puro.js`.
+
 ## Tanda 1411 — Tus colores, Tus ilustradores y «Por colores»
 
 - Vistas del Panel `colores` e `ilustradores`: en `PESTANAS`, en el

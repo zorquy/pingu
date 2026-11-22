@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (659) — PINGU-Claude (1413 — Informe PDF de tu colección)
+
+**Hecho** (PINGU, de «Dónde va cada función»: la loseta «Informe PDF» del
+Panel › Más):
+- **Panel › Más › «Informe PDF»**, junto a Exportar CSV: descarga un A4. La
+  primera hoja lleva tus cifras (cartas y distintas, expansiones, valor y lo
+  que pagaste si lo apuntas), las doce que más valen con su foto y precio, y el
+  reparto por expansión. Después, todas tus cartas en una tabla (carta,
+  expansión, número, idioma, estado o nota de gradeo, copias y valor), 44 por
+  hoja, por expansión (la más nueva antes) y número, con «Página N de M».
+- Sin librerías: cada hoja es un lienzo y `pdfDeImagenes` (el del Cierre del
+  mes) las junta. Con más de 60 hojas de lista se queda con las que más valen
+  y lo dice (todas siguen en el CSV). Mientras se hace, el botón cuenta las
+  hojas.
+
+**Ficheros**: `js/mi-coleccion/informe.js` (nuevo, por `import()`),
+`js/mi-coleccion/panel.js` (la loseta), `js/mi-coleccion.js` (el clic),
+`normas/coleccion.md`. Prueba `test-tanda-1413-pantalla.mjs` (lo puro y la
+descarga: PDF A4 de 4 páginas con 110 líneas).
+
+**Pendiente**: nada. Va en el push de hoy.
+
 ## 2026-11-22 (658) — PINGU-Claude (1411 — Tus colores, Tus ilustradores y «Por colores»)
 
 **Hecho** (PINGU, de «Dónde va cada función»: «1, sí. 2, sí»; las tres
