@@ -3135,6 +3135,16 @@ export const supabase = {
       if (args.p_voy !== false) e.asistentes.push({ user_id: yo, oculto: !!args.p_oculto })
       return { data: { voy: args.p_voy !== false, oculto: args.p_voy !== false && !!args.p_oculto, van: e.asistentes.length }, error: null }
     }
+    // Quién tiene lo que buscas (1415): lo que diga la prueba si vas; sin
+    // `__FAKE_EVENTO_CRUCES__`, «no existe» (sin la migración).
+    if (nombre === 'evento_cruces') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_EVENTO_CRUCES__ : null
+      if (!d) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.evento_cruces' } }
+      const yo = quienSoy === 'none' ? null : quienSoy
+      const e = (window.__FAKE_EVENTOS__ || []).find((x) => x.id === args.p_evento)
+      const voy = yo && (e?.asistentes || []).some((a) => a.user_id === yo)
+      return { data: voy ? d : [], error: null }
+    }
     // El panel de analítica (848): lo que diga la prueba, o «no existe».
     // El Resumen de la 1066: lo que diga la prueba, o «no existe» (sin la migración 1065).
     if (nombre === 'admin_analitica_resumen') {

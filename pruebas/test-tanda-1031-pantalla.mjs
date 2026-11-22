@@ -66,7 +66,8 @@ console.log('\n── 2. Desde «Empezar un álbum» → «De La quiero»; y con
   await page.waitForTimeout(300)
   const tipos = await page.evaluate(() => [...document.querySelectorAll('#mcAlbNuevo [data-tipo]')].map((x) => `${x.dataset.tipo}:${x.querySelector('b')?.textContent}`))
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el tercer tipo es «De La quiero»', tipos.join('|') === 'set:Álbum de un set|binder:Binder personalizado|quiero:De La quiero', tipos.join('|'))
+  // Desde la 1411 hay un cuarto, «Por colores», detrás.
+  check('el tercer tipo es «De La quiero»', tipos.slice(0, 3).join('|') === 'set:Álbum de un set|binder:Binder personalizado|quiero:De La quiero', tipos.join('|'))
   await page.click('#mcAlbNuevo [data-tipo="quiero"]')
   await page.waitForSelector('#mcAlbumesDetalle:not(.hidden)', { timeout: 8000 }).catch(() => {})
   await page.waitForTimeout(800)
