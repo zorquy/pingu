@@ -71,11 +71,14 @@ console.log('\n── Lo puro ──')
     const c = await import('/js/mi-coleccion/tus-colores.js')
     const si = ['Rare Ultra', 'Ultra Rare', 'Rare Rainbow', 'Rare Secret', 'Special illustration rare', 'Radiant Rare', 'Shiny Ultra Rare', 'SAR']
     const no = ['Rare Holo', 'Rare Holo EX', 'Double rare', 'Common', 'Uncommon', 'Rare']
-    return { si: si.filter((r) => !c.esDeArte({ rarity: r })), no: no.filter((r) => c.esDeArte({ rarity: r })), lugia: c.esDeArte({ rarity: 'Rare Ultra', rarity_en: null }) }
+    return { si: si.filter((r) => !c.esDeArte({ rarity: r })), no: no.filter((r) => c.esDeArte({ rarity: r })), lugia: c.esDeArte({ rarity: 'Rare Ultra', rarity_en: null }), recorteHolo: c.recorteDe({ rarity: 'Rare Holo EX' }), recorteIR: c.recorteDe({ rarity: 'Illustration Rare' }) }
   })
   check('la Lugia-EX («Rare Ultra») cuenta como ilustración', arte.lugia)
   check('las formas viejas y nuevas de las rarezas de arte cuentan', !arte.si.length, `no cuentan: ${arte.si.join(', ')}`)
-  check('una holo, una EX normal o una común no cuentan', !arte.no.length, `cuentan: ${arte.no.join(', ')}`)
+  check('una holo, una EX normal o una común no son de arte', !arte.no.length, `lo son: ${arte.no.join(', ')}`)
+  // 1417c: todas entran; la de marco (la Lugia EX de Ancient Origins) se lee por la ventana de su dibujo.
+  check('una carta con marco se lee por la ventana del dibujo', arte.recorteHolo && arte.recorteHolo.y > 0.1 && arte.recorteHolo.y + arte.recorteHolo.h < 0.5, JSON.stringify(arte.recorteHolo))
+  check('una ilustración se lee entera', arte.recorteIR === null)
 }
 
 console.log('\n── Tus colores, con fotos que faltan en TCGdex ──')

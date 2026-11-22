@@ -15,9 +15,12 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
-// 1-6 azules, 7-10 rojas, 11-12 verdes; 13-14 comunes (rojas, no salen).
-const COLOR = (n) => (n <= 6 ? '#2f6fb3' : n <= 10 || n >= 13 ? '#c62828' : '#2e7d32')
-const svg = (n) => `<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="${COLOR(n)}"/><circle cx="122" cy="140" r="50" fill="${COLOR(n)}" fill-opacity="0.8"/></svg>`
+// 1-6 azules, 7-10 rojas, 11-12 verdes; 13-14 comunes: marco AMARILLO y el
+// dibujo VERDE (1417c: entran todas y una carta con marco se lee por su dibujo).
+const COLOR = (n) => (n <= 6 ? '#2f6fb3' : n <= 10 ? '#c62828' : '#2e7d32')
+const svg = (n) => n >= 13
+  ? `<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="#f2c21b"/><rect x="22" y="39" width="201" height="129" fill="#2e7d32"/></svg>`
+  : `<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="${COLOR(n)}"/><circle cx="122" cy="140" r="50" fill="${COLOR(n)}" fill-opacity="0.8"/></svg>`
 const N = 14
 const FIRMA = (n) => (n <= 5 ? 'Mitsuhiro Arita' : n <= 8 ? 'Ryota Murayama' : n === 9 ? 'Mitsuhiro Arita & Ryota Murayama' : 'Akira Komayama')
 const SETS = [{ id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', market: 'WEST', release_date: '2024-11-08', card_count_official: N, card_count_total: N }]
@@ -107,11 +110,11 @@ console.log('\n── Tus colores ──')
     titulo: document.querySelector('#mcPanelColores h2, #mcPanelColores h1')?.textContent.trim(),
   }))
   const num = (id) => Number(id.split('-')[1])
-  check('salen las 12 ilustraciones y no las comunes', r.ids.length === 12 && !r.ids.some((id) => num(id) >= 13), r.ids.join())
+  check('salen las 14, también las comunes (1417c)', r.ids.length === 14 && r.ids.includes('sv8-13') && r.ids.includes('sv8-14'), r.ids.join())
   const pos = (f) => r.ids.findIndex((id) => f(num(id)))
   check('las rojas, antes que las verdes, y estas antes que las azules', pos((n) => n >= 7 && n <= 10) < pos((n) => n >= 11) && pos((n) => n >= 11) < pos((n) => n <= 6), r.ids.join())
-  check('un chip por color con su cuenta', r.chips.join('|') === 'Todos · 12|Rojo · 4|Verde · 2|Azul · 6', r.chips.join('|'))
-  check('tu color es el azul (50 %) y el que menos, el verde', /Tu color\s*Azul · 50 %/.test(r.cifras) && /El que menos\s*Verde · 17 %/.test(r.cifras), r.cifras)
+  check('un chip por color con su cuenta; las comunes, por su dibujo verde y no por su marco amarillo', r.chips.join('|') === 'Todos · 14|Rojo · 4|Verde · 4|Azul · 6', r.chips.join('|'))
+  check('tu color es el azul (43 %) y el que menos, el rojo', /Tu color\s*Azul · 43 %/.test(r.cifras) && /El que menos\s*Rojo · 29 %/.test(r.cifras), r.cifras)
   await page.click('#mcPanelColores [data-color="rojo"]')
   const rojas = await page.$$eval('#mcPanelColores .vc-pared a', (as) => as.map((a) => a.dataset.carta))
   check('el chip «Rojo» deja solo las rojas', rojas.length === 4 && rojas.every((id) => { const n = Number(id.split('-')[1]); return n >= 7 && n <= 10 }), rojas.join())
