@@ -66,6 +66,16 @@ console.log('\n── Lo puro ──')
   check('sin repetir ninguna', new Set(r.orden).size === r.orden.length)
   check('sin «primera», también ordena', r.sinPrimera[0] === 'https://assets.tcgdex.net/en/sv/sv8/4/low.webp' && r.sinPrimera[1] === 'https://images.pokemontcg.io/sv8/4.png', r.sinPrimera.join(' '))
   check('con solo la carta, saca su cadena entera', r.carta.length >= 2 && r.carta.some((u) => /pokemontcg/.test(u)), r.carta.join(' '))
+  // 1417b: la Lugia-EX de Plasma Storm de PINGU, guardada como «Rare Ultra».
+  const arte = await page.evaluate(async () => {
+    const c = await import('/js/mi-coleccion/tus-colores.js')
+    const si = ['Rare Ultra', 'Ultra Rare', 'Rare Rainbow', 'Rare Secret', 'Special illustration rare', 'Radiant Rare', 'Shiny Ultra Rare', 'SAR']
+    const no = ['Rare Holo', 'Rare Holo EX', 'Double rare', 'Common', 'Uncommon', 'Rare']
+    return { si: si.filter((r) => !c.esDeArte({ rarity: r })), no: no.filter((r) => c.esDeArte({ rarity: r })), lugia: c.esDeArte({ rarity: 'Rare Ultra', rarity_en: null }) }
+  })
+  check('la Lugia-EX («Rare Ultra») cuenta como ilustración', arte.lugia)
+  check('las formas viejas y nuevas de las rarezas de arte cuentan', !arte.si.length, `no cuentan: ${arte.si.join(', ')}`)
+  check('una holo, una EX normal o una común no cuentan', !arte.no.length, `cuentan: ${arte.no.join(', ')}`)
 }
 
 console.log('\n── Tus colores, con fotos que faltan en TCGdex ──')
