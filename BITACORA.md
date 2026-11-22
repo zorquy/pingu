@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (664) — PINGU-Claude (1417b — Tus colores reconoce las rarezas de arte antiguas)
+
+**Hecho** (PINGU, con la ficha de su Lugia-EX de Plasma Storm 134/135: «esta
+no sale, ¿por qué?»):
+- **La causa**: qué cuenta como ilustración se miraba con una lista de
+  palabras en inglés («ultra rare», «secret», «illustration»…). Las cartas
+  antiguas guardan la rareza con otra forma —«Rare Ultra», no «Ultra Rare»;
+  «Rare Rainbow»—, así que una full art como la Lugia pasaba por carta normal.
+- **Ahora** `esDeArte` mira también el nombre en ESPAÑOL de la rareza
+  (`rarezaEs`, que ya junta todas las formas en una): Rara Ultra, Ilustración,
+  Ilustración Especial, Híper, Brillante, Asombrosa, Radiante, Arcoíris,
+  Secreta y ACE SPEC. Una holo, una EX normal («Rara Holo EX»), una doble o
+  una común siguen sin contar.
+
+**Ficheros**: `js/mi-coleccion/tus-colores.js`, `normas/coleccion.md`. Prueba:
+`test-tanda-1417-pantalla.mjs` (tres checks nuevos); pasa la 1411-pantalla.
+
+**Pendiente**: nada. Sale en el próximo push.
+
 ## 2026-11-22 (663) — PINGU-Claude (1417 — Tus colores lee todas las fotos de una carta)
 
 **Hecho** (PINGU, con una captura de Tus colores: «¿por qué solamente

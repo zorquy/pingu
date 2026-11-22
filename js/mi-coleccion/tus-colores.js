@@ -16,7 +16,7 @@
 import { escapeHtml } from '../app.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
-import { rarezaCrudaDeCarta } from '../rarezas-nombres.js'
+import { rarezaCrudaDeCarta, rarezaEs } from '../rarezas-nombres.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { hojaInyectada } from '../hoja.js'
@@ -30,7 +30,16 @@ const $ = (id) => document.getElementById(id)
 // Una ilustración: rareza de arte grande (IR, SIR, full art, galerías,
 // shiny…). Se mira la rareza canónica en inglés.
 const DE_ARTE = /illustration|special art|full art|art rare|character|gallery|shiny|hyper|secret|ultra rare|ace spec|radiant|amazing|super rare|trainer gallery|\bSAR\b|\bAR\b|\bSR\b|\bUR\b|\bCHR\b|\bCSR\b/i
-export const esDeArte = (carta) => DE_ARTE.test(rarezaCrudaDeCarta(carta) || carta?.rarity_en || carta?.rarity || '')
+// Y por su nombre en ESPAÑOL (tanda 1417b, PINGU con su Lugia-EX de Plasma
+// Storm: «esta no sale, ¿por qué?»). El inglés tiene varias formas para lo
+// mismo —«Rare Ultra» en las antiguas y no «Ultra Rare», «Rare Rainbow»—, y
+// la regla de arriba solo conocía unas: la Lugia, una full art, pasaba por
+// carta normal. `rarezaEs` las junta en una; se miran las dos.
+const DE_ARTE_ES = /^Rara (Ultra|Ilustración|Híper|Brillante|Asombrosa|Radiante|Arcoíris|Secreta|ACE SPEC)/
+export const esDeArte = (carta) => {
+  const cruda = rarezaCrudaDeCarta(carta) || ''
+  return DE_ARTE.test(cruda) || DE_ARTE_ES.test(rarezaEs(cruda) || '')
+}
 
 // El orden de la pared: la rueda del color y al final los neutros.
 export const ORDEN = ['rojo', 'naranja', 'amarillo', 'verde', 'turquesa', 'celeste', 'azul', 'morado', 'rosa', 'marrón', 'blanco', 'gris', 'negro']

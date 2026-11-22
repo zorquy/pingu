@@ -55212,6 +55212,14 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1417b — Las rarezas de arte antiguas en Tus colores
+
+- `js/mi-coleccion/tus-colores.js`: `esDeArte(carta)` = `DE_ARTE` sobre la
+  rareza cruda O `DE_ARTE_ES` (`/^Rara (Ultra|Ilustración|Híper|Brillante|
+  Asombrosa|Radiante|Arcoíris|Secreta|ACE SPEC)/`) sobre `rarezaEs(cruda)`.
+  Así casan «Rare Ultra» (las de BW/XY/SM) y «Rare Rainbow», que la lista
+  inglesa no conocía.
+
 ## Tanda 1417 — Tus colores lee todas las fotos de una carta
 
 - `js/mi-coleccion/armonia.js`: `fotosParaLeer(carta, primera, cadena?)` (pura)

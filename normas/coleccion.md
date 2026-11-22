@@ -391,6 +391,10 @@
   delante). Solo la de TCGdex se quedaba sin las expansiones recién salidas
   y sin las cartas de TCGGO: la carta se veía y su color no. Lo que aun así no
   se lee se CUENTA en la pantalla, nunca «las que no» sin número.
+  Y qué es una ilustración se mira TAMBIÉN por el nombre en español de la rareza
+  (1417b, la Lugia-EX de Plasma Storm de PINGU, «Rare Ultra»): el inglés tiene
+  varias formas para lo mismo y una lista de palabras inglesas se deja alguna.
+  Una regla nueva que dependa de la rareza pasa por `rarezaEs`, no por el texto crudo.
 - **Un binder hecho desde otra vista es `crearBinderCon`** (albumes.js, tanda
   1411; lo usan La quiero, Tus colores y Tus ilustradores): 3×3, en el orden
   que le pasas, sin duplicados y con la tapa guardada. Desde fuera de la
