@@ -47,7 +47,8 @@ console.log('\n── 2. La consulta ──')
 
 console.log('\n── 3. La función: el episodio «Pokémon» (226) ──')
 {
-  check('por defecto, el 226 occidental', JSON.stringify(fn.episodiosSueltos({})) === JSON.stringify([{ id: 226, mercado: 'WEST' }]))
+  // 1410: y el 225 («Pokémon products», la caja de 5 latas Kanto Power).
+  check('por defecto, el 226 y el 225 occidentales', JSON.stringify(fn.episodiosSueltos({})) === JSON.stringify([{ id: 226, mercado: 'WEST' }, { id: 225, mercado: 'WEST' }]))
   check('  …y la variable lo sustituye (con «JP:» para el japonés)', JSON.stringify(fn.episodiosSueltos({ TCGGO_EPISODIOS_SUELTOS: '226, JP:12, raro' })) === JSON.stringify([{ id: 226, mercado: 'WEST' }, { id: 12, mercado: 'JP' }]))
   const LATA = (id, nombre) => ({ id, name: nombre, lang: 'en', episode: { id: 226, name: 'Pokémon', released_at: null }, prices: { cardmarket: { lowest: 30, lowest_EU_only: 30, lowest_ES: 28 } } })
   const montar = ({ paginas = 1, estado = {}, sets = [] } = {}) => {
