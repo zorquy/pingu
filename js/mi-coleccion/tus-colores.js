@@ -157,9 +157,11 @@ function pintar() {
   if (elegido !== 'todos' && !grupos.some((g) => g.color === elegido)) elegido = 'todos'
   const r = resumenDe(grupos, fichas.length)
   const ver = visibles()
-  const sinLeer = huellas.size < tusIlustraciones().length
+  // Cuántas se quedan fuera, con número (1417): «las que no se han podido
+  // leer» sin cifra hacía pensar que la pared contaba mal.
+  const sinLeer = Math.max(0, tusIlustraciones().length - fichas.length)
   caja.innerHTML = `
-    <p class="mc-vista-resumen"><b>${fichas.length}</b> ${fichas.length === 1 ? 'ilustración tuya' : 'ilustraciones tuyas'}, ordenadas por su color.${sinLeer ? ' Las que no se han podido leer no salen.' : ''}</p>
+    <p class="mc-vista-resumen"><b>${fichas.length}</b> ${fichas.length === 1 ? 'ilustración tuya' : 'ilustraciones tuyas'}, ordenadas por su color.${sinLeer ? ` ${sinLeer === 1 ? 'Hay 1 que no se ha' : `Hay ${sinLeer} que no se han`} podido leer: no tienen ninguna foto que deje mirar sus colores.` : ''}</p>
     ${r ? `<div class="vc-cifras">
       <div><span>Tu color</span><b><i style="background:${r.mas.hex}"></i>${escapeHtml(NOMBRE[r.mas.color])} · ${r.mas.pct} %</b></div>
       ${r.menos ? `<div><span>El que menos</span><b><i style="background:${r.menos.hex}"></i>${escapeHtml(NOMBRE[r.menos.color])} · ${r.menos.pct} %</b></div>` : ''}

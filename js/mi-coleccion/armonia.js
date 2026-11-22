@@ -15,6 +15,7 @@
 //
 // Este fichero no toca el DOM salvo `huellaDeImagen` (un lienzo) y la caché;
 // lo demás es puro y lo prueba test-tanda-1407.mjs con huellas de verdad.
+import { cadenaDeEscaneo } from '../escaneo-carta.js'
 
 // ── Color ──
 const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
@@ -328,6 +329,31 @@ export function huellaDeImagen(src) {
   })
 }
 
+// Las fotos de una carta, en el orden en que se prueban para leer su color
+// (tanda 1417, PINGU: «¿por qué solamente reconoce 30 cartas?»). Antes se
+// probaba UNA, la de TCGdex: si TCGdex no la tenía (las expansiones recién
+// salidas, las cartas que trae TCGGO), la carta SE VEÍA —la <img> recorre
+// su cadena— pero su color no se leía y desaparecía de Tus colores, de
+// Sugerir y de Ordenar sin decir cuál. Ahora va la que pide quien llama y
+// detrás el resto de la cadena, con las que dejan leer sus píxeles delante
+// (TCGdex y pokemontcg.io mandan `Access-Control-Allow-Origin: *`); las
+// demás se prueban igual, por si un día lo mandan. Pura.
+const DEJAN_LEER = /^https:\/\/(assets\.tcgdex\.net|images\.pokemontcg\.io)\//
+export function fotosParaLeer(carta, primera = null, cadena = null) {
+  const todas = [primera, ...(cadena || (carta ? cadenaDeEscaneo(carta, null, 'low') : []))].filter(Boolean)
+  const unicas = [...new Set(todas)]
+  return [...unicas.filter((u) => u === primera || DEJAN_LEER.test(u)), ...unicas.filter((u) => u !== primera && !DEJAN_LEER.test(u))].slice(0, 5)
+}
+
+// La primera huella que se pueda sacar de una lista de fotos.
+async function huellaDeAlguna(fotos) {
+  for (const src of fotos) {
+    const h = await huellaDeImagen(src)
+    if (h) return h
+  }
+  return null
+}
+
 // Las huellas de muchas cartas, de ocho en ocho, con lo guardado primero.
 // `fotoDe(carta)` da la dirección; `alAvanzar(hechas, total)` para la barra.
 export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8 } = {}) {
@@ -344,7 +370,7 @@ export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8 }
   const trabajador = async () => {
     while (i < faltan.length) {
       const carta = faltan[i++]
-      const h = await huellaDeImagen(fotoDe(carta))
+      const h = await huellaDeAlguna(fotosParaLeer(carta, fotoDe(carta)))
       if (h) { c[carta.id] = h; out.set(carta.id, h) }
       alAvanzar?.(++hechas, cartas.length)
     }

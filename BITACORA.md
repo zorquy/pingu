@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (663) — PINGU-Claude (1417 — Tus colores lee todas las fotos de una carta)
+
+**Hecho** (PINGU, con una captura de Tus colores: «¿por qué solamente
+reconoce 30 cartas?»):
+- **La causa**: para leer el color de una ilustración se probaba UNA foto, la
+  de TCGdex. Si TCGdex no la tenía (las expansiones recién salidas, las cartas
+  que trae TCGGO), la carta se VEÍA —la `<img>` recorre su cadena de fotos—
+  pero su color no se leía y se quedaba fuera de la pared, de Sugerir, de
+  Ordenar y de la imagen de una página, sin decir cuántas.
+- **Ahora** `huellasDe` (armonia.js) prueba la que se pide y, si no se deja
+  leer, el resto de la cadena de la carta: primero las que mandan permiso
+  para leer sus píxeles (TCGdex y pokemontcg.io), luego las demás; hasta 5.
+  Lo leído se guarda como siempre (`pd-armonia-v1`); lo que falla no, y se
+  vuelve a probar la próxima vez.
+- **La frase** de Tus colores dice cuántas se quedan fuera («Hay 3 que no se
+  han podido leer…») en vez de «las que no se han podido leer no salen».
+- Que solo cuenten las ilustraciones (IR, SIR, full art…) sigue igual: es lo
+  que eligió PINGU en la propuesta de la 1411.
+
+**Ficheros**: `js/mi-coleccion/armonia.js` (`fotosParaLeer`, `huellaDeAlguna`;
+importa `cadenaDeEscaneo`), `js/mi-coleccion/tus-colores.js` (la frase),
+`normas/coleccion.md`. Prueba en la rama pruebas:
+`test-tanda-1417-pantalla.mjs` (TCGdex con 404 en tres cartas: dos se leen de
+pokemontcg.io, la tercera sale en la cuenta); pasan 1407, 1407-pantalla y
+1411-pantalla.
+
+**Pendiente**: nada. Sale en el próximo push.
+
 ## 2026-11-22 (662) — PINGU-Claude (1416 — Los enlaces de PokeDoc, con su vista previa)
 
 **Hecho** (PINGU, con la propuesta «Los enlaces de PokeDoc, con su vista

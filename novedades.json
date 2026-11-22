@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Tus colores ya no se deja ilustraciones fuera: si una foto no deja leer sus colores, prueba con las otras fotos de la carta. Y si aun así queda alguna, te dice cuántas.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "mejora", "texto": "Los enlaces de PokeDoc que pegues en el foro, en las guías o en un mensaje salen con su vista previa: la portada de la guía, la carta con su precio, el evento con quién va… En una frase, como una pastilla.", "enlace": "/foro" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Quién tiene lo que buscas: en la ficha de un evento al que vas, quién de los que van da cartas de tu La quiero y quién busca las tuyas. Y la tarde antes te avisa.", "enlace": "/eventos" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Imprimir los huecos: en el ⋯ de tu álbum, las cartas que te faltan a tamaño real para recortarlas y meterlas en su bolsillo hasta que tengas la de verdad.", "enlace": "/mi-coleccion?ver=carpetas" },

@@ -385,6 +385,12 @@
   color de una ilustración es `colorDeHuella` (un color con tono pesa el
   triple que un fondo blanco o gris) y solo entran ilustraciones (`esDeArte`):
   en una carta normal el color lo pone el marco de su tipo, no el arte.
+  Una foto que no se deja leer NO deja a la carta fuera (1417, PINGU: «¿por qué
+  solamente reconoce 30 cartas?»): `huellasDe` prueba la que pide quien llama y
+  luego el resto de su cadena (`fotosParaLeer`, con TCGdex y pokemontcg.io
+  delante). Solo la de TCGdex se quedaba sin las expansiones recién salidas
+  y sin las cartas de TCGGO: la carta se veía y su color no. Lo que aun así no
+  se lee se CUENTA en la pantalla, nunca «las que no» sin número.
 - **Un binder hecho desde otra vista es `crearBinderCon`** (albumes.js, tanda
   1411; lo usan La quiero, Tus colores y Tus ilustradores): 3×3, en el orden
   que le pasas, sin duplicados y con la tapa guardada. Desde fuera de la

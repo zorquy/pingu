@@ -55212,6 +55212,20 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1417 — Tus colores lee todas las fotos de una carta
+
+- `js/mi-coleccion/armonia.js`: `fotosParaLeer(carta, primera, cadena?)` (pura)
+  devuelve las fotos en el orden en que se prueban: `primera` (la que pide
+  quien llama, `fotoDe(carta)`), luego las de `DEJAN_LEER` (assets.tcgdex.net
+  e images.pokemontcg.io, que mandan `Access-Control-Allow-Origin: *`) y luego
+  el resto de `cadenaDeEscaneo(carta, null, 'low')`, sin repetir y como mucho
+  5. `huellasDe` la usa con `huellaDeAlguna` (la primera huella que salga).
+  Los llamadores (Tus colores, Tus ilustradores, Sugerir/Ordenar, la imagen de
+  una página) no cambian: siguen pasando su `fotoDe`.
+- `js/mi-coleccion/tus-colores.js`: la frase cuenta las que no se han podido
+  leer (ilustraciones − las de la pared).
+- Prueba: `pruebas/test-tanda-1417-pantalla.mjs`.
+
 ## Tanda 1416 — Los enlaces de PokeDoc, con su vista previa
 
 - `js/enlaces-internos.js` (por `import()` desde tema.js, guia.js,
