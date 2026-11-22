@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (658) — PINGU-Claude (1411 — Tus colores, Tus ilustradores y «Por colores»)
+
+**Hecho** (PINGU, de «Dónde va cada función»: «1, sí. 2, sí»; las tres
+preguntas de Tus colores sin contestar, así que va lo recomendado: las dos
+entradas, solo ilustraciones y con Compartir):
+- **Panel › Más › «Tus colores»** (`?ver=colores`): tus ilustraciones (IR, SIR,
+  full art…) en una pared ordenada por color, del rojo al morado y al final
+  las blancas, grises y negras. Arriba tu color y el que menos tienes, una
+  tira con el peso de cada uno y un chip por color para ver solo esas. «Hazme
+  un álbum con estas N» crea un binder 3×3 ya ordenado (cada hoja con
+  «Ordenar la página» hecho) y te lleva a él; «Compartir» hace la imagen para
+  redes con el marco de Colección. La primera vez mira la foto pequeña de cada
+  ilustración (con la cuenta de cuántas lleva); luego sale al momento.
+- **Panel › Más › «Tus ilustradores»** (`?ver=ilustradores`): quién te dibuja la
+  colección, de más a menos, con su cara (una carta suya tuya), cuántas suyas
+  tienes y, para los doce primeros, de cuántas hay en el catálogo con su
+  barra. El nombre lleva a /ilustrador/…; «Álbum» hace un binder con las
+  suyas por orden de salida. «A & B» cuenta para los dos.
+- **«Por colores» en «Empezar un álbum»**: lleva a Tus colores, donde eliges
+  todas o un color.
+
+**Ficheros**: `js/mi-coleccion/tus-colores.js`, `tus-ilustradores.js`,
+`imagen-colores.js` y `css/vistas-coleccion.css` (nuevos, por `import()`);
+`js/mi-coleccion.js` (PESTANAS, secciones, apertura, fichas), `panel.js` (las
+losetas), `albumes.js` (`crearBinderCon`, y La quiero lo usa),
+`album-nuevo.js`, `mi-coleccion.html` + `cartas.html` (generada),
+`normas/coleccion.md`. Prueba `test-tanda-1411-pantalla.mjs`.
+
+**Pendiente**: nada. Va en el push de hoy.
+
 ## 2026-11-22 (657) — PINGU-Claude (1410 — Los productos del episodio 225 de TCGGO)
 
 **Hecho** (PINGU, con la ficha de TCGGO: «falta este producto en productos.

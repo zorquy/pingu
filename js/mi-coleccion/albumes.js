@@ -419,11 +419,22 @@ export async function crearBinderDeLaQuiero() {
   if (error) throw traducir(error)
   const ids = [...new Set((data || []).map((d) => d.card_id).filter(Boolean))]
   if (!ids.length) throw new Error('Tu lista de La quiero está vacía: apunta lo que buscas y vuelve.')
-  const porPagina = rejillaDe('3x3').porPagina
-  const fila = { nombre: 'Las que quiero', descripcion: `Lo que buscaba el ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}.`, cartas: ids.map((id) => ({ id })), tipo: 'binder', rejilla: '3x3', paginas: Math.max(1, Math.ceil(ids.length / porPagina)), tapa: tapaGuardada() }
-  const creada = await crearAlbum(fila)
+  const creada = await crearBinderCon({ nombre: 'Las que quiero', descripcion: `Lo que buscaba el ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}.`, ids })
   showToast(`Binder creado con ${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} de La quiero.`, 'success')
-  await abrir(creada.id)
+  return creada
+}
+
+// Un binder 3×3 con estas cartas y en este orden (1411: lo usan La quiero,
+// Tus colores y Tus ilustradores). Desde otra vista se crea sin abrir
+// (`abrirlo: false`): este módulo aún no tiene su contexto y quien llama va
+// a la pestaña de álbumes con el `?album=`.
+export async function crearBinderCon({ nombre, descripcion = '', ids, abrirlo = true }) {
+  const lista = [...new Set((ids || []).filter(Boolean))].slice(0, MAX_CARTAS)
+  if (!lista.length) throw new Error('No hay cartas para el álbum.')
+  const porPagina = rejillaDe('3x3').porPagina
+  const fila = { nombre: String(nombre).slice(0, 80), descripcion, cartas: lista.map((id) => ({ id })), tipo: 'binder', rejilla: '3x3', paginas: Math.max(1, Math.ceil(lista.length / porPagina)), tapa: tapaGuardada() }
+  const creada = await crearAlbum(fila)
+  if (abrirlo) await abrir(creada.id)
   return creada
 }
 
@@ -432,6 +443,9 @@ async function nuevoAlbum(pedido) {
   try {
     let fila
     if (pedido.tipo === 'quiero') return void (await crearBinderDeLaQuiero())
+    // «Por colores» (1411) no se crea aquí: va a Tus colores, que enseña la
+    // pared y hace el binder con el color que elijas.
+    if (pedido.tipo === 'colores') return void ctx.irA('colores')
     if (pedido.tipo === 'set') {
       const { set, modo } = pedido
       const oficial = Number(set.card_count_official) || 0

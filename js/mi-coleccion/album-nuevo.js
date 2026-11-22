@@ -138,10 +138,11 @@ export function iniciarAlbumNuevo(o) {
   dlg.addEventListener('click', (e) => {
     const tipo = e.target.closest('[data-tipo]')
     if (tipo) {
-      // «De La quiero» (1031) no tiene paso: se crea con lo que hay.
-      if (tipo.dataset.tipo === 'quiero') {
+      // «De La quiero» (1031) no tiene paso: se crea con lo que hay. «Por
+      // colores» (1411) tampoco: lleva a Tus colores, donde eliges el color.
+      if (tipo.dataset.tipo === 'quiero' || tipo.dataset.tipo === 'colores') {
         dlg.close()
-        return opciones.alCrear({ tipo: 'quiero' })
+        return opciones.alCrear({ tipo: tipo.dataset.tipo })
       }
       estado.paso = tipo.dataset.tipo
       return pasoHtml()

@@ -1,0 +1,35 @@
+/* Las vistas del Panel de la 1411 y la 1412: Tus colores y Tus ilustradores.
+   Entra con hojaInyectada desde sus módulos (SCHEMA 1411). */
+.vc-cuerpo { display: grid; gap: var(--e-md); }
+.vc-cifras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.vc-cifras > div { display: grid; gap: 2px; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: var(--white); border: 1px solid var(--border); min-width: 0; }
+.vc-cifras span { color: var(--text-mid); font-size: var(--t-sm); }
+.vc-cifras b { display: flex; align-items: center; gap: var(--e-xs); font: 800 var(--t-lg)/1.2 var(--font-display); }
+.vc-cifras b i, .vc-chips i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15); flex: none; }
+.vc-rueda { display: flex; height: 16px; gap: 2px; border-radius: 999px; overflow: hidden; }
+.vc-rueda span { display: block; min-width: 4px; }
+.vc-chips { display: flex; gap: var(--e-xs); overflow-x: auto; overflow-y: hidden; padding-block: 4px; scrollbar-width: none; }
+.vc-chips::-webkit-scrollbar { display: none; }
+.vc-chips .mc-chip-mando { flex: none; display: inline-flex; align-items: center; gap: var(--e-sm); }
+.vc-chips .mc-chip-mando.activo { background: var(--acento); color: var(--acento-texto); }
+.vc-pared { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--e-sm); }
+.vc-pared a { display: block; border-radius: var(--radius-sm); overflow: hidden; }
+.vc-pared img { width: 100%; height: auto; aspect-ratio: 245 / 342; display: block; object-fit: cover; }
+@media (max-width: 600px) { .vc-pared { grid-template-columns: repeat(4, 1fr); gap: 4px; } }
+.vc-acciones { display: flex; gap: var(--e-sm); flex-wrap: wrap; }
+.vc-acciones button { display: inline-flex; align-items: center; gap: var(--e-sm); }
+
+/* Tus ilustradores */
+.vi-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-xs); }
+.vi-fila { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: var(--e-sm); align-items: center; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-lg); background: var(--white); border: 1px solid var(--border); }
+.vi-cara { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; background: var(--ice); }
+.vi-cara img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; transform: scale(1.6); display: block; }
+.vi-nombre { min-width: 0; display: grid; gap: 4px; }
+.vi-nombre a { font: 700 var(--t-md)/1.2 var(--font-display); color: var(--text); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vi-nombre a:hover { text-decoration: underline; }
+.vi-barra { height: 8px; border-radius: 999px; background: var(--ice); overflow: hidden; }
+.vi-barra i { display: block; height: 100%; background: var(--acento); border-radius: 999px; }
+.vi-cifra { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.vi-cifra b { font: 800 var(--t-md) var(--font-display); }
+.vi-cifra small { color: var(--text-mid); font-size: var(--t-xs); }
+.vi-cifra button { min-height: 32px; padding: 4px 12px; font-size: var(--t-xs); }

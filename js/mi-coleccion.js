@@ -140,7 +140,7 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // miga), pero con dirección: se comparten y aguantan el atrás.
 // `anadidas` y `estadisticas` (1172): lo último que añadiste por días, y
 // las estadísticas que vivían plegadas.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado', 'movimientos', 'ranking', 'anadidas', 'estadisticas']
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado', 'movimientos', 'ranking', 'anadidas', 'estadisticas', 'colores', 'ilustradores']
 const VISTAS_DEL_PANEL = ['movimientos', 'ranking', 'anadidas', 'estadisticas']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
@@ -5441,7 +5441,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   ponerPestanasDeCartas(nueva)
   centrarPestaniaActiva()
   esqueletoDelPanel()
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking'], ['mcPanelAnadidas', 'anadidas'], ['mcPanelEstadisticas', 'estadisticas']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking'], ['mcPanelAnadidas', 'anadidas'], ['mcPanelEstadisticas', 'estadisticas'], ['mcPanelColores', 'colores'], ['mcPanelIlustradores', 'ilustradores']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.
     $(id)?.classList.toggle('hidden', nombre !== nueva)
@@ -5510,6 +5510,12 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // mismo contexto que el Panel.
   if (nueva === 'estadisticas') void panel().then((m) => m.pintarEstadisticas()).catch((err) => { const p = $('mcPanelEstadisticas'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
   else if (VISTAS_DEL_PANEL.includes(nueva)) void import('./mi-coleccion/movimientos.js').then((m) => m.abrir(ctxPanel, nueva)).catch((err) => { const p = $({ ranking: 'mcPanelRanking', anadidas: 'mcPanelAnadidas' }[nueva] || 'mcPanelMovimientos'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
+  // Tus colores y Tus ilustradores (1411): vistas del Panel con su módulo,
+  // que entra al abrirlas con el mismo contexto.
+  if (nueva === 'colores' || nueva === 'ilustradores') {
+    const id = nueva === 'colores' ? 'mcPanelColores' : 'mcPanelIlustradores'
+    void import(`./mi-coleccion/tus-${nueva}.js`).then((m) => m.abrir(ctxPanel)).catch((err) => { const p = $(id); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
+  }
   if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'quiero' && esMia) void abrirQuiero()
   if (nueva === 'mercado') void abrirMercado()
@@ -6880,6 +6886,7 @@ function enganchar() {
   engancharFicha('mcPanelRanking', 'a.mc-movida')
   engancharFicha('mcPanelAnadidas', 'a.mc-movida')
   engancharFicha('mcPanelEstadisticas', '.mc-fila-carta a')
+  engancharFicha('mcPanelColores', 'a.mc-movida')
   // Deseos y cambios (763): el selector de las tres vistas, en los dos
   // paneles, y lo de «Las que doy».
   for (const id of ['mcPanelQuiero', 'mcPanelCambios', 'mcPanelMercado']) {

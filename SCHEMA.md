@@ -55212,6 +55212,34 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1411 — Tus colores, Tus ilustradores y «Por colores»
+
+- Vistas del Panel `colores` e `ilustradores`: en `PESTANAS`, en el
+  `data-tambien` del botón Panel y con su `<section id="mcPanelColores">` /
+  `mcPanelIlustradores` (`mc-vista-panel`). `cambiarPestania` hace
+  `import('./mi-coleccion/tus-<vista>.js').abrir(ctxPanel)`. Losetas
+  `mcVerColores` y `mcVerIlustradores` (`data-ir-a`) en `vistazoDeAcciones`.
+- `tus-colores.js`: `esDeArte(carta)` (rareza de arte, en inglés por
+  `rarezaCrudaDeCarta`), `ORDEN` / `NEUTROS` / `NOMBRE`, `colorDeHuella(h)` →
+  `{ color, lab, hex, tono }` (el tono pesa 1, los neutros 0,3),
+  `paredDe(fichas)`, `gruposDe(pared)` → `[{ color, n, hex }]`,
+  `resumenDe(grupos, total)` → `{ mas, menos }` entre los de tono y
+  `ordenDeBinder(fichas, huellaDe, 9, 3)` (`ordenarPagina` en cada hoja).
+  Huellas por `huellasDe` (la caché `pd-armonia-v1` de la 1407).
+- `imagen-colores.js`: `MAXIMO = 30`, `columnasPara(n, caja)`,
+  `textoDeColores`, `pintarColores(lienzo, { fotos, grupos, titulo, formato
+  })` (marco `coleccion`, chapa «Mis colores», mosaico y tira de colores) y
+  `compartirColores` por `abrirHojaCompartir` con `historiaPropia`.
+- `tus-ilustradores.js`: `porIlustrador(cartas)` → `[{ slug, nombre, cartas
+  }]` (parte las firmas por `&`, `and`, `y`, `x` y comas), `totalVisto(tuyas,
+  total)` y `CON_TOTAL = 12`: el total de cada uno es `tcg_cards` WEST con
+  `ilike(patronDeSlug)` afinado con `esDelIlustrador`.
+- `albumes.js`: `crearBinderCon({ nombre, descripcion, ids, abrirlo = true })`
+  (3×3, sin duplicados, `MAX_CARTAS`, `tapaGuardada()`); `nuevoAlbum` con
+  `tipo: 'colores'` hace `ctx.irA('colores')`. `album-nuevo.js` cierra y pasa
+  `colores` como `quiero`. Botón `data-tipo="colores"` en `#mcAlbNuevo`.
+- `css/vistas-coleccion.css` (por `hojaInyectada`): `.vc-*` y `.vi-*`.
+
 ## Tanda 1410 — Los productos del episodio 225 de TCGGO
 
 - `tcggo-productos.mjs`: `EPISODIOS_SUELTOS = ['226', '225']`. El 225 es

@@ -530,6 +530,8 @@ function vistazoDeAcciones() {
       <div class="mc-acciones-rejilla">
         ${hay ? loseta('mcVerCartas', icons.cards(18), 'Todas tus cartas', ' data-ir-a="cartas"') : ''}
         ${hay ? loseta('mcVerTodo', icons.barChart(18), 'Estadísticas', ' data-ir-a="estadisticas"') : ''}
+        ${hay ? loseta('mcVerColores', icons.palette(18), 'Tus colores', ' data-ir-a="colores"') : ''}
+        ${hay ? loseta('mcVerIlustradores', icons.edit(18), 'Tus ilustradores', ' data-ir-a="ilustradores"') : ''}
         ${hay ? loseta('mcImagenCrear', icons.image(18), 'Imagen') : ''}
         ${loseta('mcImportarAbrir', icons.upload(18), 'Importar CSV')}
         ${loseta('mcExportar', ICONO_DESCARGAR(18), 'Exportar CSV', hay ? '' : ' disabled')}

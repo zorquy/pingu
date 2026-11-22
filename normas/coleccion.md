@@ -381,6 +381,18 @@
   La imagen de una página («Compartir la página», 1409) es
   `imagen-pagina.js`: sus colores salen de `paletaDePagina`, no de otra cuenta,
   y va por la hoja de compartir común, no por otro diálogo.
+  Tus colores (`tus-colores.js`, 1411) es la MISMA huella vista de lejos: el
+  color de una ilustración es `colorDeHuella` (un color con tono pesa el
+  triple que un fondo blanco o gris) y solo entran ilustraciones (`esDeArte`):
+  en una carta normal el color lo pone el marco de su tipo, no el arte.
+- **Un binder hecho desde otra vista es `crearBinderCon`** (albumes.js, tanda
+  1411; lo usan La quiero, Tus colores y Tus ilustradores): 3×3, en el orden
+  que le pasas, sin duplicados y con la tapa guardada. Desde fuera de la
+  pestaña de álbumes se crea con `abrirlo: false` y se va a
+  `?ver=carpetas&album=<id>`: ese módulo aún no tiene su contexto. Las vistas
+  del Panel nuevas (`colores`, `ilustradores`) van en `PESTANAS`, en el
+  `data-tambien` del botón Panel y en la lista de secciones de
+  `cambiarPestania`; si falta una, la dirección abre el Panel a secas.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

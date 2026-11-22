@@ -250,7 +250,7 @@
            el ordenador la columna no necesita rótulos de grupo: cinco
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
-        <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-tambien="movimientos ranking anadidas estadisticas" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
+        <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-tambien="movimientos ranking anadidas estadisticas colores ilustradores" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
         <!-- CARTAS (1366, «Colección en cuatro», PINGU: «dale con lo
              recomendado»): Expansiones, Pokédex, Álbumes y Productos salen
              del menú y son las cuatro pestañas de Cartas (#mcCartasPestanas),
@@ -1086,6 +1086,8 @@
            pagado a mano) y lo que vivía plegado en el Panel. -->
       <section id="mcPanelAnadidas" class="hidden mc-vista-panel" role="tabpanel" aria-label="Añadidas"></section>
       <section id="mcPanelEstadisticas" class="hidden mc-vista-panel" role="tabpanel" aria-label="Estadísticas"></section>
+      <section id="mcPanelColores" class="hidden mc-vista-panel" role="tabpanel" aria-label="Tus colores"></section>
+      <section id="mcPanelIlustradores" class="hidden mc-vista-panel" role="tabpanel" aria-label="Tus ilustradores"></section>
       <section id="mcPanelMercado" class="hidden" role="tabpanel" aria-label="Mercado">
         <div class="mc-bloque-mercado">
           <div class="mc-deseos-cabeza">
@@ -2025,6 +2027,12 @@
                 <span class="mc-albn-tipo-dibujo" data-icono="heart" aria-hidden="true"></span>
                 <b>De La quiero</b>
                 <small>Un binder con las cartas que buscas, tal como están hoy, para ordenarlas como quieras.</small>
+              </button>
+              <!-- 1411: un binder con tus ilustraciones ordenadas por color. -->
+              <button type="button" class="mc-albn-tipo" data-tipo="colores">
+                <span class="mc-albn-tipo-dibujo" data-icono="palette" aria-hidden="true"></span>
+                <b>Por colores</b>
+                <small>Tus ilustraciones ordenadas por su color, del rojo al morado. Eliges todas o un color.</small>
               </button>
             </div>
             <div class="mc-albn-paso hidden" data-paso="set">
