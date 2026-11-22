@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (657) — PINGU-Claude (1410 — Los productos del episodio 225 de TCGGO)
+
+**Hecho** (PINGU, con la ficha de TCGGO: «falta este producto en productos.
+Mételo»): la caja de 5 latas Kanto Power (TCGGO 28089, Cardmarket 579732)
+está en el episodio 225 de TCGGO, «Pokémon products», que no es ninguna
+expansión nuestra y no estaba en `EPISODIOS_SUELTOS` (solo el 226). Ahora la
+lista es `['226', '225']`: la pasada de cada hora lo pide cada día, por tandas
+de páginas como el 226, y sus productos salen en «Productos especiales».
+
+**Ficheros**: `netlify/functions/tcggo-productos.mjs`, `normas/coleccion.md`.
+Prueba `test-tanda-968.mjs` (el 225 por defecto) en verde, y la 808 y la 1195.
+
+**Pendiente**: si en Netlify está puesta la variable `TCGGO_EPISODIOS_SUELTOS`,
+manda ella: hay que añadirle `,225`. El producto llega en la primera pasada
+después del push (cada hora).
+
 ## 2026-11-21 (656) — PINGU-Claude (1409 — Presume de página)
 
 **Hecho** (PINGU, de las siete ideas: «presume tu página, sí. Sí, eso sí»):

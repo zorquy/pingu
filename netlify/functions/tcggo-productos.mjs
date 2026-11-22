@@ -56,7 +56,10 @@ const DIAS_SIN_JP = 7
 export const DIAS_CERCA = 1
 export const DIAS_LEJOS = 7
 const CERCA = 60 // días alrededor de su salida
-export const EPISODIOS_SUELTOS = ['226']
+// 1410: y el 225, «Pokémon products», donde TCGGO cuelga otra tanda de productos
+// de ninguna expansión (la caja de 5 latas Kanto Power, id 28089, que PINGU echó
+// en falta). Salen en «Productos especiales» como los del 226.
+export const EPISODIOS_SUELTOS = ['226', '225']
 // 1195: eran 30 y el 226 ya tiene 40 páginas (796 productos), ordenadas de lo
 // más viejo a lo más nuevo, así que las latas de Mega Forces (id 78965, la de
 // Mega Dragonite ex; pedidas en el foro) caían en las páginas 31–40 y no se

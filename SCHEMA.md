@@ -55212,6 +55212,14 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1410 — Los productos del episodio 225 de TCGGO
+
+- `tcggo-productos.mjs`: `EPISODIOS_SUELTOS = ['226', '225']`. El 225 es
+  «Pokémon products» (sin fecha ni código, `cards_total` 0); va como el 226,
+  cada día y por tandas de `MAX_PAGINAS` con `sigue`, tope
+  `MAX_PAGINAS_SUELTOS` por vuelta, y sus productos (`episode_id` 225) caen en
+  `ESPECIALES` de `js/mi-coleccion/productos.js` porque no es de ningún set.
+
 ## Tanda 1409 — Presume de página
 
 - `js/mi-coleccion/imagen-pagina.js`: `tituloDePagina(nombre)` (la última

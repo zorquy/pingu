@@ -32,7 +32,8 @@
   968): un `or` por palabra con su traducción (`terminosDeProducto`: «lata»
   es «tin»). Y desde fuera, un producto se abre en `/cartas?ver=productos&
   producto=<id>` (`rutaDeProducto`), que se ve sin cuenta. Lo que TCGGO no
-  cuelga de ninguna expansión nuestra (su episodio 226, «Pokémon») entra por
+  cuelga de ninguna expansión nuestra (sus episodios 226, «Pokémon», y 225, «Pokémon
+  products», desde la 1410) entra por
   `EPISODIOS_SUELTOS` de `tcggo-productos` y sale en «Productos especiales».
 - **La ficha de una carta es la de Dex** (tanda 915): carta arriba, versión
   con check, «− Tienes N +» (el «+» suma una IGUAL con Deshacer; otra
