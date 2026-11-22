@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (660) — PINGU-Claude (1414 — Imprimir los huecos)
+
+**Hecho** (PINGU, de «Dónde va cada función»: «3, sí, pero solo el de imprimir
+los huecos. El de fondo de pantalla no me interesa»):
+- **En el ⋯ de un álbum tuyo al que le faltan cartas, «Imprimir los huecos»**:
+  una hoja dice cuántas te faltan y en cuántas hojas A4, y deja elegir «Con la
+  foto en gris» o «Solo el nombre» (gasta menos tinta). Descarga un PDF con las
+  que faltan a tamaño real (63 × 88 mm), nueve por hoja, con el borde
+  discontinuo y marcas de corte fuera: imprimir al 100 %, recortar y meter cada
+  una en su bolsillo hasta que llegue la de verdad. Cada una dice «Te falta»,
+  su nombre, «12/165» (y Reverse u Holo si es esa versión) y la expansión.
+- Un álbum completo no lo enseña. Tope de 30 hojas (270 cartas); si hay más,
+  la hoja lo dice.
+
+**Ficheros**: `js/mi-coleccion/imprimir-huecos.js` (nuevo, por `import()`),
+`js/mi-coleccion/albumes.js` (el botón y cuándo se ve), `mi-coleccion.html` +
+`cartas.html` (generada), `normas/coleccion.md`. Prueba
+`test-tanda-1414-pantalla.mjs` (lo puro, álbum completo, a medias en los dos
+estilos).
+
+**Pendiente**: nada. Va en el push de hoy.
+
 ## 2026-11-22 (659) — PINGU-Claude (1413 — Informe PDF de tu colección)
 
 **Hecho** (PINGU, de «Dónde va cada función»: la loseta «Informe PDF» del

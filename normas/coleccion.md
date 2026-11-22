@@ -398,6 +398,9 @@
   sin librerías de PDF en el cliente. Las columnas de una tabla caben en el
   ancho MENOS los márgenes (la 1413 sacó el valor fuera de la hoja la primera
   vez), y una lista que puede ser enorme lleva tope de hojas y lo dice.
+  Lo que se imprime para RECORTAR (Imprimir los huecos, 1414) va a tamaño real
+  en milímetros (63 × 88 una carta) y avisa de imprimir al 100 %; una foto en
+  gris se hace con los píxeles (`getImageData`), no con `ctx.filter`.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

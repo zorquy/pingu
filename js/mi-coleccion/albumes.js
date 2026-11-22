@@ -1213,6 +1213,7 @@ function pintarVista() {
   $('mcAlbLlenar')?.classList.toggle('hidden', !armonia)
   // Presume de página (1409): de un álbum tuyo con alguna carta.
   $('mcAlbPagina')?.classList.toggle('hidden', !(actual && esMio() && actual.cartas.some((c) => c?.id)))
+  $('mcAlbHuecos')?.classList.toggle('hidden', !(actual && esMio() && actual.cartas.some((c) => c?.id && !tieneItem(c))))
 }
 
 // EL PLIEGO CABE EN LA PANTALLA (1182, PINGU: «no entra el álbum del todo y no
@@ -1491,6 +1492,20 @@ export function iniciarAlbumes(contexto) {
       await compartirChecklist({ nombre: actual.nombre, cartas })
     } catch (err) {
       showToast(err.message || 'No se ha podido hacer la lista.', 'error')
+    } finally {
+      b.disabled = false
+    }
+  })
+  // Imprimir los huecos (1414): las que faltan, a tamaño real, en un PDF.
+  $('mcAlbHuecos')?.addEventListener('click', async () => {
+    cerrarMenu()
+    const b = $('mcAlbHuecos')
+    b.disabled = true
+    try {
+      const { imprimirHuecos } = await import('./imprimir-huecos.js')
+      await imprimirHuecos({ album: actual, cartaDe, nombreDe, tiene: tieneItem })
+    } catch (err) {
+      showToast(err.message || 'No se han podido preparar las hojas.', 'error')
     } finally {
       b.disabled = false
     }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Imprimir los huecos: en el ⋯ de tu álbum, las cartas que te faltan a tamaño real para recortarlas y meterlas en su bolsillo hasta que tengas la de verdad.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Informe PDF: en el Panel › Más, tu colección entera en un PDF para guardar o imprimir, con tus cifras, las que más valen y todas tus cartas con su valor.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Tus colores: en el Panel › Más, tus ilustraciones ordenadas por color, tu color favorito y un álbum ya ordenado con el color que elijas. Y Tus ilustradores: quién te ha dibujado la colección.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Más productos especiales: entran las cajas y latas que no son de ninguna expansión, como la caja de 5 latas Kanto Power.", "enlace": "/cartas?ver=productos" },

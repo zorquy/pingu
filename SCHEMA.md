@@ -55212,6 +55212,21 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1414 — Imprimir los huecos
+
+- `js/mi-coleccion/imprimir-huecos.js` (por `import()` desde `#mcAlbHuecos`
+  del ⋯ del álbum, visible en uno tuyo con alguna carta que no tienes):
+  `huecosDelAlbum(cartas, tiene)`, `CARTA = { w: 63, h: 88 }`, `POR_HOJA = 9`,
+  `HOJAS_MAXIMAS = 30`, `rejillaA4()` (3 × 3 sin hueco, centrada: x 10,5 mm,
+  y 16,5 mm), `hojasDe(huecos, maximas)` → `{ hojas, fuera }`,
+  `numeroDe(carta, v)` («12/165 · Reverse») y `pdfDeHuecos({ album, huecos,
+  cartaDe, nombreDe, conFoto })` → `{ bytes, hojas, fuera }`. Hojas a 8 px/mm,
+  JPEG 0,85, por `pdfDeImagenes`. La foto se pasa a gris con `getImageData`
+  (no `ctx.filter`, que no está en todos los Safari).
+- La hoja de elegir es `<dialog id="mcHuecos" class="mc-idd mc-huecos">` con
+  las piezas de `mc-idd` (cardmarket.css) y chips `mc-idioma-chip`
+  `[data-estilo="foto"|"nombre"]`; descarga `huecos-<nombre>.pdf`.
+
 ## Tanda 1413 — Informe PDF de tu colección
 
 - `js/mi-coleccion/informe.js` (por `import()` desde el clic en `#mcInforme`,
