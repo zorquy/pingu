@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (661) — PINGU-Claude (1415 — Quién tiene lo que buscas, en la ficha de un evento)
+
+**Hecho** (PINGU, de «Dónde va cada función»: «9, sí»):
+- **En la ficha de un evento, debajo de «Quién va», si has dicho «Voy»**: «Quién
+  tiene lo que buscas». Los que van y dan para cambio cartas de tu La quiero, y
+  los que buscan cartas que tú das: cada uno con su cara, «Da 3 de tu La
+  quiero · Busca 1 tuya», cuatro cartas de cada lado («+N» si hay más) y
+  «Escribir». Arriba, el resumen («De los que van, 2 dan… y 1 busca…»). Sin
+  cruces, lo dice y lleva a La quiero y Las que doy. Sale al darle a «Voy» y se
+  va al quitarlo.
+- **La víspera, a la campana** (entre las 18 y las 21): «Mañana: <evento>» con
+  cuántos dan lo tuyo y cuántos buscan lo tuyo; solo si hay algo, una vez, y
+  se apaga en Ajustes › Avisos («La víspera de un evento al que vas»).
+- Solo cuenta lo público: lo que cada uno pone para cambio (sin lo
+  comprometido en un trato) y La quiero. Quien va «sin decirlo» no sale a los
+  demás; los baneados, tampoco.
+
+**Ficheros**: `supabase-migration-1415-evento-cruces.sql` (**hay que
+ejecutarla**: `evento_cruces_de`, `evento_cruces`, `evento_vispera_avisos`,
+`eventos_vispera`), `js/evento-cruces.js` (nuevo, por `import()`),
+`js/eventos.js`, `css/eventos.css`, `netlify/functions/avisos-recordatorio.mjs`
+(llama también a la víspera), `js/notifications.js` y `js/avisos-prefs.js` (el
+tipo `evento_vispera`), `normas/comunidad.md`. Pruebas
+`test-tanda-1415.mjs` (PostgreSQL y la función programada) y
+`test-tanda-1415-pantalla.mjs`; la 1031 cuenta ya cuatro tipos de álbum. La
+1192 tiene dos rojos que ya estaban (las caras y los enlaces de la ficha).
+
+**Pendiente**: que PINGU ejecute la migración. Sin ella la ficha no enseña el
+bloque y la función programada apunta «falta ejecutar…».
+
 ## 2026-11-22 (660) — PINGU-Claude (1414 — Imprimir los huecos)
 
 **Hecho** (PINGU, de «Dónde va cada función»: «3, sí, pero solo el de imprimir

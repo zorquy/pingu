@@ -22,6 +22,7 @@ export const GRUPOS_CAMPANITA = [
   { id: 'cambios', titulo: 'Cuando alguien da una carta que buscas', tipos: ['trade_match', 'trade_match_seguido'] },
   { id: 'tiendas', titulo: 'Cuando una tienda tiene una carta que buscas', tipos: ['tienda_la_tiene'] },
   { id: 'compras', titulo: 'Tus compras a tiendas: ofertas, respuestas y envíos', tipos: ['tienda_oferta', 'tienda_fotos'] },
+  { id: 'evento', titulo: 'La víspera de un evento al que vas: quién lleva lo que buscas', tipos: ['evento_vispera'] },
   { id: 'lunes', titulo: 'El resumen de tu semana, los lunes', tipos: ['resumen_lunes'] },
   { id: 'equipo', titulo: 'Novedades y avisos del equipo de PokeDoc', tipos: ['aviso_equipo'] },
 ]
@@ -102,6 +103,7 @@ export const SECCIONES_AVISOS = [
     { id: 'cambios', titulo: 'Cuando alguien da una carta que buscas', tipos: ['trade_match', 'trade_match_seguido'] },
     { id: 'tiendas', titulo: 'Cuando una tienda tiene una carta que buscas', tipos: ['tienda_la_tiene'] },
     { id: 'compras', titulo: 'Tus compras a tiendas: ofertas, respuestas y envíos', tipos: ['tienda_oferta', 'tienda_fotos'] },
+    { id: 'evento', titulo: 'La víspera de un evento al que vas: quién lleva lo que buscas', tipos: ['evento_vispera'] },
   ] },
   { id: 'pokedoc', titulo: 'De PokeDoc', filas: [
     { id: 'lunes', titulo: 'El resumen de tu semana, los lunes', tipos: ['resumen_lunes'] },

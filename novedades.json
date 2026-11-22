@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Quién tiene lo que buscas: en la ficha de un evento al que vas, quién de los que van da cartas de tu La quiero y quién busca las tuyas. Y la tarde antes te avisa.", "enlace": "/eventos" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Imprimir los huecos: en el ⋯ de tu álbum, las cartas que te faltan a tamaño real para recortarlas y meterlas en su bolsillo hasta que tengas la de verdad.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Informe PDF: en el Panel › Más, tu colección entera en un PDF para guardar o imprimir, con tus cifras, las que más valen y todas tus cartas con su valor.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-22", "tipo": "nuevo", "texto": "Tus colores: en el Panel › Más, tus ilustraciones ordenadas por color, tu color favorito y un álbum ya ordenado con el color que elijas. Y Tus ilustradores: quién te ha dibujado la colección.", "enlace": "/mi-coleccion?ver=colores" },

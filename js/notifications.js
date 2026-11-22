@@ -62,6 +62,8 @@ export const NOTIFICATION_TYPES = {
   resumen_lunes: 'El resumen de tu semana, los lunes',
   // Lo que el equipo manda a todo el mundo desde /admin → Avisos (1120).
   aviso_equipo: 'Novedades y avisos del equipo de PokeDoc',
+  // La víspera de un evento al que vas (1415): quién allí da lo que buscas.
+  evento_vispera: 'La víspera de un evento al que vas: quién lleva lo que buscas',
 }
 
 // De qué se avisa TAMBIÉN por correo.

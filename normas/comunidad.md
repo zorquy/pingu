@@ -348,6 +348,10 @@
   `de_pokedoc`, y la web pinta «PokeDoc» con `firmaPokedoc` /
   `PERFIL_POKEDOC` (`js/foro-comun.js`). Algo nuevo que escriba en el foro
   como PokeDoc pasa por una función así, nunca por un insert del navegador.
+  Lo que se CRUZA entre los que van (Quién tiene lo que buscas, 1415) sale de
+  lo público y nada más: lo que cada uno da para cambio (`cambio_libres_de`) y
+  La quiero; nunca una colección privada, y quien va «sin decirlo» no sale a
+  los demás. Lo hace la base (`evento_cruces`), no el navegador.
 - **Un reto diario no lleva su respuesta a la página: la corrige la base**
   (tanda 1268, PINGU: «para que ningún listillo haga trampa»). La función del
   día parte lo que elige con `netlify/lib/reto-mesa.mjs`: la MESA (sin ids,

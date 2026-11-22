@@ -904,6 +904,43 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 .ev-quien > .ev-gente { grid-column: 1 / -1; padding-top: var(--e-md); border-top: 1px solid var(--border); }
 .ev-quien > .ev-gente[hidden] { display: none; }
 
+/* Quién tiene lo que buscas (1415): debajo de «Quién va», solo con «Voy». */
+.ev-cruces h2 { display: flex; align-items: center; gap: var(--e-sm); }
+.ev-cruces h2 svg { color: var(--acento); }
+.ev-cruces-intro, .ev-cruces-vacio { color: var(--text-mid); }
+.ev-cruces-salidas { display: flex; gap: var(--e-sm); flex-wrap: wrap; }
+.ev-cruces-salidas a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); background: var(--ice); color: var(--text); font-weight: 700; text-decoration: none; }
+.ev-cruces-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-sm); }
+.ev-cruce {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.ev-cruce-quien { display: flex; align-items: center; gap: var(--e-sm); min-width: 0; color: var(--text); text-decoration: none; }
+.ev-cruce-quien > span:last-child { display: grid; gap: 4px; min-width: 0; }
+.ev-cruce-quien b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ev-cruce-chapas { display: flex; flex-wrap: wrap; gap: 4px; }
+.ev-cruce-chapa { padding: 2px var(--e-sm); border-radius: var(--radius-pill); font-size: var(--t-xs); font-weight: 700; }
+.ev-cruce-chapa.da { background: var(--success-bg); color: var(--success); }
+.ev-cruce-chapa.busca { background: color-mix(in srgb, var(--acento) 16%, transparent); color: var(--text); }
+.ev-cruce-lados { display: flex; flex-wrap: wrap; gap: var(--e-md); min-width: 0; }
+.ev-cruce-lado { display: grid; gap: 4px; }
+.ev-cruce-lado small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.ev-cruce-cartas { display: flex; align-items: center; gap: 4px; }
+.ev-cruce-carta { display: block; width: 44px; border-radius: 4px; overflow: hidden; background: var(--ice); }
+.ev-cruce-carta img { display: block; width: 100%; height: auto; aspect-ratio: 245 / 342; object-fit: cover; }
+.ev-cruce-carta > span { display: grid; place-items: center; aspect-ratio: 245 / 342; padding: 2px; font-size: var(--t-xs); text-align: center; overflow: hidden; }
+.ev-cruce-mas { padding: 0 var(--e-xs); color: var(--text-mid); font-size: var(--t-sm); font-weight: 700; }
+.ev-cruce-escribir { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 40px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); background: var(--acento); color: var(--acento-texto); font-weight: 700; text-decoration: none; }
+@media (max-width: 700px) {
+  .ev-cruce { grid-template-columns: minmax(0, 1fr) auto; }
+  .ev-cruce-lados { grid-column: 1 / -1; grid-row: 2; }
+}
+
 /* Las entradas, como entradas: con su talón troquelado. */
 .ev-entradas {
   display: grid;

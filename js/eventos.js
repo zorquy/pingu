@@ -295,6 +295,18 @@ async function pintarFicha(slug, sesion) {
   }
   // La lista de quién va, plegada o no: se conserva al repintar.
   let verQuien = false
+  // Quién tiene lo que buscas (1415): solo con «Voy»; su módulo y su consulta
+  // van aparte y repintan. `null` = aún no; '' = sin migración (no se pinta).
+  let cruces = null
+  let crucesPedidos = 0
+  const pedirCruces = () => {
+    if (!sesion || !e.voy || pasado) return
+    const v = ++crucesPedidos
+    import('./evento-cruces.js')
+      .then(async (m) => { const datos = await m.pedirCruces(e.id); if (v !== crucesPedidos) return; cruces = m.crucesHtml(datos); pintar(); if (location.hash === '#evCruces') caja.querySelector('#evCruces')?.scrollIntoView({ block: 'start' }) })
+      .catch(() => { if (v === crucesPedidos) { cruces = ''; pintar() } })
+  }
+  const crucesAqui = () => (sesion && e.voy && !pasado ? (cruces ?? '<section class="ev-caja ev-cruces" id="evCruces" aria-busy="true"><h2>Quién tiene lo que buscas</h2><p class="ev-cruces-intro">Cruzando tu La quiero con lo que dan los que van…</p></section>') : '')
   // La sala (1295): a quién sigues de los que van (se pide aparte y repinta)
   // y si acabas de apuntarte (tu cara entra con su aro y sale tu número).
   const yo = sesion?.user?.id || null
@@ -383,10 +395,12 @@ async function pintarFicha(slug, sesion) {
       </header>
       ${e.descripcion || datos ? `<div class="ev-sobre">${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}${datos ? `<ul class="ev-datos">${datos}</ul>` : ''}</div>` : ''}
       ${losas.length ? `<div class="ev-losas" style="--losas:${losas.length}">${losas.join('')}</div>` : ''}
-      ${quien}`
+      ${quien}
+      ${crucesAqui()}`
   }
   pintar()
   pedirSeguidos()
+  pedirCruces()
   // La cuenta atrás se repinta sola; lo demás, no.
   if (!pasado) setInterval(() => { const r = caja.querySelector('[data-regresiva]'); if (r) r.outerHTML = regresivaHtml(e, pasado) }, 30000)
   // En la ficha, la lista de quién va sale de la base: tras «Voy» o «sin
@@ -394,6 +408,10 @@ async function pintarFicha(slug, sesion) {
   const alDia = async () => {
     const { data: nuevo } = await supabase.rpc('evento_ficha', { p_slug: slug })
     if (nuevo) { e.caras = nuevo.caras; e.van = nuevo.van; e.mi_numero = nuevo.mi_numero }
+    // Con «Voy» recién puesto, el cruce; sin él, fuera.
+    cruces = null
+    if (e.voy) pedirCruces()
+    else pintar()
   }
   caja.addEventListener('click', async (ev) => {
     if (ev.target.closest('[data-ver-quien]')) { verQuien = !verQuien; pintar(); return }

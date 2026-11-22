@@ -55212,6 +55212,31 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1415 — Quién tiene lo que buscas, en la ficha de un evento
+
+- `supabase-migration-1415-evento-cruces.sql`:
+  - `evento_cruces_de(p_evento, p_yo)` (interna, sin permiso para nadie de
+    fuera) → `user_id, username, display_name, avatar_url, tiene jsonb, busca
+    jsonb, tiene_n, busca_n`: con `p_yo` en `evento_asistentes` y sin banear;
+    los otros asistentes sin `oculto` ni baneo; `tiene` = sus líneas con
+    `cambio > 0` y `cambio_libres_de > 0` que están en tu `user_wants` (idioma
+    y variante si los pediste); `busca` = sus `user_wants` que tú das. Doce
+    cartas `{id, market}` por lado, 40 personas, de más a menos.
+  - `evento_cruces(p_evento)` = la de arriba con `auth.uid()`; `authenticated`.
+  - `evento_vispera_avisos (evento_id, user_id)` con RLS y sin políticas.
+  - `eventos_vispera(p_ahora default now())`, solo `service_role`: de 18 a 21
+    de Madrid, a los asistentes de los eventos de mañana (sin baneo ni
+    `evento_vispera` en `notification_prefs_disabled`), apunta antes y manda
+    `user_notifications` tipo `evento_vispera` con enlace
+    `/eventos/<slug>#evCruces` si hay algo.
+- `netlify/functions/avisos-recordatorio.mjs`: tras `avisos_al_dia`, llama a
+  `eventos_vispera` y apunta `vispera` en el estado (o «falta ejecutar…»).
+- `js/evento-cruces.js`: `chapasDe`, `resumenDe`, `idsParaFotos`,
+  `pedirCruces(eventoId)` (`null` sin migración) y `crucesHtml`. En
+  `eventos.js`, `pedirCruces`/`crucesAqui` en `pintarFicha` (tras `.ev-quien`,
+  solo con `e.voy` y sin pasar; se vuelve a pedir en `alDia`).
+- CSS `.ev-cruces`, `.ev-cruce*` en `css/eventos.css`.
+
 ## Tanda 1414 — Imprimir los huecos
 
 - `js/mi-coleccion/imprimir-huecos.js` (por `import()` desde `#mcAlbHuecos`
