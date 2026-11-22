@@ -1,6 +1,6 @@
 // «TUS COLORES» (tanda 1411, PINGU: «tu colección en colores también»; la
 // propuesta con imágenes: Panel › Más › Tus colores, y «Por colores» en
-// «Empezar un álbum»). Tus cartas en una PARED ordenada por color, del
+// «Empezar un álbum»). Tus ilustraciones en una PARED ordenada por color, del
 // rojo al morado y al final las blancas, grises y negras; tu color y el que
 // menos tienes; un chip por color para ver solo esas; «Hazme un álbum con
 // estas» (un binder ya ordenado, con «Ordenar la página» hecho en cada hoja) y
@@ -8,11 +8,8 @@
 //
 // Los colores son la huella de «Sugerir» (`armonia.js`, la 1407), con su
 // caché: la primera vez se mira la foto pequeña de cada ilustración y luego
-// sale al momento. Desde la 1417c entran TODAS tus cartas (PINGU con su Lugia
-// EX de Ancient Origins: «deberían contar todas, ¿no?»; eligió lo
-// recomendado): una ilustración se mira entera, y una carta con marco solo por
-// la VENTANA de su dibujo (`VENTANA_DEL_DIBUJO`), porque entera el marco de su
-// tipo y el borde amarillo mandaban más que el arte.
+// sale al momento. Solo ilustraciones (PINGU eligió lo recomendado): en una
+// carta normal el color lo pone el marco de su tipo, no el arte.
 //
 // Es una vista del Panel (`?ver=colores`), como Estadísticas: entra por
 // `import()` con `ctxPanel` y se vuelve con «‹ Panel».
@@ -23,7 +20,7 @@ import { rarezaCrudaDeCarta, rarezaEs } from '../rarezas-nombres.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { hojaInyectada } from '../hoja.js'
-import { huellasDe, nombreDeColor, hexDe, ordenarPagina, VENTANA_DEL_DIBUJO } from './armonia.js'
+import { huellasDe, nombreDeColor, hexDe, ordenarPagina } from './armonia.js'
 import { cabeceraDeVistaHtml, engancharVolver } from './movimientos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -114,21 +111,18 @@ const fotoDe = (c) => {
   return cadena.find((u) => u.startsWith('https://assets.tcgdex.net/')) || cadena[0] || null
 }
 
-// Tus cartas, una por carta (dos copias o dos idiomas son la misma pared),
-// del catálogo entero si lo hay en memoria.
-function tusCartas() {
+// Tus ilustraciones, una por carta (dos copias o dos idiomas son la misma
+// pared), del catálogo entero si lo hay en memoria.
+function tusIlustraciones() {
   const lineas = ctx.lineasTodo?.length ? ctx.lineasTodo : ctx.lineas
   const cartaDe = ctx.lineasTodo?.length ? ctx.cartaDeLineaTodo : ctx.cartaDeLinea
   const vistas = new Map()
   for (const l of lineas || []) {
     const c = cartaDe(l)
-    if (c?.id && !vistas.has(c.id)) vistas.set(c.id, c)
+    if (c?.id && !vistas.has(c.id) && esDeArte(c)) vistas.set(c.id, c)
   }
   return [...vistas.values()]
 }
-
-// Qué trozo de la foto se lee: la ilustración entera, o la ventana del dibujo.
-export const recorteDe = (carta) => (esDeArte(carta) ? null : VENTANA_DEL_DIBUJO)
 
 export async function abrir(c) {
   ctx = c
@@ -136,21 +130,19 @@ export async function abrir(c) {
   if (!panel || !ctx.esMia) return
   await hojaInyectada('css/vistas-coleccion.css')
   panel.innerHTML = `${cabeceraDeVistaHtml('Tus colores')}
-    <div class="vc-cuerpo" id="vcColores"><p class="mc-vista-resumen" id="vcEstado">Mirando tus cartas…</p></div>`
+    <div class="vc-cuerpo" id="vcColores"><p class="mc-vista-resumen" id="vcEstado">Mirando tus ilustraciones…</p></div>`
   engancharVolver(panel, ctx)
-  const cartas = tusCartas()
+  const cartas = tusIlustraciones()
   if (!cartas.length) {
-    $('vcColores').innerHTML = '<p class="empty-state">Aquí salen tus cartas ordenadas por el color de su dibujo. Todavía no tienes ninguna en tu colección.</p>'
+    $('vcColores').innerHTML = '<p class="empty-state">Aquí salen tus ilustraciones (IR, SIR, full art…) ordenadas por color. Todavía no tienes ninguna en tu colección.</p>'
     return
   }
   huellas = await huellasDe(cartas, fotoDe, {
-    aLaVez: 12,
-    recorteDe,
-    alAvanzar: (h, t) => { const e = $('vcEstado'); if (e && h < t) e.textContent = `Mirando los colores de tus cartas… ${h.toLocaleString('es-ES')} de ${t.toLocaleString('es-ES')}. La primera vez tarda un poco; luego sale al momento.` },
+    alAvanzar: (h, t) => { const e = $('vcEstado'); if (e && h < t) e.textContent = `Mirando los colores de tus ilustraciones… ${h} de ${t}` },
   })
   fichas = paredDe(cartas.map((carta) => ({ carta, ...colorDeHuella(huellas.get(carta.id)) })).filter((f) => f.color))
   if (!fichas.length) {
-    $('vcColores').innerHTML = '<p class="empty-state">No se han podido leer los colores de tus cartas. Prueba otra vez en un rato.</p>'
+    $('vcColores').innerHTML = '<p class="empty-state">No se han podido leer los colores de tus ilustraciones. Prueba otra vez en un rato.</p>'
     return
   }
   if (!panel.dataset.enganchado) {
@@ -176,9 +168,9 @@ function pintar() {
   const ver = visibles()
   // Cuántas se quedan fuera, con número (1417): «las que no se han podido
   // leer» sin cifra hacía pensar que la pared contaba mal.
-  const sinLeer = Math.max(0, tusCartas().length - fichas.length)
+  const sinLeer = Math.max(0, tusIlustraciones().length - fichas.length)
   caja.innerHTML = `
-    <p class="mc-vista-resumen"><b>${fichas.length.toLocaleString('es-ES')}</b> ${fichas.length === 1 ? 'carta tuya' : 'cartas tuyas'}, ordenadas por el color de su dibujo.${sinLeer ? ` ${sinLeer === 1 ? 'Hay 1 que no se ha' : `Hay ${sinLeer} que no se han`} podido leer: no tienen ninguna foto que deje mirar sus colores.` : ''}</p>
+    <p class="mc-vista-resumen"><b>${fichas.length}</b> ${fichas.length === 1 ? 'ilustración tuya' : 'ilustraciones tuyas'}, ordenadas por su color.${sinLeer ? ` ${sinLeer === 1 ? 'Hay 1 que no se ha' : `Hay ${sinLeer} que no se han`} podido leer: no tienen ninguna foto que deje mirar sus colores.` : ''}</p>
     ${r ? `<div class="vc-cifras">
       <div><span>Tu color</span><b><i style="background:${r.mas.hex}"></i>${escapeHtml(NOMBRE[r.mas.color])} · ${r.mas.pct} %</b></div>
       ${r.menos ? `<div><span>El que menos</span><b><i style="background:${r.menos.hex}"></i>${escapeHtml(NOMBRE[r.menos.color])} · ${r.menos.pct} %</b></div>` : ''}
@@ -208,7 +200,7 @@ async function hacerAlbum() {
     const orden = ordenDeBinder(ver, (id) => huellas.get(id))
     const nombre = elegido === 'todos' ? 'Por colores' : `Colores: ${NOMBRE[elegido]}`
     const { crearBinderCon } = await import('./albumes.js')
-    const creada = await crearBinderCon({ nombre, descripcion: elegido === 'todos' ? 'Mis cartas, ordenadas por color.' : `Mis cartas de color ${NOMBRE[elegido].toLowerCase()}.`, ids: orden.map((f) => f.carta.id), abrirlo: false })
+    const creada = await crearBinderCon({ nombre, descripcion: elegido === 'todos' ? 'Mis ilustraciones, ordenadas por color.' : `Mis ilustraciones de color ${NOMBRE[elegido].toLowerCase()}.`, ids: orden.map((f) => f.carta.id), abrirlo: false })
     showToast(`Binder «${nombre}» creado con ${orden.length} ${orden.length === 1 ? 'carta' : 'cartas'}.`, 'success')
     location.assign(`/mi-coleccion?ver=carpetas&album=${encodeURIComponent(creada.id)}`)
   } catch (err) {

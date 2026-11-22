@@ -55212,6 +55212,13 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1417d — Tus colores vuelve a solo ilustraciones
+
+- Deshace la 1417c: fuera `VENTANA_DEL_DIBUJO`, el `recorte` de
+  `huellaDeImagen` y el `recorteDe` de `huellasDe`; `tus-colores.js` vuelve a
+  `tusIlustraciones()` filtrada por `esDeArte`. Se quedan `fotosParaLeer`
+  (1417) y `DE_ARTE_ES` (1417b).
+
 ## Tanda 1417c — Tus colores con todas tus cartas
 
 - `js/mi-coleccion/armonia.js`: `VENTANA_DEL_DIBUJO = { x: 0.1, y: 0.125, w: 0.8,

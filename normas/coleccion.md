@@ -383,13 +383,13 @@
   y va por la hoja de compartir común, no por otro diálogo.
   Tus colores (`tus-colores.js`, 1411) es la MISMA huella vista de lejos: el
   color de una ilustración es `colorDeHuella` (un color con tono pesa el
-  triple que un fondo blanco o gris) y entran TODAS tus cartas (1417c, PINGU:
-  «deberían contar todas»): una ilustración (`esDeArte`) se lee entera y una
-  carta con marco solo por `VENTANA_DEL_DIBUJO` (armonia.js), porque entera el
-  marco de su tipo y el borde amarillo mandan más que el arte. Esa huella
-  recortada se guarda como `id#dibujo`: Sugerir y Ordenar miran la carta entera
-  y no se mezclan. La ventana se midió sobre fotos de BW, XY, SWSH y SV; si una
-  época nueva cambia el marco, se mide otra vez encima de la foto.
+  triple que un fondo blanco o gris) y solo entran ilustraciones (`esDeArte`):
+  en una carta normal el color lo pone el marco de su tipo, no el arte.
+  Se PROBÓ meter todas leyendo solo la ventana del dibujo (1417c) y PINGU lo
+  quitó con la pared delante (1417d: «está cogiendo cartas de tipo lucha…
+  de tipo agua que, aunque tengan algo de rojo, no casan»): el dibujo de una
+  carta normal es pequeño y su fondo lo pone el tipo. No se vuelve a abrir a
+  las normales; lo que entra se decide por `esDeArte`.
   Una foto que no se deja leer NO deja a la carta fuera (1417, PINGU: «¿por qué
   solamente reconoce 30 cartas?»): `huellasDe` prueba la que pide quien llama y
   luego el resto de su cadena (`fotosParaLeer`, con TCGdex y pokemontcg.io

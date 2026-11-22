@@ -22,9 +22,9 @@ export function columnasPara(n, caja) {
 }
 
 export function textoDeColores({ resumen, color, n }) {
-  const lineas = [color ? `🎨 Mis cartas de color ${color.toLowerCase()} en PokeDoc` : '🎨 Mi colección, por colores, en PokeDoc']
+  const lineas = [color ? `🎨 Mis ilustraciones de color ${color.toLowerCase()} en PokeDoc` : '🎨 Mi colección, por colores, en PokeDoc']
   if (!color && resumen) lineas.push(`Mi color: ${resumen.mas.color} (${resumen.mas.pct} %)`)
-  lineas.push(`${n} ${n === 1 ? 'carta' : 'cartas'}`)
+  lineas.push(`${n} ${n === 1 ? 'ilustración' : 'ilustraciones'}`)
   lineas.push('pokedoc.es')
   return lineas.join('\n')
 }
@@ -73,7 +73,7 @@ export function pintarColores(lienzo, { fotos = [], grupos = [], titulo = '', fo
 }
 
 export async function compartirColores({ fichas = [], grupos = [], resumen = null, color = null }) {
-  if (!fichas.length) throw new Error('No hay cartas que enseñar.')
+  if (!fichas.length) throw new Error('No hay ilustraciones que enseñar.')
   const { abrirHojaCompartir } = await import('../compartir-hoja.js')
   const titulo = color ? `Mis cartas *${color.toLowerCase()}*` : resumen ? `Mi color es el *${resumen.mas.color === 'marrón' ? 'marrón' : resumen.mas.color}*` : 'Mi colección en *colores*'
   let fotos = null

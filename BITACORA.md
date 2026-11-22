@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (666) — PINGU-Claude (1417d — Tus colores vuelve a solo ilustraciones)
+
+**Hecho** (PINGU, con la pared de 473 cartas delante: «no lo hace bien… en el
+rojo está cogiendo cartas de tipo lucha… de tipo psíquico… de tipo agua que,
+aunque tengan algo de rojo, no casan… deberíamos coger solo IR para arriba»;
+eligió lo recomendado):
+- **Se deshace la 1417c**: en una carta normal el dibujo es pequeño y su fondo
+  lo pone el tipo (tierra en las de lucha, morado en las de psíquico); con tres
+  manchas de color mezcladas, el color que manda no casa con lo que ves. En una
+  ilustración la paleta está pensada para la carta entera.
+- **Se quedan** la 1417 (se prueban todas las fotos de la carta, no solo la de
+  TCGdex) y la 1417b (las rarezas de arte antiguas, como «Rare Ultra»).
+- Las huellas `id#dibujo` que guardó la 1417c en el navegador ya no se leen;
+  se quedan en la caché sin estorbar.
+
+**Ficheros**: deshechos los cambios de código de la 1417c en
+`js/mi-coleccion/armonia.js`, `tus-colores.js`, `imagen-colores.js`,
+`mi-coleccion.html` y `cartas.html`; `normas/coleccion.md` cuenta por qué no se
+abre a las normales. En la rama pruebas, la 1411-pantalla y la 1417-pantalla
+vuelven a como estaban en la 1417b.
+
+**Pendiente**: nada. Sale en el próximo push.
+
 ## 2026-11-22 (665) — PINGU-Claude (1417c — Tus colores con TODAS tus cartas)
 
 **Hecho** (PINGU, con su Lugia EX de Ancient Origins, «Rara Holo EX»: «esta
