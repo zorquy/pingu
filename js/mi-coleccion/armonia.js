@@ -304,7 +304,17 @@ export const huellaGuardada = (id) => cache()[id] || null
 // Solo se leen los píxeles de una foto que lo PERMITE (TCGdex manda
 // `Access-Control-Allow-Origin: *`); las demás ensucian el lienzo y se
 // saltan. `null` si no se ha podido.
-export function huellaDeImagen(src) {
+// La VENTANA del dibujo de una carta normal, en tantos por uno de la foto
+// (tanda 1417c, PINGU: «deberían contar todas»). En una carta con marco, el
+// marco de su tipo y el borde amarillo pesan más que el dibujo: leída
+// entera, media colección salía «amarilla». Medido encima de fotos de verdad
+// (Emboar de BW, Lugia EX de XY, Celebi V de SWSH, Pineco de SV): el dibujo va
+// de un 9 % a un 91 % de ancho y de un 11,5 % a un 47 % de alto, y en las de
+// SV lo cierra una franja gris con el número de la Pokédex; se deja margen
+// para no coger ni el marco ni esa franja.
+export const VENTANA_DEL_DIBUJO = { x: 0.1, y: 0.125, w: 0.8, h: 0.33 }
+
+export function huellaDeImagen(src, recorte = null) {
   return new Promise((ok) => {
     if (!src) return ok(null)
     const im = new Image()
@@ -318,7 +328,13 @@ export function huellaDeImagen(src) {
         lienzo.width = ANCHO
         lienzo.height = ALTO
         const c = lienzo.getContext('2d', { willReadFrequently: true })
-        c.drawImage(im, 0, 0, ANCHO, ALTO)
+        if (recorte) {
+          const w = im.naturalWidth || im.width
+          const h = im.naturalHeight || im.height
+          c.drawImage(im, recorte.x * w, recorte.y * h, recorte.w * w, recorte.h * h, 0, 0, ANCHO, ALTO)
+        } else {
+          c.drawImage(im, 0, 0, ANCHO, ALTO)
+        }
         ok(huellaDePixeles(c.getImageData(0, 0, ANCHO, ALTO).data))
       } catch {
         ok(null)
@@ -346,9 +362,9 @@ export function fotosParaLeer(carta, primera = null, cadena = null) {
 }
 
 // La primera huella que se pueda sacar de una lista de fotos.
-async function huellaDeAlguna(fotos) {
+async function huellaDeAlguna(fotos, recorte = null) {
   for (const src of fotos) {
-    const h = await huellaDeImagen(src)
+    const h = await huellaDeImagen(src, recorte)
     if (h) return h
   }
   return null
@@ -356,12 +372,17 @@ async function huellaDeAlguna(fotos) {
 
 // Las huellas de muchas cartas, de ocho en ocho, con lo guardado primero.
 // `fotoDe(carta)` da la dirección; `alAvanzar(hechas, total)` para la barra.
-export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8 } = {}) {
+// `recorteDe(carta)` (1417c) lee solo un trozo de la foto (la ventana del
+// dibujo); esa huella se guarda con su propia clave (`id#dibujo`), porque
+// Sugerir y Ordenar miran la carta ENTERA y no deben mezclarse.
+export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8, recorteDe = null } = {}) {
   const c = cache()
   const out = new Map()
   const faltan = []
+  const claveDe = (carta) => (recorteDe?.(carta) ? `${carta.id}#dibujo` : carta.id)
   for (const carta of cartas) {
-    if (c[carta.id]) out.set(carta.id, c[carta.id])
+    const k = claveDe(carta)
+    if (c[k]) out.set(carta.id, c[k])
     else faltan.push(carta)
   }
   let hechas = cartas.length - faltan.length
@@ -370,8 +391,8 @@ export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8 }
   const trabajador = async () => {
     while (i < faltan.length) {
       const carta = faltan[i++]
-      const h = await huellaDeAlguna(fotosParaLeer(carta, fotoDe(carta)))
-      if (h) { c[carta.id] = h; out.set(carta.id, h) }
+      const h = await huellaDeAlguna(fotosParaLeer(carta, fotoDe(carta)), recorteDe?.(carta) || null)
+      if (h) { c[claveDe(carta)] = h; out.set(carta.id, h) }
       alAvanzar?.(++hechas, cartas.length)
     }
   }

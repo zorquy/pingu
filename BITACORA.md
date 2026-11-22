@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-22 (665) — PINGU-Claude (1417c — Tus colores con TODAS tus cartas)
+
+**Hecho** (PINGU, con su Lugia EX de Ancient Origins, «Rara Holo EX»: «esta
+también debería contar, de hecho deberían contar todas, ¿no?»; eligió lo
+recomendado: «Todas, mirando el dibujo»):
+- **Entran todas tus cartas**, no solo las ilustraciones. Una ilustración
+  (IR, SIR, full art…) se lee entera, como antes; una carta con marco se lee
+  solo por la VENTANA de su dibujo, para que el marco de su tipo y el borde
+  amarillo no la pinten (leída entera, media colección salía «amarilla»).
+- La ventana (`VENTANA_DEL_DIBUJO`: 10–90 % de ancho, 12,5–45,5 % de alto) se
+  midió dibujándola encima de fotos de verdad de BW (Emboar), XY (la Lugia
+  EX), SWSH (Celebi V) y SV (Pineco); en SV se queda por encima de la franja
+  gris del número de la Pokédex.
+- Esa huella recortada se guarda aparte (`id#dibujo`): Sugerir y Ordenar
+  siguen mirando la carta entera.
+- La primera vez tarda (doce fotos a la vez y «Mirando los colores de tus
+  cartas… 340 de 1.200»); luego sale al momento. Los textos dicen «cartas»
+  (la pantalla, el álbum «Por colores», la imagen para compartir).
+
+**Ficheros**: `js/mi-coleccion/armonia.js` (`VENTANA_DEL_DIBUJO`,
+`huellaDeImagen(src, recorte)`, `huellasDe(…, { recorteDe })`),
+`js/mi-coleccion/tus-colores.js` (`tusCartas`, `recorteDe`, textos),
+`js/mi-coleccion/imagen-colores.js` (textos), `mi-coleccion.html` y
+`cartas.html` (generado), `normas/coleccion.md`. Pruebas en la rama pruebas:
+1411-pantalla (las comunes entran, leídas por su dibujo verde y no por su
+marco amarillo) y 1417-pantalla (qué se recorta); pasan 1407, 1407-pantalla y
+649-pantalla.
+
+**Pendiente**: nada. Sale en el próximo push (junto con la 1417b).
+
 ## 2026-11-22 (664) — PINGU-Claude (1417b — Tus colores reconoce las rarezas de arte antiguas)
 
 **Hecho** (PINGU, con la ficha de su Lugia-EX de Plasma Storm 134/135: «esta

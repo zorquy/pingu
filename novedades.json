@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-22", "tipo": "mejora", "texto": "Tus colores ya ordena TODAS tus cartas, no solo las ilustraciones. En las que tienen marco se mira solo el dibujo, para que el borde no las pinte a todas de amarillo.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Tus colores ya cuenta las full art y las arcoíris de las expansiones antiguas, que se quedaban fuera por cómo venía escrita su rareza.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Tus colores ya no se deja ilustraciones fuera: si una foto no deja leer sus colores, prueba con las otras fotos de la carta. Y si aun así queda alguna, te dice cuántas.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "mejora", "texto": "Los enlaces de PokeDoc que pegues en el foro, en las guías o en un mensaje salen con su vista previa: la portada de la guía, la carta con su precio, el evento con quién va… En una frase, como una pastilla.", "enlace": "/foro" },

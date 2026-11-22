@@ -55212,6 +55212,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1417c — Tus colores con todas tus cartas
+
+- `js/mi-coleccion/armonia.js`: `VENTANA_DEL_DIBUJO = { x: 0.1, y: 0.125, w: 0.8,
+  h: 0.33 }` (tantos por uno de la foto). `huellaDeImagen(src, recorte = null)`
+  dibuja solo ese trozo en el lienzo de 64×90. `huellasDe(cartas, fotoDe, {
+  recorteDe })`: si `recorteDe(carta)` da un recorte, la huella se lee de ese
+  trozo y se guarda en `pd-armonia-v1` con la clave `<id>#dibujo` (la entera
+  sigue en `<id>`); el mapa que devuelve va siempre por `carta.id`.
+- `js/mi-coleccion/tus-colores.js`: `tusCartas()` (todas, una por id) y
+  `recorteDe(carta)` exportada (`null` para `esDeArte`, la ventana para el
+  resto); `aLaVez: 12`.
+
 ## Tanda 1417b — Las rarezas de arte antiguas en Tus colores
 
 - `js/mi-coleccion/tus-colores.js`: `esDeArte(carta)` = `DE_ARTE` sobre la
