@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (672) — PINGU-Claude (1423 — Mazo y torneo, de ida y vuelta)
+
+**Hecho** (la última tanda de «Los mazos, también por torneo»):
+- En la ficha de un mazo (/meta/<mazo>), el nombre del torneo de cada lista
+  destacada es un enlace a la ficha de ese torneo (1422). Desde el torneo, cada
+  mazo (podio, reparto y clasificación) ya llevaba a su ficha, y uno de PokeDoc
+  lleva además a La arena: se va y se vuelve sin perderse.
+
+**Ficheros**: `js/meta-mazo.js`, `css/meta.css` (`.meta-lista-torneo`),
+`mazo-meta.html` (su precarga nueva). Rama pruebas:
+`test-tanda-1423-pantalla.mjs` (ida y vuelta en PC y móvil). Pasan 384, 520,
+792, 1162, 1315 y test-imports. Rojas que no tocan nada de esta tanda: 621
+(«Probar» de Mis mazos), 888 y 890 (los respaldos de los sprites).
+
+**Pendiente**: nada de «Por torneo». Sale en el próximo push.
+
 ## 2026-11-23 (671) — PINGU-Claude (1422 — La ficha de un torneo del meta)
 
 **Hecho** (lo recomendado de «Los mazos, también por torneo», segunda tanda):

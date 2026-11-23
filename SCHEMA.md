@@ -55212,6 +55212,15 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1423 — Mazo y torneo, de ida y vuelta
+
+- `js/meta-mazo.js`, `listaHtml`: el torneo de la lista va en
+  `a.meta-lista-torneo` con `rutaDeTorneo(l.torneo_id)` (de
+  `js/meta/torneos-nucleo.js`), dentro del `<summary>`: pulsarlo navega, no
+  abre la lista.
+- `css/meta.css`: `.meta-lista-torneo`, en el acento y subrayado (está dentro
+  de una línea de texto).
+
 ## Tanda 1422 — La ficha de un torneo del meta
 
 - Dirección: `/meta/torneo/:id` → `meta-torneo.html?t=:id` (netlify.toml, antes

@@ -1011,3 +1011,6 @@
   .mt-top { grid-area: top; }
   .mt-top small { display: none; }
 }
+
+/* 1423: el torneo de cada lista destacada lleva a su ficha. */
+.meta-lista-torneo { color: var(--acento); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }

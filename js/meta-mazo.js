@@ -14,6 +14,8 @@ import { guardarListaEnMisMazos, enlaceParaEntrar } from './guardar-lista.js'
 import { copiarDecklist, descargarImagenDecklist } from './torneos/decklist-export.js'
 import { cadenaDeImagenes, atributosDeImagen, letraDeEnergiaBasica } from './imagen-carta.js'
 import * as datos from './meta/datos.js'
+// De cada lista, su torneo (1423): el nombre lleva a la ficha del torneo.
+import { rutaDeTorneo } from './meta/torneos-nucleo.js'
 import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, fechaCorta } from './meta/pintar.js'
 import {
   SECCIONES,
@@ -228,7 +230,7 @@ function listaHtml(l, i) {
         <summary>
           <span class="meta-lista-puesto">${puestoOrdinal(l.puesto)}</span>
           <span class="meta-lista-quien"><strong>${quien}</strong>${pais}${chapa}
-            <span class="meta-sub">${escapeHtml(l.torneo)} · ${fechaCorta(l.fecha)} · ${entero(l.jugadores)} jugadores</span>
+            <span class="meta-sub"><a class="meta-lista-torneo" href="${escapeHtml(rutaDeTorneo(l.torneo_id))}">${escapeHtml(l.torneo)}</a> · ${fechaCorta(l.fecha)} · ${entero(l.jugadores)} jugadores</span>
           </span>
           <span class="meta-lista-resultado">${resultadoDe(l)}</span>
         </summary>
