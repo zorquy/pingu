@@ -270,9 +270,10 @@ async function cargarBienvenida(session) {
     const escudos = profile.streak_shields || 0
     // Y el aviso de «te ha salvado»: lo deja checkDailyStreak en
     // sessionStorage al gastarse el escudo; se enseña una vez y fuera.
-    let salvada = false
+    // Cuántos se gastaron (1424: uno por día sin entrar).
+    let salvada = 0
     try {
-      salvada = sessionStorage.getItem('pokedoc-racha-protegida') === '1'
+      salvada = Number(sessionStorage.getItem('pokedoc-racha-protegida')) || 0
       if (salvada) sessionStorage.removeItem('pokedoc-racha-protegida')
     } catch {}
 
@@ -290,8 +291,8 @@ async function cargarBienvenida(session) {
       </div>
       <div class="bienvenida-chips">
         ${racha > 0 && matchMedia('(max-width: 900px)').matches ? `<span class="bienvenida-chip" title="Días seguidos">${icons.flame(16)} ${racha}</span>` : ''}
-        ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
-        ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
+        ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: cada día que no entras se gasta uno solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
+        ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} ${salvada > 1 ? `Tus ${salvada} protectores salvaron la racha` : 'Tu protector salvó la racha'}</span>` : ''}
       </div>
       <div class="banda-abanico"><span class="banda-mascota mascota-3d" data-mascota="saludar" data-saludo-del-dia data-sin-globo></span><div class="banda-cartas" id="bandaCartas">${abanicoPrevio}</div></div>`
     import('./escaparate.js').then(({ pintarAbanico }) => pintarAbanico(document.getElementById('bandaCartas'))).catch(() => {})

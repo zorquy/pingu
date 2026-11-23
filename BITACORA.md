@@ -22,6 +22,29 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-23 (673) — PINGU-Claude (1424 — Cada protector de racha cubre un día)
+
+**Hecho** (una persona, por mensaje a PINGU: «he estado dos días fuera sin
+poder entrar (tenía 2 protectores de esos) y perdí la racha pero mantengo esos
+protectores»):
+- No era un fallo del código sino de la regla: un protector solo perdonaba
+  perder EXACTAMENTE un día, aunque hubiera dos guardados, así que con dos días
+  fuera la racha volvía a 1 y los dos protectores se quedaban sin usar. Ahora
+  cada protector cubre un día sin entrar y se gastan solos al volver (dos días
+  fuera con dos: la racha sigue y quedan cero). Si faltan más días que
+  protectores, la racha vuelve a 1 y se quedan.
+- Inicio dice cuántos se gastaron («Tus 2 protectores salvaron la racha») y
+  el título del chip de protectores lo explica igual.
+
+**Ficheros**: `js/gamification.js` (`diasPerdidos`, `checkDailyStreak`),
+`js/home.js`, `normas/comunidad.md`. Rama pruebas:
+`test-tanda-1424-pantalla.mjs` (cinco casos; con el código de antes falla el
+de dos días con dos). Pasan 1399-pantalla y test-imports; la 983 (olas de
+consultas) da los mismos rojos con y sin el cambio. Portada: 151,5 KB.
+
+**Pendiente**: la racha de quien escribió no vuelve sola (la base ya la puso a
+1). Si PINGU me dice su usuario y cuántos días llevaba, va en un SQL para el
+SQL Editor. Sale en el próximo push.
 
 ## 2026-11-23 (672) — PINGU-Claude (1423 — Mazo y torneo, de ida y vuelta)
 

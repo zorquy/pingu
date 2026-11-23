@@ -55212,6 +55212,19 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1424 — Cada protector de racha cubre un día
+
+- `js/gamification.js`: `diasPerdidos(ultima, hoy)` (exportada; 0 si entró
+  ayer, Infinity sin última visita) sustituye a `yesterdayISO`/`anteayerISO`.
+  En `checkDailyStreak`: `perdidos <= 0` suma; `perdidos <= escudos` gasta
+  `perdidos` protectores y suma; si no, la racha vuelve a 1 y los escudos se
+  quedan. `CLAVE_RACHA_PROTEGIDA` guarda ahora CUÁNTOS se gastaron (antes '1').
+- `js/home.js`: lee ese número («Tu protector…» / «Tus N protectores
+  salvaron la racha»).
+- La migración del protector (supabase-migration-protector.sql) dice en sus
+  comentarios «uno salva un único día perdido»: era la regla de entonces; la
+  de ahora es esta.
+
 ## Tanda 1423 — Mazo y torneo, de ida y vuelta
 
 - `js/meta-mazo.js`, `listaHtml`: el torneo de la lista va en

@@ -258,13 +258,8 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-function yesterdayISO() {
-  return new Date(Date.now() - 86400_000).toISOString().slice(0, 10)
-}
-
-function anteayerISO() {
-  return new Date(Date.now() - 2 * 86400_000).toISOString().slice(0, 10)
-}
+// Los días sin entrar entre la última visita y hoy (0: entró ayer).
+export const diasPerdidos = (ultima, hoy) => (ultima ? Math.round((Date.parse(hoy) - Date.parse(ultima)) / 86400_000) - 1 : Infinity)
 
 // La bienvenida de la portada lee esta marca para avisar «tu protector
 // salvó la racha» UNA vez. sessionStorage a propósito: el aviso es de
@@ -304,18 +299,18 @@ export async function checkDailyStreak(userId) {
   const today = todayISO()
   if (profile.last_active_date === today) return profile.current_streak || 0
 
-  // El protector: perder UN día (última visita anteayer) se perdona si
-  // hay un escudo guardado — se gasta solo y la racha sigue. Perder dos
-  // o más ya no es un despiste, y ahí no hay escudo que valga.
+  // Cada protector cubre UN día sin entrar, y se gastan solos (1424: con
+  // dos guardados y dos días fuera se perdía la racha igual).
   let escudos = sinProtector ? 0 : profile.streak_shields || 0
+  const perdidos = diasPerdidos(profile.last_active_date, today)
   let newStreak
-  if (profile.last_active_date === yesterdayISO()) {
+  if (perdidos <= 0) {
     newStreak = (profile.current_streak || 0) + 1
-  } else if (profile.last_active_date === anteayerISO() && escudos > 0) {
-    escudos--
+  } else if (perdidos <= escudos) {
+    escudos -= perdidos
     newStreak = (profile.current_streak || 0) + 1
     try {
-      sessionStorage.setItem(CLAVE_RACHA_PROTEGIDA, '1')
+      sessionStorage.setItem(CLAVE_RACHA_PROTEGIDA, String(perdidos))
     } catch {}
   } else {
     newStreak = 1

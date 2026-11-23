@@ -186,6 +186,12 @@
   por `traerRetoConFotos` (`js/reto-fotos.js`). Cierra el reto el SERVIDOR
   (`sinFoto`), nunca el navegador solo: lo que no carga aquí puede ser la red
   de quien juega. Un reto nuevo con cartas pasa por las tres cosas.
+- **Cada protector de racha cubre UN día sin entrar** (tanda 1424, una
+  persona: «tenía 2 protectores, estuve dos días fuera y perdí la racha»). Se
+  gastan solos al volver (`checkDailyStreak`, con `diasPerdidos`): con dos
+  guardados se pueden faltar dos días; si faltan más días que protectores, la
+  racha vuelve a 1 y los protectores se quedan. El aviso de Inicio dice
+  cuántos se gastaron. Los días van en UTC, como toda la racha.
 - **Un reto acaba con tres salidas y se puede jugar otra vez** (tanda 988):
   `salidasHtml` (retos-ui.js) pinta el siguiente, Compartir y «Jugar otra
   vez»; la partida libre es `?libre=N` (`js/retos-libre.js`), se juega como
