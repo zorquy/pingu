@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (669) — PINGU-Claude (1420 — En Inicio, el torneo y el evento del mismo tamaño)
+
+**Hecho** (PINGU, con la captura: «cuando hay torneo y hay evento, son de
+tamaños distintos»):
+- En el PC las dos cajas de la fila ya medían igual; lo que no llenaba su caja
+  era la tarjeta de dentro (el torneo, 76 px; la franja del evento, 64). Ahora
+  las dos llenan su caja, y el torneo baja su relleno de arriba y abajo para
+  ser tan fino como la franja: las dos miden 67 px, también en el móvil
+  (antes 75 y 64). El hueco que se reserva antes de cargar, a juego (68).
+
+**Ficheros**: `css/portada.css`, `index.html` (el hueco del torneo),
+`normas/comunidad.md`. Rama pruebas: `test-tanda-1420-pantalla.mjs` (falla
+sin el arreglo: 75 frente a 64). Pasan 1293-pantalla (la franja sigue entre
+64 y 72) y 1367-pantalla. La 1194-pantalla da dos rojos (la agenda en PC y la
+cabecera de la ficha) que ya daba antes de esta tanda. Portada: 151,4 KB.
+
+**Pendiente**: nada. Sale en el próximo push.
+
 ## 2026-11-23 (668) — PINGU-Claude (1419 — El color de las ilustraciones, en el servidor)
 
 **Hecho** (lo recomendado de «Tus colores, bien», opciones 2 y 3):

@@ -55212,6 +55212,14 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1420 — En Inicio, el torneo y el evento del mismo tamaño
+
+- `css/portada.css`, en el mosaico del PC (≥ 960 px): `:is(#torneoPortada,
+  #eventoPortada) > * { height: 100% }` junto a las demás piezas que llenan su
+  sección. `.portada-torneo` pasa de `padding: 12px` a `var(--e-sm) 12px`:
+  67 px, como la franja del evento (`min-height: 64px` + su relleno).
+- `index.html`: el esqueleto del torneo, de 76 a 68 px.
+
 ## Tanda 1419 — El color de las ilustraciones, en el servidor
 
 - Tabla `tcg_card_colores` (card_id, market) → `huella` jsonb (la de

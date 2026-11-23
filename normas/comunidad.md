@@ -499,6 +499,13 @@
   en el servidor. Si cambias los envoltorios (`.article-header`,
   `.article-body`) en una, cámbialos en la otra — si no, lo primero que
   ve la gente es el texto sin formato y luego pega un salto.
+- **Las citas de Inicio (torneo, evento, lanzamiento) miden LO MISMO** (tanda
+  1420, PINGU con la captura: «cuando hay torneo y hay evento, son de tamaños
+  distintos»): la rejilla del PC ya estira las cajas de una fila, pero la
+  tarjeta de dentro se quedaba en su alto (el torneo en 76, la franja del
+  evento en 64). La tarjeta llena su caja (`:is(#torneoPortada, #eventoPortada)
+  > * { height: 100% }`) y el torneo es tan fino como la franja (67). Una cita
+  nueva de esa fila llena su caja igual, y `test-tanda-1420-pantalla` la mide.
 - **Una cifra con su «Ver» dice el singular con UNO** (tanda 1374: el perfil
   ponía «Ver los 1»): «Ver el logro», no «Ver los 1». Y el detalle del torneo
   de Inicio pasa por `subDeTorneo` (js/hoy.js), que no repite la jornada que

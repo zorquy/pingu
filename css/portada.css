@@ -156,7 +156,7 @@
   align-items: center;
   /* S780.180 */
   gap: 12px;
-  padding: 12px;
+  padding: var(--e-sm) 12px;
   border-radius: var(--radius-lg);
   /* Los azules fijos (785, PA2): `--navy-light` era cielo en oscuro. */
   background: linear-gradient(120deg, var(--navy-solid-dark), var(--navy-solid-light));
@@ -383,7 +383,8 @@
   #homeActivity > .pb-caja, #foroVivoSeccion > .pb-caja { overflow: hidden; }
   .panel-portada > * > section > :only-child,
   .retos-abajo > .reto-tarjetas,
-  #lanzamientoSeccion > .lanzamiento-portada { height: 100%; }
+  #lanzamientoSeccion > .lanzamiento-portada,
+  :is(#torneoPortada, #eventoPortada) > * { height: 100%; }
   #primerosPasos .primeros-pasos-lista { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); }
 }
 
