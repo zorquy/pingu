@@ -1,7 +1,7 @@
 // Tanda 1411 — Tus colores y Tus ilustradores (PINGU, de «Dónde va cada
 // función»: «1, sí. 2, sí»). En el Panel › Más, dos losetas nuevas:
 //   · Tus colores (`?ver=colores`): tus ilustraciones en una pared por color
-//     (del rojo al morado, los neutros al final), tu color y el que menos, un
+//     (desde la 1418, en hojas de nueve que casan), tu color y el que menos, un
 //     chip por color y «Hazme un álbum con estas» (un binder 3×3 en ese orden).
 //     Las cartas que no son de arte no salen.
 //   · Tus ilustradores (`?ver=ilustradores`): quién te dibuja la colección, con
@@ -54,25 +54,21 @@ console.log('\n── Lo puro ──')
   const r = await page.evaluate(async () => {
     const c = await import('/js/mi-coleccion/tus-colores.js')
     const il = await import('/js/mi-coleccion/tus-ilustradores.js')
-    const f = (color, l, tono = 0) => ({ color, lab: [l, 0, 0], tono })
-    const pared = c.paredDe([f('negro', 0.1), f('azul', 0.5, 250), f('rojo', 0.5, 20), f('blanco', 0.95), f('rojo', 0.5, 10), f('verde', 0.5, 140)])
-    const grupos = c.gruposDe(pared.map((x) => ({ ...x, hex: '#000' })))
+    // Desde la 1418 la pared son hojas (test-tanda-1418); aquí, los grupos.
+    const f = (color) => ({ color, hex: '#000' })
+    const grupos = c.gruposDe([f('oscuras'), f('azul'), f('rojo'), f('multicolor'), f('rojo'), f('verde')])
     const porIl = il.porIlustrador([{ id: 'a', illustrator: 'Arita' }, { id: 'b', illustrator: 'Arita & Komayama' }, { id: 'c', illustrator: 'Komayama' }, { id: 'd', illustrator: 'Komayama' }, { id: 'e' }])
     return {
-      orden: pared.map((x) => `${x.color}${x.tono || ''}`).join(','),
       grupos: grupos.map((g) => `${g.color}:${g.n}`).join(','),
-      resumen: c.resumenDe([{ color: 'rojo', n: 5 }, { color: 'azul', n: 2 }, { color: 'blanco', n: 9 }], 16),
+      resumen: c.resumenDe([{ color: 'rojo', n: 5 }, { color: 'azul', n: 2 }, { color: 'multicolor', n: 9 }], 16),
       arte: [c.esDeArte({ rarity: 'Special Illustration Rare' }), c.esDeArte({ rarity: 'Common' }), c.esDeArte({ rarity: 'Rare Holo' })],
-      color: c.colorDeHuella({ labs: [[0.9, 0, 0], [0.5, 0.15, 0.1]], pesos: [0.6, 0.4] })?.color,
       il: porIl.map((g) => `${g.slug}:${g.cartas.length}`).join(','),
       total: [il.totalVisto(3, 10), il.totalVisto(5, 2), il.totalVisto(3, null)],
     }
   })
-  check('la pared va del rojo al morado y los neutros al final, de claro a oscuro', r.orden === 'rojo10,rojo20,verde140,azul250,blanco,negro', r.orden)
-  check('los grupos, en orden de rueda', r.grupos === 'rojo:2,verde:1,azul:1,blanco:1,negro:1', r.grupos)
-  check('tu color y el que menos, sin contar los neutros', r.resumen?.mas?.color === 'rojo' && r.resumen.mas.pct === 31 && r.resumen.menos?.color === 'azul', JSON.stringify(r.resumen))
+  check('los grupos, en orden de rueda y al final los que no son un color', r.grupos === 'rojo:2,verde:1,azul:1,multicolor:1,oscuras:1', r.grupos)
+  check('tu color y el que menos, sin contar Multicolor', r.resumen?.mas?.color === 'rojo' && r.resumen.mas.pct === 31 && r.resumen.menos?.color === 'azul', JSON.stringify(r.resumen))
   check('una SIR es de arte; una común o una holo, no', r.arte.join() === 'true,false,false', r.arte.join())
-  check('un color con tono pesa más que un fondo blanco', r.color === 'rojo', r.color)
   check('«A & B» cuenta para los dos y sin firma no cuenta', r.il === 'komayama:3,arita:2', r.il)
   check('el total nunca es menos que las tuyas', r.total.join() === '10,5,', r.total.join())
   await ctx.close()
@@ -109,7 +105,11 @@ console.log('\n── Tus colores ──')
   const num = (id) => Number(id.split('-')[1])
   check('salen las 12 ilustraciones y no las comunes', r.ids.length === 12 && !r.ids.some((id) => num(id) >= 13), r.ids.join())
   const pos = (f) => r.ids.findIndex((id) => f(num(id)))
-  check('las rojas, antes que las verdes, y estas antes que las azules', pos((n) => n >= 7 && n <= 10) < pos((n) => n >= 11) && pos((n) => n >= 11) < pos((n) => n <= 6), r.ids.join())
+  // 1418: en hojas de nueve; las cuatro rojas van juntas en la misma hoja.
+  const hojas = await page.$$eval('#mcPanelColores .vc-hoja', (hs) => hs.map((h) => [...h.querySelectorAll('a')].map((a) => Number(a.dataset.carta.split('-')[1]))))
+  check('dos hojas, la de nueve primero', hojas.length === 2 && hojas[0].length === 9 && hojas[1].length === 3, JSON.stringify(hojas))
+  check('las cuatro rojas, en la misma hoja', hojas.some((h) => [7, 8, 9, 10].every((n) => h.includes(n))), JSON.stringify(hojas))
+  void pos
   check('un chip por color con su cuenta', r.chips.join('|') === 'Todos · 12|Rojo · 4|Verde · 2|Azul · 6', r.chips.join('|'))
   check('tu color es el azul (50 %) y el que menos, el verde', /Tu color\s*Azul · 50 %/.test(r.cifras) && /El que menos\s*Verde · 17 %/.test(r.cifras), r.cifras)
   await page.click('#mcPanelColores [data-color="rojo"]')
@@ -164,7 +164,7 @@ for (const ver of ['colores', 'ilustradores']) {
   await page.waitForTimeout(600)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   check(`${ver}: nada se sale de lado`, ancho <= 1, ancho)
-  if (ver === 'colores') check('cuatro por fila en la pared', await page.evaluate(() => getComputedStyle(document.querySelector('.vc-pared')).gridTemplateColumns.split(' ').length) === 4)
+  if (ver === 'colores') check('tres por fila en cada hoja y una hoja a lo ancho', await page.evaluate(() => getComputedStyle(document.querySelector('.vc-pared')).gridTemplateColumns.split(' ').length === 3 && getComputedStyle(document.querySelector('.vc-hojas')).gridTemplateColumns.split(' ').length === 1))
   if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/1411-${ver}-movil.png`, fullPage: true })
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
