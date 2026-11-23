@@ -55212,6 +55212,32 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1418 — Tus colores, bien
+
+- `js/mi-coleccion/color-de-carta.js` (puro, sin DOM, para navegador y
+  servidor): `oklab`, `hexDe` (mudados de armonia.js, que los reexporta),
+  `familiaDe(lab)` (como `nombreDeColor` salvo el rojo oscuro: tono < 20 o ≥ 345
+  con L < 0,64 es rojo), `colorDePixeles(rgba, ancho, alto)` → `{ color,
+  paleta: [{ f, lab, s }] ×3, luz }` (margen del 4,5 %; peso 0,04 por píxel y
+  + croma si tiene color), `grupoDe` (Oscuras: neutros > 0,5 y luz < 0,5;
+  Claras: neutros > 0,5; Multicolor: 3 vivos, el 1.º < 0,30 y el 3.º > 0,15),
+  `hojasDe(fichas)` (semilla = croma × peso del primero; las 8 de
+  `distanciaDePaletas` más cerca; dentro de clara a oscura; hojas por tono
+  desde el rojo, las casi sin color al final y la hoja a medias la última),
+  `fondoDeGrupo`, `hexDeColores`, `NEUTROS`, `APARTE`.
+- `huellaDePixeles` añade `colores` (de la carta entera, no de la ventana de
+  la huella). `huellasDe(…, { conColores: true })` vuelve a leer lo guardado
+  sin `colores`. La caché sigue siendo `pd-armonia-v1`.
+- `tus-colores.js`: `ORDEN` acaba en multicolor, claras, oscuras;
+  `entraEnColores = esDeArte && !esEnergia` (`category === 'Energy'`, o sin
+  categoría por el nombre); `fichaDe(carta, huella)`; `paredDe(fichas,
+  huellaDe)` → hojas con `ordenarPagina` hecho; `resumenDe` sin neutros ni
+  APARTE. Fuera `colorDeHuella` y `ordenDeBinder`.
+- Medido con 113 ilustraciones reales (151, Evoluciones en Paldea, Brecha
+  Paradójica, Chispas Fulgurantes): 0 en blanco/gris/negro (antes 20); 9
+  Multicolor, 3 Oscuras, 3 Claras; la distancia media de paletas dentro de una
+  hoja es 0,084 frente a 0,138 entre dos cualesquiera.
+
 ## Tanda 1417d — Tus colores vuelve a solo ilustraciones
 
 - Deshace la 1417c: fuera `VENTANA_DEL_DIBUJO`, el `recorte` de

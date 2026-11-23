@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (667) — PINGU-Claude (1418 — Tus colores, bien)
+
+**Hecho** (PINGU con su binder «Por colores» delante: «los colores no están
+casando… las energías yo no las contaría… sácale tú el color a las cartas»;
+eligió lo recomendado de la propuesta «Tus colores, bien»):
+- **El color nuevo**: cada píxel vota por su familia (rojo, naranja… gris) con
+  el mismo peso de sitio y un poco más si es vivo; salen sus tres colores con lo
+  que pesa cada uno. El rojo oscuro (volcanes, atardeceres) es rojo y no rosa.
+- **Grupos nuevos**: Multicolor (ninguno manda), Oscuras y Claras (más de la
+  mitad sin color). Ya no sale ninguna en blanco, gris o negro: con 113
+  ilustraciones reales, antes eran 20.
+- **Las energías no entran**, aunque sean doradas o full art.
+- **La pared son HOJAS de nueve** que comparten paleta (la carta más marcada y
+  las 8 más parecidas), del rojo al morado, y cada una ya ordenada para que la
+  escena siga. «Hazme un álbum» crea exactamente esas hojas; la que queda a
+  medias va al final para no correr las demás de página.
+- Debajo de cada carta, una barrita con sus tres colores.
+- Las huellas guardadas antes en el navegador se vuelven a leer una vez (no
+  traen el color nuevo). «Sugerir» y «Ordenar» no cambian.
+
+**Ficheros**: `js/mi-coleccion/color-de-carta.js` (NUEVO, puro: OKLab,
+`familiaDe`, `colorDePixeles`, `grupoDe`, `hojasDe`), `armonia.js` (la huella
+lleva `colores`; `huellasDe(…, { conColores })`; OKLab mudado y reexportado),
+`tus-colores.js` (`entraEnColores`, `fichaDe`, `paredDe` en hojas, grupos
+nuevos), `css/vistas-coleccion.css`, `normas/coleccion.md`. Rama pruebas:
+`test-tanda-1418.mjs` (lo puro, con los colores de 113 cartas reales en
+`datos/colores-1418.json`), `test-tanda-1418-pantalla.mjs`, y la
+1411-pantalla al día (hojas en vez de fila). Pasan 1407, 1407-pantalla,
+1409-pantalla, 1417-pantalla e imports.
+
+**Pendiente**: la 1419 (el color calculado en el servidor con la foto grande y
+«Corregir color» en /admin). Sale en el próximo push.
+
 ## 2026-11-22 (666) — PINGU-Claude (1417d — Tus colores vuelve a solo ilustraciones)
 
 **Hecho** (PINGU, con la pared de 473 cartas delante: «no lo hace bien… en el

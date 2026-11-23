@@ -6,10 +6,15 @@
 // estas» (un binder ya ordenado, con «Ordenar la página» hecho en cada hoja) y
 // «Compartir» la pared con el marco de redes.
 //
-// Los colores son la huella de «Sugerir» (`armonia.js`, la 1407), con su
-// caché: la primera vez se mira la foto pequeña de cada ilustración y luego
+// Los colores salen de la huella de «Sugerir» (`armonia.js`, la 1407), con
+// su caché: la primera vez se mira la foto pequeña de cada ilustración y luego
 // sale al momento. Solo ilustraciones (PINGU eligió lo recomendado): en una
 // carta normal el color lo pone el marco de su tipo, no el arte.
+//
+// Desde la 1418 (PINGU con su binder delante: «los colores no están casando»)
+// el color es el VOTO POR PÍXEL de `color-de-carta.js`, con Multicolor,
+// Claras y Oscuras; las energías no entran; y la pared son HOJAS de nueve con
+// la paleta parecida, las mismas que salen en el álbum.
 //
 // Es una vista del Panel (`?ver=colores`), como Estadísticas: entra por
 // `import()` con `ctxPanel` y se vuelve con «‹ Panel».
@@ -20,7 +25,8 @@ import { rarezaCrudaDeCarta, rarezaEs } from '../rarezas-nombres.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { hojaInyectada } from '../hoja.js'
-import { huellasDe, nombreDeColor, hexDe, ordenarPagina } from './armonia.js'
+import { huellasDe, hexDe, ordenarPagina } from './armonia.js'
+import { hojasDe, hexDeColores, fondoDeGrupo, NEUTROS, APARTE } from './color-de-carta.js'
 import { cabeceraDeVistaHtml, engancharVolver } from './movimientos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -40,29 +46,35 @@ export const esDeArte = (carta) => {
   const cruda = rarezaCrudaDeCarta(carta) || ''
   return DE_ARTE.test(cruda) || DE_ARTE_ES.test(rarezaEs(cruda) || '')
 }
+// Las energías no entran aunque sean doradas o full art (1418, PINGU: «las
+// energías yo no las contaría»): son casi de un color plano y rompían las
+// hojas. Sin categoría (alguna japonesa), por el nombre.
+export const esEnergia = (carta) => carta?.category === 'Energy' || (!carta?.category && /\b(Energy|Energía)\b/i.test(`${carta?.name || ''} ${carta?.name_en || ''}`))
+export const entraEnColores = (carta) => esDeArte(carta) && !esEnergia(carta)
 
-// El orden de la pared: la rueda del color y al final los neutros.
-export const ORDEN = ['rojo', 'naranja', 'amarillo', 'verde', 'turquesa', 'celeste', 'azul', 'morado', 'rosa', 'marrón', 'blanco', 'gris', 'negro']
-export const NEUTROS = ['blanco', 'gris', 'negro']
-export const NOMBRE = { rojo: 'Rojo', naranja: 'Naranja', amarillo: 'Amarillo', verde: 'Verde', turquesa: 'Turquesa', celeste: 'Celeste', azul: 'Azul', morado: 'Morado', rosa: 'Rosa', 'marrón': 'Marrón', blanco: 'Blanco', gris: 'Gris', negro: 'Negro' }
-const tono = (l) => ((Math.atan2(l[2], l[1]) * 180) / Math.PI + 360) % 360
+// El orden de los grupos: la rueda del color y al final los que no son un
+// color (1418). Los neutros ya no salen: una carta casi sin color es Clara u
+// Oscura.
+export const ORDEN = ['rojo', 'naranja', 'amarillo', 'verde', 'turquesa', 'celeste', 'azul', 'morado', 'rosa', 'marrón', 'multicolor', 'claras', 'oscuras']
+export const NOMBRE = { rojo: 'Rojo', naranja: 'Naranja', amarillo: 'Amarillo', verde: 'Verde', turquesa: 'Turquesa', celeste: 'Celeste', azul: 'Azul', morado: 'Morado', rosa: 'Rosa', 'marrón': 'Marrón', multicolor: 'Multicolor', claras: 'Claras', oscuras: 'Oscuras', blanco: 'Blanco', gris: 'Gris', negro: 'Negro' }
+export { NEUTROS, APARTE }
 
-// EL color de una huella: el de más peso, pero un color con tono vale el
-// triple que un blanco o un gris (si no, los fondos claros de media colección
-// la pintan de gris: lo vio la propuesta con 62 ilustraciones reales).
-export function colorDeHuella(h) {
-  if (!h?.labs?.length) return null
-  const v = h.labs.map((l, i) => (h.pesos[i] || 0) * (Math.hypot(l[1], l[2]) > 0.04 ? 1 : 0.3))
-  const k = v.indexOf(Math.max(...v))
-  const l = h.labs[k]
-  return { color: nombreDeColor(l), lab: l, hex: hexDe(l), tono: tono(l) }
+// La ficha de una carta en la pared: su grupo, su muestra y sus colores.
+export function fichaDe(carta, huella) {
+  const c = huella?.colores
+  if (!c?.color) return null
+  return { carta, color: c.color, hex: hexDeColores(c), colores: c }
 }
 
-// La pared: [{ carta, color, lab, hex, tono }] en orden de rueda y, dentro de
-// cada color, por tono (los neutros, de claro a oscuro).
-export function paredDe(fichas) {
-  const pos = (c) => (ORDEN.indexOf(c) < 0 ? ORDEN.length : ORDEN.indexOf(c))
-  return [...fichas].sort((a, b) => pos(a.color) - pos(b.color) || (NEUTROS.includes(a.color) ? b.lab[0] - a.lab[0] : a.tono - b.tono))
+// La pared: las hojas de nueve que casan (`hojasDe`), cada una con sus
+// cartas ya colocadas para que la escena siga (`ordenarPagina`, la de
+// «Ordenar»). Lo que se ve es lo que sale en el álbum.
+export function paredDe(fichas, huellaDe = () => null, columnas = 3) {
+  return hojasDe(fichas).map((hoja) => {
+    const hs = hoja.map((f) => huellaDe(f.carta.id) || null)
+    const r = hoja.length >= 3 && hs.every(Boolean) ? ordenarPagina(hs, columnas) : null
+    return r ? r.orden.map((k) => hoja[k]) : hoja
+  })
 }
 
 // Los grupos, en orden de rueda, con su muestra (el color mediano del grupo).
@@ -75,28 +87,15 @@ export function gruposDe(pared) {
   return out
 }
 
-// Tu color y el que menos: entre los que tienen tono (un «tu color: gris» no
-// dice nada de una colección).
+// Tu color y el que menos: entre los que tienen tono (un «tu color: gris» o
+// «multicolor» no dice nada de una colección).
 export function resumenDe(grupos, total) {
-  const vivos = grupos.filter((g) => !NEUTROS.includes(g.color))
+  const vivos = grupos.filter((g) => !NEUTROS.includes(g.color) && !APARTE.includes(g.color))
   if (!vivos.length || !total) return null
   const pct = (g) => Math.round((g.n / total) * 100)
   const mas = [...vivos].sort((a, b) => b.n - a.n)[0]
   const menos = [...vivos].sort((a, b) => a.n - b.n)[0]
   return { mas: { ...mas, pct: pct(mas) }, menos: vivos.length > 1 ? { ...menos, pct: pct(menos) } : null }
-}
-
-// Un binder con las cartas de la pared: en su orden, y cada hoja de 9
-// reordenada para que la escena siga (`ordenarPagina`, la de «Ordenar»).
-export function ordenDeBinder(fichas, huellaDe, porPagina = 9, columnas = 3) {
-  const out = []
-  for (let i = 0; i < fichas.length; i += porPagina) {
-    const trozo = fichas.slice(i, i + porPagina)
-    const hs = trozo.map((f) => huellaDe(f.carta.id) || null)
-    const r = trozo.length >= 3 && hs.every(Boolean) ? ordenarPagina(hs, columnas) : null
-    out.push(...(r ? r.orden.map((k) => trozo[k]) : trozo))
-  }
-  return out
 }
 
 // ── La pantalla ──
@@ -105,6 +104,7 @@ let ctx = null
 let elegido = 'todos'
 let fichas = []
 let huellas = new Map()
+let hojas = []
 
 const fotoDe = (c) => {
   const cadena = cadenaDeEscaneo(c, null, 'low')
@@ -119,7 +119,7 @@ function tusIlustraciones() {
   const vistas = new Map()
   for (const l of lineas || []) {
     const c = cartaDe(l)
-    if (c?.id && !vistas.has(c.id) && esDeArte(c)) vistas.set(c.id, c)
+    if (c?.id && !vistas.has(c.id) && entraEnColores(c)) vistas.set(c.id, c)
   }
   return [...vistas.values()]
 }
@@ -138,9 +138,10 @@ export async function abrir(c) {
     return
   }
   huellas = await huellasDe(cartas, fotoDe, {
+    conColores: true,
     alAvanzar: (h, t) => { const e = $('vcEstado'); if (e && h < t) e.textContent = `Mirando los colores de tus ilustraciones… ${h} de ${t}` },
   })
-  fichas = paredDe(cartas.map((carta) => ({ carta, ...colorDeHuella(huellas.get(carta.id)) })).filter((f) => f.color))
+  fichas = cartas.map((carta) => fichaDe(carta, huellas.get(carta.id))).filter(Boolean)
   if (!fichas.length) {
     $('vcColores').innerHTML = '<p class="empty-state">No se han podido leer los colores de tus ilustraciones. Prueba otra vez en un rato.</p>'
     return
@@ -157,7 +158,16 @@ export async function abrir(c) {
   pintar()
 }
 
-const visibles = () => (elegido === 'todos' ? fichas : fichas.filter((f) => f.color === elegido))
+// Lo que se ve, ya en hojas: con un chip, las hojas se montan SOLO con las de
+// ese color (un álbum «Colores: Rojo» casa por dentro igual).
+const visibles = () => hojas.flat()
+
+// Sus tres colores con lo que pesa cada uno, de lado a lado (los tres suman
+// menos de 1: se reparten la barra entre ellos).
+const barraHtml = (c) => {
+  const total = c.paleta.reduce((s, p) => s + p.s, 0) || 1
+  return `<i class="vc-barra" aria-hidden="true">${c.paleta.map((p) => `<b style="flex:${(p.s / total).toFixed(3)} 1 0;background:${hexDe(p.lab)}"></b>`).join('')}</i>`
+}
 
 function pintar() {
   const caja = $('vcColores')
@@ -165,26 +175,28 @@ function pintar() {
   const grupos = gruposDe(fichas)
   if (elegido !== 'todos' && !grupos.some((g) => g.color === elegido)) elegido = 'todos'
   const r = resumenDe(grupos, fichas.length)
+  hojas = paredDe(elegido === 'todos' ? fichas : fichas.filter((f) => f.color === elegido), (id) => huellas.get(id))
   const ver = visibles()
   // Cuántas se quedan fuera, con número (1417): «las que no se han podido
   // leer» sin cifra hacía pensar que la pared contaba mal.
   const sinLeer = Math.max(0, tusIlustraciones().length - fichas.length)
+  const muestra = (g) => fondoDeGrupo(g.color, g.hex)
   caja.innerHTML = `
-    <p class="mc-vista-resumen"><b>${fichas.length}</b> ${fichas.length === 1 ? 'ilustración tuya' : 'ilustraciones tuyas'}, ordenadas por su color.${sinLeer ? ` ${sinLeer === 1 ? 'Hay 1 que no se ha' : `Hay ${sinLeer} que no se han`} podido leer: no tienen ninguna foto que deje mirar sus colores.` : ''}</p>
+    <p class="mc-vista-resumen"><b>${fichas.length}</b> ${fichas.length === 1 ? 'ilustración tuya' : 'ilustraciones tuyas'}, en hojas de nueve que comparten colores, como saldrán en el álbum.${sinLeer ? ` ${sinLeer === 1 ? 'Hay 1 que no se ha' : `Hay ${sinLeer} que no se han`} podido leer: no tienen ninguna foto que deje mirar sus colores.` : ''}</p>
     ${r ? `<div class="vc-cifras">
       <div><span>Tu color</span><b><i style="background:${r.mas.hex}"></i>${escapeHtml(NOMBRE[r.mas.color])} · ${r.mas.pct} %</b></div>
       ${r.menos ? `<div><span>El que menos</span><b><i style="background:${r.menos.hex}"></i>${escapeHtml(NOMBRE[r.menos.color])} · ${r.menos.pct} %</b></div>` : ''}
     </div>` : ''}
-    <div class="vc-rueda" aria-hidden="true">${grupos.map((g) => `<span style="flex:${g.n};background:${g.hex}"></span>`).join('')}</div>
+    <div class="vc-rueda" aria-hidden="true">${grupos.map((g) => `<span style="flex:${g.n};background:${muestra(g)}"></span>`).join('')}</div>
     <div class="vc-chips" role="group" aria-label="Qué color ver">
       <button type="button" class="mc-chip-mando${elegido === 'todos' ? ' activo' : ''}" data-color="todos" aria-pressed="${elegido === 'todos'}">Todos · ${fichas.length}</button>
-      ${grupos.map((g) => `<button type="button" class="mc-chip-mando${elegido === g.color ? ' activo' : ''}" data-color="${escapeHtml(g.color)}" aria-pressed="${elegido === g.color}"><i style="background:${g.hex}" aria-hidden="true"></i>${escapeHtml(NOMBRE[g.color])} · ${g.n}</button>`).join('')}
+      ${grupos.map((g) => `<button type="button" class="mc-chip-mando${elegido === g.color ? ' activo' : ''}" data-color="${escapeHtml(g.color)}" aria-pressed="${elegido === g.color}"><i style="background:${muestra(g)}" aria-hidden="true"></i>${escapeHtml(NOMBRE[g.color])} · ${g.n}</button>`).join('')}
     </div>
-    <ul class="vc-pared">${ver.map((f) => {
+    <div class="vc-hojas">${hojas.map((hoja, i) => `<section class="vc-hoja" aria-label="Hoja ${i + 1}"><ul class="vc-pared">${hoja.map((f) => {
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(f.carta))
       const nombre = ctx.nombreDe(f.carta)
-      return `<li><a class="mc-movida" href="${escapeHtml(rutaDeCarta(f.carta))}" data-carta="${escapeHtml(f.carta.id)}" aria-label="${escapeHtml(`${nombre}: ${NOMBRE[f.color]}`)}">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`}</a></li>`
-    }).join('')}</ul>
+      return `<li><a class="mc-movida" href="${escapeHtml(rutaDeCarta(f.carta))}" data-carta="${escapeHtml(f.carta.id)}" aria-label="${escapeHtml(`${nombre}: ${NOMBRE[f.color] || f.color}`)}">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`}</a>${barraHtml(f.colores)}</li>`
+    }).join('')}</ul><p>Hoja ${i + 1}</p></section>`).join('')}</div>
     <div class="vc-acciones">
       <button type="button" class="btn-primary" id="vcAlbum">${icons.layoutGrid(16)} Hazme un álbum con ${ver.length === 1 ? 'esta' : `estas ${ver.length}`}</button>
       <button type="button" class="btn-secondary" id="vcCompartir">${icons.share(16)} Compartir</button>
@@ -197,10 +209,11 @@ async function hacerAlbum() {
   const b = $('vcAlbum')
   if (b) b.disabled = true
   try {
-    const orden = ordenDeBinder(ver, (id) => huellas.get(id))
+    // Ya va en hojas de nueve con la escena colocada: el álbum es la pared.
+    const orden = ver
     const nombre = elegido === 'todos' ? 'Por colores' : `Colores: ${NOMBRE[elegido]}`
     const { crearBinderCon } = await import('./albumes.js')
-    const creada = await crearBinderCon({ nombre, descripcion: elegido === 'todos' ? 'Mis ilustraciones, ordenadas por color.' : `Mis ilustraciones de color ${NOMBRE[elegido].toLowerCase()}.`, ids: orden.map((f) => f.carta.id), abrirlo: false })
+    const creada = await crearBinderCon({ nombre, descripcion: elegido === 'todos' ? 'Mis ilustraciones, en hojas que comparten colores.' : APARTE.includes(elegido) ? `Mis ilustraciones ${NOMBRE[elegido].toLowerCase()}.` : `Mis ilustraciones de color ${NOMBRE[elegido].toLowerCase()}.`, ids: orden.map((f) => f.carta.id), abrirlo: false })
     showToast(`Binder «${nombre}» creado con ${orden.length} ${orden.length === 1 ? 'carta' : 'cartas'}.`, 'success')
     location.assign(`/mi-coleccion?ver=carpetas&album=${encodeURIComponent(creada.id)}`)
   } catch (err) {

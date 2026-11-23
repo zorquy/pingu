@@ -381,9 +381,18 @@
   La imagen de una página («Compartir la página», 1409) es
   `imagen-pagina.js`: sus colores salen de `paletaDePagina`, no de otra cuenta,
   y va por la hoja de compartir común, no por otro diálogo.
-  Tus colores (`tus-colores.js`, 1411) es la MISMA huella vista de lejos: el
-  color de una ilustración es `colorDeHuella` (un color con tono pesa el
-  triple que un fondo blanco o gris) y solo entran ilustraciones (`esDeArte`):
+  Tus colores (`tus-colores.js`, 1411) sale de la MISMA lectura de la foto,
+  pero su color es el VOTO POR PÍXEL de `color-de-carta.js` (1418, PINGU con su
+  binder delante: «los colores no están casando»): la mayor mancha de la huella
+  dejaba ganar al fondo claro y la media de una mancha inventaba colores (20 de
+  113 ilustraciones reales en gris o blanco). Ese fichero es puro y vale para el
+  navegador y el servidor: un color de carta nuevo sale de ahí, no de otra
+  cuenta. Una carta casi sin color es Clara u Oscura, nunca «gris»; Multicolor,
+  Claras y Oscuras no cuentan para «tu color». Las energías no entran
+  (`entraEnColores`). La pared son HOJAS de nueve que casan (`hojasDe`) y el
+  álbum «Por colores» son esas mismas hojas, con la hoja a medias al final (el
+  álbum va de nueve en nueve: una corta en medio corre todas las demás).
+  Solo entran ilustraciones (`esDeArte`):
   en una carta normal el color lo pone el marco de su tipo, no el arte.
   Se PROBÓ meter todas leyendo solo la ventana del dibujo (1417c) y PINGU lo
   quitó con la pared delante (1417d: «está cogiendo cartas de tipo lucha…

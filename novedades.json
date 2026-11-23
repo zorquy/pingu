@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-23", "tipo": "mejora", "texto": "Tus colores acierta mucho más: cada carta tiene sus tres colores, hay grupos Multicolor, Oscuras y Claras, las energías ya no entran y la pared (y el álbum «Por colores») va en hojas de nueve que casan entre sí.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Tus colores vuelve a ordenar solo tus ilustraciones (IR, SIR, full art…): en las cartas normales el color lo marca su tipo y la pared no casaba.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "mejora", "texto": "Tus colores ya ordena TODAS tus cartas, no solo las ilustraciones. En las que tienen marco se mira solo el dibujo, para que el borde no las pinte a todas de amarillo.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-22", "tipo": "arreglo", "texto": "Tus colores ya cuenta las full art y las arcoíris de las expansiones antiguas, que se quedaban fuera por cómo venía escrita su rareza.", "enlace": "/mi-coleccion?ver=colores" },

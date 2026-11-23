@@ -12,10 +12,18 @@
 .vc-chips::-webkit-scrollbar { display: none; }
 .vc-chips .mc-chip-mando { flex: none; display: inline-flex; align-items: center; gap: var(--e-sm); }
 .vc-chips .mc-chip-mando.activo { background: var(--acento); color: var(--acento-texto); }
-.vc-pared { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--e-sm); }
-.vc-pared a { display: block; border-radius: var(--radius-sm); overflow: hidden; }
+/* 1418: la pared son HOJAS de nueve que casan, como saldrán en el álbum;
+   debajo de cada carta, sus tres colores con su peso. */
+.vc-hojas { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--e-md); }
+.vc-hoja { display: grid; gap: var(--e-xs); padding: var(--e-sm); border-radius: var(--radius-lg); background: var(--white); border: 1px solid var(--border); min-width: 0; }
+.vc-hoja > p { margin: 0; text-align: center; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.vc-pared { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.vc-pared li { display: grid; gap: 3px; min-width: 0; }
+.vc-pared a { display: block; padding: 0; min-height: 0; border-radius: var(--radius-sm); overflow: hidden; }
 .vc-pared img { width: 100%; height: auto; aspect-ratio: 245 / 342; display: block; object-fit: cover; }
-@media (max-width: 600px) { .vc-pared { grid-template-columns: repeat(4, 1fr); gap: 4px; } }
+.vc-barra { display: flex; height: 5px; border-radius: 3px; overflow: hidden; }
+.vc-barra b { display: block; min-width: 2px; }
+@media (max-width: 600px) { .vc-hojas { grid-template-columns: minmax(0, 1fr); } }
 .vc-acciones { display: flex; gap: var(--e-sm); flex-wrap: wrap; }
 .vc-acciones button { display: inline-flex; align-items: center; gap: var(--e-sm); }
 
