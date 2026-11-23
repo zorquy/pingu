@@ -26,6 +26,9 @@ REESCRITURAS = [
     (re.compile(r'^/noticias/[^/]+$'), '/guia.html'),
     (re.compile(r'^/guia/[^/]+$'), '/guia.html'),
     (re.compile(r'^/ilustrador/[^/]+$'), '/ilustrador.html'),
+    # La ficha de un torneo del meta (1422) y la de un mazo (364).
+    (re.compile(r'^/meta/torneo/[^/]+$'), '/meta-torneo.html'),
+    (re.compile(r'^/meta/[^/]+$'), '/mazo-meta.html'),
 ]
 
 # Y las REDIRECCIONES (302) de netlify.toml (tanda 591): los enlaces cortos.
