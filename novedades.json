@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-23", "tipo": "nuevo", "texto": "En Mazos › Meta puedes ver el meta por torneo: cada torneo del periodo con su campeón y los mazos del Top 8.", "enlace": "/meta?ver=torneos" },
     { "fecha": "2026-11-23", "tipo": "arreglo", "texto": "En Inicio, el próximo torneo y el próximo evento ya miden lo mismo cuando salen juntos.", "enlace": "/" },
     { "fecha": "2026-11-23", "tipo": "mejora", "texto": "Tus colores y «Sugerir» salen al momento: el color de cada ilustración ya viene calculado con su foto grande, igual para todo el mundo.", "enlace": "/mi-coleccion?ver=colores" },
     { "fecha": "2026-11-23", "tipo": "mejora", "texto": "Tus colores acierta mucho más: cada carta tiene sus tres colores, hay grupos Multicolor, Oscuras y Claras, las energías ya no entran y la pared (y el álbum «Por colores») va en hojas de nueve que casan entre sí.", "enlace": "/mi-coleccion?ver=colores" },

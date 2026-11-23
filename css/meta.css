@@ -945,3 +945,69 @@
   .meta-cabecera.banda-s .banda-s-cifras { flex-wrap: nowrap; }
   .meta-cabecera .meta-periodo-menu { margin-left: auto; }
 }
+
+/* ── Por mazo · Por torneo (1421; SCHEMA 1421) ── */
+@media (min-width: 901px) {
+  .meta-filtros-cab .meta-ver { margin-right: auto; }
+}
+@media (max-width: 900px) {
+  .meta-filtros-cab { flex-wrap: wrap; }
+  .meta-filtros-cab .meta-ver { display: grid; flex: 1 0 100%; grid-template-columns: 1fr 1fr; }
+  .meta-filtros-cab .meta-ver .seg-btn { justify-content: center; }
+}
+.meta-torneos { container-type: inline-size; }
+.mt-lista { display: flex; flex-direction: column; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.mt-fila { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.mt-fila-oficial { border-color: var(--border-strong); }
+.mt-enlace {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-md) var(--e-lg);
+  color: var(--text);
+  text-decoration: none;
+}
+.mt-enlace:hover .mt-nombre strong { color: var(--acento); }
+.mt-fecha { display: grid; place-items: center; height: 52px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); line-height: 1; }
+.mt-fecha b { font-family: var(--font-display); font-size: var(--t-lg); }
+.mt-fecha small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.mt-nombre { display: grid; gap: var(--e-xs); min-width: 0; }
+.mt-nombre strong { overflow: hidden; font-family: var(--font-display); font-size: var(--t-lg); text-overflow: ellipsis; white-space: nowrap; }
+.mt-sub { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; color: var(--text-mid); font-size: var(--t-xs); }
+.mt-chapa { padding: 1px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text); font-size: var(--t-2xs); font-weight: 700; white-space: nowrap; }
+.mt-chapa-oficial { background: var(--warning-bg); color: var(--warning); }
+.mt-chapa-pokedoc { background: var(--indigo-bg); color: var(--indigo); }
+.mt-chapa-online { background: var(--success-bg); color: var(--success); }
+.mt-campeon { display: flex; gap: var(--e-sm); align-items: center; min-width: 0; }
+.mt-campeon .meta-iconos { width: 64px; height: 32px; }
+.mt-campeon .meta-icono { width: 32px; height: 32px; }
+.mt-campeon-texto { display: grid; min-width: 0; }
+.mt-campeon-texto small { color: var(--warning); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.mt-campeon-texto b,
+.mt-campeon-texto em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-campeon-texto b { font-size: var(--t-sm); }
+.mt-campeon-texto em { color: var(--text-mid); font-size: var(--t-xs); font-style: normal; }
+.mt-campeon-vacio { color: var(--text-mid); font-size: var(--t-xs); }
+.mt-top { display: grid; gap: var(--e-xs); min-width: 0; }
+.mt-top small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.mt-minis { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.mt-mini { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--bg); }
+.mt-mini .meta-icono { width: 28px; height: 28px; }
+.mt-pie { display: flex; flex-direction: column; align-items: center; gap: var(--e-sm); margin-top: var(--e-md); }
+.mt-vacio { padding: var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text-mid); }
+@container (max-width: 640px) {
+  .mt-enlace {
+    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-areas: 'fecha nombre' 'fecha campeon' 'fecha top';
+    row-gap: var(--e-sm);
+    padding: var(--e-md);
+  }
+  .mt-fecha { grid-area: fecha; align-self: start; height: 48px; }
+  .mt-nombre { grid-area: nombre; }
+  .mt-nombre strong { white-space: normal; }
+  .mt-campeon { grid-area: campeon; padding-top: var(--e-sm); border-top: 1px dashed var(--border); }
+  .mt-top { grid-area: top; }
+  .mt-top small { display: none; }
+}

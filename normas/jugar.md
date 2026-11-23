@@ -119,6 +119,14 @@
   gráficos se dibujan con el ancho de su caja, y en una pestaña con
   `display: none` esa caja mide 0. Se pintan al abrirla y se vuelven a
   medir al cambiar el ancho; la prueba comprueba las dos cosas.
+- **Meta también va por torneo** (1421–1423, «Los mazos, también por
+  torneo»): «Por mazo · Por torneo» en /meta (`?ver=torneos`) y la ficha
+  `/meta/torneo/<id>` salen de `meta_torneos` y `meta_resultados`, sin nada
+  guardado aparte: el Top, el reparto y «el que más rindió» se cuentan al leer
+  en `js/meta/torneos-nucleo.js`. Una cifra nueva de un torneo va ahí, con la
+  misma cuenta del periodo que la base (`desdeDePeriodo`). De un jugador solo se
+  enseña `nombre_jugador` (la base lo guarda de los de arriba con lista);
+  `jugador` es un id interno («lista-12», «pokedoc-…») y no sale nunca.
 
 ## Los torneos (sección «Jugar»)
 

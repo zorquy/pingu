@@ -30,6 +30,10 @@ let filas = []
 // Mientras no llega —o si falla— la barra va en el azul de siempre: es
 // un adorno, y «no se sabe» no se pinta como un tipo.
 let tipos = new Map()
+// Por mazo · Por torneo (1421): la vista vive en la dirección (?ver=torneos)
+// como el periodo y la fuente. La lista de torneos entra por `import()`.
+let ver = new URLSearchParams(location.search).get('ver') === 'torneos' ? 'torneos' : 'mazos'
+let pararTorneos = null
 
 function aviso(html) {
   $('metaAviso').innerHTML = html
@@ -148,6 +152,7 @@ async function cargar() {
           ? '<p><strong>No hay torneos de PokeDoc terminados en este periodo.</strong> <a class="link-btn" href="/torneos.html">Mira los próximos</a>.</p>'
           : `<p><strong>No hubo torneos en estos ${dias} días.</strong> Prueba con un periodo más largo.</p>`)
       guardar()
+      if (ver === 'torneos') $('metaTorneos').innerHTML = ''
       return
     }
     $('metaRanking').classList.remove('meta-ranking-vacio')
@@ -168,6 +173,7 @@ async function cargar() {
     pintarBanda(t)
     pintar()
     guardar()
+    if (ver === 'torneos') pintarTorneos()
     tiposDeArquetipos(filas)
       .then((m) => {
         if (mio !== turno) return
@@ -186,6 +192,39 @@ async function cargar() {
   }
 }
 
+// La lista de torneos con el periodo y la fuente de ahora. Se pinta al
+// cambiar de vista y cuando `cargar` termina (que puede haber saltado de
+// periodo para no dejar la página en blanco: la lista usa el mismo).
+async function pintarTorneos() {
+  pararTorneos?.()
+  const caja = $('metaTorneos')
+  try {
+    const { montarListaDeTorneos } = await import('./meta/torneos-lista.js')
+    if (ver !== 'torneos') return
+    pararTorneos = montarListaDeTorneos(caja, { dias, fuente })
+  } catch (err) {
+    caja.innerHTML = `<p class="meta-aviso">${escapeHtml(err?.message || 'No se ha podido abrir la lista de torneos.')}</p>`
+  }
+}
+
+// Enseña una vista y esconde la otra. El ranking se sigue pintando debajo
+// (da las cifras de la banda): solo se esconde.
+function ponerVista(v) {
+  ver = v
+  for (const b of document.querySelectorAll('#metaVer [data-ver]')) b.setAttribute('aria-pressed', String(b.dataset.ver === v))
+  const torneos = v === 'torneos'
+  $('metaTorneos').hidden = !torneos
+  for (const el of [document.querySelector('.meta-tabla'), $('metaVerTodos'), $('metaOtros')]) if (el) el.hidden = torneos
+  const url = new URL(location.href)
+  if (torneos) url.searchParams.set('ver', 'torneos')
+  else url.searchParams.delete('ver')
+  history.replaceState(null, '', url)
+  if (!torneos) {
+    pararTorneos?.()
+    pararTorneos = null
+  }
+}
+
 // Pone el periodo en los dos mandos (botones y menú del móvil) y en la
 // dirección, como si se hubiera pulsado, pero sin volver a cargar.
 function ponerPeriodo(d) {
@@ -199,6 +238,13 @@ function ponerPeriodo(d) {
 }
 
 function iniciar() {
+  ponerVista(ver)
+  $('metaVer').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ver]')
+    if (!b || b.dataset.ver === ver) return
+    ponerVista(b.dataset.ver)
+    if (ver === 'torneos') pintarTorneos()
+  })
   $('metaFuente').innerHTML = fuenteHtml(fuente)
   engancharFuente($('metaFuente'), (f) => {
     fuente = f

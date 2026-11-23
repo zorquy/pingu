@@ -55212,6 +55212,31 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1421 — Meta «Por torneo»: la lista
+
+- `meta.html`: `#metaVer` (dos `.seg-btn` con `data-ver`) dentro de
+  `.meta-filtros-cab`, y `section#metaTorneos[hidden]` antes de «Ver todos».
+- `js/meta.js`: `ver` sale de `?ver=torneos`; `ponerVista` marca el botón,
+  esconde `.meta-tabla`, `#metaVerTodos` y `#metaOtros` (el ranking se sigue
+  pintando: da las cifras de la banda) y escribe la dirección;
+  `pintarTorneos` baja `js/meta/torneos-lista.js` por `import()` y lo monta con
+  el periodo y la fuente de ahora. Se llama al cambiar de vista y al acabar
+  `cargar` (que puede haber saltado de periodo para no dejar la página vacía).
+- `js/meta/torneos-nucleo.js` (puro): `POR_PAGINA` (20), `TOP` (8),
+  `desdeDePeriodo` (la misma cuenta que la base: el día UTC del torneo, posterior
+  a hoy menos N), `rutaDeTorneo`/`idDeTorneoEnRuta`, `topPorTorneo`,
+  `repartoDe`, `elQueMasRindio` (solo con 32 mazos o más y si rinde el doble o
+  más), `resultadoDe` (sin «0-0-0»), `chapaDeTorneo`, `cejaDeTorneo`,
+  `enlaceDelTorneo` y `nombreDeJugador` (solo `nombre_jugador`: `jugador` es un
+  id interno y no se enseña).
+- `js/meta/torneos-datos.js`: `listaDeTorneos` (uno de más para saber si hay
+  otra página), `topsDe` (una consulta con `puesto <= 8` para la página entera),
+  `arquetiposDe`, y para la ficha `torneoPorId`, `clasificacionDe` (tramos de
+  1.000: PostgREST corta ahí), `conListaDe` y `listaDe`.
+- `css/meta.css`: `.meta-ver` (a la izquierda en el PC; a lo ancho en el móvil)
+  y la fila `.mt-*`, que se mide a sí misma (`@container` 640 px: la fecha a la
+  izquierda y debajo del nombre el campeón y el Top).
+
 ## Tanda 1420 — En Inicio, el torneo y el evento del mismo tamaño
 
 - `css/portada.css`, en el mosaico del PC (≥ 960 px): `:is(#torneoPortada,

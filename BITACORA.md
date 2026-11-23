@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (670) — PINGU-Claude (1421 — Meta «Por torneo»: la lista)
+
+**Hecho** (PINGU eligió lo recomendado de la propuesta «Los mazos, también por
+torneo»; artifact AArXteZGtMhNEuUZn4mbBL):
+- En /meta, un interruptor nuevo «Por mazo · Por torneo» junto a los filtros de
+  siempre (fuente y periodo), que valen para las dos vistas. Va en el HTML
+  (primer pintado); la vista vive en la dirección (`?ver=torneos`).
+- «Por torneo» enseña los torneos del periodo, del más reciente al más viejo
+  (a igualdad, el más grande): la fecha, el nombre con su chapa (el tipo del
+  oficial, PokeDoc u Online) y cuántos jugaron, el campeón (mazo y, si la base
+  lo guarda, su nombre y país) y el Top 8 en iconos. Páginas de 20 con «Ver más
+  torneos». Cada fila lleva a `/meta/torneo/<id>` (la ficha, 1422) con el
+  periodo y la fuente.
+- Sin migración: lee `meta_torneos`, `meta_resultados` y `meta_arquetipos`,
+  que ya lee todo el mundo.
+
+**Ficheros**: `meta.html`, `js/meta.js`, `js/meta/torneos-nucleo.js` (nuevo,
+puro), `js/meta/torneos-datos.js` (nuevo), `js/meta/torneos-lista.js` (nuevo,
+por `import()`), `css/meta.css`, `normas/jugar.md`, `css/vistas-coleccion.css`. Rama pruebas:
+`test-tanda-1421-pantalla.mjs` y sus datos (`datos-meta-torneos.mjs`), y el
+servidor de pruebas sirve ya `/meta/<id>` y `/meta/torneo/<id>`. Pasan 1153,
+1358, 1366, 721, 787, 889, 894, 1162 y 520. Ya rojas antes de esta tanda: 893
+(los botones de fuente miden 36 px en el móvil, también sin el cambio), 1359
+(Mis partidas) y 413 (el catálogo). De paso, el `gap: 3px` que la 1418 dejó en `.vc-pared li` (vistas-coleccion.css) pasa a `var(--e-xs)`: la 310 no deja espaciados impares.
+
+**Pendiente**: la ficha del torneo (1422) y los enlaces (1423). Sale en el
+próximo push.
+
 ## 2026-11-23 (669) — PINGU-Claude (1420 — En Inicio, el torneo y el evento del mismo tamaño)
 
 **Hecho** (PINGU, con la captura: «cuando hay torneo y hay evento, son de

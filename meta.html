@@ -172,6 +172,12 @@
       <a class="seg-btn" href="/laboratorio"><span class="seg-ico" data-seg-icono="lightbulb" aria-hidden="true"></span><span class="seg-txt">Probar</span></a>
     </nav>
     <div class="meta-filtros-cab">
+      <!-- Por mazo · Por torneo (1421): escrito aquí para estar desde el
+           primer pintado; meta.js marca el que toca (?ver=torneos). -->
+      <div class="seg meta-ver" id="metaVer" role="group" aria-label="Ver el meta">
+        <button type="button" class="seg-btn" data-ver="mazos" aria-pressed="true">Por mazo</button>
+        <button type="button" class="seg-btn" data-ver="torneos" aria-pressed="false">Por torneo</button>
+      </div>
       <div class="seg" id="metaFuente" role="group" aria-label="Torneos"></div>
       <div class="seg" id="metaPeriodo" role="group" aria-label="Periodo"></div>
     </div>
@@ -193,6 +199,7 @@
         <li class="esq-meta" aria-hidden="true"><span class="esq-linea"></span></li>
       </ol>
     </div>
+    <section class="meta-torneos" id="metaTorneos" aria-label="Torneos del periodo" hidden></section>
     <button type="button" class="btn-secondary meta-ver-todos hidden" id="metaVerTodos"></button>
     <p class="meta-nota" id="metaOtros"></p>
 
