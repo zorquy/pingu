@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es" data-seccion="jugar" data-detalle>
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script><script>try{var pe=document.documentElement,pl=localStorage.getItem('pd-letra');if(pl==='grande'||pl==='muy-grande')pe.dataset.letra=pl;if(localStorage.getItem('pd-contraste')==='1')pe.dataset.contraste='1'}catch(x){}</script>
+  <script>/* Temporada (1134, 1285-1289, generar-temporada.mjs): la fiesta de hoy antes del primer pintado; las pruebas automáticas no la ven salvo con ?temporada=… */(function(){try{var n=new Date(),k=(n.getMonth()+1)*100+n.getDate(),q=/[?&]temporada=([a-z]+)/.exec(location.search),a=navigator.webdriver,r=document.documentElement,t=q?q[1]:a?'':k==1031||k==1101?'halloween':k>=1222||k<=106?'navidad':'',f=q?q[1]:a?'':{1228:'inocentes',1231:'nochevieja',101:'nochevieja',105:'reyes',106:'reyes'}[k]||'',l=localStorage;if(/^(inocentes|nochevieja|reyes)$/.test(f)){t='navidad';if(l.getItem('pd-sin-'+f)!=='1'&&!(f=='inocentes'&&l.getItem('pd-tienda')))r.dataset.fiesta=f}var s=q||l.getItem('pd-sin-'+t)!=='1';if(k>=1201&&k<=1231&&!a||t=='adviento')r.setAttribute('data-adviento','');if(t=='halloween'&&s){r.dataset.temporada=t;r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}if(t=='navidad'&&s){r.dataset.temporada=t;document.write('<link rel="stylesheet" href="/css/navidad.css">')}if(r.dataset.fiesta=='inocentes')document.write('<link rel="stylesheet" href="/css/inocentes.css">');if(r.dataset.fiesta=='reyes')document.write('<link rel="stylesheet" href="/css/reyes.css">');}catch(e){}})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');try{localStorage.getItem('pd-tienda')&&document.documentElement.classList.add('pd-tienda')}catch(e){}addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>
+  <title>Torneo del meta — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="PokeDoc" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="description" content="Un torneo de Pokémon TCG en el meta de PokeDoc: su Top 8 con los mazos, lo que se jugó y la clasificación entera, con las listas para copiar a TCG Live." />
+  <!-- Miles de torneos online casi iguales (normas/interfaz.md, 322): la ficha
+       no se indexa, pero sus enlaces a los mazos sí cuentan. -->
+  <meta name="robots" content="noindex,follow" />
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/outfit-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/meta/nucleo.js" />
+  <link rel="modulepreload" href="/js/meta/datos.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="modulepreload" href="/js/tienda-puertas.js" />
+  <link rel="modulepreload" href="/js/arte-de.js" />
+  <link rel="modulepreload" href="/js/toast.js" />
+  <link rel="modulepreload" href="/js/carta-ruta.js" />
+  <link rel="modulepreload" href="/js/tcgdex.js" />
+  <link rel="modulepreload" href="/js/guia-tarjeta.js" />
+  <link rel="modulepreload" href="/js/torneos/cartas-decklist.js" />
+  <link rel="modulepreload" href="/js/impresiones-del-set.js" />
+  <link rel="modulepreload" href="/js/guardar-lista.js" />
+  <link rel="modulepreload" href="/js/torneos/decklist-export.js" />
+  <link rel="modulepreload" href="/js/imagen-carta.js" />
+  <link rel="modulepreload" href="/js/meta/pintar.js" />
+  <link rel="modulepreload" href="/js/espera-prerender.js" />
+  <link rel="modulepreload" href="/js/mercados.js" />
+  <link rel="modulepreload" href="/js/sets-catalogo.js" />
+  <link rel="modulepreload" href="/js/mi-coleccion/busqueda.js" />
+  <link rel="modulepreload" href="/js/catalogo-series.js" />
+  <link rel="modulepreload" href="/js/carta-detalle.js" />
+  <link rel="modulepreload" href="/js/catalogo-tcgdex.js" />
+  <link rel="modulepreload" href="/js/texto.js" />
+  <link rel="modulepreload" href="/js/guia-contenido.js" />
+  <link rel="modulepreload" href="/js/energia-de-texto.js" />
+  <link rel="modulepreload" href="/js/articulos.js" />
+  <link rel="modulepreload" href="/js/carta-legalidad.js" />
+  <link rel="modulepreload" href="/js/clave-de-nombre.js" />
+  <link rel="modulepreload" href="/js/torneos/sprites-pokemon.js" />
+  <link rel="modulepreload" href="/js/lista-canonica.js" />
+  <link rel="modulepreload" href="/js/constructor/nucleo.js" />
+  <link rel="modulepreload" href="/js/impresion-canonica.js" />
+  <link rel="modulepreload" href="/js/torneos/decklist-imagen.js" />
+  <link rel="modulepreload" href="/js/escaneo-carta.js" />
+  <link rel="modulepreload" href="/js/tipos-de-especie.js" />
+  <link rel="modulepreload" href="/js/torneos/comun.js" />
+  <link rel="modulepreload" href="/js/rareza-escala.js" />
+  <link rel="modulepreload" href="/js/insignia-copias.js" />
+  <link rel="modulepreload" href="/js/lista-en-png.js" />
+  <link rel="modulepreload" href="/js/torneos/rondas-jornada.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/avatar.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/meta-torneo.js" />
+  <link rel="modulepreload" href="/js/compartir.js" />
+  <link rel="modulepreload" href="/js/meta/torneos-datos.js" />
+  <link rel="modulepreload" href="/js/meta/torneos-nucleo.js" />
+  <!-- /precargas -->
+  <!-- /precargas -->
+  <!-- /precargas -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/torneos.css" />
+  <link rel="stylesheet" href="/css/meta.css" />
+  <link rel="stylesheet" href="/css/meta-torneo.css" />
+  <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
+</head>
+<body>
+  <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">Poke<span>Doc</span></a>
+      <div class="nav-links">
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/novedades">Novedades</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Aprender</button>
+          <div class="nav-sub">
+            <a href="/aprender.html">Guías y cursos</a>
+            <a href="/retos">Retos diarios</a>
+            <a href="/guardados.html">Guardados</a>
+            <a href="/glosario">Glosario</a>
+          </div>
+        </div>
+        <a href="/mi-coleccion">Mi colección</a>
+        <div class="nav-grupo">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
+          <div class="nav-sub">
+            <a href="/foro.html">Foro</a>
+            <a href="/eventos">Eventos</a>
+            <a href="/tiendas">Tiendas</a>
+            <a href="/usuarios.html">Gente</a>
+          </div>
+        </div>
+        <div class="nav-grupo nav-jugar hidden">
+          <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
+          <div class="nav-sub">
+            <a href="/torneos.html">Torneos</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div id="nav-user"></div>
+        <button class="nav-toggle" id="navToggle" aria-label="Menú" aria-expanded="false" aria-controls="navMobileMenu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-menu-mobile" id="navMobileMenu">
+      <a href="/">Inicio</a>
+      <a href="/noticias">Noticias</a>
+      <a href="/lanzamientos.html">Lanzamientos</a>
+      <a href="/novedades">Novedades</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Aprender</summary>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/retos">Retos diarios</a>
+        <a href="/guardados.html">Guardados</a>
+        <a href="/glosario">Glosario</a>
+      </details>
+      <a href="/mi-coleccion">Mi colección</a>
+      <details class="nav-menu-grupo" name="nav-menu">
+        <summary>Comunidad</summary>
+        <a href="/foro.html">Foro</a>
+        <a href="/eventos">Eventos</a>
+        <a href="/tiendas">Tiendas</a>
+        <a href="/usuarios.html">Gente</a>
+      </details>
+      <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
+        <summary>Jugar</summary>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
+      </details>
+    </div>
+  </nav>
+  <!-- barra-movil: la escribe generar-barra-movil.mjs -->
+  <nav class="bm" aria-label="Secciones"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Inicio</span></a><a href="/aprender.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Aprender</span></a><a href="/cartas"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path></svg><span>Colección</span></a><a href="/foro.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comunidad</span></a><a href="/torneos.html" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Jugar</span></a></nav>
+  <!-- /barra-movil -->
+
+  <main id="contenido" class="page-content container meta-pagina mtf-pagina">
+    <nav class="breadcrumb" aria-label="Dónde estás"><a href="/meta">Mazos</a> <span>›</span> <a href="/meta?ver=torneos" id="mtfVolver">Por torneo</a> <span>›</span> <span id="mtfMiga"></span></nav>
+    <header class="mtf-cab">
+      <div class="mtf-cab-texto">
+        <span class="mtf-ceja" id="mtfCeja">Torneo</span>
+        <h1 id="mtfNombre">Torneo</h1>
+        <p class="mtf-datos" id="mtfDatos"></p>
+      </div>
+      <div class="mtf-cab-botones" id="mtfBotones"></div>
+    </header>
+    <div id="mtfAviso" class="meta-aviso hidden" role="status"></div>
+    <div id="mtfContenido">
+      <div class="mtf-dos">
+        <section class="mtf-caja" aria-labelledby="mtfTopTitulo">
+          <h2 id="mtfTopTitulo">Top 8 <small>con su mazo y su récord</small></h2>
+          <div class="mtf-podio" id="mtfPodio" aria-busy="true"></div>
+        </section>
+        <section class="mtf-caja" aria-labelledby="mtfJugoTitulo">
+          <h2 id="mtfJugoTitulo">Lo que se jugó <small id="mtfJugoCuantos"></small></h2>
+          <div id="mtfReparto"></div>
+        </section>
+      </div>
+      <section class="mtf-caja" aria-labelledby="mtfClasTitulo">
+        <h2 id="mtfClasTitulo">Clasificación <small id="mtfClasCuantos"></small></h2>
+        <div class="mtf-chips" id="mtfChips" role="group" aria-label="Quedarse con un mazo"></div>
+        <ol class="mtf-filas" id="mtfFilas"></ol>
+        <div class="mtf-mas" id="mtfMas"></div>
+      </section>
+    </div>
+    <!-- La lista de un jugador (1422): un pop-up centrado, como los de la web
+         (normas/interfaz.md, 1045); se rellena al abrirlo. -->
+    <dialog class="mtf-dialogo" id="mtfLista" aria-labelledby="mtfListaTitulo">
+      <div class="mtf-dialogo-cab">
+        <h2 id="mtfListaTitulo">Lista</h2>
+        <button type="button" class="mtf-cerrar" id="mtfListaCerrar" aria-label="Cerrar">×</button>
+      </div>
+      <div class="mtf-dialogo-cuerpo" id="mtfListaCuerpo"></div>
+    </dialog>
+  </main>
+
+  <footer class="footer">
+    <div class="pie-rejilla">
+      <div>
+        <p class="pie-marca">Poke<span>Doc</span></p>
+        <p class="pie-lema">La comunidad española de Pokémon TCG. Guías, cursos, foro y torneos. Todo gratis.</p>
+        <p class="pie-redes"><a href="https://x.com/pokedoc_es" target="_blank" rel="noopener">X</a><a href="https://www.instagram.com/pokedoc_es" target="_blank" rel="noopener">Instagram</a></p>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Aprender</p>
+        <a href="/aprender.html">Guías y cursos</a>
+        <a href="/cartas">Cartas</a>
+        <a href="/noticias">Noticias</a>
+        <a href="/lanzamientos.html">Lanzamientos</a>
+        <a href="/novedades">Novedades</a>
+        <a href="/mi-coleccion">Mi colección</a>
+        <a href="/guardados.html">Guardados</a>
+        <a href="/glosario">Glosario</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Comunidad</p>
+        <a href="/foro.html">Foro</a>
+        <a href="/eventos">Eventos</a>
+        <a href="/usuarios.html">Gente</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/colabora">Colabora</a>
+        <a href="/para-tiendas">Para tiendas</a>
+      </div>
+      <div class="pie-col">
+        <p class="pie-titulo">Jugar</p>
+        <a href="/torneos.html">Torneos</a>
+        <a href="/meta">Mazos del meta</a>
+        <a href="/constructor">Constructor de mazos</a>
+        <a href="/laboratorio">Laboratorio</a>
+        <a href="/mis-partidas">Mis partidas</a>
+        <a href="/retos">Retos diarios</a>
+      </div>
+    </div>
+    <div class="pie-abajo">
+      <p class="pie-copy">© 2026 PokeDoc — Hecho para coleccionistas y jugadores.</p>
+      <p class="footer-links"><a href="/sobre.html">Qué es PokeDoc</a> · <a href="/terminos.html">Términos de uso</a> · <a href="/privacidad.html">Privacidad</a> · <a href="https://ko-fi.com/pokedoc" target="_blank" rel="noopener">Apoyar PokeDoc</a></p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/meta-torneo.js"></script>
+</body>
+</html>

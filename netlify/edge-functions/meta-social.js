@@ -1459,6 +1459,42 @@ async function metaDeEvento(url) {
   }
 }
 
+// La ficha de un torneo del meta (1422): /meta/torneo/<id>. Con su tarjeta
+// (el nombre, el día, los jugadores y el campeón con su mazo). No se indexa
+// (lo dice la página): miles de torneos online casi iguales.
+async function metaDeTorneoMeta(url) {
+  const m = url.pathname.match(/^\/meta\/torneo\/([^/?#]+)\/?$/)
+  let id = ''
+  try { id = m ? decodeURIComponent(m[1]) : url.searchParams.get('t') || '' } catch { return null }
+  if (!id || id.length > 120) return null
+  const t = await pedir(`meta_torneos?id=eq.${encodeURIComponent(id)}&select=id,nombre,fecha,jugadores,fuente,tipo&limit=1`)
+  if (!t?.nombre) return null
+  const campeon = await pedir(`meta_resultados?torneo_id=eq.${encodeURIComponent(id)}&puesto=eq.1&select=arquetipo,nombre_jugador&limit=1`)
+  const arq = campeon?.arquetipo ? await pedir(`meta_arquetipos?id=eq.${encodeURIComponent(campeon.arquetipo)}&select=nombre&limit=1`) : null
+  const fecha = new Date(t.fecha)
+  const dia = Number.isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const jug = Number(t.jugadores) || 0
+  const chapa = t.fuente === 'oficial' ? t.tipo || 'Oficial' : t.fuente === 'pokedoc' ? 'PokeDoc' : 'Online'
+  const mazo = arq?.nombre || campeon?.arquetipo || ''
+  const quien = campeon?.nombre_jugador || ''
+  const canonica = `${SITIO}/meta/torneo/${encodeURIComponent(id)}`
+  return {
+    url: canonica,
+    titulo: `${t.nombre} · Torneos del meta · PokeDoc`,
+    descripcion: recortar(`${t.nombre}${dia ? `, ${dia}` : ''}: ${jug} jugadores.${mazo ? ` Ganó ${mazo}${quien ? ` (${quien})` : ''}.` : ''} El Top 8, lo que se jugó y las listas.`),
+    imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: {
+      seccion: 'jugar',
+      chapa,
+      titulo: t.nombre,
+      entradilla: [dia, `${jug} jugadores`].filter(Boolean).join(' · '),
+      linea: mazo ? `Campeón: ${mazo}${quien ? ` · ${quien}` : ''}` : 'El Top 8 y lo que se jugó',
+      enlace: 'pokedoc.es/meta',
+      pieza: { tipo: 'mascota' },
+    },
+  }
+}
+
 // La dirección de la tarjeta del enlace de una página (1201): la dibuja la
 // función `tarjeta` con lo que hay en `meta.tarjeta`, que vuelve a calcular
 // desde la misma dirección. La `v` es la huella de lo que se dibuja: si
@@ -1508,6 +1544,7 @@ async function metaDeRuta(url) {
   if (/^\/torneo(\.html)?$/.test(ruta)) return metaDeTorneo(url)
   if (/^\/repeticiones(\.html)?$/.test(ruta)) return metaDeRepeticion(url)
   if (ruta.startsWith('/eventos/')) return metaDeEvento(url)
+  if (ruta.startsWith('/meta/torneo/')) return metaDeTorneoMeta(url)
   return null
 }
 
@@ -1637,5 +1674,7 @@ export const config = {
     '/parejas.html',
     // La ficha de un evento (1201), con su tarjeta.
     '/eventos/*',
+    // La ficha de un torneo del meta (1422), con su tarjeta.
+    '/meta/torneo/*',
   ],
 }

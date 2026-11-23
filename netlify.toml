@@ -362,6 +362,13 @@
   to = "/guia.html?slug=:slug"
   status = 200
 
+# La ficha de un torneo del meta (tanda 1422): /meta/torneo/<id>. Dos
+# tramos, así que no choca con la de un mazo; va antes por si acaso.
+[[redirects]]
+  from = "/meta/torneo/:id"
+  to = "/meta-torneo.html?t=:id"
+  status = 200
+
 # La ficha de un mazo del meta (tanda 364): /meta/dragapult-dusknoir.
 # El id es el de Limitless tal cual; la página lo lee de la barra
 # (location.pathname), así que el ?dias= de quien comparte el enlace

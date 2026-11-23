@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (671) — PINGU-Claude (1422 — La ficha de un torneo del meta)
+
+**Hecho** (lo recomendado de «Los mazos, también por torneo», segunda tanda):
+- `/meta/torneo/<id>` (página nueva, `meta-torneo.html`): cabecera baja con la
+  ceja (oficial, online o de PokeDoc), el nombre, la chapa, el día, los
+  jugadores, «se sabe el mazo de N» si no son todos y cuántas listas hay;
+  Compartir y «Ver en Limitless» (o «Ver en La arena» si es nuestro).
+- El Top 8 como podio: el campeón grande, el 2.º en plata y el 3.º en bronce
+  (un tinte del metal sobre la superficie del tema, para que se lea también en
+  oscuro). Cada uno con su mazo (lleva a su ficha), quién y de dónde si la base
+  lo guarda, el récord si lo hay y «Ver lista».
+- Lo que se jugó: los ocho mazos más jugados con su barra del color del tipo,
+  su % y cuántos entraron en el Top («Ver todos» para el resto), y «el que más
+  rindió» solo si hay muestra (32 mazos) y rindió el doble.
+- La clasificación entera (64 de entrada y «Ver 100 más»), con la raya dorada
+  debajo del 8.º, chips para quedarse con un mazo y «Ver lista» en un pop-up
+  centrado (copiar para TCG Live, constructor, laboratorio, imagen y el
+  enlace). Quien no tiene nombre guardado sale con una raya: el id interno
+  del jugador no se enseña nunca.
+- La tarjeta del enlace (meta-social: el nombre, el día, los jugadores y el
+  campeón con su mazo). La página va en `noindex,follow`.
+
+**Ficheros**: `meta-torneo.html` (nueva), `js/meta-torneo.js` (nuevo),
+`css/meta-torneo.css` (nuevo), `netlify.toml` (la dirección),
+`netlify/edge-functions/meta-social.js` (`metaDeTorneoMeta` y su ruta),
+`js/barra-movil.js` (`meta-torneo` en Jugar). Y las precargas de seis páginas
+que iban atrasadas desde antes (`ajustes`, `mis-partidas`, `perfil`,
+`torneo`, `torneos`, `usuario`; la 1315 ya daba rojo sin esta tanda). Rama
+pruebas: `test-tanda-1422-pantalla.mjs` (con el contraste del podio en los dos
+temas) y la 312 cuenta 51 páginas con pie. Pasan 753, 1315, 906, 312, 1201,
+test-meta-torneo, 1358, 1366 y test-imports. Rojos de antes: 829 (dos, de
+Novedades; igual sin la entrada nueva).
+
+**Pendiente**: los enlaces desde la ficha del mazo (1423). Sale en el próximo
+push.
+
 ## 2026-11-23 (670) — PINGU-Claude (1421 — Meta «Por torneo»: la lista)
 
 **Hecho** (PINGU eligió lo recomendado de la propuesta «Los mazos, también por

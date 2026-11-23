@@ -55212,6 +55212,30 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1422 — La ficha de un torneo del meta
+
+- Dirección: `/meta/torneo/:id` → `meta-torneo.html?t=:id` (netlify.toml, antes
+  de la de un mazo). `idDeTorneoEnRuta` lee las dos.
+- `meta-torneo.html`: `data-detalle` (la pone el generador: `meta-torneo` está
+  en `SECCION_DE` de Jugar), `noindex,follow`, `meta.css` + `meta-torneo.css` +
+  `torneos.css` (la rejilla de cartas de la lista). Ids: `mtfVolver`,
+  `mtfMiga`, `mtfCeja`, `mtfNombre`, `mtfDatos`, `mtfBotones`, `mtfAviso`,
+  `mtfContenido`, `mtfPodio`, `mtfReparto`, `mtfChips`, `mtfFilas`, `mtfMas`
+  y el `<dialog id="mtfLista">`.
+- `js/meta-torneo.js`: `torneoPorId` → si no está, aviso y `mtfContenido`
+  oculto; si no, `clasificacionDe` y `conListaDe` a la vez, `arquetiposDe` y
+  `tiposDeEspecies` (el color de la barra). Pinta cabecera, podio (`.mtf-p1`
+  dos por dos, `.mtf-p2` dos de ancho, `.mtf-p3` al 3.º), reparto (8 y «Ver
+  todos»), chips (6 y «+ N mazos»; el elegido se ve siempre) y filas (64, +100).
+  La raya (`.mtf-corte`) va en la última fila con puesto ≤ 8 sin filtro.
+  `abrirLista` pide `listaDe(id, jugador)` y pinta acciones y rejilla.
+- `css/meta-torneo.css`: el podio con `color-mix` del metal sobre `--white`
+  (los `--rarity-*-bg` son claros en los dos temas); la fila de la
+  clasificación se mide a sí misma (`@container` 560 px: puesto, mazo y récord
+  arriba, quién y la lista abajo). El pop-up, como `.cp-dialogo` (1045).
+- `meta-social.js`: `metaDeTorneoMeta` (tres consultas: el torneo, el puesto 1
+  y su arquetipo) con tarjeta `seccion: 'jugar'`; ruta `/meta/torneo/*`.
+
 ## Tanda 1421 — Meta «Por torneo»: la lista
 
 - `meta.html`: `#metaVer` (dos `.seg-btn` con `data-ver`) dentro de

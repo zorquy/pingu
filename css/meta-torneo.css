@@ -1,0 +1,159 @@
+/* La ficha de un torneo del meta (1422; SCHEMA 1422): /meta/torneo/<id>.
+   Solo la baja meta-torneo.html. Lo de abrir y cerrar el pop-up va en [open]
+   (la 473). */
+
+.mtf-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: var(--e-lg);
+  padding: var(--e-lg) var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.mtf-cab-texto { display: grid; gap: var(--e-xs); min-width: 0; }
+.mtf-ceja { color: var(--acento); font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.mtf-cab h1 { margin: 0; font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.1; text-wrap: balance; }
+.mtf-datos { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; min-height: 20px; margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.mtf-cab-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); min-height: 44px; }
+
+.mtf-dos { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--e-lg); align-items: start; margin-bottom: var(--e-lg); }
+.mtf-caja { display: grid; gap: var(--e-md); min-width: 0; padding: var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.mtf-caja h2 { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: baseline; justify-content: space-between; margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.mtf-caja h2 small { color: var(--text-mid); font-family: inherit; font-size: var(--t-xs); font-weight: 500; }
+
+/* ── El podio: el campeón grande, oro, plata y bronce ──
+   Un tinte del metal sobre la superficie del tema (los --rarity-*-bg son
+   claros en los dos temas y la letra del oscuro no se leía encima). */
+.mtf-podio { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); min-height: 240px; }
+.mtf-podio[aria-busy='true'] { border-radius: var(--radius-md); background: var(--bg); }
+.mtf-puesto {
+  display: grid;
+  gap: var(--e-xs);
+  align-content: start;
+  justify-items: center;
+  min-width: 0;
+  padding: var(--e-md) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  text-align: center;
+}
+.mtf-p1 { grid-column: span 2; grid-row: span 2; align-content: center; border-color: color-mix(in srgb, var(--rarity-gold) 40%, transparent); background: color-mix(in srgb, var(--rarity-gold) 22%, var(--white)); }
+.mtf-p2 { grid-column: span 2; border-color: color-mix(in srgb, var(--rarity-silver) 40%, transparent); background: color-mix(in srgb, var(--rarity-silver) 20%, var(--white)); }
+.mtf-p3 { border-color: color-mix(in srgb, var(--rarity-bronze) 40%, transparent); background: color-mix(in srgb, var(--rarity-bronze) 20%, var(--white)); }
+.mtf-num { color: var(--text-mid); font-family: var(--font-display); font-size: var(--t-xs); font-weight: 800; }
+.mtf-p1 .mtf-num { color: var(--warning); font-size: var(--t-md); }
+.mtf-puesto .meta-iconos { justify-content: center; width: auto; height: 40px; }
+.mtf-p1 .meta-iconos { height: 64px; }
+.mtf-p1 .meta-icono { width: 64px; height: 64px; }
+.mtf-mazo { max-width: 100%; overflow: hidden; color: var(--text); font-size: var(--t-sm); font-weight: 700; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.mtf-mazo:hover { color: var(--acento); }
+.mtf-p1 .mtf-mazo { font-family: var(--font-display); font-size: var(--t-lg); }
+.mtf-quien { max-width: 100%; overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.mtf-rec { color: var(--text-mid); font-size: var(--t-xs); font-variant-numeric: tabular-nums; font-weight: 700; }
+.mtf-ver { min-height: 32px; padding: 0 var(--e-sm); border: 0; background: none; color: var(--acento); font: inherit; font-size: var(--t-xs); font-weight: 600; cursor: pointer; }
+.mtf-ver:hover { text-decoration: underline; }
+@media (pointer: coarse) { .mtf-ver { min-height: 44px; } }
+
+/* ── Lo que se jugó ── */
+.mtf-reparto { display: grid; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.mtf-reparto li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 56px 64px; gap: var(--e-sm); align-items: center; font-size: var(--t-xs); }
+.mtf-reparto .meta-iconos { width: 28px; height: 28px; }
+.mtf-reparto .meta-icono { width: 28px; height: 28px; }
+.mtf-reparto-nombre { display: grid; gap: var(--e-xs); min-width: 0; }
+.mtf-reparto-nombre a { overflow: hidden; color: var(--text); font-weight: 600; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.mtf-reparto-nombre a:hover { color: var(--acento); }
+.mtf-reparto .meta-barra { width: 100%; }
+.mtf-pct { font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; }
+.mtf-t8 { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; text-align: right; white-space: nowrap; }
+.mtf-t8-si { color: var(--warning); }
+.mtf-rindio { margin: 0; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--success-bg); color: var(--success); font-size: var(--t-xs); font-weight: 600; }
+.mtf-resto { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+
+/* ── La clasificación ── */
+.mtf-chips { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.mtf-chip { min-height: 32px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg); color: var(--text); font: inherit; font-size: var(--t-xs); font-weight: 600; cursor: pointer; }
+.mtf-chip[aria-pressed='true'] { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
+@media (pointer: coarse) { .mtf-chip { min-height: 44px; } }
+.mtf-filas { display: grid; margin: 0; padding: 0; list-style: none; container-type: inline-size; }
+.mtf-fila {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1.2fr) 48px minmax(0, 1.4fr) 72px 88px;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-sm);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--t-sm);
+}
+.mtf-fila-cab { min-height: 32px; color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.mtf-corte { border-bottom: 2px solid var(--rarity-gold); }
+.mtf-fila .mtf-n { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-weight: 800; }
+.mtf-fila .mtf-jugador { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtf-anonimo { color: var(--text-mid); }
+.mtf-fila .mtf-pais { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.mtf-fila .mtf-mazo-fila { display: flex; gap: var(--e-sm); align-items: center; min-width: 0; }
+.mtf-mazo-fila .meta-iconos { width: 28px; height: 28px; }
+.mtf-mazo-fila .meta-icono { width: 28px; height: 28px; }
+.mtf-mazo-fila a { overflow: hidden; color: var(--text); text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.mtf-mazo-fila a:hover { color: var(--acento); }
+.mtf-fila .mtf-rec { font-size: var(--t-sm); }
+.mtf-sin { color: var(--text-mid); font-size: var(--t-xs); }
+.mtf-mas { display: flex; justify-content: center; }
+.mtf-vacio { padding: var(--e-lg) 0; color: var(--text-mid); }
+@container (max-width: 560px) {
+  .mtf-fila {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    grid-template-areas: 'n mazo rec' 'n jugador lista';
+    row-gap: 0;
+    padding: var(--e-sm) var(--e-xs);
+  }
+  .mtf-fila-cab { display: none; }
+  .mtf-n { grid-area: n; }
+  .mtf-mazo-fila { grid-area: mazo; }
+  .mtf-jugador { grid-area: jugador; color: var(--text-mid); font-size: var(--t-xs); }
+  .mtf-fila .mtf-pais { display: none; }
+  .mtf-fila .mtf-rec { grid-area: rec; text-align: right; }
+  .mtf-lista { grid-area: lista; justify-self: end; }
+}
+
+/* ── El pop-up de una lista (centrado, con tope de alto; 1045) ── */
+.mtf-dialogo {
+  box-sizing: border-box;
+  width: min(920px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.mtf-dialogo[open] { position: fixed; display: flex; flex-direction: column; }
+.mtf-dialogo::backdrop { background: rgb(0 0 0 / 35%); }
+.mtf-dialogo-cab { display: flex; flex: none; gap: var(--e-sm); align-items: center; padding: var(--e-md) var(--e-lg); border-bottom: 1px solid var(--border); }
+.mtf-dialogo-cab h2 { flex: 1; min-width: 0; margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.mtf-cerrar { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--text-mid); cursor: pointer; }
+.mtf-dialogo-cuerpo { display: grid; flex: 1 1 auto; align-content: start; gap: var(--e-md); min-height: 0; padding: var(--e-md) var(--e-lg) var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
+.mtf-dialogo-acciones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+html:has(.mtf-dialogo[open]) { overflow: hidden; }
+
+@media (max-width: 900px) {
+  .mtf-cab { padding: var(--e-md) var(--e-lg); }
+  .mtf-cab h1 { font-size: var(--t-xl); }
+  .mtf-dos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .mtf-podio { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mtf-p1 { grid-row: auto; }
+  .mtf-p2 { grid-column: auto; }
+  .mtf-dialogo { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+}
