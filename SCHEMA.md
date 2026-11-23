@@ -55212,6 +55212,38 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1419 — El color de las ilustraciones, en el servidor
+
+- Tabla `tcg_card_colores` (card_id, market) → `huella` jsonb (la de
+  `huellaDePixeles`, con `colores`; nula si ninguna foto se lee), `color`
+  (copia de `huella.colores.color`), `color_admin` (corrección del equipo,
+  manda), `foto`, `intentos`, `corregido_por`, `corregido_at`, `updated_at`.
+  RLS con SELECT para todos; escriben la clave de servicio y
+  `admin_color_corregir(p_card, p_market, p_color)` (solo `is_admin()`, grupo
+  de `GRUPOS` o null para quitar). Los dos `check` y la función usan la lista
+  de `GRUPOS` (test-tanda-1419 lo compara).
+- `colores-cartas` (programada, `41 * * * *`): estado en `scrydex_estado` →
+  `colores_cartas` { cola: ['WEST|sv8', …], vueltaAcabada, vueltas,
+  ultimaPasada, leidas, fallidas, ultimoError }. Cola = `tcg_sets` por
+  `release_date desc`; por expansión, sus cartas (`COLUMNAS`) filtradas con
+  `entraEnColores`, lo que ya hay (`huella_ok:huella->labs`) y `pendientesDe`
+  (sin fila, o sin huella y < `MAX_INTENTOS` = 3). Foto: `cadenaDeEscaneo(…,
+  'high')`, sharp a 64×90 `fit: 'fill'`, `huellaDePixeles`. Upsert con
+  `on_conflict=card_id,market` y merge (no manda `color_admin`). 20 s por
+  pasada, 6 a la vez; la expansión sale de la cola solo entera. Vuelta hecha →
+  nada hasta `DIAS_ENTRE_VUELTAS` = 7. `procesar({ soloSet })` para
+  `colores-cartas-ahora` (POST, admin, `{ set, market }`).
+- Web: `colores-servidor.js` → `huellasDelServidor(cartas)` (Map id → huella)
+  y `coloresDelEquipo(cartas)` (Map id → grupo), por mercado y de 150 en 150;
+  un error (sin la migración) da null/Map vacío. `huellasDe(…, { delServidor })`
+  pide al servidor lo que no está en la caché antes de leer fotos y lo guarda.
+  `fichaDe(carta, huella, corregido)`.
+- /admin: `admin/js/colores-set.js` (`abrirColoresDeSet`, `estadoDeCarta`),
+  botón «Colores» en las cartas de una colección; semáforo `colores_cartas`.
+- Medido: con la foto grande el color coincide con el del navegador (foto
+  pequeña) en 37 de 40 ilustraciones de Chispas Fulgurantes y 151; las 3
+  restantes están en el límite entre dos grupos.
+
 ## Tanda 1418 — Tus colores, bien
 
 - `js/mi-coleccion/color-de-carta.js` (puro, sin DOM, para navegador y

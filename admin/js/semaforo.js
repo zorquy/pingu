@@ -43,6 +43,8 @@ export const PASADAS = [
   ['ligas_jornadas', 'Jornadas de liga'],
   // El timbre (1310): la base llama a torneos, correos y push solo con trabajo.
   ['timbre', 'Timbre de la base'],
+  // El color de cada ilustración para Tus colores y «Sugerir» (1419).
+  ['colores_cartas', 'Colores de las ilustraciones'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000

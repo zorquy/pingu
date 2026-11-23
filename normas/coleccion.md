@@ -394,6 +394,14 @@
   álbum va de nueve en nueve: una corta en medio corre todas las demás).
   Solo entran ilustraciones (`esDeArte`):
   en una carta normal el color lo pone el marco de su tipo, no el arte.
+  Desde la 1419 la huella de cada ilustración la calcula el SERVIDOR con la
+  foto grande (`colores-cartas`, tabla `tcg_card_colores`) y el navegador solo
+  lee las fotos de lo que aún no está: `huellasDe(…, { delServidor })` con
+  `colores-servidor.js`. El equipo corrige el grupo en /admin → una colección →
+  Colores (`admin_color_corregir`, columna `color_admin`), y esa corrección se
+  pide SIEMPRE fresca (`coloresDelEquipo`), nunca de la caché del navegador.
+  Qué entra y los grupos viven en `color-de-carta.js` (`entraEnColores`,
+  `GRUPOS`), que es lo que usan la web, el servidor y el `check` de la tabla.
   Se PROBÓ meter todas leyendo solo la ventana del dibujo (1417c) y PINGU lo
   quitó con la pared delante (1417d: «está cogiendo cartas de tipo lucha…
   de tipo agua que, aunque tengan algo de rojo, no casan»): el dibujo de una

@@ -349,13 +349,25 @@ async function huellaDeAlguna(fotos) {
 // `fotoDe(carta)` da la dirección; `alAvanzar(hechas, total)` para la barra.
 // `conColores` (Tus colores, 1418): una huella guardada antes de la 1418 no
 // trae `colores` y se vuelve a leer (una vez; luego queda guardada).
-export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8, conColores = false } = {}) {
+// `delServidor(cartas)` (1419): las que el servidor ya tiene calculadas (con
+// la foto grande) se le piden a él antes de leer ninguna foto; devuelve un
+// Map id → huella. Sin la tabla o sin red, un Map vacío: se leen las fotos.
+export async function huellasDe(cartas, fotoDe, { alAvanzar = null, aLaVez = 8, conColores = false, delServidor = null } = {}) {
   const c = cache()
   const out = new Map()
-  const faltan = []
+  let faltan = []
   for (const carta of cartas) {
     if (c[carta.id] && (!conColores || c[carta.id].colores)) out.set(carta.id, c[carta.id])
     else faltan.push(carta)
+  }
+  if (faltan.length && delServidor) {
+    let delS = new Map()
+    try { delS = (await delServidor(faltan)) || new Map() } catch { /* se leen las fotos */ }
+    if (delS.size) {
+      for (const [id, h] of delS) { if (h) { c[id] = h; out.set(id, h) } }
+      faltan = faltan.filter((carta) => !out.has(carta.id))
+      guardarCache()
+    }
   }
   let hechas = cartas.length - faltan.length
   alAvanzar?.(hechas, cartas.length)

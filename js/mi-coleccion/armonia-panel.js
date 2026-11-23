@@ -42,6 +42,9 @@ async function candidatasDe(c, paginaCartas) {
   return cartas.map((x, i) => ({ x, i, p: prioridad(x, tipos) })).sort((a, b) => a.p - b.p || a.i - b.i).map((o) => o.x)
 }
 
+// Lo que el servidor ya tiene calculado (1419) no se lee de las fotos.
+const delServidor = (cartas) => import('./colores-servidor.js').then((m) => m.huellasDelServidor(cartas))
+
 const indicesDePagina = (p, porPagina) => Array.from({ length: porPagina }, (_, k) => p * porPagina + k)
 
 // Las huellas de las cartas de una página (en su orden; null en un hueco).
@@ -49,7 +52,7 @@ async function huellasDePagina(c, p) {
   const { porPagina } = c.forma
   const items = indicesDePagina(p, porPagina).map((i) => c.album.cartas[i])
   const cartas = items.map((it) => (it?.id ? c.cartaDe(it.id) : null))
-  const mapa = await huellasDe(cartas.filter(Boolean), c.fotoDe)
+  const mapa = await huellasDe(cartas.filter(Boolean), c.fotoDe, { delServidor })
   return { items, cartas, huellas: cartas.map((x) => (x ? mapa.get(x.id) || null : null)) }
 }
 
@@ -157,7 +160,7 @@ export async function abrirSugerir(c, indice) {
     if (!lote.length) return pintar()
     mirando = lote.length
     pintar()
-    const nuevas = await huellasDe(lote, c.fotoDe, { alAvanzar: (h, t) => estado(`Mirando tus cartas… ${h} de ${t}`) })
+    const nuevas = await huellasDe(lote, c.fotoDe, { delServidor, alAvanzar: (h, t) => estado(`Mirando tus cartas… ${h} de ${t}`) })
     if (mio !== turno) return
     for (const x of lote) if (nuevas.get(x.id)) huellas.set(x.id, nuevas.get(x.id))
     // Una carta cuya foto no se deja leer no vuelve a pedirse en esta hoja.
@@ -223,7 +226,7 @@ export async function llenarHuecos(c, paginas, { alAvanzar = null } = {}) {
   }
   if (!todas.length) return { cartas, puestas }
   const lista = (await candidatasDe(c, todas)).slice(0, TANDA * 2)
-  const huellas = await huellasDe(lista, c.fotoDe, { alAvanzar })
+  const huellas = await huellasDe(lista, c.fotoDe, { delServidor, alAvanzar })
   const usadas = new Set()
   for (const p of paginas) {
     for (const i of indicesDePagina(p, porPagina)) {

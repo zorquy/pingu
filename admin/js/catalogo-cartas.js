@@ -121,6 +121,7 @@ export function pintarLista() {
       <button class="btn-secondary btn-small" id="catVarias">Una versión a varias</button>
       <button class="btn-secondary btn-small" id="catFotos">Fotos de todas</button>
       <button class="btn-secondary btn-small" id="catPegarLista">Pegar lista</button>
+      <button class="btn-secondary btn-small" id="catColores">Colores</button>
       <button class="btn-primary btn-small" id="catNueva">Nueva carta</button>
     </div>
     <ul class="cat-lista" id="catLista">${visibles.map(filaDeCarta).join('') || '<li class="empty-state">Ninguna carta coincide.</li>'}</ul>`)
@@ -135,6 +136,11 @@ export function pintarLista() {
   $('catPegarLista').addEventListener('click', async () => {
     const { abrirPegarLista } = await import('./pegar-lista.js')
     abrirPegarLista({ set, mercado, cartas, hoja, volver: async ({ recargar = false } = {}) => { if (recargar) await cargar(); pintarLista() } })
+  })
+  // El grupo de color de cada ilustración en Tus colores (1419), en su módulo.
+  $('catColores').addEventListener('click', async () => {
+    const { abrirColoresDeSet } = await import('./colores-set.js')
+    abrirColoresDeSet({ set, mercado, cartas, hoja, volver: pintarLista })
   })
   // Las versiones de muchas cartas a la vez (949), en su módulo.
   $('catLote').addEventListener('click', async () => {

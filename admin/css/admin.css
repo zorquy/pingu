@@ -730,6 +730,16 @@ body {
 .vv-carta:focus-visible { outline: none; box-shadow: var(--shadow-ring); border-radius: 4px; }
 .vv-ya { position: absolute; top: 2px; right: 2px; padding: 0 4px; border-radius: 999px; background: var(--navy-solid); color: var(--blanco-fijo); font-size: var(--t-2xs); line-height: 16px; }
 .cat-lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+/* Colores de una colección (1419): cada ilustración con su grupo y su barra. */
+.colset-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--e-sm); }
+.colset-carta { display: grid; gap: 4px; padding: var(--e-xs); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); min-width: 0; }
+.colset-carta.colset-corregida { border-color: var(--acento); box-shadow: 0 0 0 1px var(--acento); }
+.colset-foto img { width: 100%; height: auto; aspect-ratio: 245 / 342; display: block; border-radius: var(--radius-sm); }
+.colset-barra { display: flex; height: 6px; border-radius: 3px; overflow: hidden; }
+.colset-barra b { display: block; min-width: 2px; }
+.colset-nombre { display: flex; align-items: center; gap: 6px; font-size: var(--t-xs); color: var(--text-mid); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.colset-nombre i { flex: none; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2); }
+.colset-carta select { width: 100%; min-height: 32px; font-size: var(--t-sm); padding-inline: 8px; }
 .cat-carta { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; border-bottom: 1px solid var(--border); }
 .cat-carta-foto { width: 36px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 4px; overflow: hidden; }
 .cat-carta-foto img { width: 36px; height: 48px; object-fit: cover; }

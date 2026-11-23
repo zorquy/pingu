@@ -21,49 +21,36 @@
 import { escapeHtml } from '../app.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
-import { rarezaCrudaDeCarta, rarezaEs } from '../rarezas-nombres.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { hojaInyectada } from '../hoja.js'
 import { huellasDe, hexDe, ordenarPagina } from './armonia.js'
-import { hojasDe, hexDeColores, fondoDeGrupo, NEUTROS, APARTE } from './color-de-carta.js'
+import { hojasDe, hexDeColores, fondoDeGrupo, NEUTROS, APARTE, GRUPOS, esDeArte, esEnergia, entraEnColores } from './color-de-carta.js'
 import { cabeceraDeVistaHtml, engancharVolver } from './movimientos.js'
 
 const $ = (id) => document.getElementById(id)
 
 // ── Lo puro ──
 
-// Una ilustración: rareza de arte grande (IR, SIR, full art, galerías,
-// shiny…). Se mira la rareza canónica en inglés.
-const DE_ARTE = /illustration|special art|full art|art rare|character|gallery|shiny|hyper|secret|ultra rare|ace spec|radiant|amazing|super rare|trainer gallery|\bSAR\b|\bAR\b|\bSR\b|\bUR\b|\bCHR\b|\bCSR\b/i
-// Y por su nombre en ESPAÑOL (tanda 1417b, PINGU con su Lugia-EX de Plasma
-// Storm: «esta no sale, ¿por qué?»). El inglés tiene varias formas para lo
-// mismo —«Rare Ultra» en las antiguas y no «Ultra Rare», «Rare Rainbow»—, y
-// la regla de arriba solo conocía unas: la Lugia, una full art, pasaba por
-// carta normal. `rarezaEs` las junta en una; se miran las dos.
-const DE_ARTE_ES = /^Rara (Ultra|Ilustración|Híper|Brillante|Asombrosa|Radiante|Arcoíris|Secreta|ACE SPEC)/
-export const esDeArte = (carta) => {
-  const cruda = rarezaCrudaDeCarta(carta) || ''
-  return DE_ARTE.test(cruda) || DE_ARTE_ES.test(rarezaEs(cruda) || '')
-}
-// Las energías no entran aunque sean doradas o full art (1418, PINGU: «las
-// energías yo no las contaría»): son casi de un color plano y rompían las
-// hojas. Sin categoría (alguna japonesa), por el nombre.
-export const esEnergia = (carta) => carta?.category === 'Energy' || (!carta?.category && /\b(Energy|Energía)\b/i.test(`${carta?.name || ''} ${carta?.name_en || ''}`))
-export const entraEnColores = (carta) => esDeArte(carta) && !esEnergia(carta)
+// Qué entra (ilustraciones, sin energías) vive en `color-de-carta.js` (la
+// 1419 lo necesita también en el servidor); se reexporta para quien lo pedía
+// aquí.
+export { esDeArte, esEnergia, entraEnColores }
 
 // El orden de los grupos: la rueda del color y al final los que no son un
 // color (1418). Los neutros ya no salen: una carta casi sin color es Clara u
 // Oscura.
-export const ORDEN = ['rojo', 'naranja', 'amarillo', 'verde', 'turquesa', 'celeste', 'azul', 'morado', 'rosa', 'marrón', 'multicolor', 'claras', 'oscuras']
+export const ORDEN = GRUPOS
 export const NOMBRE = { rojo: 'Rojo', naranja: 'Naranja', amarillo: 'Amarillo', verde: 'Verde', turquesa: 'Turquesa', celeste: 'Celeste', azul: 'Azul', morado: 'Morado', rosa: 'Rosa', 'marrón': 'Marrón', multicolor: 'Multicolor', claras: 'Claras', oscuras: 'Oscuras', blanco: 'Blanco', gris: 'Gris', negro: 'Negro' }
 export { NEUTROS, APARTE }
 
-// La ficha de una carta en la pared: su grupo, su muestra y sus colores.
-export function fichaDe(carta, huella) {
+// La ficha de una carta en la pared: su grupo, su muestra y sus colores. Si el
+// equipo le ha corregido el grupo en /admin (1419), manda el suyo.
+export function fichaDe(carta, huella, corregido = null) {
   const c = huella?.colores
   if (!c?.color) return null
-  return { carta, color: c.color, hex: hexDeColores(c), colores: c }
+  const color = corregido && GRUPOS.includes(corregido) ? corregido : c.color
+  return { carta, color, hex: hexDeColores(c), colores: c, corregido: color !== c.color }
 }
 
 // La pared: las hojas de nueve que casan (`hojasDe`), cada una con sus
@@ -137,11 +124,16 @@ export async function abrir(c) {
     $('vcColores').innerHTML = '<p class="empty-state">Aquí salen tus ilustraciones (IR, SIR, full art…) ordenadas por color. Todavía no tienes ninguna en tu colección.</p>'
     return
   }
-  huellas = await huellasDe(cartas, fotoDe, {
+  // Lo que ya tiene el servidor (1419) sale al momento; solo lo que no, se
+  // lee de las fotos aquí.
+  const { huellasDelServidor, coloresDelEquipo } = await import('./colores-servidor.js')
+  const [delEquipo, hs] = await Promise.all([coloresDelEquipo(cartas).catch(() => new Map()), huellasDe(cartas, fotoDe, {
     conColores: true,
+    delServidor: huellasDelServidor,
     alAvanzar: (h, t) => { const e = $('vcEstado'); if (e && h < t) e.textContent = `Mirando los colores de tus ilustraciones… ${h} de ${t}` },
-  })
-  fichas = cartas.map((carta) => fichaDe(carta, huellas.get(carta.id))).filter(Boolean)
+  })])
+  huellas = hs
+  fichas = cartas.map((carta) => fichaDe(carta, huellas.get(carta.id), delEquipo.get(carta.id))).filter(Boolean)
   if (!fichas.length) {
     $('vcColores').innerHTML = '<p class="empty-state">No se han podido leer los colores de tus ilustraciones. Prueba otra vez en un rato.</p>'
     return

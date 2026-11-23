@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-23 (668) — PINGU-Claude (1419 — El color de las ilustraciones, en el servidor)
+
+**Hecho** (lo recomendado de «Tus colores, bien», opciones 2 y 3):
+- **El servidor calcula la huella** de cada ilustración del catálogo (IR, SIR,
+  full art… sin energías) con la foto GRANDE: la función programada
+  `colores-cartas` (cada hora, a y 41) recorre las expansiones, las nuevas
+  primero, y guarda la huella entera (la de «Sugerir», con el color de Tus
+  colores dentro) en `tcg_card_colores`. La primera vuelta, unos cuatro días;
+  después, una a la semana. Con la vuelta hecha, cada pasada es una consulta.
+- **La web lee primero lo del servidor**: Tus colores y «Sugerir» ya no
+  descargan fotos de lo que está calculado (sale al momento); lo que aún no,
+  se lee en el navegador como hasta ahora. Sin la migración, todo como antes.
+- **«Corregir color» en /admin**: Colecciones → una expansión → Cartas →
+  **Colores**. Sus ilustraciones con su foto, la barra de sus colores y un
+  desplegable con el grupo («Auto · Rojo» o el que elijas). Lo corregido vale
+  para Tus colores de todo el mundo y ninguna pasada lo pisa. «Calcular ahora
+  las que faltan» no espera a la pasada de la hora.
+- El semáforo de /admin enseña la pasada («Colores de las ilustraciones»).
+
+**SQL**: `supabase-migration-1419-colores-de-cartas.sql` (tabla
+`tcg_card_colores` con lectura pública y `admin_color_corregir`). Sin
+ejecutarla no se rompe nada: la función lo dice y la web lee las fotos.
+
+**Ficheros**: `netlify/functions/colores-cartas.mjs` y
+`colores-cartas-ahora.mjs` (NUEVOS), `js/mi-coleccion/colores-servidor.js`
+(NUEVO), `admin/js/colores-set.js` (NUEVO), `color-de-carta.js` (`GRUPOS`,
+`esDeArte`, `esEnergia`, `entraEnColores` mudados aquí), `armonia.js`
+(`huellasDe(…, { delServidor })`), `armonia-panel.js`, `tus-colores.js`,
+`admin/js/catalogo-cartas.js` (botón Colores), `admin/js/semaforo.js`,
+`admin/css/admin.css`, `normas/coleccion.md`. Rama pruebas:
+`test-tanda-1419.mjs` (la función con la base de mentira, sharp de verdad y
+la migración contra PostgreSQL, sentencia a sentencia y dos veces) y
+`test-tanda-1419-pantalla.mjs`. Pasan 1418, 1418-pantalla, 1417-pantalla,
+1411-pantalla, 1407, 1407-pantalla, 807, 1121 e imports. La 1310 da un rojo
+(«el despliegue pasa por antes-de-salir») que ya daba antes de esta tanda.
+
+**Pendiente**: ejecutar la migración 1419. Cuando la vuelta haya llenado unas
+cuantas expansiones, el repaso de las paredes expansión por expansión
+(corrigiendo en /admin las que salgan mal).
+
 ## 2026-11-23 (667) — PINGU-Claude (1418 — Tus colores, bien)
 
 **Hecho** (PINGU con su binder «Por colores» delante: «los colores no están

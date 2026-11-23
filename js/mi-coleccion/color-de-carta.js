@@ -17,6 +17,28 @@
 // prueba con 113 ilustraciones de 151, Evoluciones en Paldea, Brecha
 // Paradójica y Chispas Fulgurantes (SCHEMA 1418).
 
+import { rarezaCrudaDeCarta, rarezaEs } from '../rarezas-nombres.js'
+
+// ── Qué entra ──
+// Una ilustración: rareza de arte grande (IR, SIR, full art, galerías,
+// shiny…). Se mira la rareza canónica en inglés.
+const DE_ARTE = /illustration|special art|full art|art rare|character|gallery|shiny|hyper|secret|ultra rare|ace spec|radiant|amazing|super rare|trainer gallery|\bSAR\b|\bAR\b|\bSR\b|\bUR\b|\bCHR\b|\bCSR\b/i
+// Y por su nombre en ESPAÑOL (tanda 1417b, PINGU con su Lugia-EX de Plasma
+// Storm: «esta no sale, ¿por qué?»). El inglés tiene varias formas para lo
+// mismo —«Rare Ultra» en las antiguas y no «Ultra Rare», «Rare Rainbow»—, y
+// la regla de arriba solo conocía unas: la Lugia, una full art, pasaba por
+// carta normal. `rarezaEs` las junta en una; se miran las dos.
+const DE_ARTE_ES = /^Rara (Ultra|Ilustración|Híper|Brillante|Asombrosa|Radiante|Arcoíris|Secreta|ACE SPEC)/
+export const esDeArte = (carta) => {
+  const cruda = rarezaCrudaDeCarta(carta) || ''
+  return DE_ARTE.test(cruda) || DE_ARTE_ES.test(rarezaEs(cruda) || '')
+}
+// Las energías no entran aunque sean doradas o full art (1418, PINGU: «las
+// energías yo no las contaría»): son casi de un color plano y rompían las
+// hojas. Sin categoría (alguna japonesa), por el nombre.
+export const esEnergia = (carta) => carta?.category === 'Energy' || (!carta?.category && /\b(Energy|Energía)\b/i.test(`${carta?.name || ''} ${carta?.name_en || ''}`))
+export const entraEnColores = (carta) => esDeArte(carta) && !esEnergia(carta)
+
 // ── OKLab (donde la distancia entre dos colores se parece a la que ve un ojo) ──
 const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
 export function oklab(r, g, b) {
@@ -43,6 +65,10 @@ export const NEUTROS = ['blanco', 'gris', 'negro']
 // Los grupos que no son un color: van al final de la pared y no cuentan para
 // «tu color».
 export const APARTE = ['multicolor', 'claras', 'oscuras']
+// Los grupos de Tus colores en el orden de la pared: la rueda y al final los
+// que no son un color. Es también la lista del `check` de `tcg_card_colores`
+// (supabase-migration-1419; test-tanda-1419 compara las dos).
+export const GRUPOS = ['rojo', 'naranja', 'amarillo', 'verde', 'turquesa', 'celeste', 'azul', 'morado', 'rosa', 'marrón', 'multicolor', 'claras', 'oscuras']
 // Como `nombreDeColor` de armonia.js, salvo el ROJO OSCURO: los volcanes y
 // los atardeceres (Groudon, los Charizard) caían en «rosa»; rosa es solo el
 // rosa claro y el magenta.
