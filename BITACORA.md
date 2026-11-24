@@ -22,6 +22,43 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (681) — PINGU-Claude (1432 — Novedades de tienda a sus seguidores)
+
+**Hecho** (de «Funciones de tienda», PINGU: «me gustan todas»): seguir a una
+tienda ya se podía; ahora sirve para algo.
+- /tienda → Escaparate, entre el cartel y la previa: «Cuéntaselo a tus
+  seguidores», con cuántos la siguen, un texto de hasta 280 y hasta seis
+  cartas de su stock («Añadir cartas» busca en él). «Publicar y avisar a N».
+  Debajo, lo que ha contado (las tres últimas), a cuántos avisó y Borrar (dos
+  toques).
+- UNA POR SEMANA, y lo cuenta la base: la segunda dice desde qué día puede.
+  Borrar no devuelve la semana (si no, borrar y volver a escribir serían dos
+  avisos), pero sí quita los avisos que nadie ha abierto.
+- El escaparate público: «Noticias de la tienda» arriba del stock, con las
+  tres últimas y sus cartas (tocar una abre su pop-up de la tienda). El aviso
+  de la campanita lleva a `#novedad-<id>`, que sale marcada.
+- La campanita: tipo `tienda_novedad`, «Novedades de las tiendas que sigues»,
+  con su fila en Ajustes → Avisos para apagarlo. Al correo NO (lo de correo
+  es solo lo personal y urgente; esto se queda en campanita y push).
+- Es de Tienda (1429): con Gratis o Puesto, la tarjeta dice «Con Tienda (29
+  €/mes) les cuentas…» y «Ver planes». Sin la migración, no sale.
+- El botón «Seguir» de una tienda dice al pasar por encima «Te avisamos cuando
+  cuente algo nuevo».
+
+**Ficheros**: `supabase-migration-1432-novedades-de-tienda.sql` (nueva),
+`js/tienda-novedades.js` (nuevo), `tienda.html`, `js/tienda.js`,
+`js/perfil-tienda.js`, `css/tienda.css`, `css/perfil-tienda.css`,
+`js/notifications.js`, `js/avisos-prefs.js`, `js/numeros-seccion.js`,
+`normas/tiendas.md`. Rama pruebas: `test-tanda-1432.mjs` (PostgreSQL) y
+`test-tanda-1432-pantalla.mjs`.
+
+**Visto y no tocado**: rojos viejos de la suite de tiendas que salen igual sin
+la 1429 (1040, 1067, 1071, 1073, 1082, 1088, 1090): esperan pestañas o textos
+de antes.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1432-novedades-de-tienda.sql`.
+Sale en el próximo push. Siguen Tu equipo, /para-tiendas y el PDF.
+
 ## 2026-11-24 (680) — PINGU-Claude (1430 — Lo que busca la gente y no tienes)
 
 **Hecho** (de «Funciones de tienda», PINGU: «me gustan todas»): el Panel ya

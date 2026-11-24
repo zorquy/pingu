@@ -23,7 +23,7 @@ export function seccionDeAviso(tipo = '') {
   const t = String(tipo || '')
   if (t.startsWith('forum_')) return 'Comunidad'
   if (t.startsWith('torneo_') || t.startsWith('tournament_')) return 'Jugar'
-  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene') return 'Colección'
+  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene' || t === 'tienda_novedad') return 'Colección'
   // Lo que se habla con una tienda (una oferta, unas fotos) va por privado
   // (1264, PINGU: «no debería marcarse en Deseos y cambios, solo por mensaje»):
   // cada aviso llega con su mensaje, que ya cuenta el sobre.

@@ -196,3 +196,9 @@
   y en las listas que ve una tienda solo lo que buscan DOS o más (con una, en
   una ciudad pequeña, «1 la busca» es casi decir quién). Cuentan personas: ni
   otras tiendas, ni baneados, ni la propia tienda. Lo filtra la base, no la web.
+- **Las NOVEDADES a seguidores (1432)**: una por semana, y la cuenta la BASE
+  (`tienda_publicar_novedad`), contando las borradas: borrar y volver a escribir
+  no puede ser una segunda campanita. Van a la campanita y al push, no al
+  correo (el correo es para lo personal y urgente, js/notifications.js). Un tipo
+  de aviso nuevo de tienda entra en `notifications.js` Y en `avisos-prefs.js`
+  (campanita y tabla de Ajustes), o no se puede apagar.

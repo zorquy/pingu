@@ -54,6 +54,8 @@ export const NOTIFICATION_TYPES = {
   trade_match_seguido: 'Cuando alguien a quien sigues da una carta que buscas',
   // Lo manda una tienda desde su Panel (1089), uno por carta y tienda.
   tienda_la_tiene: 'Cuando una tienda tiene una carta que buscas',
+  // Lo que cuenta una tienda que sigues (1432), una por semana como mucho.
+  tienda_novedad: 'Novedades de las tiendas que sigues',
   // Cada paso de una compra a una tienda (1250): oferta, respuesta, envío.
   tienda_oferta: 'Tus compras a tiendas: ofertas, respuestas y envíos',
   // «Pedir fotos» (1251): te las piden, o ya están.

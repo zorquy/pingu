@@ -141,9 +141,15 @@ async function montarEscaparateSiToca(v) {
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
   // Y debajo, el escaparate de verdad (1078): lo mismo que ve la gente.
   const sesion = await getSession()
-  import('./perfil-tienda.js')
+  const previa = () => import('./perfil-tienda.js')
     .then((m) => m.montarPerfilTienda($('tdEscaparatePrevia'), perfil, sesion, { previa: true }))
     .catch(() => { $('tdEscaparatePrevia').innerHTML = '<p class="subtext">No se ha podido enseñar tu escaparate. Ábrelo con «Abrirlo como lo ve la gente».</p>' })
+  previa()
+  // Entre los dos, lo que les cuentas a tus seguidores (1432); al publicar o
+  // borrar, la previa se vuelve a pintar para que se vea como queda.
+  import('./tienda-novedades.js')
+    .then((m) => { m.oyentesDeNovedades($('tdNovedades')); return m.montarNovedades($('tdNovedades'), { tiendaId: perfil.id, alCambiar: previa }) })
+    .catch(() => {})
 }
 
 function pestana(cual) {

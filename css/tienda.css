@@ -2270,3 +2270,46 @@ html[data-td-ver='stock'] .bm-pastilla {
 .tdh-buscan .tdh-sin svg { vertical-align: -2px; color: var(--rango-tienda); }
 .tdc-quieren,
 .tdv-resultado .tdc-quieren { display: inline-flex; align-items: center; gap: 2px; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--pink-bg); color: var(--pink); font-weight: 700; font-size: var(--t-2xs); white-space: nowrap; }
+
+/* Cuéntaselo a tus seguidores (1432): Escaparate, entre el cartel y la previa.
+   Con `[hidden]` aparte: el `display: grid` le ganaba y sin la migración se veía vacía. */
+.tdn[hidden] { display: none; }
+.tdn { display: grid; gap: var(--e-md); margin: var(--e-xl) 0; padding: var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+.tdn-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm) var(--e-md); }
+.tdn-cab h2 { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-family: var(--font-display); font-size: var(--t-xl); }
+.tdn-cab h2 svg { color: var(--rango-tienda); }
+.tdn-seguidores { padding: 2px 10px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--rango-tienda) 14%, transparent); color: var(--rango-tienda); font-weight: 700; font-size: var(--t-sm); }
+.tdn-sub { margin: calc(-1 * var(--e-sm)) 0 0; color: var(--text-mid); font-size: var(--t-sm); max-width: 72ch; }
+.tdn-campo { position: relative; display: block; }
+.tdn-campo textarea { width: 100%; min-height: 88px; padding: var(--e-md) var(--e-md) var(--e-xl); border: 1px solid var(--border); border-radius: var(--radius-lg); font: inherit; resize: vertical; background: var(--bg); color: var(--text); }
+.tdn-cuenta { position: absolute; right: var(--e-md); bottom: var(--e-sm); color: var(--text-light); font-size: var(--t-2xs); }
+.tdn-cartas { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.tdn-cartas:empty { display: none; }
+.tdn-chip { display: inline-flex; align-items: center; gap: var(--e-sm); max-width: 100%; padding: 4px 4px 4px 6px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg); font-size: var(--t-sm); }
+.tdn-chip > span:not(.tdn-foto) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdn-chip button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--text-mid); cursor: pointer; }
+.tdn-foto { flex: none; display: block; width: 28px; aspect-ratio: 245 / 342; border-radius: 3px; background: var(--ice); overflow: hidden; }
+.tdn-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tdn-busca { display: grid; gap: var(--e-sm); }
+.tdn-busca input { min-height: 44px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-pill); font: inherit; background: var(--bg); color: var(--text); }
+.tdn-resultados { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+.tdn-resultados:empty { display: none; }
+.tdn-res { display: flex; align-items: center; gap: var(--e-sm); width: 100%; min-height: 44px; padding: var(--e-xs) var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); text-align: left; cursor: pointer; }
+.tdn-res > span:last-child { display: grid; min-width: 0; }
+.tdn-res strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdn-res small, .tdn-nada { color: var(--text-mid); font-size: var(--t-xs); }
+.tdn-pie { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-sm); }
+.tdn-pie > button { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; }
+.tdn-espera, .tdn-candado { display: flex; align-items: flex-start; gap: var(--e-sm); margin: 0; padding: var(--e-md) var(--e-lg); border-radius: var(--radius-lg); border: 1px dashed color-mix(in srgb, var(--rango-tienda) 45%, transparent); background: color-mix(in srgb, var(--rango-tienda) 6%, var(--white)); color: var(--text-mid); font-size: var(--t-sm); }
+.tdn-espera svg, .tdn-candado svg { flex: none; margin-top: 2px; color: var(--rango-tienda); }
+.tdn-candado { display: block; }
+.tdn-candado svg { vertical-align: -2px; }
+.tdn-candado a { font-weight: 700; color: var(--navy); }
+.tdn-ultimas-titulo { margin: var(--e-sm) 0 0; font-size: var(--t-sm); color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+.tdn-ultimas { display: grid; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.tdn-ultimas li { display: grid; gap: var(--e-xs); padding: var(--e-md); border-radius: var(--radius-lg); background: var(--bg); }
+.tdn-ultimas time { color: var(--rango-tienda); font-size: var(--t-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.tdn-ultimas p { margin: 0; overflow-wrap: anywhere; }
+.tdn-mini { display: flex; flex-wrap: wrap; gap: 4px; }
+.tdn-ultima-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); color: var(--text-mid); }
+.tdn-borrar { min-height: 44px; color: var(--danger); }

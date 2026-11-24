@@ -55223,6 +55223,26 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1432 — Novedades de tienda a sus seguidores
+
+- Base (`supabase-migration-1432-novedades-de-tienda.sql`): `tienda_novedades`
+  (`id`, `tienda_id`, `texto` 1–280, `cartas` jsonb `[{card_id, market}]` ≤ 6,
+  `avisados`, `borrada_at`, `created_at`). RLS: la lee todo el mundo (anon
+  también) menos las borradas; nadie escribe a pelo (`revoke all` + `grant
+  select`). Funciones: `tienda_novedades_estado()` → {seguidores, ultima_at,
+  proxima} (null si no es tienda); `tienda_publicar_novedad(texto, cartas)` →
+  {vale, motivo: solo_tiendas|texto|una_por_semana, proxima, id, avisados}:
+  una cada 7 días contando las borradas, limpia las cartas (existen, sin
+  repetir, seis, en orden) e inserta `user_notifications` tipo
+  `tienda_novedad` a quien la sigue (sin baneados ni quien lo apagó en
+  `notification_prefs_disabled`), con enlace `/tiendas/<usuario>#novedad-<id>`;
+  `tienda_borrar_novedad(id)` → marca `borrada_at` y borra los avisos sin
+  leer de esa novedad.
+- Web: `js/tienda-novedades.js` (`montarNovedades`, `oyentesDeNovedades`) en
+  `#tdNovedades` de la pestaña Escaparate, puerta `novedades` de
+  `js/tienda-plan-puro.js`. En el escaparate público, `pintarNoticias()` de
+  `js/perfil-tienda.js` (`.pt-noticias`, antes de `.pt-torneos`).
+
 ## Tanda 1430 — Lo que busca la gente y no tienes
 
 - Base (`supabase-migration-1430-buscan-y-no-tienes.sql`, sin tablas):

@@ -204,7 +204,7 @@ function cabeceraHtml() {
     ? ''
     : `<div class="pt-botones">
         ${propia ? '<a class="btn-primary" href="/tienda">Mi panel</a>' : est.sesion ? `<a class="btn-primary" href="/mensajes.html?with=${escapeHtml(p.id)}">${icons.mail(18)}<span>Escribir</span></a>` : `<a class="btn-primary" href="/auth.html?registro=1&volver=${encodeURIComponent(location.pathname + location.search)}">${icons.mail(18)}<span>Escribir</span></a>`}
-        ${propia ? '' : '<button type="button" class="btn-secondary" data-pt-seguir hidden>Seguir</button>'}
+        ${propia ? '' : '<button type="button" class="btn-secondary" data-pt-seguir title="Te avisamos cuando cuente algo nuevo" hidden>Seguir</button>'}
         ${mapa ? `<a class="btn-secondary pt-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Cómo llegar">${icons.pin(18)}<span>Cómo llegar</span></a>` : ''}
       </div>`
   const portada = urlParaCss(p.banner_url)
@@ -243,6 +243,7 @@ function cabeceraHtml() {
         </select>
         <span class="pt-cuenta"></span>
       </div>
+      <div class="pt-noticias" hidden></div>
       <div class="pt-torneos" hidden></div>
       <div class="pt-tiras"></div>
       <h2 class="pt-todo-titulo" hidden>Todo el stock</h2>
@@ -318,6 +319,42 @@ async function pintarTorneos(perfil) {
   hueco.hidden = false
 }
 
+// Lo que cuenta la tienda (1432): sus tres últimas novedades, con sus cartas,
+// arriba del stock. Le llegan a la campanita a quien la sigue, con el enlace a
+// `#novedad-<id>`: al llegar así, esa se marca. Sin la migración o sin
+// ninguna, el hueco se queda escondido.
+async function pintarNoticias(perfil) {
+  const hueco = $('.pt-noticias')
+  if (!hueco) return
+  const { data } = await supabase.from('tienda_novedades').select('id,texto,cartas,created_at').eq('tienda_id', perfil.id).order('created_at', { ascending: false }).limit(3).then((r) => r, () => ({ data: null }))
+  if (!Array.isArray(data) || !data.length) return
+  const cartas = data.flatMap((n) => (Array.isArray(n.cartas) ? n.cartas : []))
+  await completar(cartas.map((c) => ({ card_id: c.card_id, market: c.market }))).catch(() => {})
+  hueco.innerHTML = `<h2 class="pt-noticias-titulo">${icons.bell(18)}<span>Noticias de la tienda</span></h2><div class="pt-noticias-lista">${data.map((n) => {
+    const f = new Date(n.created_at)
+    const fotos = (Array.isArray(n.cartas) ? n.cartas : []).map((x) => {
+      const c = est.cartas.get(x.card_id)
+      const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : null
+      return `<a class="pt-noticia-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}" data-pt-noticia-carta="${escapeHtml(x.card_id)}" aria-label="${escapeHtml(c ? nombreDeCarta(c) : 'Carta')}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}</a>`
+    }).join('')
+    return `<article class="pt-noticia" id="novedad-${escapeHtml(n.id)}"><time datetime="${escapeHtml(n.created_at)}">${escapeHtml(f.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }))}</time><p>${escapeHtml(n.texto)}</p>${fotos ? `<div class="pt-noticia-cartas">${fotos}</div>` : ''}</article>`
+  }).join('')}</div>`
+  hueco.hidden = false
+  const marcada = location.hash.startsWith('#novedad-') ? hueco.querySelector(location.hash.replace(/[^#\w-]/g, '')) : null
+  if (marcada && !est.previa) {
+    marcada.classList.add('pt-noticia-marcada')
+    marcada.scrollIntoView({ block: 'center' })
+  }
+}
+
+// Una carta de una noticia: si la tiene, su pop-up de la tienda; si ya no,
+// se dice y se queda en el escaparate.
+async function abrirCartaDeNoticia(cardId) {
+  const ls = await lineasDe({ card_id: cardId }).catch(() => [])
+  if (!ls.length) return showToast('Esa carta ya no está en esta tienda. Mira lo que tiene.', 'info')
+  await abrirLinea(ls[0], ls)
+}
+
 export async function montarPerfilTienda(destino, perfil, sesion, { previa = false } = {}) {
   await hojaInyectada('css/perfil-tienda.css')
   hojaInyectada('css/tienda-fotos.css')
@@ -359,7 +396,14 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   caja.classList.toggle('pt-previa', previa)
   caja.innerHTML = cabeceraHtml()
   void pintarTorneos(perfil)
+  void pintarNoticias(perfil)
   caja.addEventListener('click', (e) => {
+    const deNoticia = e.target.closest('[data-pt-noticia-carta]')
+    if (deNoticia && !(e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
+      e.preventDefault()
+      abrirCartaDeNoticia(deNoticia.dataset.ptNoticiaCarta).catch(() => {})
+      return
+    }
     const fotos = e.target.closest('[data-pt-fotos]')
     if (fotos) {
       const f = todas().find((x) => x.id === fotos.dataset.ptFotos)

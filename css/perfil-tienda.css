@@ -617,3 +617,18 @@
 .pt-torneo strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pt-torneo-cuando { color: var(--rango-tienda); font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .pt-torneo-datos { color: var(--text-mid); font-size: var(--t-sm); }
+
+/* Las noticias de la tienda (1432): sus tres últimas, con sus cartas. La que
+   llega desde la campanita (#novedad-<id>) se marca con el color de tienda. */
+.pt-noticias { display: grid; gap: var(--e-sm); }
+.pt-noticias[hidden] { display: none; }
+.pt-noticias-titulo { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.pt-noticias-titulo svg { color: var(--rango-tienda); }
+.pt-noticias-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--e-sm); }
+.pt-noticia { display: grid; align-content: start; gap: var(--e-sm); min-width: 0; padding: var(--e-md) var(--e-lg); border: 1px solid var(--border); border-left: 4px solid var(--rango-tienda); border-radius: var(--radius-lg); background: var(--white); scroll-margin-top: 90px; }
+.pt-noticia time { color: var(--rango-tienda); font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.pt-noticia p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.pt-noticia-cartas { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.pt-noticia-carta { display: block; width: 52px; aspect-ratio: 245 / 342; border-radius: var(--e-xs); background: var(--ice); overflow: hidden; }
+.pt-noticia-carta img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pt-noticia-marcada { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rango-tienda) 35%, transparent); }
