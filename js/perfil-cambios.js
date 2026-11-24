@@ -244,6 +244,39 @@ async function hechosHtml(yo) {
   </section>`
 }
 
+// LOS DATOS DE LAS DOS LISTAS, para quien los pinte (1426): la pestaña de
+// aquí y el puesto de cambios del QR (`js/evento-puesto.js`) leen lo MISMO.
+// Lanza si no se ha podido preguntar; las fichas y los precios solo se piden
+// con `conFichas` (la pestaña los pide después de contar).
+export async function listasDeCambios(persona, sesion, { propia = false } = {}) {
+  const miId = sesion?.user?.id || null
+  let [busca, da, lista] = await Promise.all([loQueBusca(persona.id), loQueDa(persona.id), listaDeLaDireccion(persona.id).catch(() => null)])
+  if (lista) {
+    const suyas = new Map(busca.map((b) => [b.card_id, b]))
+    busca = lista.filas.map((f) => suyas.get(f.card_id) || { card_id: f.card_id, idioma: null, created_at: null })
+  }
+  const filasDa = porCarta(da.filas, { sumar: 'cambio' })
+  const filasBusca = porCarta(busca.map((b) => ({ ...b, cambio: 1 })))
+  return { miId, lista, sinMigracion: da.sinMigracion, filasDa, filasBusca, propia }
+}
+
+// Las fichas, los precios y los sellos de esas listas (lo que hace falta para
+// pintar una baldosa).
+export async function fichasDeCambios({ miId, filasDa, filasBusca, propia }) {
+  const [{ mapa, claveDeCarta }, mio] = await Promise.all([
+    fichasDe(filasDa, filasBusca),
+    miId && !propia ? loMio(miId, filasBusca.map((f) => f.card_id)).catch(() => ({ deseos: [], lineas: [] })) : Promise.resolve({ deseos: [], lineas: [] }),
+  ])
+  const precios = await preciosDe([...new Set([...filasDa, ...filasBusca].map((f) => f.card_id))]).catch(() => new Map())
+  return {
+    cartaDe: (f) => mapa.get(claveDeCarta(f.card_id, f.market)) || mapa.get(claveDeCarta(f.card_id, 'WEST')) || mapa.get(claveDeCarta(f.card_id, 'JP')) || null,
+    valor: (f) => precioDeFilaDeCambio(precios, f),
+    selloDa: (f) => (miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null),
+    selloBusca: (f) => (miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null),
+  }
+}
+export { baldosaHtml, euros }
+
 // `persona`: la fila de user_profiles de la ficha; `sesion`: la de quien
 // mira (o null); `propia`: si es tu perfil (la pestaña sale siempre, vacía
 // con sus dos caminos).
@@ -253,23 +286,17 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   listaVista = null
   hojaInyectada('css/perfil-cambios.css')
   const miId = sesion?.user?.id || null
-  let busca = []
-  let da = { filas: [], sinMigracion: false }
+  let datos
   try {
-    let lista = null
-    ;[busca, da, lista] = await Promise.all([loQueBusca(persona.id), loQueDa(persona.id), listaDeLaDireccion(persona.id).catch(() => null)])
-    if (lista) {
-      const suyas = new Map(busca.map((b) => [b.card_id, b]))
-      busca = lista.filas.map((f) => suyas.get(f.card_id) || { card_id: f.card_id, idioma: null, created_at: null })
-      listaVista = lista
-    }
+    datos = await listasDeCambios(persona, sesion, { propia })
+    listaVista = datos.lista
   } catch (e) {
     caja.innerHTML = `<p class="empty-state">No se ha podido mirar ahora. Prueba otra vez en un momento.</p>`
     pestaniaLista('cambios', propia)
     return null
   }
-  const filasDa = porCarta(da.filas, { sumar: 'cambio' })
-  const filasBusca = porCarta(busca.map((b) => ({ ...b, cambio: 1 })))
+  const da = { sinMigracion: datos.sinMigracion }
+  const { filasDa, filasBusca } = datos
   const cuentas = { da: filasDa.length, busca: filasBusca.length }
   const total = cuentas.da + cuentas.busca
 
@@ -296,19 +323,11 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
     return cuentas
   }
 
-  const [{ mapa, claveDeCarta }, mio] = await Promise.all([
-    fichasDe(filasDa, filasBusca),
-    miId && !propia ? loMio(miId, filasBusca.map((f) => f.card_id)).catch(() => ({ deseos: [], lineas: [] })) : Promise.resolve({ deseos: [], lineas: [] }),
-  ])
-  const precios = await preciosDe([...new Set([...filasDa, ...filasBusca].map((f) => f.card_id))]).catch(() => new Map())
-  const cartaDe = (f) => mapa.get(claveDeCarta(f.card_id, f.market)) || mapa.get(claveDeCarta(f.card_id, 'WEST')) || mapa.get(claveDeCarta(f.card_id, 'JP')) || null
+  const { cartaDe, valor, selloDa, selloBusca } = await fichasDeCambios(datos)
   const nombre = persona.display_name || persona.username || 'Esta persona'
   const quien = propia ? 'Das' : 'Da'
   const quienBusca = propia ? 'Buscas' : 'Busca'
 
-  const valor = (f) => precioDeFilaDeCambio(precios, f)
-  const selloDa = (f) => (miId && !propia ? selloDeLoQueDa(f, mio.deseos) : null)
-  const selloBusca = (f) => (miId && !propia ? selloDeLoQueBusca(f, mio.lineas) : null)
   // Lo que te importa primero, y lo de más valor delante (939).
   const enOrdenDa = ordenarParaTira(filasDa, { sello: selloDa, precio: valor })
   const enOrdenBusca = ordenarParaTira(filasBusca, { sello: selloBusca, precio: valor })

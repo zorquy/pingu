@@ -22,6 +22,32 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (676) — PINGU-Claude (1426 — El puesto de cambios del QR)
+
+**Hecho** (PINGU eligió la «A» de «Modo evento y QR», con un evento en un
+mes): escanear el QR del modo evento de alguien (`/evento/<usuario>`) ya no
+abre su perfil entero, sino su PUESTO DE CAMBIOS: las cartas en la primera
+pantalla, cabecera de una línea (quién y su confianza; Proponer cambio y
+Escribir, o Crear cuenta / Entrar sin cuenta), Da / Busca, buscador y chips
+pegados arriba al bajar (La buscas / Las tienes, Expansión, Rareza, Precio por
+tramos y Orden), la frase del cruce («Misty te puede dar 2 cartas de tu lista y
+tú le puedes dar 1 que busca») y «Ver el perfil completo» al final. Nada flota
+(1023): Proponer va en la cabecera, ya relleno con lo que os cruzáis.
+
+**Ficheros**: `js/evento-puesto.js` y `js/evento-puesto-puro.js` (nuevos),
+`css/evento-puesto.css` (nueva), `js/usuario.js` (la rama `esEvento`),
+`js/perfil-cambios.js` (`listasDeCambios`, `fichasDeCambios`, exporta
+`baldosaHtml` y `euros`; la pestaña los usa igual), `js/cruce-persona.js`
+(`datosDelCruce`, `proponerConElCruce`, exporta `enlaceParaEscribir`),
+`js/filas-deslizan.js` (`.ep-chips` en `FILAS`), `normas/coleccion.md`.
+Rama pruebas: `test-tanda-1426-pantalla.mjs` (lo puro, móvil sin y con
+cuenta, PC) y `test-tanda-1030-pantalla.mjs` puesta al día (el QR abre el
+puesto). Pasan 887 (salvo su comprobación de tablon.js, que ya fallaba), 939,
+900, 941, 1047, 1105, 1270, 1023, 312 y test-imports.
+
+**Pendiente**: 1427 (/evento con precio y la fila sin cortes) y 1428 (QR de
+tienda en el móvil y el cartel). Sale en el próximo push.
+
 ## 2026-11-24 (675) — PINGU-Claude (1424b — Devolver las rachas perdidas)
 
 **Hecho**: `supabase-migration-1424-rachas-devueltas.sql`, para devolver la

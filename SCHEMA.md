@@ -55223,6 +55223,27 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1426 — El puesto de cambios del QR
+
+- `/evento/<usuario>` sigue siendo `usuario.html` (netlify.toml); `js/usuario.js`,
+  con `esEvento` y una persona (no tienda), vacía el `<main>` y monta
+  `montarPuesto` de `js/evento-puesto.js` (sin `vistaVigilada`: no es el perfil).
+- Datos: `listasDeCambios(persona, sesion)` → `{ filasDa, filasBusca, lista,
+  sinMigracion, miId }` y `fichasDeCambios(listas)` → `{ cartaDe, valor,
+  selloDa, selloBusca }` (js/perfil-cambios.js; la pestaña Cambios los usa
+  igual). El cruce: `datosDelCruce(persona)` → `{ teDa, leDas, cartas }` y
+  `proponerConElCruce(sesion, persona, cruce)` (js/cruce-persona.js).
+- Lo puro (`js/evento-puesto-puro.js`): `TRAMOS_PRECIO` (hasta 5, 5–20, 20–50,
+  más de 50; sin precio no entra en ninguno), `ORDENES` (tuyo, caras, baratas,
+  nombre, expansión; sin cuenta no hay «tuyo»), `opcionesDe` (lo que hay, con
+  cuántas), `filtrar`, `ordenar`, `cuentaDe` («N cartas de M · X €») y
+  `fraseDelCruce`.
+- Un desplegable es un chip: `label.ep-chip.ep-select` con el texto de la
+  opción puesta y el `<select>` encima transparente (a 16 px, que el iPhone no
+  acerque la pantalla). Los mandos son `position: sticky` a 72 px (70 en el
+  móvil y 0 con `bm-escondidas`); los chips del móvil, una fila que se desliza
+  (`FILAS`). Al cambiar de Da a Busca se suelta «La buscas».
+
 ## Tanda 1425 — Aprender no es solo jugar
 
 - `/aprender` en `PAGINAS` (`js/enlaces-internos.js`) y en `TARJETAS_FIJAS`

@@ -368,7 +368,8 @@ async function init() {
   // La clave lleva a quien mira (lo que ve depende de si la sigue, de si es
   // su colección…).
   currentSession = await getSession()
-  if (usernameParam || profileId) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'franjaNivel', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
+  // El puesto de cambios (1426) no es el perfil: no se pinta lo de la última vez.
+  if ((usernameParam || profileId) && !esEvento) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'franjaNivel', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
   const found = await resolveProfileId()
   // Lo que no existe, con salida (1149, C2): la gente con ese nombre.
   const noEncontrado = () => import('./no-encontrado.js').then((m) => m.pintarNoEncontrado(document.querySelector('main'), { tipo: 'usuario', trozo: usernameParam || '' })).catch(() => {
@@ -411,6 +412,19 @@ async function init() {
     return
   }
 
+  // El QR del modo evento (1426): /evento/<usuario> es su PUESTO DE CAMBIOS,
+  // las cartas primero y con filtros (js/evento-puesto.js), no el perfil
+  // entero; el perfil queda a un enlace.
+  if (esEvento) {
+    const main = document.querySelector('main')
+    main.classList.remove('perfil-pagina', 'perfil-ajena')
+    main.classList.add('ep-pagina')
+    main.innerHTML = '<div id="perfilPuesto"></div>'
+    document.title = `Lo que cambia ${profile.display_name || profile.username || ''} — PokeDoc`
+    await import('./evento-puesto.js').then((m) => m.montarPuesto(document.getElementById('perfilPuesto'), profile, currentSession))
+    return
+  }
+
   loadMessageButton()
   // La tarjeta de cambios (1270): la reputación, lo que da y lo que busca y lo
   // que tenéis en común, en una (antes, el sello de la 1105 y la chapa de la
@@ -420,7 +434,7 @@ async function init() {
   // sin cuenta, la puerta a registrarse arriba (las listas se ven igual, en
   // Cambios); con cuenta, el cruce lo pinta la propia pestaña. `?cruce=1` es
   // el enlace de antes y sigue pintando la caja de arriba.
-  if (new URLSearchParams(location.search).has('cruce') || (esEvento && !currentSession)) {
+  if (new URLSearchParams(location.search).has('cruce')) {
     import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('perfilCruce'), profile, currentSession)).catch(() => {})
   }
   // Lo que da y lo que busca (887): la pestaña Cambios y la chapa de arriba.

@@ -46,6 +46,26 @@ async function enlaceParaEscribir(persona, teDa, leDas, cartas) {
   return `/mensajes.html?with=${encodeURIComponent(persona.id)}${texto ? `&texto=${encodeURIComponent(texto)}` : ''}`
 }
 
+// Lo que os cruzáis, para quien lo pinte (1426: el puesto de cambios lo pone
+// en sellos y en su «Proponer cambio»). Lanza si no se ha podido preguntar.
+export async function datosDelCruce(persona) {
+  const { quienTiene, quienBusca } = await import('./mi-coleccion/cambios.js')
+  const { cartasPorClaves, claveDeCarta } = await import('./mi-coleccion/datos.js')
+  const [tiene, busca] = await Promise.all([quienTiene(500), quienBusca(500)])
+  const { teDa, leDas } = cruceCon(persona.id, tiene, busca)
+  const mapa = await cartasPorClaves([...teDa, ...leDas]).catch(() => new Map())
+  const cartas = new Map([...teDa, ...leDas].map((f) => [f.card_id, mapa.get(claveDeCarta(f.card_id, f.market)) || mapa.get(f.card_id)]).filter(([, c]) => c))
+  return { teDa, leDas, cartas }
+}
+
+// «Proponer cambio» (942), ya relleno con lo que os cruzáis.
+export async function proponerConElCruce(sesion, persona, { teDa, leDas, cartas }) {
+  const fila = (f) => ({ card_id: f.card_id, market: f.market || cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null, variante: f.variante || null })
+  const m = await import('./cambio-propuesta.js')
+  await m.abrirPropuesta({ sesion, otro: persona, prefill: { suyas: teDa.map(fila), mias: leDas.map(fila) } })
+}
+export { enlaceParaEscribir }
+
 export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, escribir = false, miniaturas: conMiniaturas = false } = {}) {
   if (!caja || !persona) return
   hojaInyectada('css/cruce-persona.css')
@@ -64,12 +84,7 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
   }
   if (!soloSiHay) caja.innerHTML = '<h2>Vuestro cruce</h2><p class="subtext">Mirando lo que os podéis cambiar…</p>'
   try {
-    const { quienTiene, quienBusca } = await import('./mi-coleccion/cambios.js')
-    const { cartasPorClaves, claveDeCarta } = await import('./mi-coleccion/datos.js')
-    const [tiene, busca] = await Promise.all([quienTiene(500), quienBusca(500)])
-    const { teDa, leDas } = cruceCon(persona.id, tiene, busca)
-    const mapa = await cartasPorClaves([...teDa, ...leDas]).catch(() => new Map())
-    const cartas = new Map([...teDa, ...leDas].map((f) => [f.card_id, mapa.get(claveDeCarta(f.card_id, f.market)) || mapa.get(f.card_id)]).filter(([, c]) => c))
+    const { teDa, leDas, cartas } = await datosDelCruce(persona)
     const nombre = escapeHtml(persona.display_name || persona.username || 'Esta persona')
     // En una conversación (798, PA13) solo sale si hay algo que cambiar.
     // Cuántas de las tuyas tiene, para quien lo pinte al lado (la cabecera de
@@ -91,11 +106,7 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
         ${teDa.length || leDas.length ? '<a class="btn-secondary" href="/mi-coleccion?ver=cruces">Ver todos tus cruces</a>' : ''}
       </div>`
     // «Proponer cambio» (942), ya relleno con lo que os cruzáis.
-    caja.querySelector('[data-cruce-proponer]')?.addEventListener('click', async () => {
-      const fila = (f) => ({ card_id: f.card_id, market: f.market || cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null, variante: f.variante || null })
-      const m = await import('./cambio-propuesta.js')
-      await m.abrirPropuesta({ sesion, otro: persona, prefill: { suyas: teDa.map(fila), mias: leDas.map(fila) } })
-    })
+    caja.querySelector('[data-cruce-proponer]')?.addEventListener('click', () => proponerConElCruce(sesion, persona, { teDa, leDas, cartas }))
   } catch (e) {
     if (soloSiHay) return
     caja.innerHTML = `<h2>Vuestro cruce</h2><p class="subtext">${escapeHtml(e.sinMigracion ? 'Los cambios todavía no están puestos en la base.' : 'No se ha podido mirar ahora. Prueba otra vez en un momento.')}</p>`

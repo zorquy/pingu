@@ -1,0 +1,102 @@
+/* El puesto de cambios (1426; SCHEMA 1426): lo que se abre al escanear el QR
+   del modo evento de alguien. Solo lo inyecta js/evento-puesto.js. Las
+   baldosas son las de la pestaña Cambios (perfil-cambios.css). */
+
+.ep-puesto { display: grid; gap: var(--e-md); }
+
+.ep-cab { display: flex; flex-wrap: wrap; gap: var(--e-md); align-items: center; justify-content: space-between; }
+.ep-quien { display: flex; gap: var(--e-md); align-items: center; min-width: 0; color: var(--text); text-decoration: none; }
+.ep-avatar { display: grid; place-items: center; width: 56px; height: 56px; flex: none; border-radius: 50%; background-size: cover; background-position: center; color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-xl); font-weight: 800; }
+.ep-nombre { display: grid; gap: 2px; min-width: 0; }
+.ep-nombre b { overflow: hidden; font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.ep-nombre small { display: flex; flex-wrap: wrap; gap: var(--e-xs); align-items: center; color: var(--text-mid); font-size: var(--t-sm); }
+.ep-confianza:not(:empty)::before { content: '· '; }
+.ep-acciones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.ep-acciones :is(a, button) { display: inline-flex; gap: var(--e-xs); align-items: center; }
+.ep-proponer[disabled] { opacity: 0.6; }
+
+.ep-cruce { margin: 0; color: var(--text-mid); font-size: var(--t-md); }
+.ep-cruce-hay { color: var(--success); font-weight: 600; }
+.ep-lista-aviso { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+
+/* Los mandos, pegados arriba al bajar (1359: como los filtros de las listas). */
+.ep-mandos {
+  position: sticky;
+  top: 72px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--e-sm);
+  align-items: center;
+  padding: var(--e-sm) 0;
+  background: var(--bg);
+}
+.ep-seg { min-width: 0; }
+.ep-seg .seg-btn { min-width: 96px; }
+.ep-n { margin-left: var(--e-xs); font-variant-numeric: tabular-nums; opacity: 0.75; }
+.ep-busca { width: 100%; min-height: 44px; border-radius: var(--radius-pill); }
+.ep-chips { display: flex; flex-wrap: wrap; grid-column: 1 / -1; gap: var(--e-sm); }
+.ep-chip {
+  position: relative;
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ep-chip.ep-puesto-on { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
+.ep-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: var(--t-lg); /* 16 px: el iPhone no acerca la pantalla al tocarlo */
+  cursor: pointer;
+}
+.ep-select:focus-within { box-shadow: var(--shadow-ring); }
+.ep-select-txt { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.ep-flecha { width: 8px; height: 8px; margin: -4px 0 0 var(--e-xs); border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); opacity: 0.7; }
+.ep-select select option { background: var(--white); color: var(--text); }
+.ep-cuenta { margin: 0; color: var(--text-mid); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+
+/* La rejilla: más grande que la tira del perfil, que aquí es lo único. */
+.ep-rejilla { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--e-md); }
+.ep-nada { grid-column: 1 / -1; }
+.ep-perfil { margin: var(--e-md) 0 0; text-align: center; }
+
+@media (max-width: 900px) {
+  .ep-avatar { width: 44px; height: 44px; font-size: var(--t-lg); }
+  .ep-nombre b { font-size: var(--t-xl); }
+  .ep-acciones { width: 100%; }
+  .ep-acciones > * { flex: 1; justify-content: center; }
+  .ep-mandos {
+    top: 70px;
+    margin-inline: calc(var(--e-xl) * -1);
+    padding: var(--e-sm) var(--e-xl);
+    transition: top 0.3s var(--ease);
+  }
+  html.bm-escondidas .ep-mandos { top: 0; }
+  .ep-seg .seg-btn { min-width: 0; padding-inline: var(--e-md); }
+  .ep-cruce { font-size: var(--t-sm); }
+  /* Los chips, en UNA fila que se desliza (1359): nunca un chip cortado. */
+  .ep-chips { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: 2px; scrollbar-width: none; }
+  .ep-chips::-webkit-scrollbar { display: none; }
+  .ep-chip { flex: none; }
+  .ep-rejilla { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); }
+}
+@media (pointer: coarse) {
+  .ep-chip { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ep-mandos { transition: none; }
+}

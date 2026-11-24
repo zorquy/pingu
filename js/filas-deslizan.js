@@ -8,7 +8,7 @@
 // tienen datos) y crecen cuando llegan las cuentas, así que se miran otra
 // vez en cada cambio del DOM, de uno en uno por fotograma.
 
-export const FILAS = '.av-chips, .com-chips, .tag-chips, .nv-filtros, .torneo-pestanas-chips, .glosario-letras, .foro-vistas, .mc-mandos, .perfil-pestanas, .bs-chips, .seg'
+export const FILAS = '.av-chips, .ep-chips, .com-chips, .tag-chips, .nv-filtros, .torneo-pestanas-chips, .glosario-letras, .foro-vistas, .mc-mandos, .perfil-pestanas, .bs-chips, .seg'
 
 // Por dónde sigue una fila según cuánto mide y dónde está: lo puro, para
 // poder probarlo sin navegador. Un píxel de holgura por el redondeo.

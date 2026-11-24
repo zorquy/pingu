@@ -446,9 +446,16 @@
   descripción, público y borrar). El aspecto vive en `user_albums.estilo`
   (jsonb, migración 1050) y se ofrece solo si la fila trae la columna.
 - **El modo evento es `/evento` y su QR lleva a `/evento/<usuario>`**
-  (tandas 1029 y 1030; antes «feria», 794): la ficha de esa persona abierta
-  por Cambios, que se ve SIN cuenta, con la puerta a registrarse arriba
-  (`pintarCruce` sin sesión) y, con cuenta, el cruce de la pestaña. `/feria`
+  (tandas 1029 y 1030; antes «feria», 794), que desde la 1426 es su PUESTO DE
+  CAMBIOS (`js/evento-puesto.js`, PINGU: «muy visual… y con filtros para buscar
+  dentro de cada colección»), no el perfil: cabecera de una línea (Proponer y
+  Escribir, o Crear cuenta / Entrar), Da / Busca, buscador y chips pegados
+  arriba (lo tuyo, expansión, rareza, precio por tramos y orden, sacados de lo
+  que HAY con su cuenta: `evento-puesto-puro.js`) y la rejilla. Lee lo MISMO que
+  la pestaña Cambios (`listasDeCambios` + `fichasDeCambios`) y que el cruce
+  (`datosDelCruce`, `proponerConElCruce`): un dato nuevo de lo que alguien da o
+  busca va ahí y sale en los dos. El perfil entero queda a un enlace, y
+  `?cruce=1` en /usuario sigue pintando la caja de siempre. Se ve SIN cuenta. `/feria`
   es un 301 (hay QRs impresos). Las listas de la página van en CARTAS y se
   guardan CON sus fotos (`pd-evento-v2` + Cache API `pokedoc-evento-fotos`,
   que `sw.js` sirve solo a imágenes de otro origen cuando la red no
