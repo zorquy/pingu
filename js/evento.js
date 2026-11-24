@@ -297,6 +297,8 @@ function ampliar() {
 }
 
 // «Con precio» se recuerda en este navegador: es cómo te gusta mirarla tú.
+// Desde la 1427 viene ENCENDIDO (PINGU vio las cartas sin precio en las
+// capturas): en una mesa de cambios el precio es lo primero que se pregunta.
 const CLAVE_PRECIO = 'pd-evento-precio'
 function ponerConPrecio(si) {
   $('eventoConPrecio').setAttribute('aria-pressed', String(si))
@@ -336,8 +338,8 @@ function enganchar() {
   for (const [id, campo] of [['eventoCatalogo', 'catalogo'], ['eventoSet', 'set'], ['eventoOrden', 'orden']]) {
     $(id)?.addEventListener('change', (e) => { filtro[campo] = e.target.value; pintarLista() })
   }
-  let conPrecio = false
-  try { conPrecio = localStorage.getItem(CLAVE_PRECIO) === '1' } catch {}
+  let conPrecio = true
+  try { conPrecio = localStorage.getItem(CLAVE_PRECIO) !== '0' } catch {}
   ponerConPrecio(conPrecio)
   $('eventoConPrecio')?.addEventListener('click', () => ponerConPrecio($('eventoConPrecio').getAttribute('aria-pressed') !== 'true'))
   $('eventoAmpliar')?.addEventListener('click', ampliar)

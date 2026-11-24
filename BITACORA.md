@@ -22,6 +22,22 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (677) — PINGU-Claude (1427 — Tu modo evento, con precio)
+
+**Hecho** (de las capturas de «Modo evento y QR»): en `/evento` cada carta
+lleva su precio desde el principio («Con precio» viene encendido; quien lo
+apaga, lo sigue teniendo apagado en su navegador), y en el móvil la fila de
+Expansión / Orden / Con precio ya no corta un chip: se desvanece por donde
+sigue (`FILAS`) y el orden dice «Expansión» y «Nombre» en vez de «Por
+expansión», que no cabía.
+
+**Ficheros**: `js/evento.js`, `evento.html`, `js/filas-deslizan.js`. Rama
+pruebas: `test-tanda-1042-pantalla.mjs` al día (el precio viene encendido).
+Pasan 1029, 1058 y 1042 (salvo su comprobación de Cruces, que ya fallaba);
+la 1041 se atasca en el Mercado, como antes de tocar nada.
+
+**Pendiente**: 1428. Sale en el próximo push.
+
 ## 2026-11-24 (676) — PINGU-Claude (1426 — El puesto de cambios del QR)
 
 **Hecho** (PINGU eligió la «A» de «Modo evento y QR», con un evento en un

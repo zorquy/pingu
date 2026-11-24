@@ -55223,6 +55223,12 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1427 — Tu modo evento, con precio
+
+- `js/evento.js`: `conPrecio` es `true` salvo que `pd-evento-precio` diga '0'
+  (antes solo con '1'). `evento.html`: las opciones del orden, «Expansión» y
+  «Nombre». `.evento-filtros` entra en `FILAS` (js/filas-deslizan.js).
+
 ## Tanda 1426 — El puesto de cambios del QR
 
 - `/evento/<usuario>` sigue siendo `usuario.html` (netlify.toml); `js/usuario.js`,

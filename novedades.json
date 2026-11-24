@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-24", "tipo": "mejora", "texto": "En tu modo evento cada carta enseña su precio desde el principio, y los filtros del móvil ya no se cortan.", "enlace": "/evento" },
     { "fecha": "2026-11-24", "tipo": "mejora", "texto": "Al escanear el QR del modo evento de alguien ves sus cartas al momento, con buscador y filtros por expansión, rareza y precio, y qué os podéis cambiar.", "enlace": "/evento" },
     { "fecha": "2026-11-24", "tipo": "mejora", "texto": "La tarjeta de Aprender ya no dice solo «a jugar»: las guías y cursos también son de coleccionismo.", "enlace": "/aprender" },
     { "fecha": "2026-11-23", "tipo": "arreglo", "texto": "Los protectores de racha cubren un día cada uno: si tienes dos, puedes faltar dos días seguidos sin perder la racha.", "enlace": "/" },
