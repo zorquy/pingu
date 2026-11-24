@@ -22,6 +22,20 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (674) — PINGU-Claude (1425 — Aprender no es solo jugar)
+
+**Hecho** (PINGU: «la categoría de aprender dice aprende a jugar, pero no es
+jugar, aquí hay de coleccionismo»): la tarjeta de /aprender —la de los
+enlaces dentro de la web y la imagen que sale al compartir en redes— dice
+ahora «Aprende de Pokémon TCG» y «Guías y cursos de la comunidad para jugar y
+coleccionar, desde cero.» (antes «Aprende a jugar…» y «…desde cero hasta el
+torneo»).
+
+**Ficheros**: `js/enlaces-internos.js`, `netlify/lib/tarjetas-fijas.mjs`. Rama
+pruebas: `test-tanda-1416-pantalla.mjs` (el título nuevo).
+
+**Pendiente**: nada. Sale en el próximo push.
+
 ## 2026-11-23 (673) — PINGU-Claude (1424 — Cada protector de racha cubre un día)
 
 **Hecho** (una persona, por mensaje a PINGU: «he estado dos días fuera sin

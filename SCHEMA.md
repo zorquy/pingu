@@ -55212,6 +55212,13 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1425 — Aprender no es solo jugar
+
+- `/aprender` en `PAGINAS` (`js/enlaces-internos.js`) y en `TARJETAS_FIJAS`
+  (`netlify/lib/tarjetas-fijas.mjs`): título «Aprende de Pokémon TCG» y
+  texto «Guías y cursos de la comunidad para jugar y coleccionar, desde
+  cero.». Los dos van a la par (lo mira la 1416).
+
 ## Tanda 1424 — Cada protector de racha cubre un día
 
 - `js/gamification.js`: `diasPerdidos(ultima, hoy)` (exportada; 0 si entró

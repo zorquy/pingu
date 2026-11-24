@@ -37,7 +37,7 @@ export const PAGINAS = {
   '/eventos': { sec: 'comunidad', icono: 'calendar', chapa: 'Eventos', titulo: 'Card shows, trade days y quedadas en España', texto: 'La agenda de Pokémon TCG, y quién de PokeDoc va a cada uno.' },
   '/foro': { sec: 'comunidad', icono: 'messageSquare', chapa: 'Foro', titulo: 'El foro de Pokémon TCG en español', texto: 'Mazos, colecciones, cambios, dudas de reglas y lo que salga.' },
   '/cartas': { sec: 'cartas', icono: 'cards', chapa: 'Cartas', titulo: 'Todas las cartas de Pokémon TCG, con su precio', texto: 'Cada expansión, en español y japonés, con el precio de Cardmarket por idioma.' },
-  '/aprender': { sec: 'aprender', icono: 'graduationCap', chapa: 'Aprender', titulo: 'Aprende a jugar Pokémon TCG', texto: 'Guías y cursos de la comunidad, desde cero hasta el torneo.' },
+  '/aprender': { sec: 'aprender', icono: 'graduationCap', chapa: 'Aprender', titulo: 'Aprende de Pokémon TCG', texto: 'Guías y cursos de la comunidad para jugar y coleccionar, desde cero.' },
   '/noticias': { sec: 'inicio', icono: 'newspaper', chapa: 'Noticias', titulo: 'Noticias de Pokémon TCG en español', texto: 'Lanzamientos, torneos y todo lo que pasa en el juego.' },
   '/usuarios': { sec: 'comunidad', icono: 'users', chapa: 'Gente', titulo: 'La gente de PokeDoc', texto: 'Coleccionistas y jugadores: qué buscan, qué cambian y qué guías escriben.' },
   '/lanzamientos': { sec: 'inicio', icono: 'calendar', chapa: 'Calendario', titulo: 'Lo que sale de Pokémon TCG', texto: 'El calendario de lanzamientos, en España y en Japón.' },

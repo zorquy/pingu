@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-24", "tipo": "mejora", "texto": "La tarjeta de Aprender ya no dice solo «a jugar»: las guías y cursos también son de coleccionismo.", "enlace": "/aprender" },
     { "fecha": "2026-11-23", "tipo": "arreglo", "texto": "Los protectores de racha cubren un día cada uno: si tienes dos, puedes faltar dos días seguidos sin perder la racha.", "enlace": "/" },
     { "fecha": "2026-11-23", "tipo": "mejora", "texto": "En la ficha de un mazo, el torneo de cada lista te lleva a ese torneo: su podio, lo que se jugó y la clasificación entera.", "enlace": "/meta" },
     { "fecha": "2026-11-23", "tipo": "nuevo", "texto": "En Mazos › Meta puedes ver el meta por torneo: cada torneo del periodo con su campeón y los mazos del Top 8.", "enlace": "/meta?ver=torneos" },
