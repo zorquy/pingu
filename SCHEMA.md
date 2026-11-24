@@ -55223,6 +55223,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1428 — Los QR, para enseñarlos
+
+- `css/tienda.css` (`@media screen and (max-width: 700px)` del escaparate): una
+  columna centrada, `.td-cartel` entero a `min(300px, 100%)` y el QR a 200 px.
+  `js/tienda.js` escribe `#tdEnlace` con `<wbr>` tras cada barra (el
+  `textContent` sigue siendo la dirección: «Copiar» lo lee).
+- `js/cartel-modo-evento.js`: `dibujarCartel({ evento })` (lienzo A4 a 150 ppp,
+  1240 × 1754), `pdfDelCartel` (`pdfDeImagenes`), `enlaceDelCartel(evento)`
+  (`/evento?utm_source=cartel[&utm_campaign=<slug>]`), `lineaDelEvento`,
+  `PASOS` y `abrirCartel` (pop-up con la vista, «Imagen» y «Descargar PDF»).
+  Lo abren `#evCartel` y `[data-ev-cartel]` de /admin → Eventos por `import()`.
+
 ## Tanda 1427 — Tu modo evento, con precio
 
 - `js/evento.js`: `conPrecio` es `true` salvo que `pd-evento-precio` diga '0'

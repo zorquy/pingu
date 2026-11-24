@@ -22,6 +22,26 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (678) — PINGU-Claude (1428 — Los QR, para enseñarlos)
+
+**Hecho** (la «C» de «Modo evento y QR»):
+- En el panel de una tienda, pestaña Escaparate, el móvil enseña el CARTEL
+  entero (la tarjeta blanca del PC, «Mira nuestro stock en el móvil») con el
+  QR a 200 px; antes era un QR de 88 px al lado del enlace. Y el enlace se parte
+  por las barras: «cartasbilbao» ya no se partía en «cartasbilba / o».
+- El cartel del modo evento para imprimir: /admin → Eventos, «Cartel del modo
+  evento» (genérico) o «Cartel» en cada evento (con su nombre, fecha y ciudad
+  arriba). A4 en PDF y en imagen: «¿Cambias cartas hoy? Enseña tu QR de
+  PokeDoc», el QR a /evento con `utm_source=cartel` (y `utm_campaign` = el
+  evento), los tres pasos y «Gratis y en español».
+
+**Ficheros**: `css/tienda.css`, `js/tienda.js`, `js/cartel-modo-evento.js`
+(nuevo), `admin/js/eventos-admin.js`, `admin/css/admin.css`,
+`normas/coleccion.md`. Rama pruebas: `test-tanda-1428-pantalla.mjs`.
+
+**Pendiente**: que PINGU haga su cartel desde /admin → Eventos cuando esté
+subido. Sale en el próximo push.
+
 ## 2026-11-24 (677) — PINGU-Claude (1427 — Tu modo evento, con precio)
 
 **Hecho** (de las capturas de «Modo evento y QR»): en `/evento` cada carta

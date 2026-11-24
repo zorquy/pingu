@@ -1209,22 +1209,20 @@ html:has(.tds-dialogo[open]) {
 .td-esc-titulo { margin: var(--e-2xl) 0 0; font-family: var(--font-display); }
 #tdEscaparatePrevia .pt-cab { background: var(--white); }
 
-/* En el móvil, una tarjeta (1088): el QR pequeño al lado del enlace y los
-   iconos debajo. El cartel entero sigue en la página para imprimirlo. */
+/* En el móvil, el CARTEL entero y grande (1428, PINGU: «que pongan su QR
+   para que la gente vea su stock»; desde la 1088 era un QR de 88 px al lado
+   del enlace): la misma tarjeta blanca del PC, con el QR a 200 px para
+   enseñarlo desde el mostrador, y debajo el enlace (que se parte por las
+   barras, nunca a media palabra) y los cuatro iconos. */
 @media screen and (max-width: 700px) {
-  .td-esc-cab { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'qr enlace' 'qr texto' 'botones botones' 'ver ver'; gap: var(--e-sm) var(--e-md); padding: var(--e-md); align-items: start; }
-  .td-esc-cab .td-cartel { grid-area: qr; }
-  .td-esc-cab .td-enlace { grid-area: enlace; }
-  .td-esc-cab .td-escaparate-mandos .subtext { grid-area: texto; font-size: var(--t-xs); }
-  .td-esc-botones { grid-area: botones; }
-  .td-esc-ver { grid-area: ver; justify-self: start; }
-  .td-esc-cab .td-cartel { width: auto; padding: var(--e-xs); aspect-ratio: auto; box-shadow: none; }
-  .td-esc-cab .td-cartel > :not(.td-cartel-qr) { display: none; }
-  .td-esc-cab .td-cartel-qr svg { width: 88px; height: 88px; }
+  .td-esc-cab { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: var(--e-md); padding: var(--e-md); text-align: center; }
+  .td-esc-cab .td-cartel { width: min(300px, 100%); }
+  .td-esc-cab .td-cartel-qr svg { width: 200px; height: 200px; }
+  .td-esc-cab .td-escaparate-mandos { justify-items: center; width: 100%; }
   .td-esc-cab .td-enlace { font-size: var(--t-md); }
-  .td-esc-botones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .td-esc-cab .td-escaparate-mandos .subtext { font-size: var(--t-xs); }
+  .td-esc-botones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
   .td-esc-icono { min-width: 0; }
-  .td-esc-cab .td-escaparate-mandos { display: contents; }
 }
 
 .td-cartel {

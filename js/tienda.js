@@ -8,7 +8,7 @@
 //   · cualquier otra      → «Esto aún no está abierto»
 import { supabase } from './supabase.js'
 import { getSession, getProfile, profileUrl, getInitial, avatarStyle, signOut, uploadProfileImage } from './app.js'
-import { urlParaCss } from './html.js'
+import { urlParaCss, escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { caraDelPanel, instagramDe } from './tiendas-puro.js'
@@ -117,7 +117,9 @@ async function montarEscaparateSiToca(v) {
   const { svgQR } = await import('./qr.js')
   // El QR lleva `utm_source=qr`: el Panel cuenta aparte las visitas que llegan de él (1073).
   $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })
-  $('tdEnlace').textContent = url.replace('https://', '')
+  // Partible por las barras (1428): en el móvil «cartasbilbao» se partía en
+  // «cartasbilba / o». El texto sigue siendo la dirección (lo lee «Copiar»).
+  $('tdEnlace').innerHTML = escapeHtml(url.replace('https://', '')).replace(/\//g, '/<wbr>')
   for (const b of document.querySelectorAll('[data-icono-esc]')) if (!b.querySelector('svg')) b.insertAdjacentHTML('afterbegin', icons[b.dataset.iconoEsc]?.(20) || '')
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
   // Y debajo, el escaparate de verdad (1078): lo mismo que ve la gente.

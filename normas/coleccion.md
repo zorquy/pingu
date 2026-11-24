@@ -455,7 +455,9 @@
   la pestaña Cambios (`listasDeCambios` + `fichasDeCambios`) y que el cruce
   (`datosDelCruce`, `proponerConElCruce`): un dato nuevo de lo que alguien da o
   busca va ahí y sale en los dos. El perfil entero queda a un enlace, y
-  `?cruce=1` en /usuario sigue pintando la caja de siempre. Se ve SIN cuenta. `/feria`
+  `?cruce=1` en /usuario sigue pintando la caja de siempre. Se ve SIN cuenta. El
+  cartel para imprimir (1428) es `js/cartel-modo-evento.js` desde /admin →
+  Eventos: un QR nuevo a /evento lleva su `utm_source`, como ese. `/feria`
   es un 301 (hay QRs impresos). Las listas de la página van en CARTAS y se
   guardan CON sus fotos (`pd-evento-v2` + Cache API `pokedoc-evento-fotos`,
   que `sw.js` sirve solo a imágenes de otro origen cuando la red no

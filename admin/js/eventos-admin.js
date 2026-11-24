@@ -79,6 +79,7 @@ function filaHtml(e) {
     ${e.destacado ? '<span class="evadm-chapa evadm-destacado">Destacado</span>' : ''}
     ${e.publicado === false ? '<span class="evadm-chapa">Sin publicar</span>' : ''}
     <a class="btn-secondary" href="/eventos/${encodeURIComponent(e.slug)}" target="_blank" rel="noopener">Ver</a>
+    <button type="button" class="btn-secondary" data-ev-cartel="${escapeHtml(e.id)}">Cartel</button>
     <button type="button" class="btn-secondary" data-ev-editar="${escapeHtml(e.id)}">Editar</button>
   </div>`
 }
@@ -272,7 +273,7 @@ function pintar() {
   const proximos = eventos.filter((e) => new Date(e.termina || e.empieza) >= new Date(new Date().setHours(0, 0, 0, 0))).reverse()
   const pasados = eventos.filter((e) => !proximos.includes(e))
   raiz.innerHTML = `
-    ${editando ? formHtml(editando) : '<button type="button" class="btn-primary" id="evNuevo">+ Nuevo evento</button>'}
+    ${editando ? formHtml(editando) : '<div class="evadm-arriba"><button type="button" class="btn-primary" id="evNuevo">+ Nuevo evento</button><button type="button" class="btn-secondary" id="evCartel">Cartel del modo evento</button></div>'}
     <h2 class="evadm-titulo">Próximos <span class="subtext">${proximos.length}</span></h2>
     ${proximos.length ? proximos.map(filaHtml).join('') : '<p class="admin-note">No hay eventos próximos.</p>'}
     ${pasados.length ? `<h2 class="evadm-titulo">Pasados <span class="subtext">${pasados.length}</span></h2>${pasados.map(filaHtml).join('')}` : ''}`
@@ -404,6 +405,13 @@ export async function montarEventos(panel) {
   raiz = panel
   raiz.addEventListener('click', async (ev) => {
     if (ev.target.closest('#evNuevo')) { abrirFormulario({}); raiz.querySelector('#evf-nombre')?.focus(); return }
+    // El cartel del modo evento (1428): genérico o con este evento.
+    const cartel = ev.target.closest('#evCartel, [data-ev-cartel]')
+    if (cartel) {
+      const evento = cartel.dataset.evCartel ? eventos.find((e) => e.id === cartel.dataset.evCartel) || null : null
+      import('../../js/cartel-modo-evento.js').then((m) => m.abrirCartel({ evento })).catch(() => showToast('No se ha podido hacer el cartel.', 'error'))
+      return
+    }
     const ed = ev.target.closest('[data-ev-editar]')
     if (ed) { abrirFormulario(eventos.find((e) => e.id === ed.dataset.evEditar) || null); raiz.scrollIntoView({ behavior: 'smooth' }); return }
     if (ev.target.closest('#evfCancelar')) { abrirFormulario(null); return }
