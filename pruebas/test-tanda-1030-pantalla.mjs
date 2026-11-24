@@ -50,26 +50,40 @@ const estado = (page) => page.evaluate(() => {
   }
 })
 
-console.log('── 1. Sin cuenta: la ficha por Cambios, con sus cartas, y la puerta ──')
+// Desde la 1426 el QR abre el PUESTO DE CAMBIOS (js/evento-puesto.js), no el
+// perfil: las cartas primero, la puerta a la cuenta en la cabecera y, con
+// cuenta, el cruce en una frase y «Proponer cambio». Lo de abajo lo comprueba
+// así; el detalle del puesto, test-tanda-1426-pantalla.mjs.
+const puesto = (page) => page.evaluate(() => {
+  const p = document.querySelector('.ep-puesto')
+  const crear = p?.querySelector('.ep-acciones a.btn-primary')
+  const r = crear?.getBoundingClientRect()
+  return {
+    hay: !!p, cartas: p?.querySelectorAll('.ep-rejilla img').length || 0,
+    crear: crear ? { texto: crear.textContent.trim(), href: crear.getAttribute('href'), alto: Math.round(r.height), enPantalla: r.top >= 0 && r.bottom <= innerHeight } : null,
+    frase: p?.querySelector('[data-ep-cruce]')?.textContent.trim(),
+    proponer: !!p?.querySelector('[data-ep-proponer]:not([disabled])'),
+    pestanas: !!document.getElementById('profileTabs'),
+  }
+})
+console.log('── 1. Sin cuenta: el puesto con sus cartas, y la puerta arriba ──')
 {
   const { ctx, page, errores } = await abrir('/evento/Misty')
-  const e = await estado(page)
+  const e = await puesto(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la pestaña Cambios está abierta sin pedirla en la consulta', e.cambiosVisible && e.pestania === 'cambios', JSON.stringify({ pestania: e.pestania, visible: e.cambiosVisible }))
-  check('lo que busca y lo que da, con sus cartas', /Busca/.test(e.cambios) && /Da/.test(e.cambios) && e.cartas >= 2, JSON.stringify({ cambios: e.cambios, cartas: e.cartas }))
-  check('arriba, «¿Tienes alguna de estas?» con Crear cuenta y Ya tengo cuenta', e.cruceVisible && e.cruceTitulo === '¿Tienes alguna de estas?' && e.cruceEnlaces.some((x) => /^Crear cuenta→\/auth\.html\?registro=1&volver=%2Fevento%2FMisty/.test(x)) && e.cruceEnlaces.some((x) => /^Ya tengo cuenta→\/auth\.html\?volver=/.test(x)), JSON.stringify({ visible: e.cruceVisible, titulo: e.cruceTitulo, enlaces: e.cruceEnlaces }))
-  const puerta = await page.evaluate(() => { const a = document.querySelector('#perfilCruce a.btn-primary'); if (!a) return null; const r = a.getBoundingClientRect(); return { alto: Math.round(r.height), enPantalla: r.top >= 0 && r.bottom <= innerHeight } })
-  check('«Crear cuenta» mide 44 px y se ve sin bajar', puerta && puerta.alto >= 44 && puerta.enPantalla, JSON.stringify(puerta))
+  check('abre el puesto de cambios, no el perfil con pestañas', e.hay && !e.pestanas, JSON.stringify(e))
+  check('lo que da, en cartas', e.cartas >= 1, JSON.stringify(e))
+  check('«Crear cuenta» vuelve a esta misma página, mide 44 px y se ve sin bajar', e.crear?.texto === 'Crear cuenta' && /^\/auth\.html\?registro=1&volver=%2Fevento%2FMisty/.test(e.crear.href) && e.crear.alto >= 44 && e.crear.enPantalla, JSON.stringify(e.crear))
   await ctx.close()
 }
 
-console.log('\n── 2. Con cuenta: el cruce de la pestaña, y arriba nada repetido ──')
+console.log('\n── 2. Con cuenta: el cruce en una frase y «Proponer cambio» ──')
 {
   const { ctx, page, errores } = await abrir('/evento/Misty', { sesion: 'user-1' })
-  const e = await estado(page)
+  const e = await puesto(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('Cambios abierta y el cruce dentro: «Le puedes dar» el Pikachu', e.pestania === 'cambios' && e.pcCruce && /Le puedes dar/.test(e.pcCruce), JSON.stringify({ pestania: e.pestania, pcCruce: e.pcCruce }))
-  check('la caja de arriba no se pinta (ya está el cruce de la pestaña)', !e.cruceVisible, JSON.stringify({ visible: e.cruceVisible, titulo: e.cruceTitulo }))
+  check('la frase dice que le puedes dar el Pikachu', /^Tú le puedes dar a Misty 1 carta que busca\.$/.test(e.frase || ''), e.frase)
+  check('«Proponer cambio» listo', e.proponer, JSON.stringify(e))
   await ctx.close()
 }
 
