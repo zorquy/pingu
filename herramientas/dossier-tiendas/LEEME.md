@@ -12,3 +12,11 @@ cartas reales en `test-forum/carrusel-arte/real-*.webp`:
 Antes de `hacer.mjs`, en el sitio servido: `node fondos.mjs <sitio>/dossier-fondos` y las
 letras estáticas de @fontsource (Inter y Outfit, 400–800, `latin-*-normal.woff2`) en
 `<sitio>/dossier-fuentes/` (`npm pack @fontsource/inter @fontsource/outfit`).
+
+## Desde la 1433
+
+- 19 páginas: la 18 son los planes (precios a mano: si cambian en
+  `js/tienda-plan-puro.js`, se cambian aquí) y la 19 cómo empezar.
+- Las letras: `npm pack @fontsource/inter@5.1.0 @fontsource/outfit@5.1.0`, y
+  `files/{inter,outfit}-latin-{400..800}-normal.woff2` a `<sitio>/dossier-fuentes/`.
+- `hacer.mjs` mira en el puerto 8892: con otro servidor, cámbialo en una copia.

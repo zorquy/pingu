@@ -120,6 +120,20 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
 .sku div small { display: block; font-family: Inter; font-size: 8pt; color: var(--mid); margin-top: 0.6mm }
 .sku em { align-self: center; font-style: normal; font-size: 15pt; font-weight: 700; color: #b5c4cb }
 
+
+/* Los planes (1433): cuatro columnas, la recomendada marcada. */
+.plan { display: flex; flex-direction: column; gap: 1.6mm; padding: 4.4mm; position: relative }
+.plan h3 { font-size: 14pt; margin: 0 }
+.plan .precio { font-family: Outfit; font-size: 20pt; font-weight: 800; line-height: 1 }
+.plan .precio small { font-size: 9pt; font-weight: 600; color: var(--mid) }
+.plan .fund { font-size: 8.4pt; font-weight: 700; color: #a6741a }
+.plan .para { font-size: 8.8pt; color: var(--mid) }
+.plan .lista li { font-size: 8.8pt }
+.plan .todo { font-size: 8.4pt; font-weight: 700; color: var(--text) }
+.plan .cinta { position: absolute; top: -2.6mm; left: 4.4mm; padding: 0.6mm 2.4mm; border-radius: 9mm; background: var(--teal); color: #fff; font-size: 7pt; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase }
+.plan.marcada { background: #f2fbfa }
+.pronto { color: var(--mid); font-weight: 600; font-size: 7.6pt }
+
 /* El pie, como el de la web. */
 .pie { flex: none; display: flex; justify-content: space-between; align-items: center; margin-top: auto; height: 11mm; padding: 0 12mm; border-top: 1px solid var(--border); background: var(--white); font-size: 8pt; color: var(--mid) }
 .pie b { color: var(--teal) }
@@ -138,8 +152,8 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
 .portada .carta { position: absolute; width: 56mm; border-radius: 3mm; box-shadow: 0 8mm 16mm rgba(0, 0, 0, 0.55) }
 .portada .pie, .cierre .pie { background: transparent; border-color: rgba(255, 255, 255, 0.12); color: #cfe3ea }
 .portada .pie b, .cierre .pie b { color: var(--teal-claro) }
-.indice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.8mm 5mm }
-.indice div { display: grid; grid-template-columns: 8mm minmax(0, 1fr) auto; gap: 2.4mm; align-items: center; padding: 1.4mm 3mm; line-height: 1.25; background: var(--white); border: 1px solid var(--border); border-radius: 3mm; font-size: 9.6pt }
+.indice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2mm 5mm }
+.indice div { display: grid; grid-template-columns: 8mm minmax(0, 1fr) auto; gap: 2.4mm; align-items: center; padding: 1mm 3mm; line-height: 1.25; background: var(--white); border: 1px solid var(--border); border-radius: 3mm; font-size: 9.6pt }
 .indice div .icono { margin: 0; width: 8mm; height: 8mm }
 .indice div b { font-family: Outfit; font-size: 10.5pt }
 .indice div span span { color: var(--mid); font-size: 8.4pt }
@@ -158,7 +172,7 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
 
 <!-- ═══ 1 · PORTADA ═══ -->
 <section class="hoja portada">
-  <div class="nav"><div class="logo"><i>P</i><span>Poke<b>Doc</b></span></div><span class="miga">Comunidad › <b>Para tiendas</b></span><span class="num" style="background:var(--teal-claro);color:var(--oscuro)">BETA</span></div>
+  <div class="nav"><div class="logo"><i>P</i><span>Poke<b>Doc</b></span></div><span class="miga">Comunidad › <b>Para tiendas</b></span><span class="num" style="background:var(--teal-claro);color:var(--oscuro)">2 MESES GRATIS</span></div>
   <h1>Tu inventario de cartas, <em>ordenado y siempre a mano</em></h1>
   <p class="lema">El panel de PokeDoc para tiendas y para quien se dedica a la compraventa. Dossier completo: qué es, cómo funciona cada parte y cómo empezar.</p>
   <div class="chips"><span>Inventario carta a carta</span><span>Mostrador en el móvil</span><span>Caja del día</span><span>Escaparate y Mercado</span></div>
@@ -197,7 +211,8 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
       <div><span class="icono" data-i="search"></span><span><b>Que te encuentren</b><br><span>Mercado y avisos</span></span><em>15</em></div>
       <div><span class="icono" data-i="mail"></span><span><b>Ofertas y reservas</b><br><span>Vender online paso a paso</span></span><em>16</em></div>
       <div><span class="icono" data-i="lock"></span><span><b>Tus datos</b><br><span>Y un día en la tienda</span></span><em>17</em></div>
-      <div><span class="icono" data-i="sprout"></span><span><b>Cómo empezar</b><br><span>Y preguntas</span></span><em>18</em></div>
+      <div><span class="icono" data-i="gift"></span><span><b>Planes</b><br><span>Dos meses de todo, gratis</span></span><em>18</em></div>
+      <div><span class="icono" data-i="sprout"></span><span><b>Cómo empezar</b><br><span>Y preguntas</span></span><em>19</em></div>
     </div>
   </div>
   <div class="pie"><span>PokeDoc para tiendas</span><span><b>2</b></span></div>
@@ -553,12 +568,33 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
   <div class="pie"><span>PokeDoc para tiendas</span><span><b>17</b></span></div>
 </section>
 
-<!-- ═══ 18 · CÓMO EMPEZAR ═══ -->
+<!-- ═══ 18 · PLANES (1433) ═══ -->
+<section class="hoja">
+  <div class="nav"><div class="logo"><i>P</i><span>Poke<b>Doc</b></span></div><span class="miga">Para tiendas › <b>Planes</b></span><span class="num">18</span></div>
+  <div class="banda"><span class="eti" data-e="gift">Planes</span><h2>Dos meses de todo, <em>gratis</em></h2><p>Cada tienda entra con Tienda+ entero durante 60 días. Al acabar eliges plan o te quedas en Gratis: no se borra nada y tu escaparate sigue abierto.</p></div>
+  <div class="cuerpo" style="justify-content:flex-start;gap:5mm">
+    <div class="rejilla r4" style="align-items:stretch;margin-top:3mm">
+      <div class="tarjeta plan"><h3>Gratis</h3><div class="precio">0 €</div><p class="para">Para estar: que te encuentren.</p><ul class="lista"><li>Tu stock y tu colección, sin límite</li><li>Tu escaparate con QR</li><li>Sales en /tiendas y en el Mercado</li><li>Ofertas, reservas y mensajes</li><li>Tus torneos</li></ul></div>
+      <div class="tarjeta plan"><h3>Puesto</h3><div class="precio">25 € <small>/mes</small></div><div class="fund">Fundadora: 19 €/mes</div><p class="para">Para quien vende desde casa o en ferias.</p><p class="todo">Todo lo de Gratis, y:</p><ul class="lista"><li>El mostrador: vender, comprar, cambiar y escanear</li><li>Tus ventas y la caja de hoy</li><li>Etiquetas con SKU, QR y código de barras</li></ul></div>
+      <div class="tarjeta plan marcada"><span class="cinta">La recomendada</span><h3>Tienda</h3><div class="precio">35 € <small>/mes</small></div><div class="fund">Fundadora: 29 €/mes</div><p class="para">Solo 10 € más que Puesto, y tienes la tienda entera.</p><p class="todo">Todo lo de Puesto, y:</p><ul class="lista"><li>Las cifras: beneficio, margen y lo que no rota</li><li><b>Lo que busca la gente y no tienes</b></li><li>Lotes y «por poner a la venta»</li><li>Destacadas y ofertas tachadas</li><li>Avisar a los que la buscan</li><li><b>Novedades a tus seguidores</b></li><li>El cierre del mes en PDF y CSV</li></ul></div>
+      <div class="tarjeta plan"><h3>Tienda+</h3><div class="precio">99 € <small>/mes</small></div><div class="fund">Fundadora: 79 €/mes</div><p class="para">Para la tienda grande: tu equipo y salir delante.</p><p class="todo">Todo lo de Tienda, y:</p><ul class="lista"><li>Tu equipo: hasta 5 personas <span class="pronto">· muy pronto</span></li><li>Sales primera en el Mercado y en /tiendas <span class="pronto">· muy pronto</span></li><li>Te atendemos por WhatsApp</li></ul></div>
+    </div>
+    <div class="tarjeta hielo" style="display:grid;grid-template-columns:9mm minmax(0,1fr);gap:3mm;align-items:center;padding:3.4mm 4.4mm"><span class="icono" data-i="medal" style="margin:0"></span><p style="font-size:9.6pt"><b>Tiendas fundadoras</b>: las que entran antes del <b>1 de marzo de 2027</b> pagan su precio de fundadora mientras sigan. Al año son diez meses. Sin permanencia.</p></div>
+    <div class="titulo-s" style="margin:0">Lo nuevo de este mes, en Tienda</div>
+    <div class="rejilla r2">
+      <div class="punto"><span class="icono" data-i="search"></span><div><h4>Lo que busca la gente y no tienes</h4><p>Lo que más se busca en PokeDoc y no tienes a la venta, con su precio. Y al comprar, «23 la buscan». Cuántos, nunca quiénes.</p></div></div>
+      <div class="punto"><span class="icono" data-i="bell"></span><div><h4>Novedades a tus seguidores</h4><p>«Ha llegado la caja de 151», con sus cartas: sale en tu escaparate y en la campana de quien te sigue. Una por semana.</p></div></div>
+    </div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>18</b></span></div>
+</section>
+
+<!-- ═══ 19 · CÓMO EMPEZAR ═══ -->
 <section class="hoja cierre">
-  <div class="nav"><div class="logo"><i>P</i><span>Poke<b>Doc</b></span></div><span class="miga">Para tiendas › <b>Cómo empezar</b></span><span class="num" style="background:var(--teal-claro);color:var(--oscuro)">18</span></div>
+  <div class="nav"><div class="logo"><i>P</i><span>Poke<b>Doc</b></span></div><span class="miga">Para tiendas › <b>Cómo empezar</b></span><span class="num" style="background:var(--teal-claro);color:var(--oscuro)">19</span></div>
   <div class="cuerpo" style="padding:4mm 14mm 0">
-    <h2>Estamos en <em>beta</em>. ¿Te apuntas?</h2>
-    <p class="entrada">Empezamos con unas pocas tiendas para construirlo con ellas: lo que nos digáis cambia el panel. La cuenta de tienda entra solo por invitación.</p>
+    <h2>Dos meses gratis. <em>¿Te apuntas?</em></h2>
+    <p class="entrada">Lo construimos con las tiendas que ya lo usan: lo que nos digáis cambia el panel. La cuenta de tienda entra por invitación, y los dos primeros meses tienes todo, gratis.</p>
     <div style="display:grid;grid-template-columns:1fr 58mm;gap:10mm;align-items:start;margin-top:4mm">
       <div class="pasos">
         <div class="paso"><b>1</b><div><h4>Pide acceso</h4><p>En pokedoc.es/para-tiendas, con el nombre de la tienda, su email y, si quieres, ciudad, web e Instagram.</p></div></div>
@@ -573,7 +609,9 @@ h1, h2, h3, h4, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-
       <div class="preg"><h4>Ya lo llevo en un Excel</h4><p>Lo importas en CSV y entra entero, con tus precios.</p></div>
       <div class="preg"><h4>¿Se usa en el móvil?</h4><p>Sí: es la web de PokeDoc y se instala como una app.</p></div>
       <div class="preg"><h4>¿Se sincroniza con Cardmarket?</h4><p>No. PokeDoc te da su precio como referencia; lo que vendas allí lo apuntas como «Cardmarket».</p></div>
-      <div class="preg"><h4>¿Y si tengo una duda?</h4><p>Escríbenos por Mensajes desde tu panel: durante la beta lo vemos juntos.</p></div>
+      <div class="preg"><h4>¿Hay permanencia?</h4><p>No. Cambias de plan o lo dejas cuando quieras.</p></div>
+      <div class="preg"><h4>¿Y después de los dos meses?</h4><p>Eliges plan o te quedas en Gratis. No se borra nada.</p></div>
+      <div class="preg"><h4>¿Y si tengo una duda?</h4><p>Escríbenos a info@pokedoc.es o por Mensajes desde tu panel.</p></div>
     </div>
   </div>
   <div class="pie"><span>pokedoc.es/para-tiendas</span><span><b>PokeDoc</b> · la comunidad española de Pokémon TCG</span></div>
