@@ -525,6 +525,25 @@ async function buscar() {
     : fallo
       ? '<li class="tdv-nada">No se ha podido buscar. Inténtalo de nuevo.</li>'
       : `<li class="tdv-nada">Nada en el catálogo con «${escapeHtml(q)}».</li>`
+  marcarQuieren(filas, yo)
+}
+
+// «23 la buscan» (1430): al tasar lo que te traen, cuánta gente lo tiene en
+// «La quiero» (desde dos: con una, casi se sabe quién; lo filtra la base).
+// Es de Tienda (1429); sin el plan o sin la migración, nada.
+async function marcarQuieren(filas, yo) {
+  const ids = [...new Set(filas.filter((f) => f.carta).map((f) => f.carta.id))]
+  if (!ids.length) return
+  const plan = await import('./tienda-plan.js').catch(() => null)
+  if (plan && !(await plan.abre('buscan'))) return
+  const { data, error } = await supabase.rpc('tienda_quieren', { p_cards: ids.slice(0, 60) })
+  if (error || !Array.isArray(data) || yo !== siguiente) return
+  const n = new Map(data.map((x) => [x.card_id, x.quieren]))
+  for (const b of $('#tdcResultados').querySelectorAll('[data-encontrado]')) {
+    const f = encontrados.get(b.dataset.encontrado)
+    const q = f?.carta ? n.get(f.carta.id) : 0
+    if (q) b.querySelector('.tdm-chapas')?.insertAdjacentHTML('beforeend', `<span class="tdc-quieren" title="${q} personas la tienen en «La quiero»">${icons.heart(12)} ${q} la buscan</span>`)
+  }
 }
 
 function fotoHtml(f, grande = false) {

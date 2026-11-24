@@ -22,6 +22,30 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (680) — PINGU-Claude (1430 — Lo que busca la gente y no tienes)
+
+**Hecho** (de «Funciones de tienda», PINGU: «me gustan todas»): el Panel ya
+enseñaba lo que se busca y la tienda tiene (1073); ahora, la otra mitad.
+- Panel → tarjeta «Lo que busca la gente y no tienes»: las 8 cartas que más
+  personas tienen en «La quiero» y la tienda no tiene con unidades, con cuántos
+  la buscan y su precio de Cardmarket. Cuántos, nunca quién; y solo las que
+  buscan dos o más (con una, en una ciudad pequeña, casi es decir quién). Se
+  repinta tras cada venta.
+- Mostrador → Comprar: al buscar la carta que te traen, la chapa «23 la buscan»
+  (también desde dos).
+- Es de Tienda (1429): con Gratis o Puesto la tarjeta dice «Con Tienda (29 €/mes)
+  ves…» con «Ver planes», y Comprar no pregunta. Sin la migración, la tarjeta no
+  sale y Comprar sigue como antes.
+
+**Ficheros**: `supabase-migration-1430-buscan-y-no-tienes.sql` (nueva),
+`js/tienda-hoy.js`, `js/tienda-comprar.js`, `css/tienda.css`,
+`normas/tiendas.md`. Rama pruebas: `test-tanda-1430.mjs` (PostgreSQL) y
+`test-tanda-1430-pantalla.mjs`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1430-buscan-y-no-tienes.sql`
+(después de la 1429). Sale en el próximo push. Siguen la 1432 (seguidores y
+novedades) y Tu equipo.
+
 ## 2026-11-24 (679) — PINGU-Claude (1429 — Los planes de las tiendas)
 
 **Hecho** (PINGU: «más caro de entrada… el recomendado, el tienda… el tienda

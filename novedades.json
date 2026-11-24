@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-24", "tipo": "nuevo", "texto": "Tiendas: el Panel te enseña lo que más busca la gente en PokeDoc y tú no tienes, y al comprar una carta ves cuántas personas la buscan.", "enlace": "/para-tiendas#planes" },
     { "fecha": "2026-11-24", "tipo": "nuevo", "texto": "Planes para tiendas: Gratis, Puesto, Tienda y Tienda+, con dos meses de todo gratis al entrar y precio de fundadora para las que entren antes del 1 de marzo.", "enlace": "/para-tiendas#planes" },
     { "fecha": "2026-11-24", "tipo": "mejora", "texto": "Si tienes tienda, en el móvil tu QR del escaparate sale grande y con su cartel, listo para enseñarlo en el mostrador.", "enlace": "/para-tiendas" },
     { "fecha": "2026-11-24", "tipo": "mejora", "texto": "En tu modo evento cada carta enseña su precio desde el principio, y los filtros del móvil ya no se cortan.", "enlace": "/evento" },

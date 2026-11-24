@@ -203,6 +203,31 @@ async function avisar(boton) {
   showToast(n ? `Avisamos a ${n} ${n === 1 ? 'persona' : 'personas'} que la ${n === 1 ? 'busca' : 'buscan'}.` : 'Ya estaban todas avisadas.', 'success')
 }
 
+// Lo que busca la gente y NO tienes (1430): lo más buscado en «La quiero» que
+// no tienes con unidades, para saber qué comprar. Cuántos, nunca quién (y solo
+// lo que buscan dos o más: lo dice la base). Es de Tienda (1429): con un plan
+// menor, la tarjeta dice de qué plan es. Sin la migración, la tarjeta no sale.
+async function pintarBuscan() {
+  const sec = $('.tdh-buscan')
+  if (!sec) return
+  const plan = await import('./tienda-plan.js').catch(() => null)
+  if (plan && !(await plan.abre('buscan'))) {
+    const e = await plan.cargarPlan()
+    const { precioTexto } = await import('./tienda-plan-puro.js')
+    sec.querySelector('.tdh-buscan-lista').innerHTML = `<li class="tdh-sin">${icons.lock(14)} Con Tienda (${escapeHtml(precioTexto('tienda', e?.fundadora))}) ves lo que más se busca en PokeDoc y no tienes. <a href="/tienda?ver=datos#plan" data-ver="datos">Ver planes</a></li>`
+    sec.hidden = false
+    return
+  }
+  const { data, error } = await supabase.rpc('tienda_buscan_y_no_tienes', { p_limite: 8 })
+  if (error || !Array.isArray(data)) return
+  await completarSets(data.map((x) => x.set_id))
+  await completarCartas(data).catch(() => {})
+  sec.querySelector('.tdh-buscan-lista').innerHTML = data.length
+    ? data.map((x) => `<li>${fotoHtml(x.card_id)}<span><strong>${escapeHtml(x.nombre || x.card_id)}</strong><small>${escapeHtml([x.set_id ? nombreSet(x.set_id) : '', x.numero, x.cardmarket != null ? `Cardmarket ${euros(Number(x.cardmarket))}` : ''].filter(Boolean).join(' · '))}</small></span><span class="tdh-quieren" title="${x.quieren} personas la tienen en «La quiero»">${icons.heart(14)} ${x.quieren}</span><small class="tdh-tienes">la buscan</small></li>`).join('')
+    : '<li class="tdh-sin">Ahora mismo tienes todo lo que busca la gente. Buena señal.</li>'
+  sec.hidden = false
+}
+
 // Las cifras de la 1083: lo más vendido (por carta o por expansión), lo que
 // no rota y el valor del stock en el tiempo. Sin la migración 1079 el bloque
 // no sale (no es «no hay nada»: es que no se puede preguntar).
@@ -371,6 +396,7 @@ export function montarHoy(destino) {
             <section class="tdh-tarjeta"><h3>${icons.receipt(18)} Últimas ventas</h3><ul class="tdh-ultimas"></ul></section>
           </div>
         </div>
+        <section class="tdh-tarjeta tdh-buscan" hidden><h3>${icons.search(18)} Lo que busca la gente y no tienes</h3><p class="tdh-buscan-sub">De las listas de «La quiero» de PokeDoc: cuántos, nunca quién.</p><ul class="tdh-demanda tdh-buscan-lista"></ul></section>
         <div class="tdh-tres" hidden></div>
       </div>
     </div>`
@@ -393,8 +419,9 @@ export function montarHoy(destino) {
     for (const x of caja.querySelectorAll('[data-periodo]')) x.setAttribute('aria-pressed', String(x === b))
     pedir()
   })
-  document.addEventListener('pokedoc:tienda-vendida', () => pedir())
+  document.addEventListener('pokedoc:tienda-vendida', () => { pedir(); pintarBuscan() })
   pedir()
+  pintarBuscan()
   // Lo que su plan no trae, escondido y con su línea (1429).
   import('./tienda-plan.js').then((m) => m.marcarPanel(caja)).catch(() => {})
 }

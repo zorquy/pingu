@@ -55223,6 +55223,21 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1430 — Lo que busca la gente y no tienes
+
+- Base (`supabase-migration-1430-buscan-y-no-tienes.sql`, sin tablas):
+  `tienda_buscan_y_no_tienes(p_limite int default 8)` → (card_id, market,
+  nombre, set_id, numero, quieren, cardmarket): personas distintas (no tiendas,
+  no baneados, no ella) con la carta en `user_wants`, sin las que la tienda
+  tiene con `unidades > 0`, `having >= 2`, por cuántos y luego por precio;
+  límite entre 1 y 50. `tienda_quieren(p_cards text[])` → (card_id, quieren),
+  como mucho 60 cartas, también desde dos. Las dos, solo para
+  quien es `tipo = 'tienda'` (a una persona le devuelven nada).
+- Web: `pintarBuscan()` en `js/tienda-hoy.js` (tarjeta `.tdh-buscan`, plan por
+  `abre('buscan')`) y `marcarQuieren()` en `js/tienda-comprar.js` (chapa
+  `.tdc-quieren` en `.tdm-chapas`; dentro de `.tdv-resultado` todo `span` es
+  rejilla, de ahí el selector doble).
+
 ## Tanda 1429 — Los planes de las tiendas
 
 - Base (`supabase-migration-1429-planes-de-tienda.sql`): `tienda_planes`
