@@ -206,9 +206,10 @@ for (const movil of [true, false]) {
   await page.waitForTimeout(300)
   check('«Más caras»: Iono (42) · Mew ex (21,40) · Mew (3,50)', (await nombres()).join('|') === 'Iono|Mew ex|Mew', (await nombres()).join('|'))
   const precio = () => page.$eval('#eventoLista .evento-precio', (e) => ({ visto: getComputedStyle(e).display !== 'none', texto: e.textContent }))
-  check('«Con precio» viene apagado: el precio no se ve', !(await precio()).visto && (await page.getAttribute('#eventoConPrecio', 'aria-pressed')) === 'false')
+  // Desde la 1427 viene encendido: el precio, el de su idioma.
+  check('«Con precio» viene encendido: el de su idioma («42,00 €»)', (await precio()).visto && (await precio()).texto === '42,00 €' && (await page.getAttribute('#eventoConPrecio', 'aria-pressed')) === 'true', JSON.stringify(await precio()))
   await page.click('#eventoConPrecio')
-  check('  …y al encenderlo, el de su idioma («42,00 €»)', (await precio()).visto && (await precio()).texto === '42,00 €', JSON.stringify(await precio()))
+  check('  …y al apagarlo no se ve', !(await precio()).visto && (await page.getAttribute('#eventoConPrecio', 'aria-pressed')) === 'false')
   await page.click('#eventoAmpliar')
   await page.waitForTimeout(300)
   const g = await page.evaluate(() => { const d = document.getElementById('eventoGrande'); const r = d.querySelector('svg')?.getBoundingClientRect(); return { abierto: d.open, ancho: Math.round(r?.width || 0), fondo: getComputedStyle(d).backgroundColor, nombre: document.getElementById('eventoGrandeNombre').textContent } })
