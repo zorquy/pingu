@@ -22,6 +22,26 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (675) — PINGU-Claude (1424b — Devolver las rachas perdidas)
+
+**Hecho**: `supabase-migration-1424-rachas-devueltas.sql`, para devolver la
+racha a quien la perdió con protectores guardados (sergio.m, y cualquiera al
+que le pasara lo mismo). La racha no guarda historia, así que se rehace con
+los días de `page_views` (se apunta en la misma carga que cuenta la racha):
+se repasa con la regla de antes y con la de ahora, y lo que la nueva da de
+más se suma a la racha de hoy; los protectores quedan los de la regla nueva.
+Solo a quien «cuadra» (su racha de hoy es la que da la regla de antes), lo
+que la hace segura de repetir. Dos sentencias: la 1 solo enseña quién y
+cuánto; la 2 cambia.
+
+**Ficheros**: `supabase-migration-1424-rachas-devueltas.sql`. Rama pruebas:
+`test-tanda-1424-sql.mjs` (PostgreSQL de verdad, sentencia a sentencia: el
+caso de sergio, quien no faltó, tres días con dos, una tienda, un día con uno,
+y ejecutarla dos veces).
+
+**Pendiente**: PINGU la ejecuta ANTES de subir la 1424 (después, los días
+nuevos ya irían con la regla nueva y la cuenta de «la de antes» fallaría).
+
 ## 2026-11-24 (674) — PINGU-Claude (1425 — Aprender no es solo jugar)
 
 **Hecho** (PINGU: «la categoría de aprender dice aprende a jugar, pero no es

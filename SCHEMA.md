@@ -55212,6 +55212,17 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
   slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
 
+## Tanda 1424b — Devolver las rachas perdidas
+
+- `supabase-migration-1424-rachas-devueltas.sql`: un `with recursive` por
+  persona sobre sus días UTC de `page_views` (hasta su `last_active_date`)
+  que lleva a la vez la regla vieja y la nueva (protectores desde el
+  2026-08-25; uno nuevo cada 7, tope 2). Sube `current_streak` en
+  `nueva - vieja` y pone `streak_shields` al de la nueva, solo si
+  `vieja = current_streak` (cuadra; idempotente) y `current_streak > 0`
+  (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
+  su CTE entera.
+
 ## Tanda 1425 — Aprender no es solo jugar
 
 - `/aprender` en `PAGINAS` (`js/enlaces-internos.js`) y en `TARJETAS_FIJAS`
