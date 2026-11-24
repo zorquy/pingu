@@ -22,6 +22,34 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (682) — PINGU-Claude (1433 — /para-tiendas y el PDF, con los planes)
+
+**Hecho** (PINGU: «si metes estas cosas también tendrás que actualizar la
+página de la tienda, el PDF y esas cosas»):
+- /para-tiendas: en el bloque del escaparate, tres puntos nuevos («Lo que busca
+  la gente y no tienes», «23 la buscan» y «Novedades a tus seguidores»); el
+  dossier dice diecinueve páginas, con los planes, y que pesa 4 MB.
+- El PDF (`descargas/pokedoc-para-tiendas.pdf`): página 18 nueva, «Dos meses
+  de todo, gratis», con los cuatro planes y sus precios (Tienda, la
+  recomendada), las fundadoras y lo nuevo de este mes. La 19 deja de decir
+  «beta»: «Dos meses gratis. ¿Te apuntas?», con «¿Hay permanencia?», «¿Y
+  después de los dos meses?» y info@pokedoc.es. La portada dice «2 meses
+  gratis» en vez de «Beta», y el índice tiene la página de los planes.
+- Tienda+: «Tu equipo» y «Sales primera en el Mercado y en /tiendas» llevan
+  «(muy pronto)» en Tu plan, /para-tiendas y el PDF: aún no están hechos y no
+  se vende lo que no hay.
+
+**Ficheros**: `para-tiendas.html`, `js/tienda-plan-puro.js`,
+`descargas/pokedoc-para-tiendas.pdf`. Rama pruebas:
+`herramientas/dossier-tiendas/dossier.html` y su `LEEME.md`.
+
+**Visto y no tocado**: las capturas del dossier son las de la 1281 (el panel de
+antes de los planes); siguen valiendo, pero la chapa del saludo ya no dice «en
+pruebas».
+
+**Pendiente**: sale en el próximo push. Tu equipo y salir primera, cuando una
+tienda lo pida (entonces se quita el «muy pronto»).
+
 ## 2026-11-24 (681) — PINGU-Claude (1432 — Novedades de tienda a sus seguidores)
 
 **Hecho** (de «Funciones de tienda», PINGU: «me gustan todas»): seguir a una

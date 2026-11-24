@@ -55223,6 +55223,16 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1433 — /para-tiendas y el PDF, con los planes
+
+- Sin base. `QUE_TRAE.tienda_mas` de `js/tienda-plan-puro.js` marca «(muy
+  pronto)» lo que aún no existe (Tu equipo, salir primera): Tu plan y
+  /para-tiendas lo leen de ahí.
+- El dossier sale de `herramientas/dossier-tiendas/dossier.html` (rama
+  pruebas) con `hacer.mjs`; ahora 19 páginas (18 = planes, 19 = cómo
+  empezar). Lo que necesita servido (capturas, fondos, letras de @fontsource)
+  está en el LEEME.
+
 ## Tanda 1432 — Novedades de tienda a sus seguidores
 
 - Base (`supabase-migration-1432-novedades-de-tienda.sql`): `tienda_novedades`

@@ -49,7 +49,9 @@ export const QUE_TRAE = {
   gratis: ['Tu stock y tu colección, sin límite', 'Tu escaparate con QR', 'Sales en /tiendas y en el Mercado', 'Ofertas, reservas y mensajes de la gente', 'Tus torneos'],
   puesto: ['El mostrador: vender, comprar, cambiar y escanear', 'Tus ventas y la caja de hoy', 'Etiquetas con SKU, QR y código de barras'],
   tienda: ['Las cifras: beneficio, margen, valor del stock y lo que no rota', 'Lo que busca la gente y no tienes', 'Lotes y «por poner a la venta»', 'Destacadas y ofertas con el precio tachado', 'Avisar a los que la buscan', 'Novedades a tus seguidores', 'El cierre del mes en PDF y CSV'],
-  tienda_mas: ['Tu equipo: hasta 5 personas, cada una con su cuenta', 'Sales primera en el Mercado y en /tiendas', 'Te atendemos directamente por WhatsApp'],
+  // Tu equipo y salir primera aún no están hechos (1433): se dice, para no
+  // vender lo que no hay. Quitar «muy pronto» cuando entren.
+  tienda_mas: ['Tu equipo: hasta 5 personas, cada una con su cuenta (muy pronto)', 'Sales primera en el Mercado y en /tiendas (muy pronto)', 'Te atendemos directamente por WhatsApp'],
 }
 
 const nivel = (plan) => Math.max(0, ORDEN.indexOf(plan))
