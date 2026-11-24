@@ -130,7 +130,7 @@ for (const [movil, tema] of [[false, 'light'], [true, 'dark']]) {
   const de = (tipo, forma) => r.as.find((x) => x.tipo === tipo && (!forma || x.forma === forma))
   const nombre = movil ? 'móvil oscuro' : 'PC claro'
   check(`(${nombre}) la guía, grande: portada, «Guía · Coleccionismo», autor y minutos`, de('guia')?.forma === 'G' && de('guia').img && de('guia').chapa === 'Guía · Coleccionismo' && /8 min de lectura/.test(de('guia').pie), JSON.stringify(de('guia')))
-  check(`(${nombre}) pokedoc.es/aprender sin «https://», grande y en verde`, de('pagina')?.forma === 'G' && de('pagina').sec === 'ep-aprender' && de('pagina').titulo === 'Aprende a jugar Pokémon TCG', JSON.stringify(de('pagina')))
+  check(`(${nombre}) pokedoc.es/aprender sin «https://», grande y en verde`, de('pagina')?.forma === 'G' && de('pagina').sec === 'ep-aprender' && de('pagina').titulo === 'Aprende de Pokémon TCG', JSON.stringify(de('pagina')))
   check(`(${nombre}) la carta y el evento en una frase, en pastilla`, de('carta', 'P')?.titulo === 'Pikachu ex' && de('evento')?.forma === 'P' && de('evento').titulo === 'Iberian Card Show', JSON.stringify([de('carta', 'P'), de('evento')]))
   check(`(${nombre}) la carta sola: número, rareza, precio y cuántos la dan`, de('carta', 'G') && /^238\/191/.test(de('carta', 'G').texto) && /312,40/.test(de('carta', 'G').pie) && /la dan 2 de PokeDoc/.test(de('carta', 'G').pie), JSON.stringify(de('carta', 'G')))
   check(`(${nombre}) el perfil, con su @`, de('perfil')?.titulo === 'Ash Ketchum' && de('perfil').texto === '@ash', JSON.stringify(de('perfil')))
