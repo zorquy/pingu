@@ -301,7 +301,8 @@ export function montarVentas(destino, { perfil: p }) {
     // El cierre del mes (1094): un PDF para la gestoría y sus CSV.
     if (accion === 'cierre') {
       cerrarMenu()
-      return import('./tienda-cierre.js').then((m) => m.abrirCierre({ perfil })).catch(() => showToast('No se ha podido abrir el cierre.', 'error'))
+      // De Tienda (1429): con Puesto, la pantalla de «es de…».
+      return import('./tienda-plan.js').then((p) => p.permitido('cierre'), () => true).then((si) => si && import('./tienda-cierre.js').then((m) => m.abrirCierre({ perfil }))).catch(() => showToast('No se ha podido abrir el cierre.', 'error'))
     }
     if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender'))
     if (accion === 'comprar') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-comprar'))

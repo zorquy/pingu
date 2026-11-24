@@ -22,6 +22,52 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-24 (679) — PINGU-Claude (1429 — Los planes de las tiendas)
+
+**Hecho** (PINGU: «más caro de entrada… el recomendado, el tienda… el tienda
+plus, desorbitado»; y «En la mesa» y los precios automáticos, FUERA): cuatro
+planes, Gratis (0) · Puesto (25 €, fundadora 19) · Tienda (35 €, fundadora 29,
+la recomendada) · Tienda+ (99 €, fundadora 79). Cada tienda entra con 60 días de
+Tienda+; las que entran antes del 1 de marzo de 2027 son fundadoras y se
+quedan su precio mientras sigan. NO se cobra nada desde la web: el plan lo pone
+el equipo a mano en /admin → Tiendas → Planes.
+- En el panel: la chapa del saludo («Fundadora · prueba de Tienda+», «Plan
+  Puesto»…) y una banda la primera semana y las dos últimas de la prueba, y el
+  mes después de acabar.
+- Datos → Tu plan: las tres tarjetas con su precio y «Me quedo con…» (no cobra:
+  apunta lo que quiere; para pagar, info@pokedoc.es).
+- Lo que su plan no trae: el Mostrador (Vender, Comprar, Cambio, Caja), Ventas,
+  las etiquetas, los lotes, las destacadas y ofertas, «Avisar», el cierre del
+  mes y las cifras del Panel abren la pantalla de «es de…» (o se esconden con
+  una línea que dice de qué plan son). No se borra nada.
+- Campanita a 7 días del final de la prueba y el día que acaba (la llama
+  `avisos-recordatorio` cada hora).
+- /admin → Tiendas → Planes: quién está en prueba, quién dice que se queda,
+  quién paga y cuánto al mes; plan, «pagado hasta», fundadora y nota, +30 días
+  de prueba y «Pasar a Gratis». Y «Cartel para tiendas» (el cartel del modo
+  evento, para dejar en las mesas de las tiendas en una feria).
+- /para-tiendas: la sección Planes (de `js/tienda-plan-puro.js`) con «Al mes /
+  Al año» y la chapa «Tiendas · 2 meses gratis».
+
+**Ficheros**: `supabase-migration-1429-planes-de-tienda.sql` (nueva),
+`js/tienda-plan-puro.js` y `js/tienda-plan.js` (nuevos), `css/tienda-plan.css`
+(nueva), `tienda.html`, `js/tienda.js`, `js/tienda-hoy.js`,
+`js/tienda-mostrador.js`, `js/tienda-stock.js`, `js/tienda-ventas.js`,
+`js/mensajes-carta.js`, `js/cartel-modo-evento.js`, `para-tiendas.html`,
+`js/para-tiendas.js`, `css/para-tiendas.css`, `admin/index.html`,
+`admin/js/tiendas.js`, `admin/css/admin.css`,
+`netlify/functions/avisos-recordatorio.mjs`, `normas/tiendas.md`. Rama pruebas:
+`test-tanda-1429.mjs` (PostgreSQL) y `test-tanda-1429-pantalla.mjs`.
+
+**Visto y no tocado**: la barra de arriba de la tienda se sale 57 px a 1280 de
+ancho (el avatar), de antes de esta tanda. La 299 ya fallaba por las clases
+`celebra-*`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1429-planes-de-tienda.sql`
+antes de subir (sin ella no se cierra nada: la web hace como si no hubiera
+planes). Sale en el próximo push. Siguen la 1430 (lo que busca la gente y no
+tienes), la 1432 (seguidores y novedades) y Tu equipo.
+
 ## 2026-11-24 (678) — PINGU-Claude (1428 — Los QR, para enseñarlos)
 
 **Hecho** (la «C» de «Modo evento y QR»):

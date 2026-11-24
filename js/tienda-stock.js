@@ -122,8 +122,11 @@ async function pedir({ mas = false } = {}) {
   est.enStock = data.en_stock || 0
   est.sumas = data.sumas || null
   est.facetas = data.facetas || {}
-  // Sin la migración 1079 no hay estrella (ni la cuenta de las ocho).
+  // Sin la migración 1079 no hay estrella (ni la cuenta de las ocho). Y sin
+  // Tienda (1429) tampoco: las destacadas y las ofertas son de ese plan, y se
+  // esconden igual que sin la migración (lo ya puesto se queda en la base).
   est.destacadas = data.destacadas ?? null
+  if (est.destacadas != null && !(await planAbre('destacadas'))) est.destacadas = null
   await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {})), completarApartadas(est.filas), completarFotos(est.filas)])
   if (n !== est.pedido) return
   pintarTodo()
@@ -1079,7 +1082,19 @@ async function enBloque(accion) {
 // Las etiquetas de lo marcado (1093): el nombre, el detalle con el código
 // de la colección y el QR a esa carta en el escaparate (pokedoc.es, que es lo
 // que se imprime y se escanea fuera).
+// ¿Lo abre el plan de la tienda? Sin el módulo, sí (como antes de los planes).
+async function planAbre(funcion) {
+  try {
+    return await (await import('./tienda-plan.js')).abre(funcion)
+  } catch {
+    return true
+  }
+}
+
 async function abrirEtiquetas() {
+  // De Puesto (1429): sin él, la pantalla de «es de…».
+  const plan = await import('./tienda-plan.js').catch(() => null)
+  if (plan && !(await plan.permitido('etiquetas'))) return
   const filas = est.filas.filter((f) => est.marcadas.has(f.id)).map((f) => {
     const c = f.card_id ? est.cartas.get(f.card_id) : null
     const numero = c?.local_id || f.numero

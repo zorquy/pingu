@@ -179,12 +179,16 @@
       <header class="td-cab">
         <span class="td-logo" id="tdLogo" aria-hidden="true"></span>
         <div class="td-quien">
-          <span class="td-saludo"><span id="tdSaludo">Hola</span> <span class="td-chapa">Tienda · en pruebas</span></span>
+          <span class="td-saludo"><span id="tdSaludo">Hola</span> <span class="td-chapa" id="tdChapa">Tienda</span></span>
           <h2 id="tdNombre"></h2>
           <p class="subtext td-donde"><span id="tdDonde"></span><span class="td-stock-n" data-tdh-stock></span></p>
         </div>
         <a class="btn-secondary td-perfil" id="tdVerEscaparate" href="/tienda?ver=escaparate" data-ver="escaparate" aria-label="Tu escaparate y su QR"><span class="td-perfil-icono" data-icono-eye></span><span class="td-perfil-texto">Tu escaparate</span></a>
       </header>
+
+      <!-- El plan (1429): la banda de la prueba o de «se acabó», al entrar y
+           los últimos días (js/tienda-plan.js). -->
+      <div id="tdBanda"></div>
 
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">
         <button type="button" class="seg-btn" role="tab" data-td="hoy" aria-selected="true">Panel</button>
@@ -253,6 +257,8 @@
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="datos">
+        <!-- Tu plan (1429): qué tienes, hasta cuándo y «Me quedo con…». -->
+        <section class="tdp-plan" id="plan" aria-labelledby="tdpTitulo" hidden></section>
         <h2>Datos de la tienda</h2>
         <p class="subtext">Lo que verá la gente en tu perfil. Solo el nombre es obligatorio: si vendes desde casa, deja vacío lo del local.</p>
         <!-- El logo y la portada (1079): la foto de la cuenta y su banner,

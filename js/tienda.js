@@ -49,6 +49,16 @@ function stockFiltrado(clave) {
   Promise.all([stockMontado, import('./tienda-hoy.js')]).then(([m, h]) => m?.filtrarStock(h.FILTROS_DE_AVISO[clave] || {}))
 }
 
+// El plan (1429): la chapa, la banda, Tu plan y lo que abre cada uno. Si el
+// módulo no llega, no se cierra nada (como antes de los planes).
+const planDeLaTienda = () => import('./tienda-plan.js').catch(() => null)
+let planMontado = false
+function montarPlanSiToca(v) {
+  if (v !== 'datos' || planMontado) return
+  planMontado = true
+  planDeLaTienda().then((m) => m?.montarTuPlan($('plan')))
+}
+
 // Las ofertas (1250) y, en Datos, cómo cobras: igual, la primera vez.
 let ofertasMontadas = false
 let cobrosMontados = false
@@ -69,6 +79,13 @@ let ventasMontadas = false
 function montarVentasSiToca(v) {
   if (v !== 'ventas' || ventasMontadas) return
   ventasMontadas = true
+  // Sin Puesto, Ventas es la pantalla de «es de…» (1429); lo vendido sigue ahí.
+  planDeLaTienda().then(async (m) => {
+    if (!m || await m.abre('ventas')) return montarVentas()
+    m.candadoEnSitio($('tdVentas'), 'ventas', await m.cargarPlan())
+  })
+}
+function montarVentas() {
   import('./tienda-ventas.js')
     .then(({ montarVentas }) => montarVentas($('tdVentas'), { perfil }))
     .catch(() => { ventasMontadas = false; $('tdVentas').innerHTML = '<p class="subtext">No se han podido abrir tus ventas. Recarga la página.</p>' })
@@ -135,6 +152,7 @@ function pestana(cual) {
   montarVentasSiToca(v)
   montarTorneosSiToca(v)
   montarOfertasSiToca(v)
+  montarPlanSiToca(v)
   montarHoySiToca(v)
   montarEscaparateSiToca(v).catch(() => {})
   for (const b of document.querySelectorAll('[data-td]')) {
@@ -226,6 +244,7 @@ async function arrancar() {
   pintarCabecera()
   pintarDatos()
   cara('tdPanel')
+  planDeLaTienda().then((m) => m?.pintarCabecera({ chapa: $('tdChapa'), banda: $('tdBanda') }))
   const params = new URLSearchParams(location.search)
   if (params.has('buscar')) buscarEnStock()
   else if (params.get('ver') === 'stock' && params.get('filtro')) stockFiltrado(params.get('filtro'))
@@ -247,6 +266,8 @@ async function arrancar() {
   if (params.has('caja')) mostrador().then((m) => m.abrirCajaDeHoy()).catch(() => {})
   if (params.has('lotes')) mostrador().then((m) => m.abrirLotesPorDesglosar()).catch(() => {})
 }
+
+document.addEventListener('pokedoc:tienda-ir', (e) => pestana(e.detail))
 
 // Las secciones de las barras y de la hoja «Tú» llevan `data-ver`: dentro del
 // panel cambian de pestaña sin recargar (1071).

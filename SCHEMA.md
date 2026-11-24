@@ -55223,6 +55223,48 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1429 — Los planes de las tiendas
+
+- Base (`supabase-migration-1429-planes-de-tienda.sql`): `tienda_planes`
+  (`tienda_id`, `plan` gratis|puesto|tienda|tienda_mas, `prueba_hasta`,
+  `pagado_hasta`, `fundadora`, `se_queda`, `se_queda_at`, `nota`, `aviso_7_at`,
+  `aviso_fin_at`). RLS: la lee la propia tienda y el equipo; nadie escribe a
+  pelo (`revoke all` + `grant select`). Funciones: `tienda_plan_de(tienda)` (en
+  prueba Tienda+; pagado en el futuro, el suyo; si no, Gratis; sin fila,
+  Tienda+), `tienda_mi_plan()` (jsonb para el panel), `tienda_me_quedo(plan)`,
+  `admin_tienda_plan(tienda, cambios jsonb)` (solo cambia las claves que
+  vienen; alargar la prueba vuelve a avisar), el disparador
+  `trg_tienda_planes_al_nacer` (60 días al dar de alta, fundadora antes del
+  2027-03-01) y `tiendas_planes_al_dia(ahora)` (campanita `tienda_plan`, de 10
+  a 22 de Madrid, marcando antes de avisar; solo servidor o equipo). Las que
+  ya había: fundadoras con 60 días.
+- Lo que abre cada plan vive SOLO en la web: `js/tienda-plan-puro.js`
+  (`PLANES`, `ORDEN`, `FUNCIONES` con el plan mínimo, `QUE_TRAE`, `puede`,
+  `estadoDelPlan`, `chapaDe`, `bandaDe`, `tituloDeCandado`, `DIAS_DE_PRUEBA`,
+  `FUNDADORAS_HASTA`). Si la base no tiene la migración (o `tienda_mi_plan`
+  falla), `cargarPlan()` da `null` y no se cierra NADA.
+- `js/tienda-plan.js`: `cargarPlan`, `permitido(funcion)` (abre el `<dialog
+  class="tdp-candado">` si no), `abre`, `candadoEnSitio` (Ventas),
+  `pintarCabecera` (`#tdChapa`, `#tdBanda`, `html[data-td-plan]`),
+  `montarTuPlan` (`#plan`, Datos) y `marcarPanel` (clases `tdp-sin-ventas`,
+  `tdp-sin-cifras`, `tdp-sin-avisar` y la línea `.tdp-mini`). Hoja
+  `css/tienda-plan.css` por `hojaInyectada`.
+- Las puertas: `tienda-mostrador.js` (Vender, Comprar, Cambio, Caja,
+  Mostrador → `mostrador`/`caja`; Lotes → `lotes`), `mensajes-carta.js`
+  (Vender desde un mensaje), `tienda.js` (Ventas → `ventas`, en su sitio),
+  `tienda-ventas.js` (cierre → `cierre`), `tienda-stock.js` (etiquetas →
+  `etiquetas`; sin `destacadas`, `est.destacadas = null`, como sin la 1079) y
+  `tienda-hoy.js` (`marcarPanel`).
+- `js/cartel-modo-evento.js`: `dibujarCartel`/`pdfDelCartel`/`abrirCartel`
+  aceptan `tipo: 'tiendas'` (`PASOS_TIENDAS`, QR a
+  `/para-tiendas?utm_source=cartel-tiendas`). Lo abre `#tiendasCartel` en
+  /admin → Tiendas.
+- /admin → Tiendas → Planes (`#tiendasPlanes`, `admin/js/tiendas.js`):
+  cifras y una fila por tienda (`[data-tdpa]`, `data-tdpa-accion` guardar,
+  mas30, gratis).
+- /para-tiendas: `#ptPlanesCaja` lo pinta `js/para-tiendas.js` desde lo puro
+  (`.pt-plan`, `.pt-plan-rec`, `[data-pt-periodo]`; al año, diez meses).
+
 ## Tanda 1428 — Los QR, para enseñarlos
 
 - `css/tienda.css` (`@media screen and (max-width: 700px)` del escaparate): una

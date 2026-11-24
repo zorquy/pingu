@@ -2,7 +2,8 @@
 // (tanda 1260): los PROGRAMADOS cuando les llega la hora, y el «se acaba
 // pronto» cuando a uno con «Recordar» le faltan menos de 30 horas. Desde la
 // 1415, también la víspera de un evento (`eventos_vispera`). Lo hace
-// entero `avisos_al_dia()` en la base (una llamada, solo entre las 10 y las
+// entero `avisos_al_dia()` en la base (y, desde la 1429, `tiendas_planes_al_dia()`:
+// la prueba de las tiendas a punto de acabar) (una llamada, solo entre las 10 y las
 // 22 de Madrid, y cada aviso una vez: se marca antes de avisar). No pide nada
 // a nadie de fuera, así que cada hora no cuesta nada.
 //
@@ -39,6 +40,19 @@ export async function procesar({ env = process.env, fetchImpl = fetch, ahora = n
       return String(e?.message || e).slice(0, 160)
     }
   }
+  // La prueba de las tiendas (1429): a 7 días de acabar y el día que acaba.
+  // Igual que la víspera: la base decide y avisa una vez; sin la migración, «todavía no».
+  const losPlanes = async () => {
+    try {
+      const r = await fetchImpl(`${SUPABASE_URL}/rest/v1/rpc/tiendas_planes_al_dia`, { method: 'POST', headers: cabeceras, body: '{}' })
+      const t = await r.text()
+      if (!r.ok) return /PGRST202|Could not find/.test(t) ? 'falta ejecutar supabase-migration-1429-planes-de-tienda.sql' : `Supabase ${r.status}: ${t.slice(0, 160)}`
+      const v = Number(JSON.parse(t))
+      return Number.isFinite(v) ? v : 0
+    } catch (e) {
+      return String(e?.message || e).slice(0, 160)
+    }
+  }
   try {
     const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/rpc/avisos_al_dia`, { method: 'POST', headers: cabeceras, body: '{}' })
     const texto = await res.text()
@@ -55,8 +69,9 @@ export async function procesar({ env = process.env, fetchImpl = fetch, ahora = n
     const n = Number(JSON.parse(texto))
     const avisadas = Number.isFinite(n) ? n : 0
     const vispera = await laVispera()
-    await apuntar({ hecho: true, avisadas, vispera })
-    return { ok: true, avisadas, vispera }
+    const planes = await losPlanes()
+    await apuntar({ hecho: true, avisadas, vispera, planes })
+    return { ok: true, avisadas, vispera, planes }
   } catch (e) {
     const error = String(e?.message || e)
     await apuntar({ ultimoError: { error, fecha: ahora.toISOString() } })

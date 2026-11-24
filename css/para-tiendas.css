@@ -216,3 +216,35 @@
   .pt-dossier { grid-template-columns: minmax(0, 1fr); }
   .pt-dossier img { max-width: 160px; }
 }
+
+/* ── Los planes (1429): los pinta js/para-tiendas.js ── */
+.pt-planes { display: grid; gap: var(--e-lg); }
+.pt-fund { display: flex; align-items: center; gap: var(--e-md); padding: var(--e-md) var(--e-lg); border-radius: var(--radius-xl); background: linear-gradient(100deg, color-mix(in srgb, var(--rarity-gold) 18%, var(--white)), var(--white)); border: 1px solid color-mix(in srgb, var(--rarity-gold) 45%, transparent); }
+.pt-fund > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.pt-fund b { font-family: var(--font-display); font-size: var(--t-lg); }
+.pt-fund small { color: var(--text-mid); font-size: var(--t-sm); }
+.pt-fund-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--rarity-gold); color: #fff; }
+.pt-periodo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); }
+.pt-periodo small { color: var(--success); font-weight: 700; font-size: var(--t-xs); }
+.pt-planes-rejilla { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-md); align-items: stretch; padding-top: var(--e-sm); }
+.pt-plan { position: relative; display: grid; align-content: start; gap: var(--e-sm); padding: var(--e-lg); border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--white); }
+.pt-plan h3 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.pt-plan-rec { border: 2px solid var(--rango-tienda); box-shadow: 0 12px 30px -18px var(--rango-tienda); }
+.pt-plan-cinta { position: absolute; top: -12px; left: var(--e-lg); padding: 2px 10px; border-radius: var(--radius-pill); background: var(--rango-tienda); color: #fff; font-size: var(--t-2xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.pt-plan-precio { display: flex; align-items: baseline; gap: var(--e-sm); margin: 0; }
+.pt-plan-precio b { font-family: var(--font-display); font-size: var(--t-2xl); }
+.pt-plan-precio small { color: var(--text-mid); font-size: var(--t-sm); }
+.pt-plan-fund { margin: 0; color: var(--rarity-gold); font-weight: 700; font-size: var(--t-xs); }
+.pt-plan-para { margin: 0; color: var(--text-mid); font-size: var(--t-sm); min-height: 2.6em; }
+.pt-plan-todo { margin: 0; font-weight: 700; font-size: var(--t-sm); }
+.pt-plan ul { display: grid; gap: var(--e-sm); margin: 0 0 var(--e-sm); padding: 0; list-style: none; }
+.pt-plan li { display: flex; gap: var(--e-sm); align-items: flex-start; font-size: var(--t-sm); }
+.pt-plan li svg { flex: none; margin-top: 2px; color: var(--rango-tienda); }
+.pt-plan > a { margin-top: auto; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.pt-planes-nota { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+@media (max-width: 1100px) { .pt-planes-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .pt-planes-rejilla { grid-template-columns: minmax(0, 1fr); }
+  .pt-plan-rec { order: -1; }
+  .pt-plan-para { min-height: 0; }
+}

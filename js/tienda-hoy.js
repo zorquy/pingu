@@ -395,4 +395,6 @@ export function montarHoy(destino) {
   })
   document.addEventListener('pokedoc:tienda-vendida', () => pedir())
   pedir()
+  // Lo que su plan no trae, escondido y con su línea (1429).
+  import('./tienda-plan.js').then((m) => m.marcarPanel(caja)).catch(() => {})
 }

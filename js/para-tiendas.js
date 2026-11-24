@@ -9,12 +9,47 @@
 import { supabase } from './supabase.js'
 import { icons } from './icons.js'
 import { validarSolicitud, instagramDe } from './tiendas-puro.js'
+import { PLANES, QUE_TRAE, ORDEN, FUNDADORAS_HASTA } from './tienda-plan-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
 for (const el of document.querySelectorAll('main [data-icono]')) {
   el.innerHTML = icons[el.dataset.icono]?.(22) || ''
 }
+
+// Los planes (1429), de js/tienda-plan-puro.js: los precios en un solo sitio.
+// Al año, diez meses (dos gratis). En el móvil, Tienda va la primera (CSS).
+const visto = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>'
+function pintarPlanes(anual = false) {
+  const caja = $('ptPlanesCaja')
+  if (!caja) return
+  const fundadorasHasta = new Date(`${FUNDADORAS_HASTA}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+  const aun = new Date() < new Date(`${FUNDADORAS_HASTA}T00:00:00`)
+  const precio = (n) => (anual ? n * 10 : n)
+  const tarjeta = (plan, i) => {
+    const p = PLANES[plan]
+    const rec = plan === 'tienda'
+    return `<div class="pt-plan${rec ? ' pt-plan-rec' : ''}" data-plan="${plan}">
+      ${rec ? '<span class="pt-plan-cinta">Recomendada</span>' : ''}
+      <h3>${p.nombre}</h3>
+      <p class="pt-plan-precio"><b>${precio(p.mes)} €</b><small>${p.mes ? (anual ? '/año' : '/mes') : 'para siempre'}</small></p>
+      <p class="pt-plan-fund">${p.mes && aun ? `Fundadora: ${precio(p.fundadora)} €${anual ? '/año' : '/mes'} mientras sigas` : '&nbsp;'}</p>
+      <p class="pt-plan-para">${p.para}</p>
+      ${i ? `<p class="pt-plan-todo">Todo lo de ${PLANES[ORDEN[i - 1]].nombre}, y:</p>` : ''}
+      <ul>${QUE_TRAE[plan].map((t) => `<li>${visto}<span>${t}</span></li>`).join('')}</ul>
+      <a class="${rec ? 'btn-primary' : 'btn-secondary'}" href="#pide">${p.mes ? 'Pruébalo gratis' : 'Pide acceso'}</a>
+    </div>`
+  }
+  caja.innerHTML = `${aun ? `<div class="pt-fund"><span class="pt-fund-ico" data-icono="star" aria-hidden="true">${icons.star(20)}</span><span><b>Tiendas fundadoras: un precio propio mientras sigas</b><small>Si entras antes del ${fundadorasHasta}. Si te das de baja y vuelves, pagas el de entonces.</small></span></div>` : ''}
+    <div class="pt-periodo"><div class="seg" role="group" aria-label="Precio al mes o al año"><button type="button" class="seg-btn${anual ? '' : ' activa'}" data-pt-periodo="mes" aria-pressed="${!anual}">Al mes</button><button type="button" class="seg-btn${anual ? ' activa' : ''}" data-pt-periodo="anio" aria-pressed="${anual}">Al año</button></div><small>Al año, 2 meses gratis</small></div>
+    <div class="pt-planes-rejilla">${ORDEN.map(tarjeta).join('')}</div>
+    <p class="pt-planes-nota">Precios sin IVA. Sin permanencia: cambias de plan cuando quieras. PokeDoc no se queda nada de tus ventas.</p>`
+}
+pintarPlanes()
+$('ptPlanesCaja')?.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pt-periodo]')
+  if (b) pintarPlanes(b.dataset.ptPeriodo === 'anio')
+})
 
 const form = $('tiendasForm')
 form?.addEventListener('submit', async (e) => {

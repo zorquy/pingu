@@ -178,3 +178,17 @@
   `tiendas_que_tienen` sin la migración. La agenda de tiendas es /tiendas
   (`js/tiendas-agenda.js`, `tiendas_agenda`), con «Pide acceso» debajo; la
   pestaña «Tiendas» del Mercado enseña su franja con «Ver todas».
+- **Los PLANES (1429)**: Gratis · Puesto · Tienda · Tienda+, con 60 días de
+  Tienda+ al entrar y fundadoras hasta el 1 de marzo de 2027. Lo que abre cada
+  plan vive SOLO en `js/tienda-plan-puro.js` (`FUNCIONES`, con su plan mínimo):
+  una función nueva de pago entra ahí y su puerta pasa por `permitido(funcion)`
+  de `js/tienda-plan.js` (abre la pantalla de «es de…»); lo que solo se pinta,
+  por `abre(funcion)`. Los precios, también ahí: /para-tiendas, Tu plan y /admin
+  los leen de `PLANES`, nunca escritos a mano. Sin la migración (o si
+  `tienda_mi_plan` falla) NO se cierra nada: un panel cerrado por un fallo
+  nuestro es peor que uno que no cobra. Cerrar nunca borra ni esconde lo de la
+  gente: el escaparate, el stock y las ofertas son de Gratis. La puerta está en
+  la web, no en la base (SCHEMA 1429): mientras no se cobre, a propósito. Y
+  `tienda_planes` no la escribe nadie a pelo: el equipo, por
+  `admin_tienda_plan`; la tienda, solo «Me quedo con…».
+

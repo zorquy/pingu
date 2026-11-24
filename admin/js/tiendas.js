@@ -1,5 +1,7 @@
 // /admin → Tiendas (tanda 1067): las solicitudes de /tiendas. Y debajo (1245),
-// las cuentas de tienda con su «De pruebas» (`admin_tienda_de_pruebas`).
+// las cuentas de tienda con su «De pruebas» (`admin_tienda_de_pruebas`). Y
+// desde la 1429, los PLANES de cada una (`admin_tienda_plan`) y el cartel
+// para dejar en las mesas de las tiendas en una feria.
 //
 // «Aceptar» y «Rechazar» van por la función de Netlify `tienda-decidir`,
 // que decide en la base (`tienda_decidir`, solo el equipo) y manda el
@@ -9,6 +11,7 @@ import { supabase } from '../../js/supabase.js'
 import { escapeHtml, getSession } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
 import { cuentaDeSolicitudes, invitacionCaducada as caducada } from '../../js/tiendas-puro.js'
+import { PLANES, estadoDelPlan, nombreDePlan, precioTexto, fechaLarga } from '../../js/tienda-plan-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const TAMANOS = { poca: 'menos de 1.000 cartas', media: 'entre 1.000 y 10.000 cartas', mucha: 'más de 10.000 cartas' }
@@ -155,6 +158,97 @@ async function decidir(id, aceptar, boton) {
   avisar(r, nombre)
 }
 
+// ── Los planes (1429) ──
+let planes = []
+const DIA = 864e5
+const dia = (d) => (d ? new Date(d).toLocaleDateString('sv') : '')
+
+async function cargarPlanes() {
+  const caja = $('tiendasPlanes')
+  if (!caja) return
+  const [{ data: perfiles, error: e1 }, { data: filasPlan, error: e2 }] = await Promise.all([
+    supabase.from('user_profiles').select('id, username, display_name').eq('tipo', 'tienda').order('display_name'),
+    supabase.from('tienda_planes').select('tienda_id, plan, prueba_hasta, pagado_hasta, fundadora, se_queda, se_queda_at, nota'),
+  ])
+  if (e1) return (caja.innerHTML = `<p class="admin-note admin-note-alerta">No se pueden leer: ${escapeHtml(e1.message)}.</p>`)
+  if (e2) return (caja.innerHTML = '<p class="admin-note admin-note-alerta">Falta ejecutar <code>supabase-migration-1429-planes-de-tienda.sql</code> para poner los planes.</p>')
+  const porId = new Map((filasPlan || []).map((f) => [f.tienda_id, f]))
+  planes = (perfiles || []).map((p) => {
+    const f = porId.get(p.id) || null
+    // El plan que vale hoy, con la misma regla que la base (`tienda_plan_de`).
+    const ahora = new Date()
+    const vale = !f ? 'tienda_mas' : f.prueba_hasta && new Date(f.prueba_hasta) > ahora ? 'tienda_mas' : f.pagado_hasta && new Date(f.pagado_hasta) > ahora ? f.plan : 'gratis'
+    return { perfil: p, fila: f, estado: estadoDelPlan({ ...(f || {}), plan: vale }) }
+  })
+  pintarPlanes()
+}
+
+function pintarPlanes() {
+  const caja = $('tiendasPlanes')
+  if (!planes.length) return (caja.innerHTML = '<p class="admin-note">Ninguna cuenta de tienda todavía.</p>')
+  const n = (f) => planes.filter(f).length
+  const pagando = planes.filter((p) => p.estado.pagando)
+  const mes = pagando.reduce((s, p) => s + (PLANES[p.estado.plan]?.[p.estado.fundadora ? 'fundadora' : 'mes'] || 0), 0)
+  caja.innerHTML = `<div class="admin-stats-grid">
+      <div class="admin-card"><b class="tdpa-num">${planes.length}</b><span>tiendas</span></div>
+      <div class="admin-card"><b class="tdpa-num">${n((p) => p.estado.enPrueba)}</b><span>en prueba · ${n((p) => p.estado.enPrueba && p.fila?.se_queda)} dicen que se quedan</span></div>
+      <div class="admin-card"><b class="tdpa-num">${pagando.length}</b><span>pagando · ${mes} €/mes</span></div>
+      <div class="admin-card"><b class="tdpa-num">${n((p) => p.estado.plan === 'gratis')}</b><span>en Gratis</span></div>
+    </div>
+    <div class="tdpa-lista">${planes.map(filaDePlan).join('')}</div>`
+}
+
+function filaDePlan({ perfil: p, fila: f, estado: e }) {
+  const id = escapeHtml(p.id)
+  const ahora = e.enPrueba ? `Prueba de Tienda+ hasta el ${fechaLarga(e.pruebaHasta)} (${e.dias} días)`
+    : e.pagando ? `${nombreDePlan(e.plan)} pagado hasta el ${fechaLarga(e.pagadoHasta)} · ${precioTexto(e.plan, e.fundadora)}`
+      : e.acabo ? `Gratis · la prueba acabó el ${fechaLarga(e.pruebaHasta)}` : 'Gratis'
+  const quiere = f?.se_queda ? `Dice que se queda con ${nombreDePlan(f.se_queda)} (${precioTexto(f.se_queda, e.fundadora)})` : 'No ha dicho nada'
+  return `<div class="admin-card tdpa-fila" data-tdpa="${id}">
+    <div class="tdpa-quien"><strong>${escapeHtml(p.display_name || p.username || 'Sin nombre')}</strong> <span class="subtext">@${escapeHtml(p.username || '')}</span>
+      <span class="tdpa-chapa tdpa-${escapeHtml(e.plan)}">${escapeHtml(nombreDePlan(e.plan))}</span>${e.fundadora ? '<span class="tdpa-chapa tdpa-fund">Fundadora</span>' : ''}</div>
+    <p class="tdpa-ahora">${escapeHtml(ahora)} · <span class="${f?.se_queda ? 'tdpa-quiere' : ''}">${escapeHtml(quiere)}</span></p>
+    <div class="tdpa-mandos">
+      <label class="av-campo"><span class="av-eti">Plan pagado</span><select data-tdpa-plan>${['puesto', 'tienda', 'tienda_mas'].map((v) => `<option value="${v}"${(f?.plan || 'tienda') === v ? ' selected' : ''}>${escapeHtml(PLANES[v].nombre)}</option>`).join('')}</select></label>
+      <label class="av-campo"><span class="av-eti">Pagado hasta</span><input type="date" data-tdpa-hasta value="${dia(f?.pagado_hasta)}" /></label>
+      <label class="av-campo"><span class="av-eti">Nota</span><input type="text" maxlength="300" data-tdpa-nota value="${escapeHtml(f?.nota || '')}" placeholder="Ko-fi, Bizum, lo que sea" /></label>
+      <label class="tdpa-check"><input type="checkbox" data-tdpa-fund${e.fundadora ? ' checked' : ''} /> Fundadora</label>
+      <button type="button" class="btn-primary" data-tdpa-accion="guardar">Guardar</button>
+      <button type="button" class="btn-secondary" data-tdpa-accion="mas30">+30 días de prueba</button>
+      <button type="button" class="btn-secondary" data-tdpa-accion="gratis">Pasar a Gratis</button>
+    </div>
+  </div>`
+}
+
+async function accionDePlan(boton) {
+  const fila = boton.closest('[data-tdpa]')
+  const id = fila.dataset.tdpa
+  const actual = planes.find((p) => p.perfil.id === id)
+  const accion = boton.dataset.tdpaAccion
+  let cambios
+  if (accion === 'guardar') {
+    const hasta = fila.querySelector('[data-tdpa-hasta]').value
+    cambios = {
+      plan: fila.querySelector('[data-tdpa-plan]').value,
+      // El día que se pone es el último pagado: hasta el final de ese día.
+      pagado_hasta: hasta ? new Date(`${hasta}T23:59:59`).toISOString() : null,
+      fundadora: fila.querySelector('[data-tdpa-fund]').checked,
+      nota: fila.querySelector('[data-tdpa-nota]').value,
+    }
+  } else if (accion === 'mas30') {
+    const desde = Math.max(Date.now(), actual?.fila?.prueba_hasta ? new Date(actual.fila.prueba_hasta).getTime() : 0)
+    cambios = { prueba_hasta: new Date(desde + 30 * DIA).toISOString() }
+  } else if (accion === 'gratis') {
+    cambios = { prueba_hasta: new Date().toISOString(), pagado_hasta: null }
+  } else return
+  boton.disabled = true
+  const { error } = await supabase.rpc('admin_tienda_plan', { p_tienda: id, p_cambios: cambios })
+  boton.disabled = false
+  if (error) return showToast(`No se ha podido: ${error.message}`, 'error')
+  showToast(accion === 'mas30' ? 'Treinta días más de prueba.' : accion === 'gratis' ? 'Ahora está en Gratis.' : 'Guardado.', 'success')
+  cargarPlanes().catch(() => {})
+}
+
 export function iniciarTiendas() {
   if (iniciado) return
   iniciado = true
@@ -178,6 +272,14 @@ export function iniciarTiendas() {
     const caja = e.target.closest('[data-tienda-pruebas]')
     if (caja) marcarDePruebas(caja)
   })
+  $('tiendasPlanes')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tdpa-accion]')
+    if (b) accionDePlan(b)
+  })
+  $('tiendasCartel')?.addEventListener('click', () => {
+    import('../../js/cartel-modo-evento.js').then((m) => m.abrirCartel({ tipo: 'tiendas' })).catch(() => showToast('No se ha podido abrir el cartel.', 'error'))
+  })
   cargar().catch(() => {})
   cargarCuentas().catch(() => {})
+  cargarPlanes().catch(() => {})
 }

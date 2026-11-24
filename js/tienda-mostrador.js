@@ -62,25 +62,40 @@ const fallo = (que) => (e) => {
   showToast(`No se ha podido abrir ${que}. Recarga la página.`, 'error')
 }
 
-export function abrirVenderRapido(opciones = {}) {
+// Lo que abre cada plan (1429): sin Puesto no hay mostrador, sin Tienda no
+// hay lotes. Si el módulo del plan no llega, se abre (como antes).
+async function puede(funcion) {
+  try {
+    return await (await import('./tienda-plan.js')).permitido(funcion)
+  } catch {
+    return true
+  }
+}
+
+export async function abrirVenderRapido(opciones = {}) {
   cerrarAbanico()
+  if (!(await puede('mostrador'))) return
   return import('./tienda-vender.js').then((m) => m.abrirVender({ alTerminar: avisar, ...opciones })).catch(fallo('Vender'))
 }
-export function abrirComprarRapido(opciones = {}) {
+export async function abrirComprarRapido(opciones = {}) {
   cerrarAbanico()
+  if (!(await puede('mostrador'))) return
   return import('./tienda-comprar.js').then((m) => m.abrirComprar({ alTerminar: avisar, ...opciones })).catch(fallo('Comprar'))
 }
-export function abrirCambioRapido(opciones = {}) {
+export async function abrirCambioRapido(opciones = {}) {
   cerrarAbanico()
+  if (!(await puede('mostrador'))) return
   return import('./tienda-comprar.js').then((m) => m.abrirComprar({ alTerminar: avisar, ...opciones, modo: 'cambio' })).catch(fallo('Cambio'))
 }
-export function abrirCajaDeHoy() {
+export async function abrirCajaDeHoy() {
   cerrarAbanico()
+  if (!(await puede('caja'))) return
   return import('./tienda-caja.js').then((m) => m.abrirCaja()).catch(fallo('la caja'))
 }
 // Los lotes por desglosar (1277), desde la pastilla del Panel.
-export function abrirLotesPorDesglosar() {
+export async function abrirLotesPorDesglosar() {
   cerrarAbanico()
+  if (!(await puede('lotes'))) return
   return import('./tienda-lotes.js').then((m) => m.abrirLotes({ alTerminar: avisar })).catch(fallo('los lotes'))
 }
 
@@ -111,8 +126,9 @@ export function cerrarAbanico() {
   }
 }
 
-export function abrirMostrador() {
+export async function abrirMostrador() {
   if (abanico) return cerrarAbanico()
+  if (!(await puede('mostrador'))) return
   hojaInyectada('css/tienda-mostrador.css')
   abanico = document.createElement('div')
   abanico.className = 'tdm-abanico'

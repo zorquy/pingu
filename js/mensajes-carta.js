@@ -108,6 +108,9 @@ export async function apartarDesdeMensaje(stockId, adjunto, otro) {
 export async function venderDesdeMensaje(stockId, adjunto) {
   const fila = await lineaDelStock(stockId, adjunto)
   if (!fila) return
+  // Vender es del mostrador: sin Puesto, la pantalla de «es de…» (1429).
+  const plan = await import('./tienda-plan.js').catch(() => null)
+  if (plan && !(await plan.permitido('mostrador'))) return
   const { abrirVender } = await import('./tienda-vender.js')
   abrirVender({ filas: [fila] })
 }
