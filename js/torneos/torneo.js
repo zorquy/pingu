@@ -1877,6 +1877,9 @@ function pintarNoDisponible() {
 // Se salta el tic si la pestaña está en segundo plano o si estás
 // escribiendo (para no pisarte un chat o la decklist a medias).
 let sondeoFicha = null
+// Lo que hace un aviso en vivo (1435): recargar con calma; lo monta
+// arrancarSondeoFicha, que es quien tiene `tic`.
+let ticDesdeVivo = () => {}
 // Refrescos en curso y pendientes (tanda 258).
 //
 // El problema que arreglan: los eventos en vivo llegan a RÁFAGAS. Un
@@ -1938,6 +1941,31 @@ function arrancarSondeoFicha() {
     }
   }
   sondeoFicha = setInterval(tic, 10000)
+
+  // Un aviso en vivo NO recarga la ficha al momento (1435, urgente: el
+  // Tardeo de Testeo con 60 dentro llenó las 60 conexiones de Supabase).
+  // Cada reporte, resultado o mensaje de CUALQUIER mesa llega a todos los
+  // que miran la ficha, y cada uno recargaba la ficha entera (~15
+  // consultas) a la vez que los demás: con 30 mesas, los 60 recargando sin
+  // parar. Ahora se espera un rato al azar (los 60 no van juntos), se
+  // juntan todos los avisos de ese rato en una recarga y, entre dos, hay
+  // al menos HUECO_VIVO. Los chats siguen al momento: solo piden sus
+  // mensajes. Lo tuyo (reportar, confirmar…) recarga al momento igual,
+  // porque eso llama a `recargar()` directamente.
+  const HUECO_VIVO = 10000
+  const ESPERA_VIVO = 2000
+  const AZAR_VIVO = 5000
+  let temporizadorVivo = null
+  let ultimaDesdeVivo = 0
+  ticDesdeVivo = () => {
+    if (temporizadorVivo) return
+    const falta = Math.max(0, HUECO_VIVO - (Date.now() - ultimaDesdeVivo))
+    temporizadorVivo = setTimeout(() => {
+      temporizadorVivo = null
+      ultimaDesdeVivo = Date.now()
+      void tic()
+    }, falta + ESPERA_VIVO + Math.random() * AZAR_VIVO)
+  }
   // Al salir de la caja (tocar fuera, o enviar y que el botón se lleve el
   // foco), lo que se aplazó se hace ya. El `setTimeout` deja que el foco
   // llegue a su sitio: si va a otra caja, se sigue esperando.
@@ -1987,7 +2015,7 @@ function arrancarSondeoFicha() {
           // Un mensaje de chat: los chats se ponen al día al momento, sin
           // esperar a que la ficha entera se recargue (1340).
           if (cambio?.table === 'match_messages' || cambio?.table === 'judge_messages') refrescarChats()
-          void tic()
+          ticDesdeVivo()
         },
         alEstado: (vivo) => sondeo.conVivo(vivo),
       })

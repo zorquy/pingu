@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (684) — PINGU-Claude (1435 urgente — la ficha del torneo llenaba las conexiones de Supabase)
+
+**Hecho** (PINGU, con el Tardeo de Testeo en marcha y 60 dentro: «la web está
+petando»; Supabase marcaba 55 de 60 conexiones y errores en Realtime): cada
+aviso en vivo de CUALQUIER mesa (reporte, resultado, mensaje) hacía que los 60
+que miran la ficha la recargaran entera (~15 consultas) a la vez. Ahora un aviso
+espera 2–7 s al azar, junta los que lleguen en ese rato y, entre dos recargas
+por aviso, hay al menos 10 s. Los chats siguen al momento y lo tuyo (reportar,
+confirmar) recarga al momento como siempre.
+
+**Ficheros**: `js/torneos/torneo.js` (`ticDesdeVivo`).
+
+**Ojo**: se sube SOLO, encima de lo que había en producción; las tandas
+1424–1434 siguen esperando (las mete el próximo push, con su rebase).
+
+**Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
+escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
+la recarga por aviso pida solo lo que cambió.
+
 ## 2026-11-23 (672) — PINGU-Claude (1423 — Mazo y torneo, de ida y vuelta)
 
 **Hecho** (la última tanda de «Los mazos, también por torneo»):
