@@ -1769,6 +1769,78 @@ function pintarTodo() {
   pintarInscritos()
 }
 
+// ── Un aviso del canal del torneo (1439) ──
+//
+// ronda.js aplica lo que trae datos (rondas, mesas, resultados, bajas) y dice
+// qué hacer con lo demás. Lo que pide ir a la base espera un rato AL AZAR, para
+// que no vayan todas las fichas a la vez: es lo que tumbó el Tardeo de Testeo.
+const alAzar = (min, max) => min + Math.random() * (max - min)
+const unaVez = (fn) => {
+  let t = null
+  return (min, max) => {
+    if (t) return
+    t = setTimeout(() => {
+      t = null
+      void fn()
+    }, alAzar(min, max))
+  }
+}
+const cicloPronto = unaVez(() => ronda?.recargarYPintar?.())
+const tablonPronto = unaVez(() => (ultimoContexto ? montarTablon(ultimoContexto) : null))
+let ultimoContexto = null
+
+function repintarCabecera() {
+  if (!ronda) return
+  pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda.rondaDeAhora() }, pintarSiCambia)
+}
+
+function alAviso(aviso, recargaEntera) {
+  // null: la página vuelve de la caché de ir y volver y no sabe qué se perdió.
+  if (!aviso) return recargaEntera()
+  const accion = ronda?.aplicarCambio?.(aviso)
+  const fila = aviso.fila || {}
+  const yo = session?.user?.id
+  switch (accion) {
+    case 'pintado':
+    case 'cabecera':
+      repintarCabecera()
+      break
+    case 'baja':
+      repintarCabecera()
+      if (session && mando() && fila.user_id !== yo) {
+        const quien = inscripciones.find((i) => i.id === fila.id)?.perfil?.username || 'Un jugador'
+        showToast(`${quien} se ha retirado del torneo: no entra en el próximo emparejamiento.`, 'info')
+      }
+      break
+    case 'ciclo':
+      cicloPronto(300, 2500)
+      break
+    case 'chat':
+      refrescarChats()
+      break
+    case 'jueces':
+      refrescarChats()
+      // La cola del juez y tu llamada: solo a quien le toca.
+      if (session && (mando() || esJuez || fila.created_by === yo)) recargaEntera()
+      break
+    case 'tablon':
+      tablonPronto(500, 4000)
+      break
+    case 'torneo': {
+      const cambiaEstado = fila.status && fila.status !== torneo.status
+      if (fila.current_round_id !== undefined) torneo.current_round_id = fila.current_round_id
+      if (cambiaEstado) recargaEntera()
+      else repintarCabecera()
+      break
+    }
+    case 'recargar':
+      recargaEntera()
+      break
+    default:
+      break
+  }
+}
+
 // «X se ha retirado», a quien lleva el torneo y en el momento (1436). Solo
 // con el paso de activo a retirado: un UPDATE de otra columna no avisa.
 function avisarBaja(cambio) {
@@ -1810,6 +1882,7 @@ async function recargar({ ligera = false } = {}) {
     // que recoloquen también las pestañas al hacerlo.
     alRepintar: pintarPestanas,
   }
+  ultimoContexto = contexto
   // Las rondas (ronda.js, el módulo más grande de la ficha) entran por
   // import() desde la 1011: la ficha se pinta sin esperar a bajarlo y
   // analizarlo, y lo que lo necesita (la gloria, el podio) viene detrás.
@@ -2018,12 +2091,23 @@ function arrancarSondeoFicha() {
   // un minuto, que es justo lo que hace falta para enterarse si el
   // websocket se muere en silencio.
   import('../vivo.js')
-    .then(({ escuchar, sondeoEscalonado }) => {
+    .then(({ escuchar, escucharCanal, sondeoEscalonado }) => {
       // Escalonado y con azar (1437): si el vivo se cae para todos a la vez,
       // las fichas no se ponen todas a preguntar cada 10 s.
       const sondeo = sondeoEscalonado(tic)
       clearInterval(sondeoFicha)
       sondeoFicha = 'delegado'
+      // Con la migración 1438 puesta (la ficha ya se cargó con torneo_ciclo):
+      // el canal del torneo, con los cambios dentro, y nada de postgres_changes.
+      if (ronda?.hayCanal?.() && escucharCanal) {
+        escucharCanal({
+          tema: `torneo:${torneo.id}`,
+          evento: 'cambio',
+          alRecibir: (aviso) => alAviso(aviso, ticDesdeVivo),
+          alEstado: (vivo) => sondeo.conVivo(vivo),
+        })
+        return
+      }
       escuchar({
         nombre: `torneo-${torneo.id}`,
         tablas: [

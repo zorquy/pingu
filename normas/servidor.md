@@ -124,3 +124,17 @@
   `default`), y si falla deja crear la cuenta igual. Lo vigila
   `test-tanda-1361.mjs`; una columna nueva `not null` sin `default` en
   `user_profiles` también rompería el perfil (no el alta).
+- **Un aviso en vivo trae sus datos; «algo ha cambiado, recarga» no escala**
+  (tandas 1435–1440, el Tardeo de Testeo: 64 jugadores llenaron las 60
+  conexiones). Con `postgres_changes`, cada cambio lo comprueba el servidor de
+  tiempo real persona por persona EN LA BASE, y si encima cada ficha recarga
+  entera al recibirlo, el coste es cambios × personas × consultas. Lo que mira
+  mucha gente a la vez (un torneo) va por un canal PRIVADO de difusión que llena
+  la base con un disparador (`realtime.send`, `torneo_difundir` en la 1438): un
+  aviso por cambio, con la fila si es pública o solo QUÉ ha cambiado si no, y
+  el navegador lo aplica sin preguntar. El disparador NUNCA puede tumbar la
+  escritura (`exception when others then null`). Y una escucha de
+  `postgres_changes` sin filtro (sin `tournament_id=eq.…` o equivalente) no
+  entra: despierta a todos los que miran CUALQUIER cosa de esa tabla. Lo que
+  todavía se pida a la base al recibir un aviso espera un rato AL AZAR.
+

@@ -55223,6 +55223,39 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1438 — Torneos sin atascos (1438, 1439 y 1440)
+
+Migración `supabase-migration-1438-torneos-sin-atascos.sql` (se puede ejecutar
+dos veces):
+- `public.torneo_ciclo(p_torneo uuid) returns jsonb` — `security definer`,
+  `stable`, para `anon` y `authenticated`. Devuelve `{ rondas, mesas,
+  resultados, reportes, bajas }`. Un borrador solo para quien lo creó o el
+  admin del sitio. `reportes`: los de tu mesa, o todos con
+  `torneos_mando`/`torneos_soy_juez`; sin cuenta, `[]`. `bajas`: `id, user_id,
+  status, dropped_at, dropped_after_round_id`.
+- `public.torneo_difundir()` (disparador AFTER por fila) en `tournaments`
+  (update de status y current_round_id), `rounds`, `tournament_matches`,
+  `match_results`, `match_reports`, `match_messages` (insert),
+  `tournament_registrations`, `tournament_updates`, `judge_calls`,
+  `judge_messages` (insert). Manda `realtime.send({t, op, fila}, 'cambio',
+  'torneo:<id>', true)`. `fila`: entera en rondas/mesas/resultados; de un
+  reporte o un mensaje, solo `match_id`; de una baja, las cinco columnas
+  públicas; del tablón, `id`; de una llamada, `id, match_id, created_by,
+  status`; del torneo, `id, status, current_round_id`. Errores de Realtime se
+  tragan.
+- Política `torneos_canal_leer` en `realtime.messages`: SELECT para anon y
+  authenticated si `realtime.topic() like 'torneo:%'` y `extension =
+  'broadcast'`. Ninguna de escritura.
+- `public.torneos_reclamar_ausencia(p_partida uuid) returns text` — solo los
+  dos jugadores; devuelve el estado de la mesa si ya estaba cerrada, `pronto`,
+  `sin_checkin` (ventana 0), `presentes`, o el forfeit que aplica
+  (`forfeit_a`, `forfeit_b`, `forfeit_both`), con su `match_results`
+  (`score = 'check_in'`, `on conflict (match_id) do nothing`).
+
+Web: `ronda.js` → `cicloPorRpc`, `hayCanal()`, `aplicarCambio()`,
+`recargarYPintar()`, `reclamarAusencia()`; `torneo.js` → `alAviso()`;
+`vivo.js` → `escucharCanal()`.
+
 ## Tanda 1437 — Respaldo sin estampida y recarga ligera
 
 - Sin base.

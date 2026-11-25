@@ -44,7 +44,10 @@ async function cliente() {
     })
     // El token de la persona, no la clave pública: sin esto la RLS te
     // trata como a un desconocido y no llega nada de lo tuyo.
+    // Sin sesión, la clave pública (es un JWT con el papel «anon»): los canales
+    // PRIVADOS (1439) la necesitan para dejar entrar a quien mira sin cuenta.
     if (data?.session?.access_token) rt.setAuth(data.session.access_token)
+    else if (anon) rt.setAuth(anon)
     // Si la sesión se renueva (pasa cada hora), hay que decírselo o el
     // websocket se queda con un token caducado y deja de recibir.
     supabase.auth.onAuthStateChange((_evento, sesion) => {
@@ -137,6 +140,58 @@ export function escuchar({ nombre, tablas, alCambiar, alEstado }) {
     escucha.cortado = true
     activas.delete(escucha)
     escucha.soltar()
+  }
+}
+
+// ── El canal de un torneo (1439) ──
+//
+// Un canal PRIVADO de Realtime por torneo («torneo:<id>»), que la base llena con
+// un aviso por cambio (supabase-migration-1438). A diferencia de `escuchar`
+// (postgres_changes), el servidor de tiempo real no comprueba permisos persona
+// por persona en la base por cada cambio: solo una vez al entrar en el canal.
+// Privado para que nadie pueda MANDAR avisos falsos desde el navegador (la
+// política solo deja leer).
+//
+//   const parar = escucharCanal({ tema: 'torneo:<id>', evento: 'cambio', alRecibir, alEstado })
+export function escucharCanal({ tema, evento = 'cambio', alRecibir, alEstado }) {
+  const e = { canal: null, cortado: false }
+  e.montar = async () => {
+    const rt = await cliente()
+    if (!rt || e.cortado || escondida || e.canal) return
+    try {
+      if (typeof rt.isConnected === 'function' && !rt.isConnected()) rt.connect?.()
+      for (const c of rt.getChannels?.() || rt.channels || []) {
+        if (c.topic === `realtime:${tema}`) rt.removeChannel?.(c)
+      }
+      const canal = rt.channel(tema, { config: { private: true } })
+      canal.on('broadcast', { event: evento }, (mensaje) => alRecibir?.(mensaje?.payload))
+      canal.subscribe((estado) => alEstado?.(estado === 'SUBSCRIBED'))
+      e.rt = rt
+      e.canal = canal
+    } catch (err) {
+      console.warn(`No se pudo escuchar el canal «${tema}»:`, err?.message || err)
+      alEstado?.(false)
+    }
+  }
+  e.soltar = () => {
+    if (!e.canal) return
+    const canal = e.canal
+    e.canal = null
+    try {
+      if (e.rt?.removeChannel) e.rt.removeChannel(canal).catch?.(() => {})
+      else canal.unsubscribe()
+    } catch {}
+  }
+  // Al volver de la caché de ir y volver, lo que cambió no llegó: se avisa con
+  // null y quien escucha recarga una vez.
+  e.alVolver = () => alRecibir?.(null)
+  e.alEstado = alEstado
+  activas.add(e)
+  e.montar()
+  return () => {
+    e.cortado = true
+    activas.delete(e)
+    e.soltar()
   }
 }
 

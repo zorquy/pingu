@@ -409,3 +409,13 @@ está en el «⋯» de tu mesa (`.torneo-mimesa-mas`) con la ventana de
 ventana que dice qué pasa, no con un segundo toque sobre el mismo botón (la
 ficha se repinta sola y lo devolvía a su estado).
 
+**La ficha del torneo escucha SU canal** (1438–1440, «Torneos sin atascos»):
+con la migración 1438 puesta, el ciclo se carga con `torneo_ciclo` (una consulta)
+y los cambios llegan por el canal privado `torneo:<id>`; `aplicarCambio`
+(ronda.js) aplica lo que trae fila (rondas, mesas, resultados, bajas) y devuelve
+qué hacer con lo demás (`alAviso` en torneo.js). Sin la migración, todo sigue
+como antes (`cicloPorRpc === false`). Una tabla nueva del torneo que tenga que
+verse en vivo entra en el disparador `torneo_difundir` y en `aplicarCambio`, no
+como otra escucha. Vencido el check-in con tu rival ausente, tu ficha llama a
+`torneos_reclamar_ausencia` (la misma regla que el barredor, la hora de la base).
+

@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (687) — PINGU-Claude (1438–1440 — La ficha en una consulta, el canal del torneo y la victoria sin check-in)
+
+**Hecho** (propuestas «Torneos sin atascos» y «Lo que dejó el torneo», PINGU:
+«adelante con todas»). Una migración, `supabase-migration-1438-torneos-sin-atascos.sql`:
+- **1438** `torneo_ciclo(id)`: rondas, mesas, resultados, reportes que puedes
+  ver y bajas en UNA consulta (antes cinco); los permisos de los reportes se
+  miran una vez, no fila a fila.
+- **1439** el canal privado `torneo:<id>`: un disparador (`torneo_difundir`) en
+  diez tablas anuncia cada cambio UNA vez con `realtime.send`, con la fila si es
+  pública o solo qué mesa/llamada si no. La ficha lo aplica sin ir a la base
+  (`aplicarCambio` en ronda.js, `alAviso` en torneo.js). Se acaban las cinco
+  escuchas sin filtro. Política: cualquiera lee el canal `torneo:%`, nadie
+  escribe. Si Realtime falla, la escritura se guarda igual.
+- **1440** `torneos_reclamar_ausencia(mesa)`: vencido el check-in con tu rival
+  ausente, tu ficha cierra la mesa al momento (la regla y la hora, en la base).
+- vivo.js: `escucharCanal` (canal privado) y, sin sesión, `setAuth` con la
+  clave pública para poder entrar en un canal privado.
+
+**Ficheros**: la migración, `js/torneos/ronda.js`, `js/torneos/torneo.js`,
+`js/vivo.js`, `normas/jugar.md`, `normas/servidor.md`. Pruebas (rama
+`pruebas`): `test-tanda-1438.mjs` (PostgreSQL), `test-tanda-1438-pantalla.mjs`;
+los dobles `stub-supabase.js` (`__CON_1438__`) y `stub-vivo.js`
+(`escucharCanal`, `emitirCanal`).
+
+**Ojo**: sin ejecutar la migración la web sigue exactamente como en la 1437 (se
+puede subir antes). Ejecutada, Realtime tiene que tener activada la
+autorización de canales privados (Realtime → Settings: «Allow public access»
+puede seguir como esté; los canales privados funcionan igual).
+
+**Pendiente**: 1441 (panel de juez), 1442 (prueba de carga).
+
 ## 2026-11-25 (686) — PINGU-Claude (1437 — Respaldo sin estampida y recarga ligera)
 
 **Hecho** (propuesta «Torneos sin atascos», PINGU: «adelante con todas»):

@@ -144,7 +144,47 @@ function outcomeDe(m) {
 
 // ── Cargar el estado del ciclo ──
 
+// La ficha en UNA consulta (1438): `torneo_ciclo` trae rondas, mesas,
+// resultados, los reportes que puedes ver y las bajas. Hasta que se ejecute su
+// migración la función no existe y se sigue por las consultas de siempre.
+// `cicloPorRpc`: null = aún no se sabe, false = falta la migración.
+let cicloPorRpc = null
+export const hayCanal = () => cicloPorRpc === true
+
 async function cargarCiclo() {
+  if (cicloPorRpc !== false) {
+    const { data, error } = await supabase.rpc('torneo_ciclo', { p_torneo: ctx.torneo.id })
+    if (!error && data && Array.isArray(data.rondas)) {
+      cicloPorRpc = true
+      rondas = data.rondas
+      partidas = data.mesas || []
+      resultados = data.resultados || []
+      reportes = data.reportes || []
+      aplicarBajas(data.bajas || [])
+      const idsPartidas = partidas.map((m) => m.id)
+      repeticionesMesas = idsPartidas.length ? (await repeticionesDePartidas(idsPartidas)) || [] : []
+      await despuesDeCargar()
+      return
+    }
+    if (faltaLaRpc(error)) cicloPorRpc = false
+  }
+  await cargarPorConsultas()
+  await despuesDeCargar()
+}
+
+// Las bajas que trae `torneo_ciclo`, sobre los mismos objetos de la ficha.
+function aplicarBajas(bajas) {
+  const porId = new Map(bajas.map((b) => [b.id, b]))
+  for (const i of ctx.inscripciones) {
+    const b = porId.get(i.id)
+    if (!b) continue
+    i.status = b.status
+    i.dropped_at = b.dropped_at
+    i.dropped_after_round_id = b.dropped_after_round_id
+  }
+}
+
+async function cargarPorConsultas() {
   const { data: filas } = await supabase
     .from('rounds')
     .select('*')
@@ -192,6 +232,9 @@ async function cargarCiclo() {
   } else {
     repeticionesMesas = []
   }
+}
+
+async function despuesDeCargar() {
   // OJO: el historial de cruces (pairing_history) NO se pide aquí.
   // Solo lo usa el pareo suizo, que es un botón del organizador, y
   // pedirlo en cada refresco era una consulta cada diez segundos para
@@ -524,6 +567,32 @@ function mesaMasHtml() {
       <summary class="torneo-mas-boton" aria-label="Más opciones de tu mesa">${icons.moreHorizontal(18)}</summary>
       <div class="torneo-mas-menu"><button type="button" data-retirarme>Retirarme del torneo</button></div>
     </details>`
+}
+
+// Una vez por mesa y página: si la base dice «pronto» (el reloj del móvil va
+// adelantado), se vuelve a probar a los 20 s.
+const reclamadas = new Map()
+function reclamarAusencia(ronda) {
+  if (cicloPorRpc === false) return
+  const yo = miId()
+  const mia = partidas.find((m) => m.round_id === ronda.id && m.status === 'active' && (m.player_a_id === yo || m.player_b_id === yo))
+  if (!mia) return
+  const soyA = mia.player_a_id === yo
+  const miCheckin = soyA ? mia.check_in_a_at : mia.check_in_b_at
+  const suyo = soyA ? mia.check_in_b_at : mia.check_in_a_at
+  if (!miCheckin || suyo) return
+  const antes = reclamadas.get(mia.id)
+  if (antes && Date.now() - antes < 20000) return
+  reclamadas.set(mia.id, Date.now())
+  void supabase.rpc('torneos_reclamar_ausencia', { p_partida: mia.id }).then(async ({ data, error }) => {
+    if (faltaLaRpc(error)) {
+      cicloPorRpc = false
+      return
+    }
+    if (error || !String(data || '').startsWith('forfeit')) return
+    await cargarCiclo()
+    pintarCiclo()
+  })
 }
 
 // Delegado: la cabecera de la mesa se pinta por varios caminos (sin empezar,
@@ -1653,6 +1722,10 @@ function arrancarReloj(ronda) {
                 : 'En juego'
       }
     }
+    // Sin check-in, la victoria al momento (1440): vencido el plazo, con tu
+    // check-in hecho y el del rival no, tu ficha pide cerrar la mesa. La hora
+    // la mira la base; el barredor de cada minuto sigue de red.
+    if (ya >= cierreCheckin && (ctx.torneo.checkin_minutes || 0) > 0) reclamarAusencia(ronda)
     // El aviso de «Tu partida»: la ventana de check-in con su cuenta.
     const aviso = $('avisoCheckin')
     if (aviso) {
@@ -3899,6 +3972,91 @@ function pintarCiclo() {
 
 export async function recargarCiclo() {
   await cargarCiclo()
+}
+
+// Lo que torneo.js pide al recibir un aviso que no trae los datos (un reporte):
+// una consulta (`torneo_ciclo`) y repintar.
+export async function recargarYPintar() {
+  await cargarCiclo()
+  pintarCiclo()
+}
+
+// ── Los avisos del canal del torneo (1439) ──
+//
+// Cada cambio llega UNA vez, con la fila dentro si es pública (rondas, mesas,
+// resultados, bajas). Se aplica a lo que ya hay y se repinta, SIN preguntar a
+// la base: es lo que hace que 2.000 mirando cuesten lo mismo que 64. Lo que
+// no se puede aplicar sin preguntar se le devuelve a torneo.js como «qué
+// hacer»: 'ciclo' (pedir torneo_ciclo), 'recargar' (la ficha entera), 'chat',
+// 'jueces', 'tablon' o 'baja'. null = no va contigo.
+let repintado = null
+function repintarPronto() {
+  if (repintado) return
+  // Un emparejamiento son decenas de avisos seguidos: un repintado para todos.
+  repintado = setTimeout(() => {
+    repintado = null
+    ctx.ciclo = { rondas, partidas, reportes }
+    pintarCiclo()
+  }, 150)
+}
+function ponerFila(lista, fila) {
+  const i = lista.findIndex((x) => x.id === fila.id)
+  if (i >= 0) lista[i] = { ...lista[i], ...fila }
+  else lista.push(fila)
+}
+
+export function aplicarCambio({ t, op, fila } = {}) {
+  if (!ctx || !fila) return null
+  const yo = miId()
+  switch (t) {
+    case 'rounds':
+      if (op === 'DELETE') return 'recargar'
+      ponerFila(rondas, fila)
+      rondas.sort((a, b) => a.round_number - b.round_number)
+      repintarPronto()
+      return 'cabecera'
+    case 'tournament_matches':
+      if (op === 'DELETE') return 'recargar'
+      ponerFila(partidas, fila)
+      repintarPronto()
+      return 'pintado'
+    case 'match_results': {
+      if (op === 'DELETE') {
+        const i = resultados.findIndex((x) => x.id === fila.id)
+        if (i >= 0) resultados.splice(i, 1)
+      } else ponerFila(resultados, fila)
+      repintarPronto()
+      return 'pintado'
+    }
+    case 'match_reports': {
+      // Solo trae QUÉ mesa: lo piden quien la juega y quien lleva o arbitra.
+      const m = partidas.find((x) => x.id === fila.match_id)
+      const mia = m && yo && (m.player_a_id === yo || m.player_b_id === yo)
+      return mia || mando() || ctx.esJuez ? 'ciclo' : null
+    }
+    case 'match_messages':
+      return 'chat'
+    case 'judge_calls':
+    case 'judge_messages':
+      return 'jueces'
+    case 'tournament_updates':
+      return 'tablon'
+    case 'tournament_registrations': {
+      if (op !== 'UPDATE') return 'recargar'
+      const i = ctx.inscripciones.find((x) => x.id === fila.id)
+      if (!i) return 'recargar'
+      const antes = i.status
+      i.status = fila.status
+      i.dropped_at = fila.dropped_at
+      i.dropped_after_round_id = fila.dropped_after_round_id
+      repintarPronto()
+      return antes !== 'dropped' && fila.status === 'dropped' ? 'baja' : 'pintado'
+    }
+    case 'tournaments':
+      return 'torneo'
+    default:
+      return null
+  }
 }
 
 // El PODIO (tanda 217): los cuatro primeros en orden, sacados del

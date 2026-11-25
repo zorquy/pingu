@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-25", "tipo": "mejora", "texto": "Los torneos van en directo de verdad: los emparejamientos, resultados y bajas aparecen solos al momento, sin recargar la página. Y si tu rival no hace check-in a tiempo, ganas la mesa en el acto.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "arreglo", "texto": "Si te retiras de un torneo ya no sales en el emparejamiento de la siguiente ronda. Y retirarte es más claro: está en el «⋯» de tu mesa y te dice qué pasa antes de confirmarlo.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "mejora", "texto": "Crear un torneo ya no es un formulario largo: te sale una pregunta cada vez, contestas tocando y al final ves cómo queda antes de crearlo.", "enlace": "/torneos?crear=1" },
     { "fecha": "2026-11-24", "tipo": "mejora", "texto": "La página para tiendas y su PDF ya cuentan los planes: dos meses de todo gratis, precio de fundadora y qué trae cada plan.", "enlace": "/para-tiendas#planes" },
