@@ -193,5 +193,15 @@ console.log('\n── 8. El catálogo sigue mandando sobre la deducción ──'
     claveCanonicaDeMazo('d:mega lucario ex mega zygarde ex', 'Mega Lucario ex Mega Zygarde ex', catalogo))
 }
 
+console.log('\n── 1443: Basic Box ──')
+{
+  const caja = arquetipoDeMazo(mazo(['Raging Bolt ex', 3], ['Iron Hands ex', 2], ['Terapagos ex', 2], ['Squawkabilly ex', 1], ['Latias ex', 1], ['Miraidon ex', 2], ['Fezandipiti ex', 1], ['Mew ex', 2]), [])
+  check('muchos básicos sueltos sin evolución: «Basic Box»', caja.nombre === 'Basic Box', caja.nombre)
+  const noCaja = arquetipoDeMazo(mazo(['Dreepy', 4], ['Drakloak', 3], ['Dragapult ex', 3], ['Latias ex', 1], ['Budew', 1], ['Fezandipiti ex', 1], ['Mew ex', 1], ['Iron Hands ex', 1]), [])
+  check('un mazo con su línea de evolución NO es Basic Box', /Dragapult/.test(noCaja.nombre), noCaja.nombre)
+  const pocos = arquetipoDeMazo(mazo(['Raging Bolt ex', 4], ['Ogerpon ex', 3], ['Squawkabilly ex', 1]), [])
+  check('dos o tres básicos tampoco: se llama por ellos', /Raging Bolt/.test(pocos.nombre), pocos.nombre)
+}
+
 console.log(`\n${fails === 0 ? '✅ TODO BIEN' : `❌ ${fails} FALLOS`}`)
 process.exit(fails ? 1 : 0)
