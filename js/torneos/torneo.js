@@ -105,7 +105,8 @@ async function cargarTorneo(slug) {
   return data || null
 }
 
-async function cargarInscripciones() {
+async function cargarInscripciones({ ligera = false } = {}) {
+  const perfilesDeAntes = new Map(inscripciones.filter((i) => i.perfil).map((i) => [i.user_id, i.perfil]))
   const { data } = await supabase
     .from('tournament_registrations')
     .select(soloMirando ? COLUMNAS_PUBLICAS_INSCRIPCION.join(', ') : '*')
@@ -119,6 +120,12 @@ async function cargarInscripciones() {
   // no estar inscrito en su propio torneo, así que se añade al lote en
   // vez de pedirlo aparte.
   const ids = [...new Set([...inscripciones.map((i) => i.user_id), torneo.admin_id].filter(Boolean))]
+  // En la recarga ligera (1437) los perfiles solo se piden si hay alguien
+  // nuevo: un nombre o un avatar no cambian a mitad de ronda.
+  if (ligera && ids.every((id) => perfilesDeAntes.has(id) || id === torneo.admin_id)) {
+    for (const i of inscripciones) i.perfil = perfilesDeAntes.get(i.user_id) || null
+    return
+  }
   if (ids.length) {
     // Con avatar desde la tanda 306: la lista de inscritos era una
     // columna de nombres y no se distinguía a nadie de un vistazo. Es
@@ -1775,14 +1782,19 @@ function avisarBaja(cambio) {
   showToast(`${antes.perfil?.username || 'Un jugador'} se ha retirado del torneo: no entra en el próximo emparejamiento.`, 'info')
 }
 
-async function recargar() {
-  await cargarInscripciones()
+// Cuántas recargas automáticas van (1437): la ligera salta lo que casi no
+// cambia en una ronda.
+let recargasSolas = 0
+
+async function recargar({ ligera = false } = {}) {
+  await cargarInscripciones({ ligera })
   // Un juez aprobado lleva el torneo como el organizador (970) y ve las
   // decklists ajenas: por eso va ANTES de las jornadas y las listas, que
   // preguntan por el mando.
-  await cargarJueces()
-  jornadas = await cargarJornadas(torneo, { userId: session?.user?.id || null, todas: Boolean(session && mando()) })
-  await cargarDecklists()
+  if (!ligera) await cargarJueces()
+  // Las jornadas solo existen en una liga; fuera de ella no se piden de más.
+  if (!ligera || torneo.format === 'league') jornadas = await cargarJornadas(torneo, { userId: session?.user?.id || null, todas: Boolean(session && mando()) })
+  if (!ligera) await cargarDecklists()
   pintarTodo()
   const contexto = {
     torneo,
@@ -1940,7 +1952,10 @@ function arrancarSondeoFicha() {
     }
     refrescando = true
     try {
-      await recargar()
+      // Ligera dos de cada tres veces (1437): lo que cambia durante una ronda
+      // (mesas, reportes, resultados, bajas) se pide siempre; los jueces y las
+      // listas, una de cada tres.
+      await recargar({ ligera: ++recargasSolas % 3 !== 0 })
     } finally {
       refrescando = false
     }
@@ -1950,7 +1965,7 @@ function arrancarSondeoFicha() {
       await tic()
     }
   }
-  sondeoFicha = setInterval(tic, 10000)
+  sondeoFicha = setInterval(tic, 15000)
 
   // Un aviso en vivo NO recarga la ficha al momento (1435, urgente: el
   // Tardeo de Testeo con 60 dentro llenó las 60 conexiones de Supabase).
@@ -2003,8 +2018,10 @@ function arrancarSondeoFicha() {
   // un minuto, que es justo lo que hace falta para enterarse si el
   // websocket se muere en silencio.
   import('../vivo.js')
-    .then(({ escuchar, sondeoAdaptable }) => {
-      const sondeo = sondeoAdaptable(tic, 10000)
+    .then(({ escuchar, sondeoEscalonado }) => {
+      // Escalonado y con azar (1437): si el vivo se cae para todos a la vez,
+      // las fichas no se ponen todas a preguntar cada 10 s.
+      const sondeo = sondeoEscalonado(tic)
       clearInterval(sondeoFicha)
       sondeoFicha = 'delegado'
       escuchar({

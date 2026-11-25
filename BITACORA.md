@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (686) — PINGU-Claude (1437 — Respaldo sin estampida y recarga ligera)
+
+**Hecho** (propuesta «Torneos sin atascos», PINGU: «adelante con todas»):
+- Si el tiempo real se cae, la ficha ya no pasa a pedirlo todo cada 10 s: el
+  sondeo nuevo, `sondeoEscalonado` (js/sondeo.js), espera 15, 20 y 30 s con
+  ±25 % de azar; con el vivo, un minuto con azar. Es lo que hizo bola en el
+  Tardeo de Testeo: base lenta → vivo caído → todas las fichas a 10 s.
+- La recarga automática es LIGERA dos de cada tres veces: no pide jueces ni
+  listas, y los perfiles solo si hay alguien nuevo. Lo que hace quien juega
+  (reportar, check-in…) sigue recargando entero.
+
+**Ficheros**: `js/sondeo.js`, `js/vivo.js` (reexporta), `js/torneos/torneo.js`,
+`normas/jugar.md`. Pruebas: `test-tanda-1437-pantalla.mjs` (nueva),
+`test-vivo.mjs` al día (aviso con espera, primer escalón de 15 s) y el doble
+`stub-vivo.js` con `sondeoEscalonado`.
+
+**Pendiente**: 1438–1440 (la ficha en una consulta, el canal por torneo y la
+victoria sin check-in, en una migración).
+
 ## 2026-11-25 (685) — PINGU-Claude (1436 — Retirarse bien: los retirados ya no salen emparejados)
 
 **Hecho** (Tardeo de Testeo; Ibai: «si dropeas sigues saliendo en el

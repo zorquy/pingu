@@ -230,4 +230,4 @@ if (typeof window !== 'undefined') {
 // re-exporta aquí para que quien use el tiempo real tenga las dos
 // piezas a mano. Está fuera porque no depende de Supabase ni del
 // navegador, y así se puede probar sola.
-export { sondeoAdaptable } from './sondeo.js'
+export { sondeoAdaptable, sondeoEscalonado } from './sondeo.js'

@@ -39,3 +39,53 @@ export function sondeoAdaptable(fn, msNormal, factorDormido = 6) {
     },
   }
 }
+
+// El sondeo ESCALONADO (1437, la propuesta «Torneos sin atascos»). El de
+// arriba, con el vivo caído, vuelve de golpe a su marcha corta: si el tiempo
+// real se cae para TODOS a la vez (pasó en el Tardeo de Testeo, con la base
+// saturada), todos se ponen a preguntar cada 10 s justo cuando la base peor
+// va. Este sube poco a poco (15, 20, 30 s) y con azar, así que las fichas no
+// van juntas; con el vivo conectado, una vez por minuto, también con azar.
+//   pasos:   las esperas sin vivo, la última se repite
+//   conVivo: la espera con el vivo conectado
+//   azar:    cuánto se mueve cada espera arriba o abajo (0,25 = ±25 %)
+// `aleatorio` se puede cambiar en las pruebas para que salga siempre igual.
+export function esperaEscalonada(paso, { pasos = [15000, 20000, 30000], conVivo = 60000, azar = 0.25, vivo = false, aleatorio = Math.random } = {}) {
+  const base = vivo ? conVivo : pasos[Math.min(paso, pasos.length - 1)]
+  return Math.round(base * (1 - azar + 2 * azar * aleatorio()))
+}
+
+export function sondeoEscalonado(fn, opciones = {}) {
+  let timer = null
+  let vivo = false
+  let paso = 0
+  let parado = false
+  const siguiente = () => {
+    if (timer) clearTimeout(timer)
+    if (parado) return
+    timer = setTimeout(async () => {
+      timer = null
+      try {
+        await fn()
+      } finally {
+        if (!vivo) paso++
+        siguiente()
+      }
+    }, esperaEscalonada(paso, { ...opciones, vivo }))
+  }
+  siguiente()
+  return {
+    conVivo(estaVivo) {
+      if (estaVivo === vivo) return
+      vivo = estaVivo
+      // Al caerse el vivo se empieza por el primer escalón, no por el último.
+      if (!vivo) paso = 0
+      siguiente()
+    },
+    parar() {
+      parado = true
+      if (timer) clearTimeout(timer)
+      timer = null
+    },
+  }
+}

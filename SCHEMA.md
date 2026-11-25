@@ -55223,6 +55223,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1437 — Respaldo sin estampida y recarga ligera
+
+- Sin base.
+- `esperaEscalonada(paso, { pasos, conVivo, azar, vivo, aleatorio })` (pura) y
+  `sondeoEscalonado(fn, opciones)` en `js/sondeo.js`, con la misma interfaz que
+  `sondeoAdaptable` (`conVivo(bool)`, `parar()`); al caerse el vivo vuelve al
+  primer escalón. El doble de pruebas (`stub-vivo.js`) lo imita sin azar.
+- `recargar({ ligera })` en torneo.js: ligera = sin `cargarJueces`, sin
+  `cargarDecklists`, jornadas solo en una liga y `cargarInscripciones({ ligera })`
+  sin `user_profiles` si no hay nadie nuevo. `tic` la pide ligera dos de cada
+  tres veces (`recargasSolas`).
+
 ## Tanda 1436 — Retirarse bien
 
 - Sin base: la baja sigue siendo el UPDATE de `tournament_registrations`

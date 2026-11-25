@@ -177,8 +177,10 @@ Decisiones ya tomadas: sin pagos (fuera del porte), el chat de partida
 va A LA VISTA en «Tu partida» (PINGU lo quiso primero en desplegable y
 lo cambió el 2026-08-26 al probarlo; los chats de juez sí van plegados),
 la cuenta de PokeDoc es la cuenta de torneos, tiempo real por websocket con
-el sondeo de respaldo detrás (la ficha entera se refresca sola desde
-torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
+el sondeo de respaldo detrás (la ficha se refresca sola desde torneo.js con
+`sondeoEscalonado`: un minuto con el vivo conectado; sin él, 15, 20 y 30 s, con
+azar —1437—; y la recarga automática es ligera dos de cada tres veces: sin
+jueces, listas ni perfiles) y cierres
 automáticos con función programada por minuto.
 
 **Escribiendo, la ficha no se repinta, pero los chats sí** (tanda 1340): el
