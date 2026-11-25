@@ -55,17 +55,13 @@ console.log('\n── 1. Crear un torneo ya no es del equipo ──')
 
 console.log('\n── 2. La casilla de «oficial» es de administración ──')
 {
-  // Se mira la CLASE y no `isVisible`: el campo vive en el paso 2 del
-  // asistente, que empieza escondido, así que un elemento perfectamente
-  // colocado daría «no visible» y la prueba no probaría nada.
+  // Desde la 1434 la casilla solo EXISTE para administración (crear.js la
+  // pinta o no): se mira si está en la ventana.
   const casillaSale = async (sesion) => {
     const { page } = await abrir('/torneos', { __FAKE_SESSION__: sesion, __FAKE_TORNEOS__: [] })
     await page.locator('#btnNuevoTorneo').click()
-    await page.waitForTimeout(400)
-    const sale = await page
-      .locator('#torneoOficialCampo')
-      .evaluate((n) => !n.classList.contains('hidden'))
-      .catch(() => 'no existe')
+    await page.waitForSelector('#torneoCrear[open]')
+    const sale = (await page.locator('#torneoOficial').count()) === 1
     await page.close()
     return sale
   }
@@ -78,23 +74,26 @@ console.log('\n── 3. Lo que se escribe al crear ──')
   const crear = async (sesion, marcarOficial) => {
     const { page, errores } = await abrir('/torneos', { __FAKE_SESSION__: sesion, __FAKE_TORNEOS__: [] })
     await page.locator('#btnNuevoTorneo').click()
-    await page.waitForTimeout(400)
+    await page.waitForSelector('#torneoCrear[open]')
+    // Una pregunta cada vez (1434): se contesta como lo haría una persona, y
+    // la casilla está en la última, «Dale tu toque».
     await page.locator('#torneoNombre').fill('Copa de prueba')
+    await page.keyboard.press('Enter')
+    const toca = async (sel) => { await page.waitForTimeout(300); await page.locator(sel).click() }
+    await toca('.tc-opcion[data-valor="standard"]')
+    await page.waitForTimeout(300)
     const manana = new Date(Date.now() + 86400e3).toISOString().slice(0, 16)
     await page.locator('#torneoFecha').fill(manana)
-    // El asistente va por pasos y la casilla vive en el segundo: hay que
-    // llegar hasta ahí para poder marcarla, como haría una persona.
-    await page.locator('#btnPasoSiguiente').click()
-    await page.waitForTimeout(250)
+    await toca('#btnPasoSiguiente')
+    await toca('.tc-opcion[data-campo="torneoPlazas"][data-valor="16"]')
+    await toca('#btnPasoSiguiente')
+    await toca('.tc-opcion[data-campo="torneoMinutos"][data-valor="30"]')
+    await toca('.tc-opcion[data-campo="torneoPrivado"][data-valor="no"]')
+    await toca('.tc-opcion[data-campo="torneoListasModo"][data-valor="al_terminar"]')
+    await page.waitForTimeout(300)
     if (marcarOficial) await page.locator('#torneoOficial').check()
-    // Hasta el último paso, y a enviar.
-    for (let i = 0; i < 5; i++) {
-      if (await page.locator('#btnPasoSiguiente').isVisible().catch(() => false)) {
-        await page.locator('#btnPasoSiguiente').click().catch(() => {})
-      }
-      await page.waitForTimeout(200)
-    }
-    await page.locator('#torneoForm button[type=submit]').first().click().catch(() => {})
+    await toca('#btnPasoSiguiente')
+    await toca('#btnCrearTorneo')
     await page.waitForTimeout(900)
     const w = (await escrituras(page)).find((e) => e.tabla === 'tournaments' && e.tipo === 'insert')
     check(`${sesion}: sin errores`, errores.length === 0, errores[0] || '')

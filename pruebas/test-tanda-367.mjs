@@ -118,7 +118,8 @@ console.log('\n── 4. El navegador manda el código, y no decide él ──')
   // El código ya no viaja en la fila del torneo por ningún lado.
   check('la ficha no guarda join_code en tournaments', !/cambios\.join_code/.test(js))
   check('lo guarda en su tabla', /\.from\('tournament_join_codes'\)[\s\S]{0,120}\.upsert/.test(js))
-  const crear = leer('js/torneos/torneos.js')
+  // Desde la 1434 crear vive en js/torneos/crear.js (una pregunta cada vez).
+  const crear = leer('js/torneos/torneos.js') + leer('js/torneos/crear.js')
   check('crear tampoco lo mete en la fila', !/join_code: \$\('torneoPrivado'\)/.test(crear))
   check('y ya no está en la lista de columnas que pueden faltar',
     !/'is_private', 'join_code'/.test(crear) && !/'is_private', 'join_code'/.test(js))
@@ -126,7 +127,7 @@ console.log('\n── 4. El navegador manda el código, y no decide él ──')
   // Marcar «con código» sin escribir ninguno dejaría un torneo A LA
   // VISTA al que no se puede entrar, y sin que nada diera error.
   check('no se crea con la casilla marcada y el código vacío',
-    /Escribe el código: sin él nadie podría inscribirse\./.test(crear))
+    /Escribe el código: sin él nadie podría (inscribirse|apuntarse)\./.test(crear))
   check('ni se guarda así al editar',
     /Escribe el código: sin él nadie podría inscribirse\./.test(js))
 
