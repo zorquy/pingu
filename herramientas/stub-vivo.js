@@ -48,6 +48,18 @@ export function sondeoAdaptable(fn, msNormal, factorDormido = 6) {
 
 const SONDEOS = []
 
+// El canal de un torneo (1439): queda apuntado con su tema y una prueba le
+// manda avisos con window.__VIVO__.emitirCanal(tema, aviso).
+const CANALES = []
+export function escucharCanal({ tema, evento = 'cambio', alRecibir, alEstado }) {
+  const c = { tema, evento, alRecibir, alEstado, viva: true }
+  CANALES.push(c)
+  setTimeout(() => c.viva && alEstado?.(true), 0)
+  return () => {
+    c.viva = false
+  }
+}
+
 // El escalonado (1437): en el doble, los mismos escalones sin azar, para que
 // una prueba sepa cuánto espera. Se apunta en SONDEOS como el de arriba.
 export function sondeoEscalonado(fn, { pasos = [15000, 20000, 30000], conVivo = 60000 } = {}) {
@@ -93,6 +105,10 @@ export function difundir({ tema, evento = 'aviso', alRecibir }) {
 if (typeof window !== 'undefined') {
   window.__VIVO__ = {
     suscripciones: SUSCRIPCIONES,
+    canales: CANALES,
+    emitirCanal(tema, aviso) {
+      CANALES.filter((c) => c.viva && (!tema || c.tema === tema)).forEach((c) => c.alRecibir?.(aviso))
+    },
     sondeos: SONDEOS,
     difusiones: DIFUSIONES,
     // Simula que llega un cambio de la base.

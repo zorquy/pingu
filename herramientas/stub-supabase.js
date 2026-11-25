@@ -3351,6 +3351,43 @@ export const supabase = {
     // El Mercado con tiendas (1069) solo existe si la prueba lo da: si no, la
     // base no tiene la migración y el cliente vuelve a `intercambios_mercado`,
     // que el doble sí calcula. Un vacío sin error sería un Mercado vacío.
+    // Torneos sin atascos (1438–1440): con window.__CON_1438__ existen la
+    // ficha en una consulta y «reclamar la mesa»; sin él, no (la migración
+    // aún no se ha ejecutado) y la ficha va por las consultas de siempre.
+    if (nombre === 'torneo_ciclo' || nombre === 'torneos_reclamar_ausencia') {
+      if (typeof window === 'undefined' || !window.__CON_1438__) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      ;(window.__RPC_1438__ = window.__RPC_1438__ || []).push(nombre)
+      const yo = sesion?.user?.id || null
+      if (nombre === 'torneo_ciclo') {
+        const t = T.tournaments.find((x) => x.id === args.p_torneo)
+        if (!t) return { data: null, error: null }
+        const rs = T.rounds.filter((r) => r.tournament_id === t.id).sort((a, b) => a.round_number - b.round_number)
+        const ids = new Set(rs.map((r) => r.id))
+        const ms = T.tournament_matches.filter((m) => ids.has(m.round_id))
+        const mid = new Set(ms.map((m) => m.id))
+        const mando = yo && (t.admin_id === yo || (T.judge_applications || []).some((j) => j.tournament_id === t.id && j.user_id === yo && j.status === 'approved'))
+        const mias = new Set(ms.filter((m) => m.player_a_id === yo || m.player_b_id === yo).map((m) => m.id))
+        return { data: JSON.parse(JSON.stringify({
+          rondas: rs, mesas: ms,
+          resultados: T.match_results.filter((x) => mid.has(x.match_id)),
+          reportes: yo ? T.match_reports.filter((x) => mid.has(x.match_id) && (mando || mias.has(x.match_id))) : [],
+          bajas: T.tournament_registrations.filter((i) => i.tournament_id === t.id).map((i) => ({ id: i.id, user_id: i.user_id, status: i.status, dropped_at: i.dropped_at || null, dropped_after_round_id: i.dropped_after_round_id || null })),
+        })), error: null }
+      }
+      const m = T.tournament_matches.find((x) => x.id === args.p_partida)
+      if (!m || (yo !== m.player_a_id && yo !== m.player_b_id)) return { data: null, error: { message: 'Solo los jugadores de la mesa.' } }
+      if (m.status !== 'active') return { data: m.status, error: null }
+      const r = T.rounds.find((x) => x.id === m.round_id)
+      const t = T.tournaments.find((x) => x.id === r?.tournament_id)
+      if (!r || r.status !== 'active' || !(t?.checkin_minutes > 0)) return { data: 'sin_checkin', error: null }
+      if (Date.now() <= Date.parse(r.started_at) + t.checkin_minutes * 60000) return { data: 'pronto', error: null }
+      if (m.check_in_a_at && m.check_in_b_at) return { data: 'presentes', error: null }
+      const status = m.check_in_a_at ? 'forfeit_b' : m.check_in_b_at ? 'forfeit_a' : 'forfeit_both'
+      const winner = m.check_in_a_at ? m.player_a_id : m.check_in_b_at ? m.player_b_id : null
+      m.status = status
+      T.match_results.push({ id: `res-${T.match_results.length + 1}`, match_id: m.id, result: status, winner_id: winner, score: 'check_in' })
+      return { data: status, error: null }
+    }
     if (['mercado_con_tiendas', 'tiendas_con_la_carta', 'tiendas_agenda', 'tiendas_recien', 'mis_invitados', 'poner_padrino', 'mis_sesiones', 'cerrar_sesion', 'sobre_cifras'].includes(nombre)) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
     // (1236: las dos de la agenda y las tiendas de una carta, igual.)
     return { data: null, error: null }
