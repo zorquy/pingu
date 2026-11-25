@@ -78,7 +78,8 @@ for (const movil of [false, true]) {
       const chat = document.getElementById('miPartidaExtra')
       const h3 = document.querySelector('#torneoMiPartida > h3')
       return {
-        cab: cab?.textContent.replace(/\s+/g, ' ').trim(),
+        // Sin el «⋯» de tu mesa (1436), que lleva «Retirarme del torneo» dentro.
+        cab: [...(cab?.childNodes || [])].filter((n) => !n.matches?.('.torneo-mimesa-mas')).map((n) => n.textContent).join(' ').replace(/\s+/g, ' ').trim(),
         chapas: cab?.querySelectorAll('.torneo-chapa').length,
         h3Oculto: h3 ? h3.getBoundingClientRect().width <= 1 : true,
         reloj: reloj && { cifra: reloj.querySelector('#mesaRelojCifra')?.textContent, rotulo: reloj.querySelector('small')?.textContent, tam: parseFloat(getComputedStyle(reloj.querySelector('#mesaRelojCifra')).fontSize) },
