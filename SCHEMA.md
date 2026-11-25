@@ -55223,6 +55223,22 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1436 — Retirarse bien
+
+- Sin base: la baja sigue siendo el UPDATE de `tournament_registrations`
+  (`status = 'dropped'`, `dropped_after_round_id` = la ronda en curso), con
+  `.eq('status','active').select('id')`: cero filas es «no se ha guardado».
+- `refrescarBajas()` (exportada de `js/torneos/ronda.js`) lee `id, status,
+  dropped_at, dropped_after_round_id` del torneo y parchea los MISMOS objetos de
+  `ctx.inscripciones`; la llaman `generarPareos` y `sembrarTopCut` antes de
+  montar el snapshot. Si no puede leer, no empareja.
+- La ficha escucha `tournament_registrations` con `tournament_id=eq.<id>`;
+  `avisarBaja` (torneo.js) avisa a quien tiene el mando del paso a retirado.
+- `js/torneos/retirarse.js`: `lineasDeRetirada` (pura), `preguntarRetirada`
+  (el `<dialog>`, hoja desde abajo en el móvil con `.torneo-lista-ventana`) y
+  `retirarme`. El «⋯» de tu mesa lanza `torneo:retirarme`, que atiende
+  `pedirBaja` en torneo.js.
+
 ## Tanda 1434 — Crear un torneo, una pregunta cada vez
 
 - Sin base: la fila de `tournaments` (y el código en `tournament_join_codes`)

@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (685) — PINGU-Claude (1436 — Retirarse bien: los retirados ya no salen emparejados)
+
+**Hecho** (Tardeo de Testeo; Ibai: «si dropeas sigues saliendo en el
+emparejamiento», «dejar más claro el botón de dropear y que funcione»; PINGU:
+«adelante con todas las propuestas»):
+- **La causa**: «Emparejar» usaba las inscripciones que la pantalla de quien
+  organiza tenía cargadas, y la ficha no escuchaba las bajas. Ahora
+  `refrescarBajas()` (ronda.js) las relee justo antes de emparejar y de sembrar
+  el top, y la ficha escucha `tournament_registrations` de SU torneo: a quien
+  lleva el torneo le sale «X se ha retirado» al momento.
+- **Retirarse**: «⋯» en la cabecera de tu mesa (`.torneo-mimesa-mas`; ojo, la
+  `.torneo-mesa-mas` ya era el «⋯» de cada mesa en Mesas) con «Retirarme del
+  torneo», y la ventana de `js/torneos/retirarse.js` dice qué pasa (terminas la
+  ronda contra tu rival, no te emparejamos, no vuelves). El «Darme de baja» de
+  Info y de la sala usa la misma ventana. La baja solo se da por hecha si la
+  base devuelve la fila.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/torneo.js`,
+`js/torneos/retirarse.js` (nuevo), `css/torneos.css`, `normas/jugar.md`.
+Pruebas (rama `pruebas`): `test-tanda-1436-pantalla.mjs` (nueva) y la 1401
+(la cabecera de la mesa se lee sin el «⋯»).
+
+**Pendiente**: 1437–1442 (respaldo sin estampida, la ficha en una consulta, el
+canal por torneo, victoria sin check-in al momento, panel de juez, prueba de
+carga).
+
 ## 2026-11-25 (684) — PINGU-Claude (1435 urgente — la ficha del torneo llenaba las conexiones de Supabase)
 
 **Hecho** (PINGU, con el Tardeo de Testeo en marcha y 60 dentro: «la web está

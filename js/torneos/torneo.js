@@ -1304,30 +1304,27 @@ function engancharEditarTcgLive() {
 
 function engancharBaja() {
   const btn = $('btnBaja')
-  btn.addEventListener('click', async () => {
-    if (btn.dataset.confirmar !== '1') {
-      btn.dataset.confirmar = '1'
-      btn.textContent = '¿Seguro? La plaza no se recupera'
-      return
-    }
-    // SPEC §6.9: sigue jugando su ronda en curso y queda fuera del pareo
-    // siguiente; por eso se apunta la ronda en la que se fue.
-    const { error } = await supabase
-      .from('tournament_registrations')
-      .update({
-        status: 'dropped',
-        dropped_at: new Date().toISOString(),
-        dropped_after_round_id: torneo.current_round_id || null,
-      })
-      .eq('id', miInscripcion.id)
-    if (error) {
-      avisarError(error, 'No se ha podido tramitar la baja')
-      return
-    }
-    showToast('Baja tramitada. Si el torneo está en juego, tu ronda actual sigue contando.', 'success')
-    await recargar()
-  })
+  btn.addEventListener('click', () => void pedirBaja())
 }
+
+// La baja (1436): la ventana con lo que pasa, y solo se da por hecha si la
+// base devuelve la fila. SPEC §6.9: sigue jugando su ronda en curso y queda
+// fuera del pareo siguiente; por eso se apunta la ronda en la que se fue.
+async function pedirBaja() {
+  if (!miInscripcion || miInscripcion.status !== 'active') return
+  const empezado = ['in_progress', 'paused'].includes(torneo.status)
+  const mia = empezado ? ronda?.miMesaViva?.() : null
+  const { preguntarRetirada, retirarme } = await import('./retirarse.js')
+  if (!(await preguntarRetirada({ empezado, ronda: mia?.ronda || null, rival: mia?.rival || null }))) return
+  const res = await retirarme(miInscripcion.id, torneo.current_round_id)
+  if (!res.ok) {
+    showToast(res.mensaje, 'error')
+    return
+  }
+  showToast(empezado ? 'Te has retirado. Si tenías una partida en marcha, termínala: cuenta.' : 'Te has retirado del torneo.', 'success')
+  await recargar()
+}
+document.addEventListener('torneo:retirarme', () => void pedirBaja())
 
 // ── Tu decklist ──
 
@@ -1765,6 +1762,19 @@ function pintarTodo() {
   pintarInscritos()
 }
 
+// «X se ha retirado», a quien lleva el torneo y en el momento (1436). Solo
+// con el paso de activo a retirado: un UPDATE de otra columna no avisa.
+function avisarBaja(cambio) {
+  if (cambio?.table !== 'tournament_registrations' || !session || !mando()) return
+  const nueva = cambio.new || {}
+  const antes = inscripciones.find((i) => i.id === nueva.id)
+  if (nueva.status !== 'dropped' || !antes || antes.status === 'dropped' || nueva.user_id === session.user.id) return
+  antes.status = 'dropped'
+  antes.dropped_at = nueva.dropped_at
+  antes.dropped_after_round_id = nueva.dropped_after_round_id
+  showToast(`${antes.perfil?.username || 'Un jugador'} se ha retirado del torneo: no entra en el próximo emparejamiento.`, 'info')
+}
+
 async function recargar() {
   await cargarInscripciones()
   // Un juez aprobado lleva el torneo como el organizador (970) y ve las
@@ -2003,6 +2013,9 @@ function arrancarSondeoFicha() {
           { tabla: 'rounds', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'judge_calls', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'tournament_updates', filtro: `tournament_id=eq.${torneo.id}` },
+          // Las bajas (1436): sin escucharlas, quien organiza no se enteraba
+          // de que alguien se había retirado hasta su siguiente recarga.
+          { tabla: 'tournament_registrations', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'tournament_matches' },
           { tabla: 'match_messages' },
           // Los chats con el juez no se escuchaban (1340): llegaban con el
@@ -2015,6 +2028,7 @@ function arrancarSondeoFicha() {
           // Un mensaje de chat: los chats se ponen al día al momento, sin
           // esperar a que la ficha entera se recargue (1340).
           if (cambio?.table === 'match_messages' || cambio?.table === 'judge_messages') refrescarChats()
+          avisarBaja(cambio)
           ticDesdeVivo()
         },
         alEstado: (vivo) => sondeo.conVivo(vivo),

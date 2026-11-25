@@ -486,6 +486,68 @@ async function retirarNoConfirmados() {
   return retirados
 }
 
+// Quién sigue dentro, leído AHORA (1436). Se emparejaba con las
+// inscripciones del último refresco de la pantalla de quien organiza, y la
+// ficha no escuchaba las bajas: alguien se retiraba desde su móvil y salía
+// emparejado en la ronda siguiente (Tardeo de Testeo, 25-11, Ibai: «si
+// dropeas sigues saliendo en el emparejamiento»). Se parchean los MISMOS
+// objetos de `ctx.inscripciones`, que son los de torneo.js, y se devuelve
+// quién se ha ido desde lo que había en pantalla.
+export async function refrescarBajas() {
+  const { data, error } = await supabase
+    .from('tournament_registrations')
+    .select('id, status, dropped_at, dropped_after_round_id')
+    .eq('tournament_id', ctx.torneo.id)
+  if (error || !data) return null
+  const porId = new Map(data.map((f) => [f.id, f]))
+  const recien = []
+  for (const i of ctx.inscripciones) {
+    const fresca = porId.get(i.id)
+    if (!fresca) continue
+    if (fresca.status === 'dropped' && i.status !== 'dropped') recien.push(i)
+    i.status = fresca.status
+    i.dropped_at = fresca.dropped_at
+    i.dropped_after_round_id = fresca.dropped_after_round_id
+  }
+  return recien
+}
+
+// El «⋯» de tu mesa (1436): retirarse se busca donde estás durante el
+// torneo, no en Info. Lo hace torneo.js, que es quien tiene tu inscripción
+// (evento `torneo:retirarme`, como `torneo:llamar-juez`).
+function mesaMasHtml() {
+  const yo = ctx.inscripciones.find((i) => i.user_id === miId())
+  if (!yo || yo.status !== 'active') {
+    return yo?.status === 'dropped' ? '<span class="torneo-chapa torneo-chapa-neutra torneo-mesa-retirado">Te has retirado</span>' : ''
+  }
+  return `<details class="torneo-mas torneo-mas-claro torneo-mimesa-mas">
+      <summary class="torneo-mas-boton" aria-label="Más opciones de tu mesa">${icons.moreHorizontal(18)}</summary>
+      <div class="torneo-mas-menu"><button type="button" data-retirarme>Retirarme del torneo</button></div>
+    </details>`
+}
+
+// Delegado: la cabecera de la mesa se pinta por varios caminos (sin empezar,
+// en juego, entre rondas) y no todos enganchan sus botones.
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-retirarme]')
+    if (!b) return
+    b.closest('details')?.removeAttribute('open')
+    document.dispatchEvent(new CustomEvent('torneo:retirarme'))
+  })
+}
+
+// Tu mesa sin cerrar, para la ventana de la baja: «la ronda 2» y el rival.
+export function miMesaViva() {
+  const actual = rondaActual()
+  if (!actual) return null
+  const mia = partidas.find((m) => m.round_id === actual.id && (m.player_a_id === miId() || m.player_b_id === miId()))
+  if (!mia || TERMINALES.has(mia.status) || mia.status === 'bye') return null
+  const rival = mia.player_a_id === miId() ? mia.player_b_id : mia.player_a_id
+  const n = actual.phase === 'top_cut' ? null : actual.round_number
+  return { ronda: n ? nombreDeRonda(n) : 'esta ronda del top', rival: rival ? nombreDe(rival) : null }
+}
+
 async function generarPareos() {
   if (rondaActual()) {
     showToast('Ya hay una ronda en marcha: ciérrala antes de generar la siguiente.', 'error')
@@ -495,6 +557,17 @@ async function generarPareos() {
   if (n > ctx.torneo.swiss_rounds) {
     showToast('Las suizas están completas. La siembra del top cut llega en la próxima tanda.', 'error')
     return
+  }
+
+  // Las bajas, frescas (1436): sin esto, quien se retiró después del último
+  // refresco de esta pantalla entraba en el emparejamiento.
+  const recienIdos = await refrescarBajas()
+  if (recienIdos === null) {
+    showToast('No he podido comprobar quién sigue en el torneo. Vuelve a darle en un momento.', 'error')
+    return
+  }
+  if (recienIdos.length) {
+    showToast(`Se ha retirado ${recienIdos.map((i) => nombreDe(i.user_id)).join(', ')}: no entra en la ${nombreDeRonda(n)}.`, 'info')
   }
 
   // En una liga, quién juega esta jornada se lee AHORA y no del último
@@ -850,7 +923,12 @@ async function crearRondaDeCut(pareos) {
 
 async function sembrarTopCut() {
   // Ranking final sin los retirados; tamaño efectivo = mayor potencia
-  // de 2 que quepa. Con menos de 2 vivos, el torneo acaba aquí.
+  // de 2 que quepa. Con menos de 2 vivos, el torneo acaba aquí. Las bajas,
+  // leídas ahora (1436): el que se retiró tras la última suiza no entra.
+  if ((await refrescarBajas()) === null) {
+    showToast('No he podido comprobar quién sigue en el torneo. Vuelve a darle en un momento.', 'error')
+    return
+  }
   const clasificacion = computeStandings(montarSnapshot(rondas.length))
   const vivos = clasificacion.filter(
     (e) => ctx.inscripciones.find((i) => i.user_id === e.playerId)?.status === 'active'
@@ -2738,6 +2816,7 @@ function pintarMiPartida() {
     <div class="torneo-mesa-cab">
       <span class="torneo-mesa-cab-t">Mesa ${mia.table_number}</span>
       ${puesto ? `<span class="torneo-mesa-cab-puesto">${escapeHtml(puesto)}</span>` : ''}
+      ${mesaMasHtml()}
     </div>`
 
   if (mia.status === 'pending') {

@@ -396,3 +396,14 @@ toque» si es opcional), no otro campo en una pregunta que ya está: con su
 `.tc-opcion` que rellena un campo de siempre; lo marcado se lee del campo, nunca
 se guarda aparte. Y en el creador, Intro es «Siguiente»: crear solo con el botón
 del resumen.
+
+**Emparejar lee las bajas en ese momento** (1436, Ibai: «si dropeas sigues
+saliendo en el emparejamiento»): el pareo usaba las inscripciones de la pantalla
+de quien organiza, y la baja de un jugador desde su móvil no llegaba. Todo camino
+que empareje o siembre pasa antes por `refrescarBajas()`; y lo que cambie quién
+juega (bajas, listas de jornada) se lee AHORA, no del último refresco. Retirarse
+está en el «⋯» de tu mesa (`.torneo-mimesa-mas`) con la ventana de
+`js/torneos/retirarse.js`: una acción que no se deshace se confirma en una
+ventana que dice qué pasa, no con un segundo toque sobre el mismo botón (la
+ficha se repinta sola y lo devolvía a su estado).
+

@@ -5348,3 +5348,19 @@ button.torneo-tj { cursor: pointer; }
 .torneo-tabla-arranca svg { flex: none; color: var(--navy); }
 .torneo-tabla-arranca b { color: var(--navy); }
 .torneo-panel[data-panel='jugar']:has(#miPartidaContenido .torneo-entre) > #torneoMazoCaja { display: none; }
+
+/* ── Retirarse (1436): el «⋯» de tu mesa y la ventana que dice qué pasa ── */
+.torneo-mas-claro .torneo-mas-boton { width: 34px; height: 34px; border-color: var(--border); background: var(--white); color: var(--navy); }
+.torneo-mas-claro .torneo-mas-boton:hover { background: var(--bg); }
+.torneo-mimesa-mas, .torneo-mesa-retirado { margin-left: auto; }
+.torneo-mesa-cab-puesto ~ .torneo-mimesa-mas, .torneo-mesa-cab-puesto ~ .torneo-mesa-retirado { margin-left: 0; }
+.torneo-mimesa-mas [data-retirarme] { color: var(--danger); }
+.torneo-retirada h3 { margin: 0 0 var(--e-sm); }
+.torneo-retirada-lineas { display: grid; gap: var(--e-xs); margin: 0 0 var(--e-md); padding: 0; list-style: none; font-size: var(--t-sm); }
+.torneo-retirada-lineas li { display: grid; grid-template-columns: 24px 1fr; gap: var(--e-xs); align-items: start; }
+.torneo-retirada-lineas li > span { display: grid; place-items: center; padding-top: 1px; }
+.torneo-retirada-lineas .si > span { color: var(--success); }
+.torneo-retirada-lineas .no > span { color: var(--danger); }
+.torneo-retirada-botones { display: grid; gap: var(--e-xs); }
+.torneo-retirada-si { background: var(--danger-solid); border-color: var(--danger-solid); }
+.torneo-retirada-si:hover { filter: brightness(0.95); }
