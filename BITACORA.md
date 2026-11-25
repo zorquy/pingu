@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (689) — PINGU-Claude (1443 — Basic Box, el Top 4 bueno en la imagen del meta y lo que falta por catalogar)
+
+**Hecho** (Ibai, con la imagen del meta del Tardeo de Testeo: «qué cojones el
+top 4», «que añada todos los arquetipos de Limitless y los Basic Box»):
+- La imagen del meta saca como Top 4 el PODIO cuando el torneo ha terminado
+  con corte (campeón, finalista y semifinalistas); antes cogía los cuatro
+  primeros del suizo.
+- «Basic Box»: un mazo de seis o más básicos sueltos, sin evolución, sin megas
+  y sin más de tres copias de ninguno sale con ese nombre en vez de por dos de
+  sus Pokémon (`esBasicBox` en `js/torneos/arquetipos.js`).
+- /admin → Arquetipos → **Sin catalogar en los últimos torneos**: los mazos
+  deducidos de los ocho últimos torneos terminados, contados; «Catalogar»
+  rellena el formulario (nombre, identificador, iconos y cartas que tiene que
+  llevar) y solo queda poner el nombre de Limitless.
+
+**Lo que NO se ha podido**: traer la lista de arquetipos de Limitless. Desde
+esta sesión limitlesstcg.com no resuelve (ni con el dominio permitido en el
+entorno). El catálogo se llena desde /admin con la lista nueva, o pegándome la
+lista de Limitless.
+
+**Ficheros**: `js/torneos/arquetipos.js`, `js/torneos/ronda.js`,
+`admin/js/admin.js`, `admin/index.html`. Pruebas: la 261 (Basic Box) y
+`test-tanda-1443-pantalla.mjs`.
+
+**Pendiente**: 1444 (el gráfico por arquetipo), 1442 (prueba de carga).
+
 ## 2026-11-25 (688) — PINGU-Claude (1441 — El panel de juez con tickets y el juez en el chat de la mesa)
 
 **Hecho** (Ibai, tras el Tardeo de Testeo: «mejorar la interfaz de jueces y el

@@ -1993,6 +1993,8 @@ async function guardarArquetipo() {
   showToast(arquetipoEditando ? 'Arquetipo actualizado.' : 'Arquetipo creado.', 'success')
   limpiarFormularioArquetipo()
   await loadArquetipos()
+  // Si se estaba catalogando desde la lista, que desaparezca lo ya hecho.
+  if (document.querySelector('#arquetiposSinCatalogar table')) cargarSinCatalogar()
 }
 
 async function borrarArquetipo(id) {
@@ -2011,9 +2013,99 @@ async function borrarArquetipo(id) {
   await loadArquetipos()
 }
 
+// ── Lo que falta por catalogar (1443) ──
+//
+// El Tardeo de Testeo sacó la imagen del meta con nombres deducidos («Mega
+// Rayquaza ex Dragapult ex») donde Limitless dice otra cosa, porque el
+// catálogo estaba casi vacío. Catalogar a mano pedía saber set y número de
+// cada icono; aquí salen los mazos sin catalogar de los últimos torneos
+// terminados, contados, y «Catalogar» rellena el formulario con lo deducido:
+// solo queda poner el nombre bueno. Las listas de un torneo terminado ya son
+// legibles para el admin (política `decklists_ver`), salvo las «nunca».
+async function cargarSinCatalogar() {
+  const caja = document.getElementById('arquetiposSinCatalogar')
+  if (!caja) return
+  caja.innerHTML = '<p class="admin-note">Mirando los últimos torneos…</p>'
+  const { arquetipoDeMazo, claveDeArquetipo } = await import('../../js/torneos/arquetipos.js')
+  const { data: torneos } = await supabase
+    .from('tournaments')
+    .select('id, name')
+    .eq('status', 'finished')
+    .order('start_at', { ascending: false })
+    .limit(8)
+  const ids = (torneos || []).map((t) => t.id)
+  if (!ids.length) {
+    caja.innerHTML = '<p class="admin-note">Aún no hay torneos terminados.</p>'
+    return
+  }
+  const { data: listas } = await supabase
+    .from('tournament_decklists')
+    .select('tournament_id, parsed_cards')
+    .in('tournament_id', ids)
+  const grupos = new Map()
+  for (const l of listas || []) {
+    if (!l?.parsed_cards) continue
+    const arq = arquetipoDeMazo(l.parsed_cards, arquetiposCache.filter((a) => a.activo !== false))
+    // Basic Box se reconoce por su forma, no por cartas: no se cataloga.
+    if (arq.curado || arq.nombre === 'Basic Box') continue
+    const clave = claveDeArquetipo(arq)
+    const g = grupos.get(clave) || { arq, veces: 0, torneos: new Set() }
+    g.veces++
+    g.torneos.add(l.tournament_id)
+    grupos.set(clave, g)
+  }
+  const filas = [...grupos.values()].sort((a, b) => b.veces - a.veces)
+  if (!filas.length) {
+    caja.innerHTML = '<p class="admin-note">Todos los mazos de los últimos torneos tienen su arquetipo.</p>'
+    return
+  }
+  caja.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>Se deduce como</th><th>Mazos</th><th>Iconos</th><th></th></tr></thead>
+      <tbody>${filas
+        .map(
+          (g, i) => `
+        <tr>
+          <td>${escapeHtml(g.arq.nombre)}</td>
+          <td>${g.veces} <span class="subtext">en ${g.torneos.size} torneo${g.torneos.size === 1 ? '' : 's'}</span></td>
+          <td class="subtext">${escapeHtml((g.arq.iconos || []).map((x) => `${x.set || '?'} ${x.numero || '?'}`).join(', '))}</td>
+          <td><button class="btn-secondary" data-catalogar="${i}">Catalogar</button></td>
+        </tr>`
+        )
+        .join('')}</tbody>
+    </table>`
+  caja.querySelectorAll('[data-catalogar]').forEach((b) =>
+    b.addEventListener('click', () => rellenarDesdeDeducido(filas[Number(b.dataset.catalogar)].arq))
+  )
+}
+
+// El formulario con lo deducido: el nombre tal cual (para cambiarlo por el de
+// Limitless), los dos iconos y, como requisitos, las cartas de los iconos.
+function rellenarDesdeDeducido(arq) {
+  limpiarFormularioArquetipo()
+  const [i1, i2] = arq.iconos || []
+  document.getElementById('arqFormTitulo').textContent = 'Nuevo arquetipo (desde un torneo)'
+  document.getElementById('arqId').value = slugify(arq.nombre)
+  document.getElementById('arqNombre').value = arq.nombre
+  document.getElementById('arqIcono1Set').value = i1?.set || ''
+  document.getElementById('arqIcono1Num').value = i1?.numero || ''
+  document.getElementById('arqIcono2Set').value = i2?.set || ''
+  document.getElementById('arqIcono2Num').value = i2?.numero || ''
+  document.getElementById('arqRequiere').value = (arq.iconos || [])
+    .map((x) => x.nombre)
+    .filter(Boolean)
+    .join('\n')
+  document.getElementById('btnCancelarArquetipo').classList.remove('hidden')
+  const nombre = document.getElementById('arqNombre')
+  nombre.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  nombre.focus()
+  nombre.select()
+}
+
 function initArquetiposSection() {
   document.getElementById('btnGuardarArquetipo')?.addEventListener('click', guardarArquetipo)
   document.getElementById('btnCancelarArquetipo')?.addEventListener('click', limpiarFormularioArquetipo)
+  document.getElementById('btnSinCatalogar')?.addEventListener('click', cargarSinCatalogar)
 }
 
 // ═══════════════════════════════════════════════════════════════════

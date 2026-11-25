@@ -55223,6 +55223,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1443 — Basic Box, Top 4 del podio y lo que falta por catalogar
+
+Sin migración. `js/torneos/arquetipos.js`: `esBasicBox(parsed)` (exportada;
+≥ 6 líneas sin motores, cada una de una sola carta, ≤ 3 copias, ninguna mega)
+y `arquetipoDeMazo` la usa antes del nombre deducido (`curado: false`).
+`js/torneos/ronda.js`: `topParaImagen(tabla)` — el podio (`podioDelTorneo`)
+si el torneo está `finished` y tuvo `top_cut`; si no, la clasificación.
+`/admin` → Arquetipos: `#btnSinCatalogar` → `cargarSinCatalogar()` (8 últimos
+`tournaments` terminados por `start_at`, sus `tournament_decklists`, agrupado
+por `claveDeArquetipo`, fuera los curados y «Basic Box») y
+`rellenarDesdeDeducido(arq)`.
+
 ## Tanda 1441 — El panel de juez con tickets
 
 Migración `supabase-migration-1441-juez-con-tickets.sql` (dos veces sin

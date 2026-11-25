@@ -3929,6 +3929,11 @@ function pintarMeta() {
 // agrupado y la clasificación final, con el corte mandando.
 // Apagado mientras se monta: tarda lo que tarden en llegar los sprites, y
 // un segundo toque bajaría la imagen dos veces.
+function topParaImagen(tabla) {
+  const podio = ctx.torneo.status === 'finished' && rondas.some((r) => r.phase === 'top_cut') ? podioDelTorneo() : []
+  return (podio.length ? podio : tabla.map((e) => e.playerId)).slice(0, 4)
+}
+
 async function descargarMetaComoImagen(boton) {
   boton.disabled = true
   try {
@@ -3944,9 +3949,12 @@ async function descargarMetaComoImagen(boton) {
       },
       meta: agruparMeta(arquetipos, tabla),
       jugadores: tabla.length,
-      top: tabla.slice(0, 4).map((e) => {
-        const arq = arquetipos.get(e.playerId) || null
-        return { nombre: nombreDe(e.playerId), mazo: arq?.nombre || null, arq }
+      // El Top 4 es el del PODIO cuando hay corte y el torneo ha terminado
+      // (1443, Ibai: «qué cojones el top 4»): campeón, finalista y los dos
+      // semifinalistas, como en la ficha; sin corte, la clasificación.
+      top: topParaImagen(tabla).map((id) => {
+        const arq = arquetipos.get(id) || null
+        return { nombre: nombreDe(id), mazo: arq?.nombre || null, arq }
       }),
     })
   } catch {

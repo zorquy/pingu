@@ -318,7 +318,20 @@ export function arquetipoDeMazo(parsed, catalogo) {
     }
   }
   const iconos = deducirIconos(parsed)
+  if (esBasicBox(parsed)) return { id: null, nombre: 'Basic Box', iconos, curado: false }
   return { id: null, nombre: nombreDeducido(iconos), iconos, curado: false }
+}
+
+// «Basic Box» (1443, Ibai: «que añada los basic box»): el mazo de muchos
+// básicos sueltos, sin líneas de evolución y sin un atacante que lo domine.
+// Limitless lo llama así en vez de por dos de sus Pokémon. La regla: seis
+// líneas o más, ninguna con dos cartas distintas (nada evoluciona) y
+// ninguna con más de tres copias.
+export function esBasicBox(parsed) {
+  const grupos = agruparPorLinea(parsed?.pokemon || []).filter((g) => !esMotor(g.cabeza.linea.name))
+  if (grupos.length < 6) return false
+  const distintas = (g) => new Set(g.cartas.map((c) => normalizarNombre(c.linea.name))).size
+  return grupos.every((g) => distintas(g) === 1 && g.copias <= 3 && !/\bmega\b/i.test(g.cabeza.linea.name))
 }
 
 // Para el registro de partidas y para agrupar: dos mazos son el mismo
