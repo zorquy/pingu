@@ -82,7 +82,9 @@ console.log('\n── 2. Cuando llega un cambio, la ficha se refresca ──')
   )
   check('hay canal de torneo al que emitir', Boolean(canal), String(canal))
   await page.evaluate((n) => window.__VIVO__?.emitir(n), canal)
-  await page.waitForTimeout(1200)
+  // Desde la 1435 un aviso no recarga al momento: espera 2–7 s al azar para
+  // que no recarguen todas las fichas a la vez.
+  await page.waitForTimeout(8000)
   const despues = await page.evaluate(() => window.__CONSULTAS__?.n ?? 0)
   check('un evento provoca una recarga', despues > antes, `${antes} → ${despues}`)
   await page.close()
@@ -101,14 +103,15 @@ console.log('\n── 3. LA RED DE SEGURIDAD: si el vivo se cae, se sigue ──
   await page.evaluate(() => window.__VIVO__?.estado(false))
   await page.waitForTimeout(300)
   const sinVivo = await page.evaluate(() => (window.__VIVO__?.sondeos || []).map((s) => s.__estado.ms))
-  check('si se cae, el sondeo vuelve a su ritmo', sinVivo.length >= 1 && sinVivo.every((ms) => ms === 10000), JSON.stringify(sinVivo))
+  // Desde la 1437, escalonado: empieza por 15 s y sube (15, 20, 30), con azar.
+  check('si se cae, el sondeo vuelve a su ritmo (el primer escalón, 15 s)', sinVivo.length >= 1 && sinVivo.every((ms) => ms === 15000), JSON.stringify(sinVivo))
 
   // Y que el sondeo siga LLAMANDO de verdad, no solo teniendo el número
   // bien: un intervalo bien configurado que nadie arranca no sirve.
   const cuenta = () => page.evaluate(() => window.__VIVO__?.sondeos?.[0]?.__estado?.llamadas ?? -1)
   const llamadasAntes = await cuenta()
   check('hay un sondeo de respaldo que mirar', llamadasAntes >= 0, `${llamadasAntes}`)
-  await page.waitForTimeout(11000)
+  await page.waitForTimeout(16000)
   const llamadasDespues = await cuenta()
   check('y de verdad vuelve a pedir datos', llamadasDespues > llamadasAntes && llamadasAntes >= 0, `${llamadasAntes} → ${llamadasDespues}`)
   await page.close()

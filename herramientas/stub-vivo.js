@@ -48,6 +48,34 @@ export function sondeoAdaptable(fn, msNormal, factorDormido = 6) {
 
 const SONDEOS = []
 
+// El escalonado (1437): en el doble, los mismos escalones sin azar, para que
+// una prueba sepa cuánto espera. Se apunta en SONDEOS como el de arriba.
+export function sondeoEscalonado(fn, { pasos = [15000, 20000, 30000], conVivo = 60000 } = {}) {
+  const estado = { ms: pasos[0], vivo: false, llamadas: 0, paso: 0, escalonado: true }
+  let timer = null
+  const siguiente = () => {
+    clearTimeout(timer)
+    estado.ms = estado.vivo ? conVivo : pasos[Math.min(estado.paso, pasos.length - 1)]
+    timer = setTimeout(async () => {
+      estado.llamadas++
+      try { await fn() } finally { if (!estado.vivo) estado.paso++; siguiente() }
+    }, estado.ms)
+  }
+  siguiente()
+  const api = {
+    conVivo(estaVivo) {
+      if (estaVivo === estado.vivo) return
+      estado.vivo = estaVivo
+      if (!estaVivo) estado.paso = 0
+      siguiente()
+    },
+    parar() { clearTimeout(timer) },
+    __estado: estado,
+  }
+  SONDEOS.push(api)
+  return api
+}
+
 // La difusión (1140, «escribiendo…»): entre pestañas del mismo navegador con
 // BroadcastChannel, que es lo que hace el canal de verdad entre dos personas.
 const DIFUSIONES = []
