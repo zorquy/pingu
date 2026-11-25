@@ -38,6 +38,7 @@ import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
+import { cifrasDeArquetipo } from './meta-cruces.js'
 import { adjuntarATorneo, quitarDeTorneo, repeticionesDePartidas, misRepeticiones, guardar as guardarRepeticion, adjuntarDeMesa, quitarDeMesa } from '../repeticiones/datos.js'
 import { ICONOS_REPETICION } from '../repeticiones/iconos.js'
 
@@ -3883,11 +3884,14 @@ function pintarMeta() {
   // y lo recataloga): entonces se vuelve a la vista general.
   if (metaAbierto && !meta.arquetipos.some((g) => g.clave === metaAbierto)) metaAbierto = null
   const marcar = Boolean(mando() || ctx.esJuez)
+  const orden = clasificacionFinal()
   const html = metaHtml(meta, metaAbierto, {
     chapa: (arq) => chapaArquetipoHtml(arq, { marcar }),
     nombreDe,
     enJuego: ctx.torneo.status !== 'finished',
     exportar: ctx.torneo.status === 'finished' && Boolean(mando()),
+    // Cómo le fue a cada mazo (1444): con las mesas y resultados que ya hay.
+    cifras: (clave) => cifrasDeArquetipo({ meta, clave, partidas, resultadoDe, orden, corte: ctx.torneo.top_cut_size || 0 }),
   })
   const contenido = $('metaContenido')
   if (!metaEnganchado) {
@@ -3899,8 +3903,11 @@ function pintarMeta() {
       const volver = e.target.closest('[data-meta-volver]')
       const ver = e.target.closest('[data-meta-lista]')
       const imagen = e.target.closest('[data-meta-imagen]')
+      const imagenArq = e.target.closest('[data-meta-imagen-arq]')
       if (imagen) {
         void descargarMetaComoImagen(imagen)
+      } else if (imagenArq) {
+        void descargarArquetipoComoImagen(imagenArq, imagenArq.dataset.metaImagenArq)
       } else if (fila) {
         metaAbierto = fila.dataset.metaArquetipo
         pintarMeta()
@@ -3956,6 +3963,27 @@ async function descargarMetaComoImagen(boton) {
         const arq = arquetipos.get(id) || null
         return { nombre: nombreDe(id), mazo: arq?.nombre || null, arq }
       }),
+    })
+  } catch {
+    showToast('No se ha podido montar la imagen.', 'error')
+  } finally {
+    boton.disabled = false
+  }
+}
+
+// La imagen de UN mazo (1444), como las de poke_hive que pasó Ibai: lo mismo
+// que la vista del arquetipo, en un 1080×1350 para compartir.
+async function descargarArquetipoComoImagen(boton, clave) {
+  boton.disabled = true
+  try {
+    const { descargarImagenArquetipo } = await import('./meta-imagen.js')
+    const orden = clasificacionFinal()
+    const meta = agruparMeta(arquetipos, orden)
+    const cifras = cifrasDeArquetipo({ meta, clave, partidas, resultadoDe, orden, corte: ctx.torneo.top_cut_size || 0 })
+    if (!cifras) return
+    await descargarImagenArquetipo({
+      torneo: { nombre: ctx.torneo.name, fecha: ctx.torneo.start_at, jugadores: orden.length },
+      cifras,
     })
   } catch {
     showToast('No se ha podido montar la imagen.', 'error')

@@ -186,7 +186,7 @@ function pintarFondo(ctx) {
   ctx.restore()
 }
 
-function pintarCabecera(ctx, { nombre, linea }) {
+function pintarCabecera(ctx, { nombre, linea, titulo = 'El meta del torneo' }) {
   ctx.save()
   const g = ctx.createLinearGradient(0, 0, W, 252)
   g.addColorStop(0, C.navyClaro)
@@ -230,7 +230,7 @@ function pintarCabecera(ctx, { nombre, linea }) {
   ctx.fillText(recortar(ctx, nombre, ancho), x, 100)
   ctx.font = '600 40px Outfit, Inter, sans-serif'
   ctx.fillStyle = C.hielo
-  ctx.fillText('El meta del torneo', x, 158)
+  ctx.fillText(recortar(ctx, titulo, ancho), x, 158)
   ctx.font = '500 26px Inter, sans-serif'
   ctx.fillStyle = C.suave
   ctx.fillText(recortar(ctx, linea, ancho), x, 204)
@@ -568,7 +568,7 @@ function pintarAbajo(ctx, { jugadores, total, top, iconosTop }) {
   ctx.restore()
 }
 
-function pintarPie(ctx, total) {
+function pintarPie(ctx, total, lineas = ['Mazos agrupados por su Pokémon principal ·', `porcentajes sobre las ${total} listas`]) {
   ctx.save()
   ctx.fillStyle = 'rgba(9, 15, 22, 0.75)'
   ctx.fillRect(0, H - 84, W, 84)
@@ -585,8 +585,8 @@ function pintarPie(ctx, total) {
   ctx.font = '500 17px Inter, sans-serif'
   ctx.fillStyle = C.apagado
   ctx.textAlign = 'right'
-  ctx.fillText('Mazos agrupados por su Pokémon principal ·', W - 56, H - 53)
-  ctx.fillText(`porcentajes sobre las ${total} listas`, W - 56, H - 31)
+  ctx.fillText(lineas[0], W - 56, H - 53)
+  ctx.fillText(lineas[1], W - 56, H - 31)
   ctx.restore()
 }
 
@@ -650,6 +650,251 @@ export async function descargarImagenMeta(datos) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
   enlace.download = `meta-${nombre || 'torneo'}.png`
+  enlace.click()
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+  return canvas
+}
+
+// ── La imagen de UN mazo (1444) ──
+//
+// Lo que poke_hive saca de los torneos grandes, con los datos de uno nuestro:
+// cuatro losas (representación, victorias, empates, conversión), el % contra
+// todo y sin el espejo, dónde acabaron sus jugadores y los cruces contra cada
+// mazo rival con su color. Las cifras vienen hechas (meta-cruces.js).
+const pctImg = (x) => (x === null || x === undefined ? '—' : `${(x * 100).toFixed(1).replace('.', ',')} %`)
+const MAX_CRUCES = 9
+
+function losa(ctx, x, y, w, h, { titulo, cifra, sub }) {
+  caja(ctx, x, y, w, h)
+  ctx.save()
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = C.apagado
+  let letra = 17
+  ctx.font = `700 ${letra}px Inter, sans-serif`
+  while (letra > 12 && ctx.measureText(titulo.toUpperCase()).width > w - 20) {
+    letra--
+    ctx.font = `700 ${letra}px Inter, sans-serif`
+  }
+  ctx.fillText(recortar(ctx, titulo.toUpperCase(), w - 20), x + w / 2, y + 40)
+  ctx.fillStyle = C.blanco
+  let tam = 46
+  ctx.font = `800 ${tam}px Inter, sans-serif`
+  while (tam > 28 && ctx.measureText(cifra).width > w - 24) {
+    tam -= 2
+    ctx.font = `800 ${tam}px Inter, sans-serif`
+  }
+  ctx.fillText(cifra, x + w / 2, y + 100)
+  ctx.fillStyle = C.suave
+  ctx.font = '500 17px Inter, sans-serif'
+  ctx.fillText(recortar(ctx, sub, w - 20), x + w / 2, y + 136)
+  ctx.restore()
+}
+
+function barraPct(ctx, x, y, w, { etiqueta, p, color }) {
+  ctx.save()
+  ctx.font = '600 21px Inter, sans-serif'
+  ctx.fillStyle = C.suave
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillText(etiqueta, x, y)
+  ctx.textAlign = 'right'
+  ctx.fillStyle = C.blanco
+  ctx.font = '800 24px Inter, sans-serif'
+  ctx.fillText(pctImg(p), x + w, y)
+  redondo(ctx, x, y + 12, w, 16, 8)
+  ctx.fillStyle = 'rgba(124, 198, 216, 0.14)'
+  ctx.fill()
+  if (p) {
+    redondo(ctx, x, y + 12, Math.max(16, w * p), 16, 8)
+    ctx.fillStyle = color
+    ctx.fill()
+  }
+  // La raya del 50 %: a un lado gana, al otro pierde.
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'
+  ctx.fillRect(x + w / 2 - 1, y + 6, 2, 28)
+  ctx.restore()
+}
+
+export async function dibujarImagenArquetipo({ torneo, cifras: c }) {
+  try {
+    await Promise.all(['700 60px Outfit', '600 40px Outfit', '500 26px Inter', '700 25px Inter', '800 46px Inter'].map((f) => document.fonts.load(f)))
+  } catch {}
+  const filas = c.cruces.slice(0, MAX_CRUCES)
+  const [propios, rivales] = await Promise.all([
+    iconosDe(c.grupo.arq),
+    Promise.all(filas.map((x) => (x.grupo ? iconosDe({ ...x.grupo.arq, iconos: (x.grupo.arq.iconos || []).slice(0, 1) }) : []))),
+  ])
+  const canvas = document.createElement('canvas')
+  canvas.width = W * ESCALA
+  canvas.height = H * ESCALA
+  const ctx = canvas.getContext('2d')
+  ctx.scale(ESCALA, ESCALA)
+  const fecha = torneo.fecha ? new Date(torneo.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+  pintarFondo(ctx)
+  pintarCabecera(ctx, {
+    nombre: nombreCorto(c.grupo.arq.nombre) || 'Mazo',
+    titulo: torneo.nombre || 'Torneo',
+    linea: [fecha, `${torneo.jugadores} jugadores`].filter(Boolean).join(' · '),
+  })
+
+  // Fila 1: los iconos del mazo y las cuatro losas.
+  const y1 = 280
+  const h1 = 160
+  // Sin iconos (no cargó ninguno) no se deja una caja vacía: las losas ocupan la fila.
+  const conIconos = propios.length > 0
+  if (conIconos) {
+    caja(ctx, 56, y1, 224, h1)
+    propios.slice(0, 2).forEach((ic, i, a) => pintarIcono(ctx, ic, 56 + 112 + (a.length === 2 ? (i ? 52 : -52) : 0), y1 + h1 / 2, 104))
+  }
+  const conv = c.conversion
+  const losas = [
+    { titulo: 'Representación', cifra: pctImg(c.representacion), sub: `${c.jugadores} de ${c.listas} listas` },
+    { titulo: 'Victorias', cifra: pctImg(c.porcentaje), sub: `${c.v}-${c.d}-${c.e}` },
+    { titulo: 'Empates', cifra: pctImg(c.empates), sub: `${c.partidas} partidas` },
+    { titulo: conv.porCorte ? 'Al corte' : `Top ${conv.plazas}`, cifra: `${conv.convertidos}/${conv.de}`, sub: conv.de ? pctImg(conv.convertidos / conv.de) : '—' },
+  ]
+  const x0 = conIconos ? 296 : 56
+  const wl = (1024 - x0 - 3 * 12) / 4
+  losas.forEach((l, i) => losa(ctx, x0 + i * (wl + 12), y1, wl, h1, l))
+
+  // Fila 2: contra el meta y dónde acabaron.
+  const y2 = 464
+  const h2 = 236
+  caja(ctx, 56, y2, 472, h2)
+  ctx.save()
+  ctx.fillStyle = C.hielo
+  ctx.font = '600 26px Outfit, Inter, sans-serif'
+  ctx.fillText('Contra el meta', 84, y2 + 46)
+  ctx.restore()
+  barraPct(ctx, 84, y2 + 104, 416, { etiqueta: 'Todas sus partidas', p: c.porcentaje, color: C.hielo })
+  barraPct(ctx, 84, y2 + 184, 416, { etiqueta: 'Sin contar el espejo', p: c.porcentajeSinEspejo, color: C.ambar })
+
+  caja(ctx, 552, y2, 472, h2)
+  ctx.save()
+  ctx.fillStyle = C.hielo
+  ctx.font = '600 26px Outfit, Inter, sans-serif'
+  ctx.fillText('Dónde acabaron', 580, y2 + 46)
+  const tramos = c.tramos
+  const maxT = Math.max(1, ...tramos.map((t) => t.cuantos))
+  const zonaX = 580
+  const zonaW = 416
+  const paso = zonaW / tramos.length
+  const base = y2 + h2 - 44
+  const alto = 92
+  tramos.forEach((t, i) => {
+    const bx = zonaX + i * paso + paso * 0.18
+    const bw = paso * 0.64
+    const bh = t.cuantos ? Math.max(8, (t.cuantos / maxT) * alto) : 3
+    redondo(ctx, bx, base - bh, bw, bh, Math.min(6, bw / 2))
+    ctx.fillStyle = t.cuantos ? C.hielo : 'rgba(124, 198, 216, 0.25)'
+    ctx.fill()
+    ctx.textAlign = 'center'
+    ctx.fillStyle = C.blanco
+    ctx.font = '800 20px Inter, sans-serif'
+    if (t.cuantos) ctx.fillText(String(t.cuantos), bx + bw / 2, base - bh - 8)
+    ctx.fillStyle = C.apagado
+    ctx.font = '600 15px Inter, sans-serif'
+    ctx.fillText(t.etiqueta.replace('Top ', 'T'), bx + bw / 2, base + 24)
+  })
+  ctx.restore()
+
+  // Fila 3: los cruces.
+  const y3 = 724
+  const h3 = H - 84 - 24 - y3
+  caja(ctx, 56, y3, 968, h3)
+  const cols = [
+    { t: '% vict.', x: 600 },
+    { t: 'Σ', x: 690 },
+    { t: 'V', x: 760 },
+    { t: 'D', x: 830 },
+    { t: 'E', x: 890 },
+    { t: '% emp.', x: 1000 },
+  ]
+  ctx.save()
+  ctx.fillStyle = C.hielo
+  ctx.font = '600 26px Outfit, Inter, sans-serif'
+  ctx.fillText('Contra cada mazo', 84, y3 + 44)
+  ctx.font = '700 16px Inter, sans-serif'
+  ctx.fillStyle = C.apagado
+  ctx.textAlign = 'right'
+  for (const col of cols) ctx.fillText(col.t, col.x, y3 + 44)
+  const fila = 46
+  filas.forEach((x, i) => {
+    const fy = y3 + 66 + i * fila
+    if (i % 2 === 0) {
+      ctx.fillStyle = 'rgba(124, 198, 216, 0.05)'
+      ctx.fillRect(72, fy, 936, fila)
+    }
+    // La casilla del %: verde si gana, roja si pierde, gris en el 50 %.
+    ctx.fillStyle = colorDeCruceImg(x.porcentaje)
+    redondo(ctx, 508, fy + 6, 104, fila - 12, 8)
+    ctx.fill()
+    const cy = fy + fila / 2
+    ctx.textBaseline = 'middle'
+    if (rivales[i]?.[0]) pintarIcono(ctx, rivales[i][0], 100, cy, 36)
+    ctx.textAlign = 'left'
+    ctx.fillStyle = C.blanco
+    ctx.font = `${x.espejo ? 'italic ' : ''}600 21px Inter, sans-serif`
+    const nombre = x.grupo ? nombreCorto(x.grupo.arq.nombre) : 'Sin lista'
+    ctx.fillText(recortar(ctx, `${nombre}${x.espejo ? ' (espejo)' : ''}`, 360), 132, cy)
+    ctx.textAlign = 'right'
+    ctx.font = '800 21px Inter, sans-serif'
+    ctx.fillText(pctImg(x.porcentaje), 600, cy)
+    ctx.font = '600 21px Inter, sans-serif'
+    ctx.fillStyle = C.suave
+    ;[x.partidas, x.v, x.d, x.e].forEach((n, k) => ctx.fillText(String(n), cols[k + 1].x, cy))
+    ctx.fillText(pctImg(x.empates), 1000, cy)
+  })
+  if (c.cruces.length > filas.length) {
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillStyle = C.apagado
+    ctx.font = '500 17px Inter, sans-serif'
+    const resto = c.cruces.length - filas.length
+    ctx.fillText(`y ${resto} ${resto === 1 ? 'mazo' : 'mazos'} más con menos partidas`, 84, y3 + h3 - 18)
+  }
+  ctx.restore()
+
+  pintarPie(ctx, c.listas, ['Solo partidas jugadas: sin byes ni', 'victorias por no presentarse · el corte cuenta'])
+  return canvas
+}
+
+// Como `colorDeCruce` (meta-cruces.js) pero sobre el azul oscuro de la imagen:
+// más opaco, para que se lea el color.
+function colorDeCruceImg(p) {
+  if (p === null || p === undefined) return 'rgba(124, 198, 216, 0.12)'
+  const d = Math.max(-1, Math.min(1, (p - 0.5) * 2))
+  // El 50 % es «ni bien ni mal»: gris, ni verde ni rojo.
+  if (Math.abs(d) < 0.05) return 'rgba(157, 180, 196, 0.28)'
+  const tono = d > 0 ? 145 : 4
+  return `hsla(${tono}, 60%, 42%, ${(0.25 + Math.abs(d) * 0.65).toFixed(2)})`
+}
+
+export async function descargarImagenArquetipo(datos) {
+  if (!datos?.cifras?.partidas) {
+    showToast('Este mazo no tiene partidas jugadas con las que hacer la imagen.', 'error')
+    return null
+  }
+  showToast('Preparando la imagen del mazo…')
+  const canvas = await dibujarImagenArquetipo(datos)
+  let blob
+  try {
+    blob = await new Promise((ok, mal) => canvas.toBlob((b) => (b ? ok(b) : mal(new Error('sin imagen'))), 'image/png'))
+  } catch {
+    showToast('No se ha podido montar la imagen.', 'error')
+    return null
+  }
+  const url = URL.createObjectURL(blob)
+  const enlace = document.createElement('a')
+  enlace.href = url
+  const limpio = (t) =>
+    String(t || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  enlace.download = `meta-${limpio(datos.torneo?.nombre) || 'torneo'}-${limpio(nombreCorto(datos.cifras.grupo.arq.nombre)) || 'mazo'}.png`
   enlace.click()
   setTimeout(() => URL.revokeObjectURL(url), 60000)
   return canvas

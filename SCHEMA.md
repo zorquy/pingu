@@ -55223,6 +55223,18 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1444 — Cómo le fue a cada mazo
+
+Sin migración. `js/torneos/meta-cruces.js`: `cifrasDeArquetipo({ meta, clave,
+partidas, resultadoDe, orden, corte })` → `{ grupo, jugadores, listas,
+representacion, partidas, v, d, e, porcentaje, empates, porcentajeSinEspejo,
+conversion: { plazas, convertidos, de, porCorte }, tramos, cruces }` (solo
+`a_wins`/`b_wins`/`draw` de mesas `finished`; el rival sin lista va como
+`sin-lista`); `tramosDePuestos(n)`; `colorDeCruce(p)`. `metaHtml` recibe
+`ayudas.cifras(clave)` y pinta `.torneo-mc` en el detalle; el botón
+`[data-meta-imagen-arq]` (solo `exportar`) llama a `descargarImagenArquetipo`
+de `meta-imagen.js` (`pintarCabecera` y `pintarPie` aceptan título y líneas).
+
 ## Tanda 1443 — Basic Box, Top 4 del podio y lo que falta por catalogar
 
 Sin migración. `js/torneos/arquetipos.js`: `esBasicBox(parsed)` (exportada;

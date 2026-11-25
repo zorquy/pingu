@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-25", "tipo": "nuevo", "texto": "En el meta de un torneo, cada mazo tiene sus cifras: cuánto se jugó, su % de victorias, cuántos entraron al corte, dónde acabaron y cómo le fue contra cada rival. El organizador puede bajarlo en imagen para redes.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "arreglo", "texto": "La imagen del meta de un torneo pone como Top 4 a los del podio, y los mazos de muchos básicos sueltos se llaman «Basic Box», como en Limitless.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "mejora", "texto": "Los jueces tienen su panel: cada llamada dice qué pasa y cuánto lleva esperando, se ven todas las mesas de la ronda de un vistazo y el juez puede escribir en el chat de cualquier mesa.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "mejora", "texto": "Los torneos van en directo de verdad: los emparejamientos, resultados y bajas aparecen solos al momento, sin recargar la página. Y si tu rival no hace check-in a tiempo, ganas la mesa en el acto.", "enlace": "/torneos" },

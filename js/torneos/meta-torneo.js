@@ -14,6 +14,7 @@
 import { escapeHtml } from '../app.js'
 import { icons } from '../icons.js'
 import { claveDeArquetipo, dexesDeNombre } from './arquetipos.js'
+import { colorDeCruce } from './meta-cruces.js'
 
 // La clave del META es el Pokémon PRINCIPAL del mazo, no el arquetipo
 // entero (tanda 421). PINGU: «hay arquetipos que se repiten y aparecen
@@ -218,5 +219,68 @@ function detalleHtml(g, meta, ayudas) {
       }
       <span class="subtext">${g.cuantos} de ${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} (${pct(g.cuota)}) · ${g.victorias}-${g.derrotas}-${g.empates} entre todos, sin contar byes</span>
     </div>
+    ${cifrasHtml(ayudas.cifras?.(g.clave), ayudas)}
     <ol class="torneo-meta-jugadores">${filas}</ol>`
+}
+
+// ── Cómo le fue (1444) ──
+//
+// Las cifras de meta-cruces.js en tres piezas: cuatro losas (representación,
+// victorias, empates, conversión), dónde acabaron sus jugadores y los cruces
+// contra cada mazo rival, con el color de lo bien o mal que le fue.
+const pctONada = (x) => (x === null || x === undefined ? '—' : pct(x))
+
+function cifrasHtml(c, ayudas) {
+  if (!c || !c.partidas) return ''
+  const conv = c.conversion
+  const losas = [
+    ['Representación', pct(c.representacion), `${c.jugadores} de ${c.listas}`],
+    ['Victorias', pctONada(c.porcentaje), `${c.v}-${c.d}-${c.e} en ${c.partidas} ${c.partidas === 1 ? 'partida' : 'partidas'}`],
+    ['Sin el espejo', pctONada(c.porcentajeSinEspejo), `contra el resto del meta`],
+    [conv.porCorte ? 'Entran al corte' : `Top ${conv.plazas}`, `${conv.convertidos}/${conv.de}`, conv.de ? pct(conv.convertidos / conv.de) : '—'],
+  ]
+    .map(([t, n, s]) => `<div class="torneo-mc-losa"><span>${t}</span><strong>${n}</strong><small>${escapeHtml(s)}</small></div>`)
+    .join('')
+  const maxTramo = Math.max(1, ...c.tramos.map((t) => t.cuantos))
+  const tramos = c.tramos
+    .map(
+      (t) => `<li><span>${t.etiqueta}</span><span class="torneo-mc-barra" aria-hidden="true"><span style="--parte: ${((t.cuantos / maxTramo) * 100).toFixed(0)}%"></span></span><b>${t.cuantos}</b></li>`
+    )
+    .join('')
+  const cruces = c.cruces
+    .map((x) => {
+      const nombre = x.grupo ? x.grupo.arq.nombre : 'Sin lista'
+      const chapa = x.grupo ? ayudas.chapa(x.grupo.arq) : ''
+      return `
+        <tr${x.espejo ? ' class="torneo-mc-espejo"' : ''}>
+          <th scope="row"><span class="torneo-mc-rival">${chapa}<span>${escapeHtml(nombre)}${x.espejo ? ' <small>(espejo)</small>' : ''}</span></span></th>
+          <td class="torneo-mc-pct" style="background: ${colorDeCruce(x.porcentaje)}">${pctONada(x.porcentaje)}</td>
+          <td>${x.partidas}</td><td>${x.v}</td><td>${x.d}</td><td>${x.e}</td>
+        </tr>`
+    })
+    .join('')
+  const imagen = ayudas.exportar
+    ? `<button type="button" class="btn-secondary torneo-meta-imagen" data-meta-imagen-arq="${escapeHtml(c.grupo.clave)}">${icons.image(16)} Descargar imagen de este mazo</button>`
+    : ''
+  return `
+    <section class="torneo-mc" aria-label="Cómo le fue a este mazo">
+      <div class="torneo-mc-losas">${losas}</div>
+      <div class="torneo-mc-dos">
+        <div class="torneo-mc-tramos">
+          <h5>Dónde acabaron</h5>
+          <ul>${tramos}</ul>
+        </div>
+        <div class="torneo-mc-cruces">
+          <h5>Contra cada mazo</h5>
+          <div class="torneo-mc-tabla">
+            <table>
+              <thead><tr><th scope="col">Rival</th><th scope="col">% vict.</th><th scope="col" title="Partidas">Σ</th><th scope="col" title="Victorias">V</th><th scope="col" title="Derrotas">D</th><th scope="col" title="Empates">E</th></tr></thead>
+              <tbody>${cruces}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <p class="subtext torneo-mc-nota">Solo partidas jugadas: sin byes ni victorias por no presentarse. El corte cuenta.</p>
+      ${imagen}
+    </section>`
 }

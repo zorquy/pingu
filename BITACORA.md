@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (690) — PINGU-Claude (1444 — Cómo le fue a cada mazo: cifras, cruces e imagen)
+
+**Hecho** (Ibai, con un gráfico de poke_hive: «que haga estos gráficos con los
+datos del torneo finalizado»):
+- Tabla → Meta → un mazo: cuatro losas (representación, % de victorias, % sin
+  el espejo y cuántos entraron al corte —o al Top 4/8 si no hubo corte—),
+  «Dónde acabaron» por tramos (Top 1, 2, 4, 8…) y «Contra cada mazo»: la
+  tabla de cruces (% de victorias con color de rojo a verde, Σ, V, D, E).
+- Quien lleva el torneo, con el torneo terminado: «Descargar imagen de este
+  mazo» (1080×1350, como la del meta) con lo mismo y el % de empates.
+- Solo cuentan partidas JUGADAS: fuera los byes y las victorias por no
+  presentarse. El corte sí cuenta.
+
+**Ficheros**: `js/torneos/meta-cruces.js` (nuevo, puro), `js/torneos/meta-torneo.js`,
+`js/torneos/ronda.js`, `js/torneos/meta-imagen.js`, `css/torneos.css`.
+Prueba: `test-tanda-1444.mjs` (cuentas + pantalla PC/móvil + la imagen).
+La 413 sigue con sus 6 rojos de antes (escaneos y PIL), los mismos sin esta tanda.
+
+**Pendiente**: 1442 (prueba de carga).
+
 ## 2026-11-25 (689) — PINGU-Claude (1443 — Basic Box, el Top 4 bueno en la imagen del meta y lo que falta por catalogar)
 
 **Hecho** (Ibai, con la imagen del meta del Tardeo de Testeo: «qué cojones el

@@ -2852,6 +2852,45 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 }
 .torneo-meta-jugador .torneo-pos,
 .torneo-meta-jugador .torneo-ver-lista { flex: none; }
+/* Cómo le fue a un mazo (1444): cuatro losas, dónde acabaron y los cruces. */
+.torneo-mc { display: grid; gap: 16px; margin: 0 0 20px; }
+.torneo-mc-losas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.torneo-mc-losa {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  min-width: 0;
+}
+.torneo-mc-losa span { font-size: var(--t-xs); color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.04em; }
+.torneo-mc-losa strong { font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+.torneo-mc-losa small { font-size: var(--t-xs); color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.torneo-mc-dos { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.torneo-mc h5 { margin: 0 0 8px; font-size: var(--t-sm); }
+.torneo-mc-tramos ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.torneo-mc-tramos li { display: grid; grid-template-columns: 5.5ch 1fr 3ch; align-items: center; gap: 8px; font-size: var(--t-sm); }
+.torneo-mc-tramos b { text-align: right; font-variant-numeric: tabular-nums; }
+.torneo-mc-barra { height: 10px; border-radius: var(--radius-pill); background: var(--bg); overflow: hidden; }
+.torneo-mc-barra > span { display: block; height: 100%; width: var(--parte, 0%); border-radius: var(--radius-pill); background: var(--navy); }
+.torneo-mc-tabla { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); }
+.torneo-mc-tabla table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.torneo-mc-tabla th, .torneo-mc-tabla td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.torneo-mc-tabla thead th { font-size: var(--t-xs); color: var(--text-mid); font-weight: 600; }
+.torneo-mc-tabla th:first-child { text-align: left; }
+.torneo-mc-tabla tbody tr:last-child > * { border-bottom: 0; }
+.torneo-mc-pct { font-weight: 700; }
+.torneo-mc-rival { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+.torneo-mc-rival .torneo-arquetipo { margin-left: 0; }
+.torneo-mc-rival .torneo-arquetipo-nombre { display: none; }
+.torneo-mc-espejo th { font-style: italic; }
+.torneo-mc-nota { margin: 0; font-size: var(--t-xs); }
+.torneo-mc .torneo-meta-imagen { justify-self: start; }
+@media (max-width: 720px) {
+  .torneo-mc-losas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .torneo-mc-dos { grid-template-columns: 1fr; }
+}
 @media (max-width: 560px) {
   .torneo-meta-fila { gap: 8px; padding: 12px; }
   .torneo-meta-mazo { min-width: 0; }
