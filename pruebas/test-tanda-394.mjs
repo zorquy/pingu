@@ -199,6 +199,8 @@ async function abrir(sem, { sesion = 'admin-1', ancho = 1280, alto = 900, antes 
 const filaDe = (page, nombre) =>
   page.locator('.torneo-sincheckin-fila').filter({ has: page.locator('strong', { hasText: new RegExp(`^${nombre}$`) }) })
 const pestana = async (page, id) => {
+  // La celebración de tu mesa (1391) tapa la ficha: fuera antes de tocar nada.
+  await page.evaluate(() => document.querySelectorAll('dialog[open]').forEach((d) => d.close()))
   await page.click(`[data-pestana="${id}"]`)
   await page.waitForTimeout(250)
 }
@@ -209,7 +211,9 @@ const llegaDeLaBase = async (page, fn, arg) => {
     new Function('T', 'a', f)(window.__TABLAS__, a)
     window.__VIVO__.emitir('torneo-torneo-1')
   }, [fn, arg])
-  await page.waitForTimeout(900)
+  // Desde la 1435 un aviso espera 2–7 s al azar antes de recargar (para que
+  // no recarguen todas las fichas a la vez), y entre dos hay al menos 10 s.
+  await page.waitForTimeout(17500)
 }
 
 // ═════════════════════════════════════════════════════════════════════

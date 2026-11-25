@@ -93,6 +93,9 @@ console.log('── Llamar al juez ──')
 {
   const { ctx, page, errores } = await abrir(false, false)
   await page.click('.torneo-algo-raro [data-raro="juez"]')
+  // Desde la 1441, primero el motivo.
+  await page.waitForTimeout(400)
+  await page.click('#torneoMotivoJuez button[type="submit"]')
   await page.waitForTimeout(1200)
   check('llama y lo dice', /Llamada enviada/.test(await toasts(page)), await toasts(page))
   check('…y sale «Esperando juez…» en la tarjeta del chat', /Esperando juez/.test(await page.evaluate(() => document.getElementById('zonaLlamarJuez')?.textContent || '')))
