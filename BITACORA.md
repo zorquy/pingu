@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (688) — PINGU-Claude (1441 — El panel de juez con tickets y el juez en el chat de la mesa)
+
+**Hecho** (Ibai, tras el Tardeo de Testeo: «mejorar la interfaz de jueces y el
+sistema de tickets», «que como juez puedas hablar en el chat de la mesa»):
+- Llamar al juez abre «¿Qué pasa en tu mesa?» (cinco motivos y una línea).
+- Jueces → **Tickets**: sin atender (con lo que llevan esperando, corriendo),
+  atendiendo (con quién) y resueltas plegadas; «Resolver» pide la nota de cómo
+  quedó. Solo se repinta si cambia (antes cerraba los chats abiertos).
+- Jueces → **Mesas de la ronda**: el mapa con el estado de cada mesa (falta
+  check-in, jugando, por confirmar, disputa, terminada, «ticket»); tocar una
+  abre su chat y el juez escribe en él. Los mensajes de un juez u organizador
+  salen firmados «Juez · nombre» y en ámbar, también en la mesa del jugador.
+- Migración `supabase-migration-1441-juez-con-tickets.sql`: `judge_calls`
+  gana `motivo`, `detalle` y `nota` (con sus `check`). Sin ella, llamar y
+  resolver funcionan igual, sin motivo ni nota.
+
+**Ficheros**: `js/torneos/jueces.js`, `torneo.html`, `css/torneos.css`,
+`normas/jugar.md`, la migración. Pruebas: `test-tanda-1441.mjs` (PostgreSQL),
+`test-tanda-1441-pantalla.mjs`; al día la 1405 (el motivo antes de llamar) y la
+394 (los avisos esperan desde la 1435; las celebraciones se cierran).
+
+**Pendiente**: «+5 minutos» a una mesa no entra (no hay reloj por mesa; el de
+la ronda es común). 1442 (prueba de carga).
+
 ## 2026-11-25 (687) — PINGU-Claude (1438–1440 — La ficha en una consulta, el canal del torneo y la victoria sin check-in)
 
 **Hecho** (propuestas «Torneos sin atascos» y «Lo que dejó el torneo», PINGU:

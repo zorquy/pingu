@@ -55223,6 +55223,20 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1441 — El panel de juez con tickets
+
+Migración `supabase-migration-1441-juez-con-tickets.sql` (dos veces sin
+problema): `judge_calls.motivo text` (null o `ausente`, `desconexion`,
+`resultado`, `reglas`, `otro`), `judge_calls.detalle text` (≤ 200) y
+`judge_calls.nota text` (≤ 300). Las políticas no cambian.
+
+Web (`js/torneos/jueces.js`): `MOTIVOS`, `motivoCorto`, `espera`,
+`estadoParaJuez` (exportadas), `pedirMotivo` (el `<dialog>`), `pintarCola`
+(tickets por grupos, `pintarSiCambia`), `pintarMesasJuez` y `abrirMesaJuez`
+(`#torneoMesasJuezCaja`, `#mesaJuezAbierta`, `#chatMesaJuez`), `cerrarLlamada`
+(con nota). Insertar con motivo o resolver con nota sin la migración
+reintenta sin esas columnas.
+
 ## Tanda 1438 — Torneos sin atascos (1438, 1439 y 1440)
 
 Migración `supabase-migration-1438-torneos-sin-atascos.sql` (se puede ejecutar

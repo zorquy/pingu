@@ -419,3 +419,14 @@ verse en vivo entra en el disparador `torneo_difundir` y en `aplicarCambio`, no
 como otra escucha. Vencido el check-in con tu rival ausente, tu ficha llama a
 `torneos_reclamar_ausencia` (la misma regla que el barredor, la hora de la base).
 
+**El juez trabaja con tickets y entra en las mesas** (1441, Ibai: «mejorar la
+interfaz de jueces y el sistema de tickets», «que como juez puedas hablar en el
+chat de la mesa»). Llamar al juez pide el MOTIVO (`MOTIVOS` en jueces.js, los
+mismos que el `check` de la migración 1441: si se añade uno, en los dos sitios) y
+una línea. En Jueces: los tickets por grupos (sin atender con su espera,
+atendiendo, resueltas plegadas con su nota) y el mapa de mesas de la ronda
+(`estadoParaJuez`); tocar una abre su chat, y lo que escribe un juez u
+organizador sale firmado «Juez» y en ámbar, también en la mesa del jugador. La
+cola se repinta solo si cambia (`pintarSiCambia`): rehacerla en cada recarga
+cerraba los chats abiertos del juez.
+

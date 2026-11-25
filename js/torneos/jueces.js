@@ -53,6 +53,35 @@ async function resolverNombres(ids) {
   for (const p of data || []) perfiles[p.id] = p.username
 }
 
+// ── Los motivos de una llamada (1441, Ibai: «mejorar la interfaz de jueces y
+// el sistema de tickets») ── Quien llama dice qué pasa y el juez lo ve en la
+// cola sin tener que preguntarlo. Tienen que ser los mismos que el `check` de
+// la migración 1441.
+export const MOTIVOS = [
+  ['ausente', 'Mi rival no aparece'],
+  ['desconexion', 'Desconexión o fallo de TCG Live'],
+  ['resultado', 'No coincide el resultado'],
+  ['reglas', 'Duda de reglas'],
+  ['otro', 'Otra cosa'],
+]
+const CORTO = { ausente: 'Rival no aparece', desconexion: 'Desconexión', resultado: 'Resultado', reglas: 'Reglas', otro: 'Otra cosa' }
+export const motivoCorto = (m) => CORTO[m] || 'Llamada'
+
+// Quién habla como juez en un chat (1441): los jueces aprobados y quien
+// organiza. Sus mensajes salen en ámbar y firmados, también en la mesa.
+function idsDeJueces() {
+  const ids = new Set((ctx?.solicitudes || []).filter((x) => x.status === 'approved').map((x) => x.user_id))
+  if (ctx?.torneo?.admin_id) ids.add(ctx.torneo.admin_id)
+  return ids
+}
+
+// Cuánto lleva esperando, «4:12» o «1 h 05».
+export function espera(desde, ahora = Date.now()) {
+  const s = Math.max(0, Math.floor((ahora - Date.parse(desde)) / 1000))
+  if (s >= 3600) return `${Math.floor(s / 3600)} h ${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
 // ── Carga ──
 
 async function cargar() {
@@ -375,18 +404,20 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
     }
     delete marcador.dataset.avisado
     const mensajes = data || []
+    const jueces = idsDeJueces()
     await resolverNombres(mensajes.map((m) => m.sender_id))
     const html =
       mensajes
         .map((m) => {
           const mio = m.sender_id === yo()
+          const deJuez = jueces.has(m.sender_id) && tabla === 'match_messages'
           const hora = m.sent_at
             ? new Date(m.sent_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             : ''
           return `
-          <div class="torneo-chat-linea ${mio ? 'mia' : ''}">
+          <div class="torneo-chat-linea ${mio ? 'mia' : ''} ${deJuez ? 'de-juez' : ''}">
             <div class="torneo-burbuja">
-              ${mio ? '' : `<span class="torneo-burbuja-quien">${escapeHtml(nombreDe(m.sender_id))}</span>`}
+              ${deJuez ? `<span class="torneo-burbuja-quien">Juez · ${escapeHtml(nombreDe(m.sender_id))}</span>` : mio ? '' : `<span class="torneo-burbuja-quien">${escapeHtml(nombreDe(m.sender_id))}</span>`}
               <span class="torneo-burbuja-texto">${escapeHtml(m.message)}</span>
               <span class="torneo-burbuja-hora">${hora}</span>
             </div>
@@ -518,7 +549,7 @@ function pintarMiPartidaExtra() {
   const miLlamada = llamadas.find((c) => c.match_id === miPartida.id && c.created_by === yo() && c.status !== 'resolved')
   if (miLlamada) {
     const html = `
-      <p class="subtext">${miLlamada.status === 'open' ? 'Esperando juez…' : `Un juez la está atendiendo (${escapeHtml(nombreDe(miLlamada.assigned_judge_id))}).`}</p>
+      <p class="subtext">${miLlamada.motivo ? `<strong>${escapeHtml(motivoCorto(miLlamada.motivo))}</strong> · ` : ''}${miLlamada.status === 'open' ? 'Esperando juez…' : `Un juez la está atendiendo (${escapeHtml(nombreDe(miLlamada.assigned_judge_id))}).`}</p>
       <div id="chatDeLlamada" data-llamada="${escapeHtml(miLlamada.id)}"></div>`
     if (pintarSiCambia(zonaJuez, html)) {
       montarChat($('chatDeLlamada'), {
@@ -567,12 +598,14 @@ async function llamarJuez() {
     showToast('Ya tienes una llamada en marcha para esta mesa.')
     return
   }
-  const { error } = await supabase.from('judge_calls').insert({
-    tournament_id: ctx.torneo.id,
-    match_id: miPartida.id,
-    created_by: yo(),
-    status: 'open',
-  })
+  const motivo = await pedirMotivo()
+  if (!motivo) return
+  const fila = { tournament_id: ctx.torneo.id, match_id: miPartida.id, created_by: yo(), status: 'open' }
+  let { error } = await supabase.from('judge_calls').insert({ ...fila, motivo: motivo.motivo, detalle: motivo.detalle || null })
+  // Sin la migración 1441 las columnas no existen: se llama igual, sin motivo.
+  if (error && /motivo|detalle|column|42703|PGRST204/i.test(`${error.code} ${error.message}`)) {
+    ;({ error } = await supabase.from('judge_calls').insert(fila))
+  }
   if (error) {
     // El fallo de permisos casi siempre es la sesión de la pestaña, caducada.
     showToast(/row-level security|permission|JWT/i.test(error.message || '')
@@ -584,75 +617,194 @@ async function llamarJuez() {
   await recargarJueces()
 }
 
+// La hoja de «¿Qué pasa en tu mesa?» (1441). Resuelve { motivo, detalle } o
+// null si se cierra sin elegir.
+function pedirMotivo() {
+  return new Promise((resolver) => {
+    document.getElementById('torneoMotivoJuez')?.remove()
+    const d = document.createElement('dialog')
+    d.className = 'torneo-lista-ventana torneo-motivo'
+    d.id = 'torneoMotivoJuez'
+    d.setAttribute('aria-labelledby', 'torneoMotivoTitulo')
+    d.innerHTML = `
+      <form class="simple-card" method="dialog">
+        <h3 id="torneoMotivoTitulo">¿Qué pasa en tu mesa?</h3>
+        <div class="torneo-motivos" role="radiogroup" aria-label="Motivo">
+          ${MOTIVOS.map(([v, t], i) => `<label class="torneo-motivo-op"><input type="radio" name="motivo" value="${v}" ${i === 0 ? 'checked' : ''}><span>${escapeHtml(t)}</span></label>`).join('')}
+        </div>
+        <label class="torneo-motivo-detalle"><span class="subtext">Cuéntalo en una línea (si quieres)</span>
+          <input type="text" name="detalle" maxlength="200" autocomplete="off"></label>
+        <div class="torneo-retirada-botones">
+          <button type="submit" class="btn-primary" value="si">Llamar al juez</button>
+          <button type="button" class="btn-secondary" data-cerrar>Cancelar</button>
+        </div>
+      </form>`
+    document.body.appendChild(d)
+    let respuesta = null
+    const form = d.querySelector('form')
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const datos = new FormData(form)
+      respuesta = { motivo: String(datos.get('motivo') || 'otro'), detalle: String(datos.get('detalle') || '').trim().slice(0, 200) }
+      d.close()
+    })
+    d.querySelector('[data-cerrar]').addEventListener('click', () => d.close())
+    d.addEventListener('click', (e) => { if (e.target === d) d.close() })
+    d.addEventListener('close', () => {
+      d.remove()
+      resolver(respuesta)
+    })
+    d.showModal()
+  })
+}
+
 // ── La cola del juez ──
 
 function pintarCola() {
   const caja = $('torneoColaCaja')
   const soyJuez = mando() || ctx.esJuez
-  const vivas = llamadas.filter((c) => c.status !== 'resolved')
-  if (!soyJuez || (!vivas.length && !disputadas.length && !llamadas.length)) {
+  if (!soyJuez || (!llamadas.length && !disputadas.length)) {
     caja.classList.add('hidden')
+    pintarMesasJuez()
     return
   }
   caja.classList.remove('hidden')
 
-  // El refresco automático repinta la cola: los chats que estaban
-  // abiertos se quedan abiertos.
-  const chatsAbiertos = new Set(
-    [...document.querySelectorAll('[data-chat-llamada]')]
-      .filter((el) => el.querySelector('details')?.open)
-      .map((el) => el.dataset.chatLlamada)
-  )
-
-  const filasLlamadas = llamadas
-    .map((c) => {
-      const mesa = mesasPorId[c.match_id]
-      const estado =
-        c.status === 'open' ? 'sin atender' : c.status === 'in_progress' ? `la atiende ${escapeHtml(nombreDe(c.assigned_judge_id))}` : 'resuelta'
-      const acciones =
-        c.status === 'open'
-          ? `<button class="btn-secondary" data-atender="${c.id}">Atender</button>`
-          : c.status === 'in_progress'
-            ? `<button class="btn-secondary" data-resolver-llamada="${c.id}">Resolver</button>`
-            : ''
-      return `
-      <div class="torneo-llamada">
-        <div class="torneo-llamada-fila">
-          <span>Mesa ${mesa ? mesa.table_number : '?'} — llamada de <strong>${escapeHtml(nombreDe(c.created_by))}</strong> <span class="subtext">(${estado})</span></span>
-          ${acciones}
+  // Los tickets por grupos (1441): lo que espera, lo que alguien atiende y lo
+  // resuelto, plegado. Lo que más lleva esperando, primero.
+  const abiertas = llamadas.filter((c) => c.status === 'open').sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
+  const atendiendo = llamadas.filter((c) => c.status === 'in_progress')
+  const resueltas = llamadas.filter((c) => c.status === 'resolved').reverse()
+  const ticket = (c) => {
+    const mesa = mesasPorId[c.match_id]
+    const acciones =
+      c.status === 'open'
+        ? `<button type="button" class="btn-primary" data-atender="${c.id}">Atender</button>`
+        : c.status === 'in_progress'
+          ? `<button type="button" class="btn-secondary" data-resolver-llamada="${c.id}">Resolver</button>`
+          : ''
+    return `
+      <article class="torneo-ticket torneo-ticket-${c.status}" data-ticket="${c.id}">
+        <div class="torneo-ticket-cab">
+          <button type="button" class="torneo-ticket-mesa" data-ver-mesa="${escapeHtml(c.match_id)}">Mesa ${mesa ? mesa.table_number : '?'}</button>
+          <span class="torneo-ticket-motivo">${escapeHtml(motivoCorto(c.motivo))}</span>
+          ${c.status === 'open' ? `<span class="torneo-ticket-espera" data-espera="${escapeHtml(c.created_at)}">${espera(c.created_at)}</span>` : c.status === 'in_progress' ? `<span class="torneo-chapa torneo-chapa-aviso">${escapeHtml(nombreDe(c.assigned_judge_id))}</span>` : '<span class="torneo-chapa torneo-chapa-neutra">Resuelta</span>'}
         </div>
+        <p class="torneo-ticket-quien"><strong>${escapeHtml(nombreDe(c.created_by))}</strong>${c.detalle ? `: «${escapeHtml(c.detalle)}»` : ''}</p>
+        ${c.nota ? `<p class="subtext torneo-ticket-nota">${escapeHtml(c.nota)}</p>` : ''}
+        ${acciones ? `<div class="torneo-ticket-acciones">${acciones}</div>` : ''}
         <div data-chat-llamada="${c.id}"></div>
-      </div>`
-    })
-    .join('')
-
-  const filasDisputas = disputadas
-    .map(
-      (m) =>
-        `<p class="torneo-disputa">Mesa ${m.table_number} en <strong>disputa</strong>: ${escapeHtml(nombreDe(m.player_a_id))} contra ${escapeHtml(nombreDe(m.player_b_id))} — resuélvela en la sección de mesas.</p>`
-    )
-    .join('')
-
-  $('colaContenido').innerHTML =
-    filasLlamadas + filasDisputas || '<p class="subtext">Sin llamadas ni disputas pendientes.</p>'
-
-  for (const c of llamadas) {
-    const marcador = document.querySelector(`[data-chat-llamada="${c.id}"]`)
-    if (marcador) {
-      montarChat(marcador, {
-        tabla: 'judge_messages',
-        columna: 'judge_call_id',
-        id: c.id,
-        titulo: 'Conversación',
-        cerrado: c.status === 'resolved',
-        desplegado: chatsAbiertos.has(c.id),
-      })
-    }
+      </article>`
   }
-  document.querySelectorAll('[data-atender]').forEach((b) => b.addEventListener('click', () => atender(b.dataset.atender)))
-  document
-    .querySelectorAll('[data-resolver-llamada]')
-    .forEach((b) => b.addEventListener('click', () => resolverLlamada(b.dataset.resolverLlamada)))
+  const grupo = (titulo, lista) => (lista.length ? `<p class="torneo-ticket-grupo">${titulo} · ${lista.length}</p>${lista.map(ticket).join('')}` : '')
+  const filasDisputas = disputadas
+    .map((m) => `<p class="torneo-disputa">Mesa ${m.table_number} en <strong>disputa</strong>: ${escapeHtml(nombreDe(m.player_a_id))} contra ${escapeHtml(nombreDe(m.player_b_id))} <button type="button" class="link-btn" data-ver-mesa="${escapeHtml(m.id)}">Ver la mesa</button></p>`)
+    .join('')
+  const html =
+    (grupo('Sin atender', abiertas) + grupo('Atendiendo', atendiendo) + filasDisputas || '<p class="subtext">Sin tickets ni disputas pendientes.</p>') +
+    (resueltas.length ? `<details class="torneo-ticket-resueltas"><summary>Resueltas · ${resueltas.length}</summary>${resueltas.map(ticket).join('')}</details>` : '')
+
+  // Solo se repinta si cambia algo (1441): antes se rehacía en cada recarga y
+  // cerraba los chats que el juez tenía abiertos.
+  const resueltasAbiertas = $('colaContenido').querySelector('.torneo-ticket-resueltas')?.open
+  if (pintarSiCambia($('colaContenido'), html)) {
+    if (resueltasAbiertas) $('colaContenido').querySelector('.torneo-ticket-resueltas')?.setAttribute('open', '')
+    for (const c of llamadas) {
+      const marcador = document.querySelector(`[data-chat-llamada="${c.id}"]`)
+      if (marcador && c.status !== 'resolved') {
+        montarChat(marcador, { tabla: 'judge_messages', columna: 'judge_call_id', id: c.id, titulo: 'Conversación', cerrado: false, desplegado: c.status === 'in_progress' && c.assigned_judge_id === yo() })
+      }
+    }
+    $('colaContenido').querySelectorAll('[data-atender]').forEach((b) => b.addEventListener('click', () => atender(b.dataset.atender)))
+    $('colaContenido').querySelectorAll('[data-resolver-llamada]').forEach((b) => b.addEventListener('click', () => resolverLlamada(b.dataset.resolverLlamada)))
+  } else {
+    for (const m of document.querySelectorAll('[data-chat-llamada]')) void m.refrescarMensajes?.()
+  }
+  pintarMesasJuez()
+}
+
+// La espera de los tickets corre sola, sin repintar nada más.
+if (typeof document !== 'undefined') {
+  setInterval(() => {
+    for (const e of document.querySelectorAll('[data-espera]')) e.textContent = espera(e.dataset.espera)
+  }, 1000)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-ver-mesa]')
+    // En el mapa, tocar la mesa abierta la cierra; desde un ticket, siempre abre.
+    if (b) abrirMesaJuez(b.hasAttribute('data-alternar') && b.dataset.verMesa === mesaJuezAbierta ? null : b.dataset.verMesa)
+  })
+}
+
+// ── Las mesas de la ronda, para el juez (1441) ──
+//
+// El mapa con el estado de cada mesa (sin check-in, jugando, por confirmar,
+// disputa, terminada) y, al tocar una, la mesa abierta: sus dos jugadores, el
+// ticket si lo hay y SU CHAT, en el que el juez puede escribir (la base ya se
+// lo dejaba, faltaba la pantalla; Ibai: «que como juez puedas hablar en el chat
+// de la mesa»).
+let mesaJuezAbierta = null
+const TERMINADAS = new Set(['finished', 'bye', 'forfeit_a', 'forfeit_b', 'forfeit_both'])
+export function estadoParaJuez(m, cierreCheckin, ahora = Date.now()) {
+  if (TERMINADAS.has(m.status)) return ['terminada', 'Terminada']
+  if (m.status === 'disputed') return ['disputa', 'Disputa']
+  if (m.status === 'awaiting_confirmation') return ['confirmar', 'Por confirmar']
+  if (m.status === 'active' && (!m.check_in_a_at || !m.check_in_b_at)) return ['checkin', ahora < cierreCheckin ? 'Falta check-in' : 'Sin check-in']
+  if (m.status === 'pending') return ['espera', 'Sin empezar']
+  return ['jugando', 'Jugando']
+}
+
+function pintarMesasJuez() {
+  const caja = $('torneoMesasJuezCaja')
+  if (!caja) return
+  const soyJuez = mando() || ctx.esJuez
+  const mesas = rondaViva ? Object.values(mesasPorId).filter((m) => m.round_id === rondaViva.id).sort((a, b) => a.table_number - b.table_number) : []
+  if (!soyJuez || !mesas.length) {
+    caja.classList.add('hidden')
+    return
+  }
+  caja.classList.remove('hidden')
+  const cierre = cierreDeCheckin(rondaViva, ctx.torneo.checkin_minutes)
+  const conTicket = new Set(llamadas.filter((c) => c.status !== 'resolved').map((c) => c.match_id))
+  const html = `<div class="torneo-juez-mesas">${mesas
+    .map((m) => {
+      const [clase, texto] = estadoParaJuez(m, cierre)
+      return `<button type="button" class="torneo-juez-mesa torneo-juez-${clase} ${m.id === mesaJuezAbierta ? 'abierta' : ''}" data-ver-mesa="${escapeHtml(m.id)}" data-alternar>
+        <b>${m.table_number}</b>
+        <span class="torneo-juez-mesa-quien">${escapeHtml(nombreDe(m.player_a_id))} · ${escapeHtml(m.player_b_id ? nombreDe(m.player_b_id) : 'bye')}</span>
+        <span class="torneo-juez-mesa-estado">${escapeHtml(texto)}${conTicket.has(m.id) ? ' · ticket' : ''}</span>
+      </button>`
+    })
+    .join('')}</div>`
+  pintarSiCambia($('mesasJuezContenido'), html)
+  if (mesaJuezAbierta && !mesasPorId[mesaJuezAbierta]) abrirMesaJuez(null)
+  else if (mesaJuezAbierta) void $('chatMesaJuez')?.refrescarMensajes?.()
+}
+
+function abrirMesaJuez(id) {
+  const caja = $('mesaJuezAbierta')
+  if (!caja) return
+  // Desde un ticket o una disputa en otra pestaña: se va a la de jueces.
+  if (id && !caja.closest('.torneo-panel')?.classList.contains('activa')) document.querySelector('#torneoPestanas [data-pestana="jueces"]')?.click()
+  mesaJuezAbierta = id || null
+  const m = mesaJuezAbierta ? mesasPorId[mesaJuezAbierta] : null
+  for (const b of document.querySelectorAll('.torneo-juez-mesa')) b.classList.toggle('abierta', b.dataset.verMesa === mesaJuezAbierta)
+  if (!m) {
+    caja.classList.add('hidden')
+    caja.innerHTML = ''
+    return
+  }
+  caja.classList.remove('hidden')
+  caja.innerHTML = `
+    <div class="torneo-juez-mesa-cab">
+      <h4>Mesa ${m.table_number} · ${escapeHtml(nombreDe(m.player_a_id))} contra ${escapeHtml(m.player_b_id ? nombreDe(m.player_b_id) : 'nadie')}</h4>
+      <button type="button" class="torneo-lista-cerrar" data-cerrar-mesa aria-label="Cerrar la mesa"></button>
+    </div>
+    <div id="chatMesaJuez"></div>
+    <p class="subtext">Para dar el resultado o corregirlo, ve a la mesa en <button type="button" class="link-btn" data-ir-mesas>Mesas</button>.</p>`
+  caja.querySelector('[data-cerrar-mesa]').addEventListener('click', () => abrirMesaJuez(null))
+  caja.querySelector('[data-ir-mesas]').addEventListener('click', () => document.querySelector('#torneoPestanas [data-pestana="rondas"]')?.click())
+  montarChat($('chatMesaJuez'), { tabla: 'match_messages', columna: 'match_id', id: m.id, titulo: 'Chat de la mesa (escribes como juez)', cerrado: false, abierto: true })
+  caja.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }
 
 // Atender bajo candado (SPEC §10.2): el filtro por estado hace que si
@@ -672,14 +824,37 @@ async function atender(llamadaId) {
 
 async function resolverLlamada(llamadaId) {
   const llamada = llamadas.find((c) => c.id === llamadaId)
-  await supabase
-    .from('judge_calls')
-    .update({
-      status: 'resolved',
-      resolved_at: new Date().toISOString(),
-      assigned_judge_id: llamada?.assigned_judge_id || yo(),
+  // La nota de cómo se resolvió (1441): una línea, en el propio ticket.
+  const art = document.querySelector(`[data-ticket="${llamadaId}"]`)
+  const caja = art?.querySelector('.torneo-ticket-resolver')
+  if (art && !caja) {
+    art.querySelector('.torneo-ticket-acciones')?.insertAdjacentHTML('beforebegin', `
+      <form class="torneo-ticket-resolver">
+        <input type="text" maxlength="300" placeholder="Cómo se ha resuelto (opcional)" aria-label="Cómo se ha resuelto">
+        <button type="submit" class="btn-primary">Marcar resuelta</button>
+      </form>`)
+    const form = art.querySelector('.torneo-ticket-resolver')
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      void cerrarLlamada(llamada, form.querySelector('input').value.trim())
     })
-    .eq('id', llamadaId)
+    form.querySelector('input').focus()
+    return
+  }
+  await cerrarLlamada(llamada, caja?.querySelector('input')?.value.trim() || '')
+}
+
+async function cerrarLlamada(llamada, nota) {
+  if (!llamada) return
+  const cambios = { status: 'resolved', resolved_at: new Date().toISOString(), assigned_judge_id: llamada.assigned_judge_id || yo() }
+  let { error } = await supabase.from('judge_calls').update(nota ? { ...cambios, nota } : cambios).eq('id', llamada.id)
+  if (error && nota && /nota|column|42703|PGRST204/i.test(`${error.code} ${error.message}`)) {
+    ;({ error } = await supabase.from('judge_calls').update(cambios).eq('id', llamada.id))
+  }
+  if (error) {
+    showToast('No se ha podido resolver: ' + error.message, 'error')
+    return
+  }
   showToast('Llamada resuelta: el chat queda como registro.', 'success')
   await recargarJueces()
 }
