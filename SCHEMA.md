@@ -55223,6 +55223,33 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1434 — Crear un torneo, una pregunta cada vez
+
+- Sin base: la fila de `tournaments` (y el código en `tournament_join_codes`)
+  sale igual que con el wizard de tres pasos.
+- `js/torneos/crear.js` monta la ventana (`dialog#torneoCrear` con
+  `form#torneoForm` dentro) al pulsar «Crear un torneo», por `import()` desde
+  `torneos.js`, e inyecta `css/torneo-crear.css` y `css/editor-texto.css`. La
+  lista ya no baja nada de crear; el editor de la descripción (dos módulos)
+  entra al abrir su apartado.
+- Las preguntas son `PREGUNTAS` de `js/torneos/crear-puro.js` (lo puro: días
+  rápidos, jornadas semanales, la frase del formato). «jornadas» solo en liga;
+  «resumen» no cuenta en «3 de 9». Una pregunta nueva es una entrada ahí, su
+  `<section data-pregunta>` en `htmlDelDialogo`, su caso en `fallo(id)` y su
+  fila en `pintarResumen`.
+- Las tarjetas (`.tc-opcion` con `data-campo`/`data-valor`) solo rellenan los
+  campos de siempre (`torneoTipo`, `torneoPlazas`, `torneoSinLimite`,
+  `torneoPrivado`…); lo marcado se lee de los campos (`marcarOpciones`), así que
+  Duplicar (que rellena campos) deja marcado lo que toca. `data-avanza` = pasa
+  sola; «Solo con código» y «Otra cifra» no pasan.
+- «Cambiar» del resumen pone `volverAlResumen`: al contestar se vuelve al
+  resumen, salvo que quede otra pregunta sin contestar (pasar a liga pide las
+  jornadas). Crear valida TODAS (`fallo`) y lleva a la primera que falle.
+- En una liga, las plazas NO tocan `torneoRondas` (son las jornadas, ya
+  elegidas antes); solo el corte.
+- Alto fijo de la ventana (640 px en PC, 94 dvh en el móvil): cambiar de
+  pregunta no la hace saltar.
+
 ## Tanda 1433 — /para-tiendas y el PDF, con los planes
 
 - Sin base. `QUE_TRAE.tienda_mas` de `js/tienda-plan-puro.js` marca «(muy

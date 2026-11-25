@@ -1,7 +1,6 @@
 // La página de torneos (/torneos): listar y crear. Parte del porte de
-// TrainerArena (ver CLAUDE.md, sección «Jugar»). La creación va por el
-// wizard de pasos del original, sin el paso de pago: aquí todo es
-// gratis.
+// TrainerArena (ver CLAUDE.md, sección «Jugar»). Crear va en su ventana de
+// preguntas (js/torneos/crear.js, 1434).
 //
 // ABIERTA A TODO EL MUNDO (tanda 252 + pedido de Ibai del 2026-09-02):
 // la lista se ve con y sin cuenta, como las demás secciones — es el
@@ -11,26 +10,17 @@
 // del equipo.
 import { supabase } from '../supabase.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe, vistaAlDia } from '../ultima-vista.js'
-import { escapeHtml, getSession, getProfile, slugify, uploadProfileImage } from '../app.js'
+import { escapeHtml, getSession, getProfile } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
-import { officialStructure } from './motor.js'
-import { ESTADOS, estadoDeTorneo, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
+import { ESTADOS, estadoDeTorneo, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
-import { esTorneoDeTienda, textoDePrecio, precioDelCampo } from './torneo-tienda.js'
+import { esTorneoDeTienda, textoDePrecio } from './torneo-tienda.js'
 import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
 
 const $ = (id) => document.getElementById(id)
-
-// 32 caracteres de azar del navegador: la semilla que hace reproducibles
-// el sorteo de ronda 1 y la moneda de los desempates.
-function semillaDePareo() {
-  const abc = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  const valores = crypto.getRandomValues(new Uint8Array(32))
-  return [...valores].map((v) => abc[v % abc.length]).join('')
-}
 
 // ── La lista ──
 
@@ -874,249 +864,24 @@ function engancharVistas() {
   aplicar()
 }
 
-// ── El wizard de crear (3 pasos, como el original sin el de pago) ──
-
-const PASOS_WIZARD = ['Básicos', 'Formato', 'Tiempos']
-let pasoActual = 0
-
-function pintarPasos() {
-  $('wizardPasos').innerHTML = PASOS_WIZARD.map((texto, i) => {
-    const clase = i < pasoActual ? 'hecho' : i === pasoActual ? 'actual' : ''
-    const numero = i < pasoActual ? icons.checkCircle(14) : `<span class="torneo-wizard-numero">${i + 1}</span>`
-    return `<span class="torneo-wizard-paso ${clase}">${numero}<span>${texto}</span></span>`
-  }).join('')
-}
-
-function irAPaso(n) {
-  pasoActual = n
-  document.querySelectorAll('#torneoForm [data-paso]').forEach((s) => {
-    s.classList.toggle('hidden', Number(s.dataset.paso) !== n)
-  })
-  pintarPasos()
-  $('btnPasoAtras').classList.toggle('hidden', n === 0)
-  $('btnPasoSiguiente').classList.toggle('hidden', n === PASOS_WIZARD.length - 1)
-  $('btnCrearTorneo').classList.toggle('hidden', n !== PASOS_WIZARD.length - 1)
-  if (n === PASOS_WIZARD.length - 1) pintarResumen()
-}
-
-// ── Las jornadas de una liga (tanda 219; añadir/quitar en la 220) ──
-// En formato liga cada ronda suiza es una JORNADA con fecha propia: los
-// campos se regeneran al cambiar el tipo o el número de rondas, sin
-// perder lo ya escrito, y cada fila lleva su «Quitar» (si queda más de
-// una) además del botón de añadir — el número de rondas y la lista de
-// jornadas son la misma cosa y se mantienen a la par.
-function esLigaElegida() {
-  return $('torneoTipo').value === 'league'
-}
-const rondasPorJornadaElegidas = () => Math.max(1, Number($('torneoRondasJornada')?.value) || 1)
-
-// ── El aforo sin límite (tanda 228) ──
-// Marcar «Sin límite» apaga el campo de plazas y guarda max_players a
-// NULL: nunca hay «lleno» ni lista de espera. La sugerencia de rondas
-// que aquí sale de las plazas llega entonces al CERRAR las
-// inscripciones (en la ficha), que es cuando se sabe cuánta gente hay.
-function sinLimiteElegido() {
-  return $('torneoSinLimite').checked
-}
-
-function pintarSinLimite() {
-  $('torneoPlazas').disabled = sinLimiteElegido()
-}
-
-function pintarCamposJornadas(fechas = null) {
-  const caja = $('torneoJornadasCampos')
-  const liga = esLigaElegida()
-  caja.classList.toggle('hidden', !liga)
-  $('torneoRondasEtiqueta').firstChild.textContent = liga ? 'Jornadas' : 'Rondas suizas'
-  $('torneoRondasJornadaCampo')?.classList.toggle('hidden', !liga)
-  if (!liga) return
-  const cuantas = Math.min(12, Math.max(1, Number($('torneoRondas').value) || 1))
-  const lista = $('torneoJornadasLista')
-  const previas = fechas ?? [...lista.querySelectorAll('input')].map((i) => i.value)
-  lista.innerHTML = Array.from({ length: cuantas }, (_, i) => `
-    <div class="torneo-jornada-campo">
-      <label>Jornada ${i + 1}
-        <input type="datetime-local" data-jornada="${i}" value="${escapeHtml(previas[i] || '')}" />
-      </label>
-      ${cuantas > 1 ? `<button type="button" class="btn-secondary torneo-quitar-jornada" data-quitar-jornada="${i}" title="Quitar esta jornada">✕</button>` : ''}
-    </div>`).join('')
-  lista.querySelectorAll('[data-quitar-jornada]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const sinEsa = fechasDeJornadas().filter((_, i) => i !== Number(b.dataset.quitarJornada))
-      $('torneoRondas').value = String(sinEsa.length)
-      pintarCamposJornadas(sinEsa)
-    })
-  )
-}
-
-function fechasDeJornadas() {
-  return [...document.querySelectorAll('#torneoJornadasLista input')].map((i) => i.value)
-}
-
-// Valida lo que se ve antes de dejar avanzar, como el original.
-function pasoValido(n) {
-  if (n === 0) {
-    if (!$('torneoNombre').value.trim()) {
-      showToast('Ponle un nombre al torneo.')
-      return false
-    }
-    if (!$('torneoFecha').value) {
-      showToast('Ponle fecha y hora de inicio.')
-      return false
-    }
-    return true
-  }
-  if (n === 1) {
-    const plazas = Number($('torneoPlazas').value)
-    if (!sinLimiteElegido() && (!plazas || plazas < 4 || plazas > 256)) {
-      showToast('Las plazas deben estar entre 4 y 256 (o marca «Sin límite»).')
-      return false
-    }
-    const rondas = Number($('torneoRondas').value)
-    if (!rondas || rondas < 1 || rondas > 12) {
-      showToast('Las rondas suizas deben estar entre 1 y 12.')
-      return false
-    }
-    if (esLigaElegida()) {
-      const fechas = fechasDeJornadas()
-      if (fechas.some((f) => !f)) {
-        showToast('Ponle fecha a todas las jornadas de la liga.')
-        return false
-      }
-      for (let i = 1; i < fechas.length; i++) {
-        if (new Date(fechas[i]) <= new Date(fechas[i - 1])) {
-          showToast(`La jornada ${i + 1} no puede ir antes que la ${i}.`)
-          return false
-        }
-      }
-    }
-    return true
-  }
-  return true
-}
-
-// Los tres modos de las listas (tanda 241), con su texto para el
-// resumen del wizard.
-const TEXTO_MODO_LISTAS = {
-  al_terminar: 'Públicas al terminar',
-  en_juego: 'Públicas desde la ronda 1',
-  nunca: 'Nunca públicas',
-}
-
-// Sin corte no hay «al mejor de» que elegir: el campo se esconde
-// cuando el corte es 0 (lo pidió Ibai en la tanda 241).
-function pintarCorteBo() {
-  $('torneoCorteBoCampo').classList.toggle('hidden', !Number($('torneoCorte').value))
-}
-
-function pintarResumen() {
-  const corte = Number($('torneoCorte').value)
-  const liga = esLigaElegida()
-  const datos = [
-    ['Nombre', $('torneoNombre').value.trim() || '—'],
-    ['Tipo', liga ? 'Liga por jornadas' : 'Torneo de un día'],
-    ['Inicio', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
-    ['Plazas', sinLimiteElegido() ? 'Sin límite' : $('torneoPlazas').value],
-    [liga ? 'Jornadas' : 'Suizas', `${$('torneoRondas').value}${liga && rondasPorJornadaElegidas() > 1 ? ` de ${rondasPorJornadaElegidas()} rondas` : ''} · BO${$('torneoSwissBo').value}`],
-    ['Top cut', corte ? `Top ${corte} · BO${$('torneoCorteBo').value}` : 'Sin corte'],
-    ['Ronda', `${$('torneoMinutos').value} min`],
-    ['Check-in', `${$('torneoCheckin').value} min`],
-    ['Listas rivales', TEXTO_MODO_LISTAS[$('torneoListasModo').value] || '—'],
-    ['Inscripción', 'Gratuita'],
-  ]
-  if (liga) {
-    fechasDeJornadas().forEach((f, i) => {
-      if (f) datos.splice(5 + i, 0, [`Jornada ${i + 1}`, fechaBonita(f)])
-    })
-  }
-  $('wizardResumen').innerHTML = datos
-    .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${escapeHtml(String(dd))}</dd></div>`)
-    .join('')
-}
-
-// ── La descripción con formato (tanda 220) ──
-// El mismo editor del foro: negrita, listas, colores, imágenes… Los dos
-// módulos del editor se cargan al ABRIR el wizard, no antes (quien solo
-// mira la lista de torneos no los paga). El HTML sale saneado por la
-// misma lista cerrada que las guías y el foro.
-let descripcionHtml = ''
-async function montarEditorDescripcion(session, htmlInicial = '') {
-  descripcionHtml = htmlInicial
-  const [{ richTextToolbarHtml, initRichTextEditor }] = await Promise.all([import('../richtext-editor.js')])
-  const { uploadGuideImage } = await import('../app.js')
-  const barra = $('torneoDescBarra')
-  barra.innerHTML = richTextToolbarHtml()
-  initRichTextEditor({
-    toolbarEl: barra,
-    surfaceEl: $('torneoDescCuerpo'),
-    initialHtml: htmlInicial,
-    placeholder: 'Reglas de la casa, cómo se juega…',
-    onChange: (html) => {
-      descripcionHtml = html
-    },
-    uploadImage: (file) => uploadGuideImage(session.user.id, file),
-  })
-}
-
-// ── Las filas de premios del formulario de crear (tanda 352) ──
-//
-// Mismo trato que en el editor de la ficha: se repintan enteras, que son
-// como mucho doce y así no hay dos ideas del orden.
-function pintarPremiosNuevo(filas) {
-  const caja = $('nuevoPremiosLista')
-  if (!caja) return
-  caja.innerHTML = (filas.length ? filas : [{ puesto: '', premio: '' }])
-    .map(
-      (p, i) => `<div class="torneo-premio-fila">
-        <input type="text" data-premio-puesto="${i}" maxlength="${PUESTO_MAXIMO}" placeholder="1º" value="${escapeHtml(p.puesto || '')}" aria-label="Puesto del premio ${i + 1}" />
-        <input type="text" data-premio-que="${i}" maxlength="${PREMIO_MAXIMO}" placeholder="50 € en cartas" value="${escapeHtml(p.premio || '')}" aria-label="Qué se lleva" />
-        <button type="button" class="btn-secondary torneo-quitar-jornada" data-premio-quitar="${i}" title="Quitar este premio">✕</button>
-      </div>`
-    )
-    .join('')
-  caja.querySelectorAll('[data-premio-quitar]').forEach((b) =>
-    b.addEventListener('click', () => {
-      pintarPremiosNuevo(premiosDelFormulario().filter((_, i) => i !== Number(b.dataset.premioQuitar)))
-    })
-  )
-}
-
-function premiosDelFormulario() {
-  return [...document.querySelectorAll('#nuevoPremiosLista .torneo-premio-fila')].map((fila) => ({
-    puesto: fila.querySelector('[data-premio-puesto]')?.value || '',
-    premio: fila.querySelector('[data-premio-que]')?.value || '',
-  }))
+// ── Crear (1434): una pregunta cada vez, en js/torneos/crear.js ──
+// Se baja al pulsar «Crear un torneo» (o «Duplicar»): quien solo mira la lista
+// no paga ni el módulo, ni su hoja, ni el editor de la descripción.
+async function abrirCreador(session, perfil, plantilla = null) {
+  const { abrirCrear } = await import('./crear.js')
+  await abrirCrear({ session, perfil, plantilla, alCrear: () => cargarLista(session, perfil) })
 }
 
 function engancharFormulario(session, perfil) {
-  pintarPremiosNuevo([])
-  $('btnNuevoAnadirPremio')?.addEventListener('click', () => {
-    const actuales = premiosDelFormulario()
-    if (actuales.length >= PREMIOS_MAXIMO) {
-      showToast(`Como mucho ${PREMIOS_MAXIMO} premios.`)
-      return
-    }
-    pintarPremiosNuevo([...actuales, { puesto: '', premio: '' }])
-  })
-  const form = $('torneoForm')
-  const plazas = $('torneoPlazas')
-
-  $('btnNuevoTorneo').addEventListener('click', () => {
-    form.classList.toggle('hidden')
-    if (!form.classList.contains('hidden')) {
-      irAPaso(0)
-      void montarEditorDescripcion(session, '')
-      $('torneoNombre').focus()
-    }
-  })
-  // Borrar desde la tarjeta (tanda 223). Dos toques como en la ficha: el
-  // primero avisa —y dice a cuánta gente afecta—, el segundo va. La
-  // tarjeta es un enlace al torneo, de ahí el preventDefault.
+  $('btnNuevoTorneo').addEventListener('click', () => abrirCreador(session, perfil))
   // Los «⋯» de las tarjetas (1348): se cierran al tocar fuera. Y como la
   // tarjeta es un enlace, abrirlos no navega.
   document.addEventListener('click', (e) => {
     for (const mas of document.querySelectorAll('details.torneo-tarjeta-mas[open]')) if (!mas.contains(e.target)) mas.open = false
   })
+  // Borrar desde la tarjeta (tanda 223). Dos toques como en la ficha: el
+  // primero avisa —y dice a cuánta gente afecta—, el segundo va. La
+  // tarjeta es un enlace al torneo, de ahí el preventDefault.
   document.addEventListener('click', async (e) => {
     const boton = e.target.closest('[data-borrar]')
     if (!boton) return
@@ -1145,244 +910,14 @@ function engancharFormulario(session, perfil) {
     await recargarLista()
   })
 
-  // Duplicar: abre el wizard con la estructura del torneo elegido y el
-  // nombre listo para retocar. La fecha NO se copia (un torneo nuevo
-  // nunca empieza en el pasado): se propone la semana que viene.
+  // Duplicar: el creador con todo lo del torneo elegido, directo a «¿Lo
+  // creamos?» para cambiar solo lo que haga falta (la fecha la pone él).
   document.addEventListener('click', async (e) => {
     const boton = e.target.closest('[data-duplicar]')
     if (!boton) return
     e.preventDefault()
-    const { data: viejo } = await supabase
-      .from('tournaments')
-      .select('*')
-      .eq('id', boton.dataset.duplicar)
-      .maybeSingle()
-    if (!viejo) return
-    form.classList.remove('hidden')
-    irAPaso(0)
-    $('torneoNombre').value = viejo.name
-    // El tipo y la visibilidad de listas se copian; las fechas de las
-    // jornadas no (una liga nueva se juega en días nuevos).
-    $('torneoTipo').value = viejo.format === 'league' ? 'league' : 'standard'
-    $('torneoListasModo').value = viejo.decklist_visibility || (viejo.show_opponent_decklists ? 'en_juego' : 'al_terminar')
-    const semanaQueViene = new Date(Date.now() + 7 * 86400e3)
-    semanaQueViene.setMinutes(semanaQueViene.getMinutes() - semanaQueViene.getTimezoneOffset())
-    $('torneoFecha').value = semanaQueViene.toISOString().slice(0, 16)
-    $('torneoSinLimite').checked = viejo.max_players == null
-    $('torneoPlazas').value = viejo.max_players ?? 16
-    pintarSinLimite()
-    // En una liga el campo cuenta jornadas, no rondas (849).
-    $('torneoRondas').value = viejo.format === 'league' ? numJornadas(viejo) : viejo.swiss_rounds
-    if ($('torneoRondasJornada')) $('torneoRondasJornada').value = String(viejo.format === 'league' ? rondasPorJornada(viejo) : 1)
-    $('torneoCorte').value = String(viejo.top_cut_size ?? 0)
-    pintarCorteBo()
-    if ($('torneoMinutos')) $('torneoMinutos').value = viejo.round_time_minutes
-    if ($('torneoCheckin') && viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
-    void montarEditorDescripcion(session, viejo.description || '')
-    pintarCamposJornadas()
-    $('torneoNombre').focus()
-    $('torneoNombre').select()
-    showToast('Plantilla cargada: cambia lo que quieras y créalo.', 'success')
-  })
-
-  $('btnCancelarTorneo').addEventListener('click', () => form.classList.add('hidden'))
-  $('btnPasoAtras').addEventListener('click', () => irAPaso(pasoActual - 1))
-  $('btnPasoSiguiente').addEventListener('click', () => {
-    if (pasoValido(pasoActual)) irAPaso(pasoActual + 1)
-  })
-
-  // Al cambiar las plazas, la tabla oficial rellena rondas y corte; el
-  // admin puede retocarlos después si quiere otra cosa.
-  plazas.addEventListener('input', () => {
-    const n = Number(plazas.value)
-    if (!n || n < 4) return
-    const { swissRounds, topCutSize } = officialStructure(n)
-    $('torneoRondas').value = swissRounds
-    const corte = $('torneoCorte')
-    if ([...corte.options].some((o) => Number(o.value) === topCutSize)) corte.value = String(topCutSize)
-    pintarCorteBo()
-    pintarCamposJornadas()
-  })
-  $('torneoCorte').addEventListener('change', pintarCorteBo)
-  $('torneoSinLimite').addEventListener('change', pintarSinLimite)
-  // El tipo y el número de rondas gobiernan los campos de jornadas.
-  $('torneoTipo').addEventListener('change', () => pintarCamposJornadas())
-  $('torneoRondas').addEventListener('input', () => pintarCamposJornadas())
-  $('btnAnadirJornada').addEventListener('click', () => {
-    const fechas = fechasDeJornadas()
-    if (fechas.length >= 12) {
-      showToast('Una liga puede tener 12 jornadas como máximo.')
-      return
-    }
-    $('torneoRondas').value = String(fechas.length + 1)
-    pintarCamposJornadas([...fechas, ''])
-  })
-
-  // La imagen del torneo (tanda 239): se elige con vista previa y se
-  // sube al bucket de avatares (carpeta del usuario, como la foto de
-  // perfil) SOLO al crear — elegir y arrepentirse no debe dejar
-  // ficheros huérfanos en Storage.
-  let imagenElegida = null
-  // El código solo tiene sentido si el torneo es privado.
-  document.getElementById('torneoPrivado')?.addEventListener('change', (e) => {
-    document.getElementById('torneoCodigoCampo')?.classList.toggle('hidden', !e.target.checked)
-  })
-
-  let bannerElegido = null
-  // El icono y el banner comparten el mismo trío de piezas
-  // (previa/elegir/quitar): un solo montador para los dos.
-  function montarCampoImagen(prefijo, alCambiar) {
-    const preview = $(`${prefijo}Preview`)
-    const input = $(`${prefijo}Input`)
-    const boton = $(`btn${prefijo[0].toUpperCase()}${prefijo.slice(1)}`)
-    const quitar = $(`btn${prefijo[0].toUpperCase()}${prefijo.slice(1)}Quitar`)
-    const esBanner = /Banner/.test(prefijo)
-    const pintar = (fichero) => {
-      if (fichero) preview.src = URL.createObjectURL(fichero)
-      preview.classList.toggle('hidden', !fichero)
-      quitar.classList.toggle('hidden', !fichero)
-      boton.textContent = fichero ? (esBanner ? 'Cambiar banner' : 'Cambiar imagen') : esBanner ? 'Elegir banner' : 'Elegir imagen'
-    }
-    boton.addEventListener('click', () => input.click())
-    input.addEventListener('change', () => {
-      const f = input.files?.[0] || null
-      alCambiar(f)
-      pintar(f)
-    })
-    quitar.addEventListener('click', () => {
-      input.value = ''
-      alCambiar(null)
-      pintar(null)
-    })
-    return pintar
-  }
-  const pintarImagenElegida = montarCampoImagen('torneoImagen', (f) => (imagenElegida = f))
-  const pintarBannerElegido = montarCampoImagen('torneoBanner', (f) => (bannerElegido = f))
-
-  let enviando = false
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    if (enviando) return
-    if (!pasoValido(0) || !pasoValido(1)) return
-    const nombre = $('torneoNombre').value.trim()
-    const liga = esLigaElegida()
-    // Marcar «entrada con código» sin escribir ninguno dejaría un torneo
-    // a la vista al que NO SE PUEDE ENTRAR, y sin que nada diera error.
-    const codigoNuevo = $('torneoPrivado')?.checked ? $('torneoCodigoNuevo').value.trim() : ''
-    if ($('torneoPrivado')?.checked && !codigoNuevo) {
-      showToast('Escribe el código: sin él nadie podría inscribirse.', 'error')
-      return
-    }
-    enviando = true
-    // Primero la imagen: si la subida falla, el torneo NO se crea a
-    // medias — se avisa y se deja reintentar con todo lo escrito.
-    let imageUrl = null
-    let bannerUrl = null
-    try {
-      if (imagenElegida) imageUrl = await uploadProfileImage(session.user.id, imagenElegida, 'torneo')
-      if (bannerElegido) bannerUrl = await uploadProfileImage(session.user.id, bannerElegido, 'torneo-banner')
-    } catch (err) {
-      enviando = false
-      showToast('No se ha podido subir la imagen: ' + (err?.message || err), 'error')
-      return
-    }
-    // El modo de listas se guarda por partida doble: la columna nueva
-    // (la que manda) y el booleano viejo, que la política RLS y el
-    // código anterior a la migración siguen leyendo.
-    const modoListas = $('torneoListasModo').value
-    const fila = {
-      decklist_visibility: modoListas,
-      image_url: imageUrl,
-      banner_url: bannerUrl,
-      slug: `${slugify(nombre)}-${Date.now().toString(36)}`,
-      admin_id: session.user.id,
-      name: nombre,
-      description: descripcionHtml || null,
-      prizes: premiosParaGuardar(premiosDelFormulario()),
-      start_at: new Date($('torneoFecha').value).toISOString(),
-      status: 'draft',
-      format: liga ? 'league' : 'standard',
-      matchday_dates: liga ? fechasDeJornadas().map((f) => new Date(f).toISOString()) : null,
-      show_opponent_decklists: modoListas === 'en_juego',
-      max_players: sinLimiteElegido() ? null : Number($('torneoPlazas').value),
-      // En una liga, el total de rondas es jornadas × rondas por jornada (849).
-      swiss_rounds: Number($('torneoRondas').value) * (liga ? rondasPorJornadaElegidas() : 1),
-      round_time_minutes: Number($('torneoMinutos').value),
-      ...(precioDelCampo($('torneoPrecio')?.value) != null ? { precio_entrada: precioDelCampo($('torneoPrecio').value) } : {}),
-      checkin_minutes: Number($('torneoCheckin').value),
-      swiss_bo: Number($('torneoSwissBo').value),
-      top_cut_bo: Number($('torneoCorteBo').value),
-      top_cut_size: Number($('torneoCorte').value),
-      pairing_seed: semillaDePareo(),
-      // Se manda siempre. Si quien crea no es admin, el disparador de la
-      // base lo pone a false pase lo que pase aquí.
-      is_official: Boolean($('torneoOficial')?.checked),
-      is_private: Boolean($('torneoPrivado')?.checked),
-    }
-    // Solo si son varias (849): así crear una liga de una ronda por jornada
-    // no depende de que la columna exista ya en la base.
-    if (liga && rondasPorJornadaElegidas() > 1) fila.rounds_per_matchday = rondasPorJornadaElegidas()
-    let { error } = await supabase.from('tournaments').insert(fila)
-    // Entre el despliegue y que un humano ejecute las migraciones de
-    // las columnas nuevas pueden pasar horas, y en ese rato crear
-    // torneos tiene que seguir funcionando: si la base no conoce una
-    // columna, se reintenta sin ella (del modo de listas queda el
-    // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes', 'precio_entrada']) {
-      if (error && (error.message || '').includes(columna)) {
-        delete fila[columna]
-        ;({ error } = await supabase.from('tournaments').insert(fila))
-      }
-    }
-    enviando = false
-    if (error) {
-      showToast(
-        /tournaments/.test(error.message || '')
-          ? 'Falta ejecutar supabase-migration-torneos.sql en el SQL Editor de Supabase.'
-          : 'No se ha podido crear: ' + error.message,
-        'error'
-      )
-      return
-    }
-    // El código, después y aparte (tanda 367): vive en su propia tabla
-    // porque la fila del torneo la lee todo el mundo. Hace falta el id
-    // del torneo recién creado, y se busca por el slug, que lo acabamos
-    // de inventar aquí mismo y es único.
-    //
-    // Si esto falla no se deshace el torneo: ya está creado y su
-    // organizador puede poner el código desde Editar. Decirlo, eso sí.
-    if (fila.is_private && codigoNuevo) {
-      const { data: creado } = await supabase.from('tournaments').select('id').eq('slug', fila.slug).maybeSingle()
-      let falloCodigo = creado?.id ? null : { message: 'no se encuentra el torneo recién creado' }
-      if (creado?.id) {
-        // El puente al sitio viejo se fue con la migración (2026-09-30):
-        // `tournaments.join_code` YA NO EXISTE, así que un respaldo que
-        // escriba ahí solo puede fallar — y encima pisaba el error de
-        // verdad con otro que no dice nada.
-        ;({ error: falloCodigo } = await supabase
-          .from('tournament_join_codes')
-          .insert({ tournament_id: creado.id, code: codigoNuevo }))
-      }
-      if (falloCodigo) {
-        showToast('El torneo está creado, pero el código no se ha guardado: ponlo desde Editar.', 'error')
-      }
-    }
-    form.classList.add('hidden')
-    form.reset()
-    // El reset del formulario no llega al contenteditable del editor,
-    // ni a la imagen elegida (vive en una variable, no en el input).
-    descripcionHtml = ''
-    $('torneoDescCuerpo').innerHTML = ''
-    imagenElegida = null
-    bannerElegido = null
-    pintarImagenElegida(null)
-    pintarBannerElegido(null)
-    pintarCorteBo()
-    pintarCamposJornadas()
-    pintarSinLimite()
-    irAPaso(0)
-    showToast(`«${nombre}» creado como borrador. Abre las inscripciones cuando esté listo.`, 'success')
-    cargarLista(session, perfil)
+    const { data: viejo } = await supabase.from('tournaments').select('*').eq('id', boton.dataset.duplicar).maybeSingle()
+    if (viejo) await abrirCreador(session, perfil, viejo)
   })
 }
 
@@ -1400,13 +935,6 @@ async function init() {
   // Quien no ha entrado sí lo tiene escondido: el formulario acabaría en
   // un INSERT sin dueño, y la base lo rechazaría en silencio.
   document.getElementById('btnNuevoTorneo')?.classList.toggle('hidden', !session)
-  // La casilla de OFICIAL, solo para administración. El candado de
-  // verdad está en la base (trg_torneos_solo_admin_marca_oficial): esto
-  // es no enseñar una opción que no se puede usar.
-  // La casilla de OFICIAL no: esa chapa dice «lo organiza el equipo de la
-  // casa», así que sigue siendo de `is_admin` a secas — igual que el
-  // disparador que la defiende en la base (tanda 295).
-  document.getElementById('torneoOficialCampo')?.classList.toggle('hidden', !perfil?.is_admin)
   // Escondida con `visibility` y no con `display` (981): ocupando su sitio
   // desde el principio, el pie no se ve a media pantalla y luego cae.
   document.getElementById('torneosContenido').style.display = ''
@@ -1435,8 +963,7 @@ async function init() {
   // Sin cuenta el botón está escondido y el formulario no serviría: se queda
   // la lista (el registro lo pide el propio /colabora).
   if (session && new URLSearchParams(location.search).get('crear') === '1') {
-    const btn = document.getElementById('btnNuevoTorneo')
-    if (btn && document.getElementById('torneoForm')?.classList.contains('hidden')) btn.click()
+    void abrirCreador(session, perfil)
   }
   await cargarLista(session, perfil)
 }

@@ -137,57 +137,7 @@
   .torneo-punto { animation: none; }
 }
 
-/* ── Crear torneo: el wizard por pasos (calcado de TrainerArena, sin
-   el paso de pago). Tres pasos + resumen, con su indicador arriba. ── */
-.torneos-form { margin: 0 auto 24px; max-width: 640px; }
-
-.torneo-wizard-pasos {
-  display: flex;
-  gap: 8px;
-  margin: 4px 0 16px;
-}
-.torneo-wizard-paso {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 8px;
-  border-radius: var(--radius-md);
-  background: rgba(127, 127, 127, 0.08);
-  color: var(--text-dim);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-align: center;
-}
-.torneo-wizard-paso .torneo-wizard-numero {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(127, 127, 127, 0.16);
-  font-size: var(--t-xs);
-  flex-shrink: 0;
-}
-.torneo-wizard-paso.actual {
-  background: var(--navy);
-  color: var(--blanco-fijo);
-}
-.torneo-wizard-paso.actual .torneo-wizard-numero { background: rgba(255, 255, 255, 0.22); }
-.torneo-wizard-paso.hecho {
-  background: var(--success-bg);
-  color: var(--success);
-}
-.torneo-wizard-paso.hecho .torneo-wizard-numero { background: rgba(13, 158, 110, 0.18); }
-@media (max-width: 560px) {
-  .torneo-wizard-paso span:last-child { display: none; } /* solo el número */
-}
-
-.torneo-wizard-titulo { margin: 0 0 2px; }
-.torneo-wizard-pista { font-size: var(--t-sm); color: var(--text-mid); margin-bottom: 12px; }
-
+/* Los campos del formulario de Editar (los de crear van en torneo-crear.css, 1434). */
 .torneos-form-rejilla {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -251,20 +201,6 @@
 }
 .torneo-cerrar-rondas input { width: 72px; }
 
-/* El resumen del último paso, como la caja pálida del original. */
-.torneo-wizard-resumen {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin: 16px 0;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: rgba(127, 127, 127, 0.05);
-}
-.torneo-wizard-resumen dt { font-size: var(--t-2xs); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.3px; }
-.torneo-wizard-resumen dd { margin: 2px 0 0; font-weight: 600; font-size: var(--t-md); }
-
 .torneos-form-acciones {
   display: flex;
   justify-content: space-between;
@@ -272,7 +208,6 @@
   flex-wrap: wrap;
   margin-top: 16px;
 }
-.torneos-form-acciones .torneo-wizard-derecha { display: flex; gap: 8px; margin-left: auto; }
 
 /* ── La lista ── */
 /* La lista de torneos son TRES cosas apiladas: las pestañas de grupo, la
@@ -595,7 +530,7 @@
   .torneo-pie-quien { flex: 1 1 100%; }
 }
 
-/* Y el campo de elegirla en el wizard y el editor. */
+/* Y el campo de elegirla al crear y en el editor. */
 .torneo-imagen-campo {
   display: flex;
   align-items: center;
@@ -2621,7 +2556,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 /* ── Tanda 219: liga por jornadas, dos pasos y listas a la vista ── */
 
-/* Las fechas de las jornadas en el wizard. */
+/* Las fechas de las jornadas, al crear y en el editor. */
 .torneo-jornadas-campos {
   margin-top: 12px;
   padding: 12px 16px 16px;

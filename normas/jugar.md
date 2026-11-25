@@ -386,3 +386,13 @@ minutos desde que se crea el torneo); lo que se borra se lleva sus avisos (los
 disparadores de la 1406); y Torneos da por leídos los de torneos que ya no se
 ven. Un aviso que enlaza con algo que ya no está es un número que no se puede
 quitar.
+
+**Crear un torneo es una pregunta cada vez** (1434, PINGU: «en vez de hacer un
+scroll tan largo… hazlo así»): la ventana de `js/torneos/crear.js`, con las
+preguntas en `PREGUNTAS` (`js/torneos/crear-puro.js`) y «¿Lo creamos?» al final.
+Algo nuevo que se elija al crear es una PREGUNTA (o un apartado de «Dale tu
+toque» si es opcional), no otro campo en una pregunta que ya está: con su
+`fallo(id)` y su fila con «Cambiar» en el resumen. Una respuesta de tocar es una
+`.tc-opcion` que rellena un campo de siempre; lo marcado se lee del campo, nunca
+se guarda aparte. Y en el creador, Intro es «Siguiente»: crear solo con el botón
+del resumen.

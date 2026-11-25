@@ -22,6 +22,40 @@ confirmar) recarga al momento como siempre.
 **Pendiente**: cada jugador lo coge al recargar la página. A medio plazo: no
 escuchar las tablas de mesa sin filtro (llegan las de todos los torneos) y que
 la recarga por aviso pida solo lo que cambió.
+## 2026-11-25 (683) — PINGU-Claude (1434 — Crear un torneo, una pregunta cada vez)
+
+**Hecho** (PINGU: «¿no es mejor ir respondiendo a las cosas que te van
+saliendo… en vez de hacer un scroll tan largo?… Hazlo así»):
+- «Crear un torneo» abre una ventana (hoja desde abajo en el móvil) con UNA
+  pregunta: el nombre, de un día o liga, cuándo (Hoy, Mañana, el sábado, el
+  domingo y la hora con un toque), las jornadas si es liga (ya puestas una por
+  semana), cuánta gente (8, 16, 32, 64, sin límite u otra cifra), «Así se
+  jugaría» (las rondas y el top cut de la tabla oficial, con «Cambiar algo»),
+  cuánto dura la ronda, quién se apunta (cualquiera o con código), cuándo se
+  ven las listas y «Dale tu toque» (premios, precio, imagen y banner,
+  descripción, check-in y, para administración, oficial). Al final, «¿Lo
+  creamos?» con el cartel y cada respuesta con su «Cambiar», que vuelve a esa
+  pregunta y de ella al resumen.
+- Tocar una tarjeta contesta y pasa sola; Intro en un campo es «Siguiente»
+  (antes Intro en el nombre CREABA el torneo). Las preguntas nombran tu torneo.
+- Duplicar abre directo «¿Lo creamos?» con todo lo del viejo (la fecha, la
+  semana que viene a la misma hora).
+- La fila que se guarda es la de siempre, con los mismos campos e ids.
+
+**Ficheros**: `js/torneos/crear.js` (nuevo), `js/torneos/crear-puro.js`
+(nuevo), `css/torneo-crear.css` (nueva), `js/torneos/torneos.js` (fuera el
+wizard: 400 líneas menos), `torneos.html` (fuera el formulario y la hoja del
+editor, que ahora entra con la ventana), `css/torneos.css` (fuera lo del
+wizard). Rama pruebas: `test-tanda-1434-pantalla.mjs` (nueva); 266 y 367, al
+creador nuevo.
+
+**Visto y no tocado**: las pruebas 298, 1341, 849 y la parte 9 de la 367 se
+atascan en la ficha del torneo (/torneo: la pantalla de entrada a la ronda tapa
+el clic, y «Editar» está en el «⋯»); no es de esta tanda.
+
+**Pendiente**: sale en el próximo push. Lo siguiente es «En persona»: la
+pregunta «¿Dónde se juega?» entra en esta ventana (1435, con su migración).
+
 ## 2026-11-24 (682) — PINGU-Claude (1433 — /para-tiendas y el PDF, con los planes)
 
 **Hecho** (PINGU: «si metes estas cosas también tendrás que actualizar la
