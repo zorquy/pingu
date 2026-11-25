@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-25 (691) — PINGU-Claude (1442 — Prueba de carga y vigilancia de los torneos)
+
+**Hecho** (el último punto de «Torneos sin atascos»):
+- `test-tanda-1442.mjs`: (1) vigila que ninguna escucha de tiempo real de las
+  tablas de un torneo vaya sin filtro, salvo el respaldo de `torneo.js` para
+  cuando aún no está la migración 1438, y que ese respaldo vaya después del
+  canal privado; (2) monta en PostgreSQL un torneo de 64 jugadores en la
+  séptima ronda (224 mesas, resultados, reportes, chat), le pasa la migración
+  1438 y le echa 60 conexiones a la vez durante 15 s (9 de cada 10 piden la
+  ficha con `torneo_ciclo`, 1 escribe chat y reportes).
+- Resultado: la ficha entera en **3 ms** por llamada; con 60 conexiones a tope,
+  **~960 transacciones/s**, latencia media ~60 ms (haciendo cola), **0 fallos**;
+  cada escritura deja un aviso, solo en el canal de su torneo.
+- Norma en `normas/servidor.md` (la de los avisos en vivo) con la prueba que lo vigila.
+
+**Ojo**: la ficha de 224 mesas son ~139 KB de JSON sin comprimir por llamada
+(viaja comprimida). Si algún día hay torneos de 200+, que `torneo_ciclo` mande
+solo las rondas vivas y las cerradas una vez.
+
+**Ficheros**: `normas/servidor.md`. Prueba: `test-tanda-1442.mjs` (rama pruebas).
+Lo que NO mide: el límite de conexiones de Realtime del plan (200 en Free, 500
+en Pro) ni la red; eso solo lo dice un torneo de verdad o una prueba contra el
+proyecto, que no se hace desde aquí.
+
 ## 2026-11-25 (690) — PINGU-Claude (1444 — Cómo le fue a cada mazo: cifras, cruces e imagen)
 
 **Hecho** (Ibai, con un gráfico de poke_hive: «que haga estos gráficos con los

@@ -137,4 +137,8 @@
   `postgres_changes` sin filtro (sin `tournament_id=eq.…` o equivalente) no
   entra: despierta a todos los que miran CUALQUIER cosa de esa tabla. Lo que
   todavía se pida a la base al recibir un aviso espera un rato AL AZAR.
+  Lo vigila `test-tanda-1442.mjs`: busca escuchas sin filtro de las tablas de un
+  torneo (solo vale el respaldo de `torneo.js`, DESPUÉS del canal y tras su
+  `return`) y carga un torneo de 64 en PostgreSQL con 60 conexiones a la vez
+  (a la 1442: ficha en 3 ms, ~960 transacciones por segundo, cero fallos).
 

@@ -55223,6 +55223,14 @@ del todo, sigues abajo; y los colores de la bandera). Cae con el código de ante
   (las tiendas no tienen racha). Sin tablas temporales: cada sentencia lleva
   su CTE entera.
 
+## Tanda 1442 — Prueba de carga y vigilancia de los torneos
+
+Sin cambios de esquema ni de web. `test-tanda-1442.mjs` (rama pruebas):
+vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
+`filtro` (solo el respaldo de `js/torneos/torneo.js`, tras el `return` del
+canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
+jugadores con la migración 1438 en el PostgreSQL local.
+
 ## Tanda 1444 — Cómo le fue a cada mazo
 
 Sin migración. `js/torneos/meta-cruces.js`: `cifrasDeArquetipo({ meta, clave,
