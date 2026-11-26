@@ -83,7 +83,7 @@ for (const ancho of [390, 1280]) {
   const { page, ctx, errores } = await abrir({ ancho })
   await irA(page, '/torneo?slug=pachanga')
   const datos = await page.evaluate(() => ({
-    pestanas: [...document.querySelectorAll('#torneoPestanas [data-pestana]')].map((b) => b.textContent.replace(/\d+/g, '').trim()),
+    pestanas: [...document.querySelectorAll('#torneoPestanas [data-pestana]')].map((b) => (b.querySelector('.torneo-tab-largo') || b).textContent.replace(/\d+/g, '').trim()),
     activa: document.querySelector('#torneoPestanas .activa')?.dataset.pestana,
     cabecera: Math.round(document.getElementById('torneoCabecera').getBoundingClientRect().height),
     formatoEnInfo: Boolean(document.querySelector('[data-panel="torneo"] #torneoFormato')),
@@ -92,7 +92,7 @@ for (const ancho of [390, 1280]) {
     linea: document.getElementById('torneoTablonLinea')?.textContent || '',
     scroll: document.documentElement.scrollWidth - innerWidth,
   }))
-  check(`${ancho}: en juego, las pestañas empiezan por Hoy`, datos.pestanas[0] === 'Hoy' && datos.activa === 'jugar', datos.pestanas.join(','))
+  check(`${ancho}: en juego, las pestañas empiezan por Tu mesa (1447)`, datos.pestanas[0] === 'Tu mesa' && datos.activa === 'jugar', datos.pestanas.join(','))
   check(`${ancho}: «Info» en vez de «Torneo»`, datos.pestanas.includes('Info') && !datos.pestanas.includes('Torneo'))
   // 1375: la cabecera lleva además el reloj y las rayitas de las rondas (≤ 170).
   check(`${ancho}: la cabecera mide poco (≤ 170 px)`, datos.cabecera <= 170, datos.cabecera)

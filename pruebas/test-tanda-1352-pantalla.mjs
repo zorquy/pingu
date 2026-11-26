@@ -66,7 +66,7 @@ async function abrir(ancho, movil = false) {
   await page.waitForTimeout(3000)
   return { page, ctx, errores }
 }
-const nombres = (page) => page.$$eval('#torneoPestanas [data-pestana]', (bs) => bs.map((b) => b.querySelector('.torneo-tab-txt')?.textContent.trim()))
+const nombres = (page) => page.$$eval('#torneoPestanas [data-pestana]', (bs) => bs.map((b) => b.querySelector('.torneo-tab-largo')?.textContent.trim()))
 
 // Desde la 1375 las pestañas van SIEMPRE arriba (PINGU: «el menú lateral es
 // demasiado pequeño y poco visible»): dónde están lo mira la prueba de la 1375.
@@ -76,7 +76,7 @@ try {
   for (const [quien, ancho, movil] of [['Móvil', 390, true], ['PC', 1280, false]]) {
     const { page, ctx, errores } = await abrir(ancho, movil)
     check(`${quien}: sin errores de página`, errores.length === 0, errores.join(' | '))
-    check(`${quien}: Hoy, Mesas, Tabla e Info`, (await nombres(page)).join() === 'Hoy,Mesas,Tabla,Info', (await nombres(page)).join())
+    check(`${quien}: Tu mesa, Clasificación, Mesas e Info (1447)`, (await nombres(page)).join() === 'Tu mesa,Clasificación,Mesas,Info', (await nombres(page)).join())
     check(`${quien}: con iconos`, (await page.locator('#torneoPestanas .torneo-tab-ic svg').count()) === 4)
     await page.locator('#torneoPestanas [data-pestana="clasificacion"]').click()
     await page.waitForTimeout(300)

@@ -70,6 +70,8 @@ const tablas = (page) => page.evaluate(() => window.__TABLAS__)
 const texto = async (page, sel) => ((await page.locator(sel).textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim()
 const toasts = (page) => page.evaluate(() => [...document.querySelectorAll('.toast, [class*="toast"]')].map((t) => t.textContent).join(' | '))
 const clic = async (page, sel, espera = 1600) => {
+  // Lo plegado (el «⋯» del mando, 1344) se abre antes: cerrado no se pulsa.
+  await page.evaluate((s) => { const d = document.querySelector(s)?.closest('details'); if (d) d.open = true }, sel)
   await page.click(sel)
   await page.waitForTimeout(espera)
 }
@@ -82,7 +84,7 @@ console.log('── 1. La Liga FDN: J1 cerrada sin pareos y ya pasada de fecha �
   check('sigue ofreciendo emparejar la J1', /Generar pareos de la jornada 1/.test(await texto(page, '#btnGenerarPareos')))
   check('  …y AL LADO «Saltar la jornada 1»', /Saltar la jornada 1/.test(await texto(page, '#btnSaltarJornada')))
   check('  …con el aviso de que la J1 ya pasó y cómo seguir', /La jornada 1 era el .+ y no tiene pareos/.test(panel) && /pasa a la jornada 2/.test(panel), panel.slice(0, 400))
-  check('  …y la línea de tiempo habla de jornadas', /Jornada 1\s*Por jugar/.test(await texto(page, '.torneo-linea')), await texto(page, '.torneo-linea'))
+  check('  …sin la fila de cajas de rondas (1450)', !(await page.$('.torneo-linea')))
 
   await clic(page, '#btnSaltarJornada')
   check('saltar pide confirmación y dice qué pasa', dialogos.length === 1 && /no se jugó/.test(dialogos[0]) && /jornada 2/.test(dialogos[0]), dialogos[0])
@@ -98,7 +100,7 @@ console.log('── 1. La Liga FDN: J1 cerrada sin pareos y ya pasada de fecha �
   check('  …con «Saltar la jornada 2» al lado', /Saltar la jornada 2/.test(await texto(page, '#btnSaltarJornada')))
   check('  …la J2 todavía no está pasada: sin aviso de fecha', !/era el/.test(await texto(page, '#rondasAdmin')))
   check('  …y se puede recuperar la J1', /Recuperar la jornada 1/.test(await texto(page, '#btnDeshacerRonda')))
-  check('la línea de tiempo dice que la J1 no se jugó', /Jornada 1\s*No se jugó/.test(await texto(page, '.torneo-linea')), await texto(page, '.torneo-linea'))
+  check('la pastilla de la J1 dice que no se jugó', await page.$eval('#mesasContenido .torneo-ronda-chip', (c) => c.classList.contains('saltada') && c.title === 'No se jugó').catch(() => false))
   check('las mesas de la J1 lo explican', /no se jugó en PokeDoc/.test(await texto(page, '#mesasContenido')), await texto(page, '#mesasContenido'))
 
   // La J2, entera, con los botones de una liga.
@@ -146,7 +148,7 @@ console.log('── 3. Saltar la ÚLTIMA jornada cierra la liga ──')
   const jugada = { id: 'ronda-1', tournament_id: 'torneo-1', round_number: 1, phase: 'swiss', status: 'finished', started_at: hace(3000) }
   const { page, errores, dialogos } = await abrir(liga({ jornadas: 2, rondas: [jugada], estado: 'in_progress', fechas: [dentroDe(-9), dentroDe(-3)] }))
   await pestana(page, 'rondas')
-  check('la J1 jugada sigue diciendo «Terminada», no «No se jugó»', /Jornada 1\s*Terminada/.test(await texto(page, '.torneo-linea')), await texto(page, '.torneo-linea'))
+  check('la J1 jugada no sale como «No se jugó»', await page.$eval('#mesasContenido .torneo-ronda-chip', (c) => !c.classList.contains('saltada') && !c.classList.contains('futura')).catch(() => false))
   check('el aviso de la última dice que cierra la liga', /cierra la liga/.test(await texto(page, '#rondasAdmin')), await texto(page, '#rondasAdmin'))
   await clic(page, '#btnSaltarJornada', 2000)
   check('la confirmación avisa de que es la última', /última jornada/.test(dialogos[0] || ''), dialogos[0])
@@ -178,7 +180,7 @@ console.log('── 5. Un torneo de un día no se salta rondas ──')
   await pestana(page, 'rondas')
   check('sale «Generar pareos de la ronda 1»', /Generar pareos de la ronda 1/.test(await texto(page, '#btnGenerarPareos')))
   check('  …y no hay «Saltar»', !(await page.$('#btnSaltarJornada')))
-  check('  …ni la línea habla de jornadas', /Ronda 1/.test(await texto(page, '.torneo-linea')) && !/Jornada/.test(await texto(page, '.torneo-linea')))
+  check('  …ni el mando habla de jornadas', !/[Jj]ornada/.test(await texto(page, '#rondasAdmin')), await texto(page, '#rondasAdmin'))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

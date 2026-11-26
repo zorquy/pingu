@@ -66,6 +66,8 @@ const tablas = (page) => page.evaluate(() => window.__TABLAS__)
 const texto = async (page, sel) => ((await page.locator(sel).textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim()
 const toasts = (page) => page.evaluate(() => [...document.querySelectorAll('.toast, [class*="toast"]')].map((t) => t.textContent).join(' | '))
 const clic = async (page, sel, espera = 1600) => {
+  // Lo plegado (el «⋯» del mando, 1344) se abre antes: cerrado no se pulsa.
+  await page.evaluate((x) => { const d = document.querySelector(x)?.closest('details'); if (d) d.open = true }, sel)
   await page.click(sel)
   await page.waitForTimeout(espera)
 }
@@ -78,7 +80,10 @@ const clic = async (page, sel, espera = 1600) => {
 const listasJ2 = [...JUGADORES.map((u) => [u, 1]), ['user-1', 2], ['user-2', 2], ['user-3', 2]]
 const resolverTodas = async (page) => {
   for (let k = 0; k < 4; k++) {
-    const s = (await page.$$('[data-resolver]'))[0]
+    // La primera VISIBLE: «Corregir…» de una cerrada va plegado en su «⋯».
+    const todos = await page.$$('[data-resolver]')
+    let s = null
+    for (const x of todos) if (await x.isVisible()) { s = x; break }
     if (!s) break
     const opts = await s.$$eval('option', (os) => os.map((o) => o.value).filter(Boolean))
     await s.selectOption(opts[0])
@@ -97,8 +102,8 @@ console.log('── 1. Saltar la J1 salta sus TRES rondas ──')
   await pestana(page, 'rondas')
   check('ofrece emparejar la J1 diciendo que es su ronda 1 de 3', /Generar pareos de la jornada 1 \(ronda 1 de 3\)/.test(await texto(page, '#btnGenerarPareos')), await texto(page, '#btnGenerarPareos'))
   check('  …y saltar la jornada 1', /Saltar la jornada 1/.test(await texto(page, '#btnSaltarJornada')))
-  const pasos = await page.$$eval('.torneo-paso', (ps) => ps.map((p) => p.textContent.replace(/\s+/g, ' ').trim()))
-  check('la línea de tiempo: un paso por JORNADA (3), no por ronda (9)', pasos.length === 3 && pasos.every((p, i) => p.startsWith(`Jornada ${i + 1}`)), pasos.join(' | '))
+  // 1450: fuera la fila de cajas; la tira de jornadas sale con la primera ronda.
+  check('sin la fila de cajas de rondas', !(await page.$('.torneo-paso')))
   await clic(page, '#btnSaltarJornada')
   let T = await tablas(page)
   const saltadas = T.rounds.filter((r) => [1, 2, 3].includes(r.round_number))

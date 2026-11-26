@@ -72,6 +72,8 @@ const abrir = async ({ sesion = 'user-1', ancho = 1280, torneo = TORNEO, rondas 
   }, [sesion, torneo, INSCRIPCIONES, rondas, mesas, RESULTADOS, reportes])
   await page.goto(`${BASE}/torneo?slug=pachanga`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
+  // La entrada a la ronda (1402) sale en los primeros minutos: aquí estorba.
+  await page.evaluate(() => document.querySelectorAll('dialog.torneo-ronda-entra[open]').forEach((d) => d.close()))
   return { page, errores }
 }
 const pestana = async (page, cual) => {
@@ -222,21 +224,22 @@ console.log('\n── 5. Las mesas, como enfrentamientos ──')
   await page.close()
 }
 
-console.log('\n── 6. La línea de tiempo, y un solo reloj ──')
+console.log('\n── 6. Las rondas en pastillas (1450: fuera la fila de cajas), y un solo reloj ──')
 {
   const { page } = await abrir()
   await pestana(page, 'rondas')
-  const pasos = page.locator('.torneo-paso')
-  // Tres suizas previstas + el top cut = cuatro pasos.
-  check('un paso por ronda prevista, más el corte', (await pasos.count()) === 4, String(await pasos.count()))
-  check('la 1.ª, terminada', (await pasos.nth(0).textContent())?.includes('Terminada'))
+  const pasos = page.locator('#mesasContenido .torneo-rondas-chips .torneo-ronda-chip')
+  // Tres suizas previstas + el top cut = cuatro pastillas.
+  check('una pastilla por ronda prevista, más el corte', (await pasos.count()) === 4, String(await pasos.count()))
+  check('sin la fila de cajas', !(await page.$('.torneo-linea, .torneo-paso')))
+  check('la 1.ª, jugada (se toca)', !(await pasos.nth(0).getAttribute('class'))?.includes('futura'))
   check('la 2.ª, la viva', (await pasos.nth(1).getAttribute('class'))?.includes('viva'))
-  // El reloj vive DENTRO del paso vivo: antes había tres relojes en
-  // pantalla diciendo lo mismo (la barra, el gigante y el de la partida).
-  check('  …con el reloj dentro', (await pasos.nth(1).locator('#cuentaGrande').count()) === 1)
-  check('  …corriendo', /^\d+:\d{2}$/.test((await pasos.nth(1).locator('#cuentaGrande').textContent()) || ''),
-    await pasos.nth(1).locator('#cuentaGrande').textContent())
-  check('la 3.ª y el top, por jugar', (await pasos.nth(2).textContent())?.includes('Por jugar') && (await pasos.nth(3).textContent())?.includes('Top 4'))
+  // El reloj va al lado del título de las mesas: antes había tres relojes
+  // en pantalla diciendo lo mismo (la barra, el gigante y el de la partida).
+  const reloj = page.locator('.torneo-mesas-cabecera #cuentaGrande')
+  check('  …con el reloj al lado del título', (await reloj.count()) === 1)
+  check('  …corriendo', /^\d+:\d{2}$/.test((await reloj.textContent()) || ''), await reloj.textContent())
+  check('la 3.ª y el top, por jugar', (await pasos.nth(2).getAttribute('class'))?.includes('futura') && (await pasos.nth(3).textContent())?.includes('Top 4'))
   // Un solo reloj GRANDE en pantalla. Los tres de antes decían lo mismo.
   const relojes = await page.evaluate(() =>
     [...document.querySelectorAll('#cuentaGrande, #torneoVivaAnillo b, .torneo-partida-cuenta')].filter((e) => e.offsetParent !== null).length)

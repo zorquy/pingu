@@ -204,16 +204,17 @@ console.log('\n── 2. El meta junta las variantes de un mismo mazo (agruparMe
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Y en la pestaña Meta ──')
+console.log('\n── 3. Y en la pestaña Mazos ──')
 {
   const { page, errores } = await abrir('/torneo?slug=copa')
-  await page.click('[data-pestana="clasificacion"]') // 1378: los mazos, en Tabla
+  await page.click('[data-pestana="meta"]') // 1447: los mazos tienen su pestaña
   await page.waitForTimeout(500)
-  const filas = (await page.locator('.torneo-meta-fila').allInnerTexts()).map((t) => t.replace(/\s+/g, ' '))
-  check('cuatro filas para ocho listas', filas.length === 4, filas.join(' || '))
-  check('  …el Zoroark de N arriba, 4 jugadores y 3 variantes (50 %)', /^N's Zoroark ex 4 jugadores · 3 variantes/.test(filas[0]) && /50 %$/.test(filas[0]), filas[0])
-  check('  …y sin filas repetidas', new Set(filas.map((f) => f.split(' ')[0] + f.split(' ')[1])).size === filas.length)
-  await page.locator('.torneo-meta-fila').first().click()
+  // 1449: cuatro mazos son el mosaico (más de tres): un recuadro por mazo.
+  const filas = (await page.locator('[data-meta-arquetipo]').allInnerTexts()).map((t) => t.replace(/\s+/g, ' ').trim())
+  check('cuatro recuadros para ocho listas', filas.length === 4 && (await page.locator('.torneo-meta-tesela').count()) === 4, filas.join(' || '))
+  check('  …el Zoroark de N el primero, con el 50 % y sus 4 jugadores', /^50 % N's Zoroark ex 4 jugadores/.test(filas[0]), filas[0])
+  check('  …y sin recuadros repetidos', new Set(filas).size === filas.length)
+  await page.locator('[data-meta-arquetipo]').first().click()
   await page.waitForTimeout(400)
   const variantes = await page.locator('.torneo-meta-variantes').innerText()
   // La variante lleva el nombre de quien quedó más arriba con ella: aquí,
