@@ -5619,11 +5619,30 @@ button.torneo-tj { cursor: pointer; }
 .torneo-listas-cifra b { font-family: var(--font-display); font-size: var(--t-xl); }
 #torneoListasJuez .torneo-buscar-gente { margin: var(--e-sm) 0; }
 #decklistsJuezContenido { display: grid; gap: 4px; }
+/* Las tres columnas se miden por el sitio que deja la PÁGINA, no la pantalla
+   (1454): a 1440 con el menú lateral quedan ~1080 px, y tickets · mesas · chat
+   no cabían: las mesas montaban encima de los tickets y el chat se salía. Con
+   menos de 1000 px de panel van dos columnas y el chat, al abrir una mesa,
+   encima de las mesas. */
+[data-panel='jueces'] { container: juez / inline-size; }
+.torneo-juez-col > .simple-card { min-width: 0; overflow-wrap: anywhere; }
 @media (min-width: 1100px) {
   .torneo-juez-consola {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    grid-template-areas: 'tickets mesas' 'tickets listas';
+  }
+  .torneo-juez-consola > [data-col='chat'] { display: none; }
+  .torneo-juez-consola.con-chat { grid-template-areas: 'tickets chat' 'tickets mesas' 'tickets listas'; }
+  .torneo-juez-consola.con-chat > [data-col='chat'] { display: grid; position: static; }
+}
+@container juez (min-width: 1000px) {
+  .torneo-juez-consola, .torneo-juez-consola.con-chat {
     grid-template-columns: minmax(260px, 1fr) minmax(0, 1.4fr) minmax(280px, 1fr);
     grid-template-areas: 'tickets mesas chat' 'tickets listas chat';
   }
+  .torneo-juez-consola > [data-col='chat'] { display: grid; position: sticky; }
+}
+@media (min-width: 1100px) {
   .torneo-juez-col[data-col='tickets'] { grid-area: tickets; }
   .torneo-juez-col[data-col='mesas'] { grid-area: mesas; }
   .torneo-juez-col[data-col='listas'] { grid-area: listas; }

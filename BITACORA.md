@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (699) — PINGU-Claude (1451b — La consola del juez no se pisa en el PC con el menú lateral)
+
+**Hecho** (salió al sacar las capturas de la versión final): a 1440 px el menú
+lateral deja ~1080 px de panel, y las tres columnas del Modo juez (tickets ·
+mesas · chat) no cabían: las mesas montaban encima de los tickets y el chat se
+salía por la derecha. Ahora las columnas se miden por el ancho del PANEL (una
+consulta de contenedor), no de la pantalla: tres columnas desde 1000 px de
+panel; por debajo, dos (tickets · mesas) y el chat, al abrir una mesa, encima
+de las mesas. Las tarjetas de dentro parten el texto en vez de salirse. Y el
+botón de cerrar el chat de la mesa no tenía dibujo: lleva su ✕.
+
+**Ficheros**: `css/torneos.css`, `js/torneos/jueces.js`. Prueba:
+`test-tanda-1451-pantalla.mjs` mide las columnas a 1440 con el menú lateral.
+
+**Pendiente**: nada; va con 1446–1456 en el próximo push.
+
 ## 2026-11-26 (698) — PINGU-Claude (1454–1456 — /torneos como agenda: días, filtros, terminados aparte y borradores solo tuyos)
 
 **Hecho** (la propuesta «Los torneos, de un vistazo» y las dos dudas de PINGU:

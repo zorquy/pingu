@@ -55265,6 +55265,16 @@ pide `rounds.id` y la mesa (`tournament_matches` por `round_id`) y el rival;
 `CARAS_POR_TARJETA` y las caras de los inscritos (la consulta de perfiles ya
 solo pide organizadores y campeones). `accionDe`: borrador con `corto: 'Editar'`.
 
+## Tanda 1451b — La consola del juez por el ancho del panel
+
+`[data-panel='jueces']` es contenedor (`container: juez / inline-size`). En
+`@media (min-width: 1100px)` la consola va a dos columnas (`'tickets mesas'
+'tickets listas'`; con `.con-chat`, el chat encima de las mesas) y en
+`@container juez (min-width: 1000px)`, a tres (`'tickets mesas chat'
+'tickets listas chat'`, chat pegado). `.torneo-juez-col > .simple-card` lleva
+`min-width: 0` y `overflow-wrap: anywhere`. `[data-cerrar-mesa]` pinta
+`icons.x(16)`.
+
 ## Tanda 1452 — Torneos en persona: creador, lista y ficha
 
 `crear-puro.js`: `PREGUNTAS` con `donde` y `lugar` tras `nombre`;

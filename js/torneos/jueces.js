@@ -864,7 +864,7 @@ function abrirMesaJuez(id) {
   caja.innerHTML = `
     <div class="torneo-juez-mesa-cab">
       <h4>Mesa ${m.table_number} · ${escapeHtml(nombreDe(m.player_a_id))} contra ${escapeHtml(m.player_b_id ? nombreDe(m.player_b_id) : 'nadie')}</h4>
-      <button type="button" class="torneo-lista-cerrar" data-cerrar-mesa aria-label="Cerrar la mesa"></button>
+      <button type="button" class="torneo-lista-cerrar" data-cerrar-mesa aria-label="Cerrar la mesa">${icons.x(16)}</button>
     </div>
     <div id="chatMesaJuez"></div>
     <p class="subtext">Para dar el resultado o corregirlo, ve a la mesa en <button type="button" class="link-btn" data-ir-mesas>Mesas</button>.</p>`
