@@ -68,8 +68,9 @@ for (const movil of [false, true]) {
   const q = movil ? 'Móvil' : 'PC'
   console.log(`── ${q}: Clasificación ──`)
   const { page, errores } = await abrir('clasificacion', movil)
-  const podio = await page.$$eval('.torneo-podio-tira .torneo-podio-puesto', (ps) => ps.length)
-  check(`${q}: el podio en una tira (los cuatro de arriba)`, podio >= 3, String(podio))
+  // 1471: sin el top 4 de arriba (Manso y PINGU): «la clasificación ya se ve bien».
+  const podio = await page.$$eval('.torneo-podio-tira, .torneo-lideres', (ps) => ps.length)
+  check(`${q}: sin el top 4 encima de la tabla (1471)`, podio === 0, String(podio))
   const t = await tabla(page)
   check(`${q}: el Top 8 y tu fila, no los 20`, t.jugadores.length === 9 && t.yo === 'pingu' && t.jugadores[8] === 'pingu', JSON.stringify(t.jugadores))
   check(`${q}: la línea del corte tras el 8.º y el hueco antes de ti`, t.corte === 8 && t.hueco, JSON.stringify(t))

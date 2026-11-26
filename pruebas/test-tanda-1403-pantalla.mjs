@@ -78,7 +78,7 @@ for (const movil of [false, true]) {
   {
     const { ctx, page, errores } = await abrir({ ...liga(1), VER: 'clasificacion' }, movil)
     const r = await page.evaluate(() => ({ lideres: document.querySelectorAll('#clasificacionContenido .torneo-lideres').length, aviso: document.querySelector('#clasificacionContenido .torneo-tabla-arranca')?.textContent.replace(/\s+/g, ' ').trim(), filas: document.querySelectorAll('#clasificacionContenido tbody tr[data-nombre]').length /* 1448: sin la fila de la línea del corte */ }))
-    check(`${q}: en la ronda 1, sin podio y con el aviso de cuánto falta`, r.lideres === 0 && r.aviso === 'La tabla arranca cuando acabe la ronda 1 de la jornada 1: van 2 de 4 mesas. El podio sale en cuanto haya algo que contar.', JSON.stringify(r))
+    check(`${q}: en la ronda 1, sin podio y con el aviso de cuánto falta`, r.lideres === 0 && r.aviso === 'La tabla arranca cuando acabe la ronda 1 de la jornada 1: van 2 de 4 mesas.', JSON.stringify(r))
     check(`${q}: …y la tabla sigue debajo`, r.filas === 8, r.filas)
     if (OUT) await page.screenshot({ path: `${OUT}/1403-tabla-${movil ? 'm' : 'pc'}.png`, scale: 'css' })
     check(`${q}: sin errores`, !errores.length, errores.join(' | '))
@@ -87,7 +87,8 @@ for (const movil of [false, true]) {
   {
     const { ctx, page, errores } = await abrir({ ...liga(2), VER: 'clasificacion' }, movil)
     const r = await page.evaluate(() => ({ lideres: document.querySelectorAll('#clasificacionContenido .torneo-lider').length, aviso: document.querySelectorAll('#clasificacionContenido .torneo-tabla-arranca').length }))
-    check(`${q}: con la ronda 1 cerrada, vuelve el podio`, r.lideres === 3 && r.aviso === 0, JSON.stringify(r))
+    // 1471: ya no hay «líderes» arriba; con la ronda 1 cerrada, se va el aviso y queda la tabla.
+    check(`${q}: con la ronda 1 cerrada, sin aviso y sin podio arriba (1471)`, r.lideres === 0 && r.aviso === 0, JSON.stringify(r))
     check(`${q}: sin errores`, !errores.length, errores.join(' | '))
     await ctx.close()
   }

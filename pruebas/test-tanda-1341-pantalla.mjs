@@ -226,7 +226,8 @@ console.log('── 1345. Clasificación y Jueces ──')
     columnas: [...document.querySelectorAll('.torneo-clasificacion-tabla thead th')].filter((th) => getComputedStyle(th).display !== 'none').length,
     scroll: document.documentElement.scrollWidth - innerWidth,
   }))
-  check('en juego, los tres de arriba', c.lideres === 3, c.lideres)
+  // 1471: fuera los tres de arriba (Manso y PINGU): la tabla ya los marca.
+  check('en juego, sin los tres de arriba (1471)', c.lideres === 0, c.lideres)
   check('en el móvil la tabla va a 4 columnas', c.columnas === 4, c.columnas)
   check('sin scroll de lado', c.scroll <= 0, c.scroll)
   check('sin errores', errores.length === 0, errores.join(' | '))

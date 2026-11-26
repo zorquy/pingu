@@ -65,7 +65,7 @@ console.log('── 4. El podio ──')
   check('un puesto fuera de rango no rompe', /Campeón/.test(textoDePodio({ nombre: 'X', slug: 'x', puesto: -2 })) && /Semifinalista/.test(textoDePodio({ nombre: 'X', slug: 'x', puesto: 9 })))
   check('el enlace lleva el slug escapado', enlaceDeTorneo('copa ñ') === 'pokedoc.es/torneo?slug=copa%20%C3%B1')
   const ronda = leer('js/torneos/ronda.js')
-  check('ronda.js pinta «Compartir» solo en TU puesto y lo delega a podio-compartir.js', /id === miId\(\) \? `<button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="\$\{i\}"/.test(ronda) && /import\('\.\/podio-compartir\.js'\)/.test(ronda))
+  check('ronda.js pinta «Compartir» solo en TU puesto y lo delega a podio-compartir.js', /miPodio >= 0[\s\S]{0,300}class="link-btn torneo-podio-compartir" data-podio-compartir="\$\{miPodio\}"/.test(ronda) && /import\('\.\/podio-compartir\.js'\)/.test(ronda))
   check('  …sin tocar el motor', !/podio-compartir/.test(leer('js/torneos/motor.js')))
 }
 
