@@ -55231,6 +55231,23 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1470 — Sin check-in no hay resultado
+
+Migración `supabase-migration-1470-sin-checkin-no-hay-resultado.sql`: `create or
+replace` de `public.torneos_reportar(p_partida uuid, p_resultado text, p_juego
+smallint default 0)` (la de producción entera) con una guarda tras la del estado:
+mesa `active` con rival, ronda `active` con `started_at`, `checkin_minutes > 0`
+del torneo, `now() > started_at + checkin_minutes` y `check_in_a_at` o
+`check_in_b_at` nulo → `tournament_matches.status` a `forfeit_b` (solo A),
+`forfeit_a` (solo B) o `forfeit_both`, `finished_at = now()`, fila en
+`match_results` (`resolved_by null`, `score 'check_in'`, `on conflict do
+nothing`) y devuelve `'sin_checkin'` sin apuntar `match_reports`. Permisos: solo
+`authenticated`. Cliente: `ronda.js` pinta `p.torneo-checkin-perdido[data-checkin-falta]`
+en la mesa con check-in pendiente; el tictac de `arrancarReloj` pone
+`#miPartidaContenido.checkin-vencido` al vencer; `AVISOS.sin_checkin`. CSS:
+`.checkin-vencido` esconde `.torneo-reportar`, `.torneo-bo3`, `.torneo-bo3-cab`,
+`#btnCheckin`, `#avisoCheckin`.
+
 ## Tanda 1469 — El día del torneo, en «modo Hoy»
 
 Sin cambios de esquema. `js/torneos/cabecera.js`: `esDiaDelTorneo(t, ahora)`

@@ -6200,3 +6200,15 @@ a.t-campeon-tu:hover { color: var(--acento); }
   /* Que la barra no tape lo último de la ficha. */
   body:has(> .torneo-hoy-barra) main { padding-bottom: 76px; }
 }
+
+/* ══ 1470 — Sin check-in no hay resultado (SCHEMA 1470): vencido el plazo con
+   un check-in sin hacer, la mesa esconde Victoria/Derrota (y el BO3 y el
+   check-in) y dice qué ha pasado. Lo pone el tictac de ronda.js. ══ */
+.torneo-checkin-perdido { display: none; }
+.checkin-vencido .torneo-checkin-perdido { display: block; margin: var(--e-sm) 0; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: var(--danger-bg); color: var(--text); font-size: var(--t-sm); }
+.checkin-vencido .torneo-checkin-perdido b { color: var(--danger); }
+.checkin-vencido .torneo-reportar,
+.checkin-vencido .torneo-bo3,
+.checkin-vencido .torneo-bo3-cab,
+.checkin-vencido #btnCheckin,
+.checkin-vencido #avisoCheckin { display: none; }

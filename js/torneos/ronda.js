@@ -1294,6 +1294,9 @@ async function reportar(partida, resultado, juego = 0) {
     corregido: ['Cambiado. Falta que tu rival lo confirme.', 'success'],
     disputa: ['Los reportes no coinciden: la mesa queda en disputa.', 'error'],
     repetido: ['Ese resultado ya estaba reportado.', 'info'],
+    // 1470: el check-in venció sin el de alguno; la base cerró la mesa por
+    // incomparecencia y el parte no se apuntó.
+    sin_checkin: ['El check-in se acabó sin que estuvierais los dos: la mesa se decide por incomparecencia.', 'info'],
   }
   const [texto, tono] = AVISOS[res.data] || ['Reportado.', 'success']
   showToast(texto, tono)
@@ -1802,6 +1805,14 @@ function arrancarReloj(ronda) {
     // para todas las mesas— pide cerrar las que tengan un check-in sin hacer.
     // La hora y la regla las pone la base; el barredor de cada minuto sigue de red.
     if (ya >= cierreCheckin && (ctx.torneo.checkin_minutes || 0) > 0) reclamarAusencia(ronda)
+    // Sin check-in no hay resultado que dar (1470, Manso vía PINGU: «si no
+    // haces el check-in y pasan esos 5 minutos, que no te deje dar a victoria o
+    // derrota porque ya has perdido»). Vencido el plazo con un check-in sin
+    // hacer, tu mesa esconde Victoria/Derrota y dice qué ha pasado mientras la
+    // base la cierra (y si alguien llega a reportar, `torneos_reportar` la
+    // cierra igual: la regla es de la base).
+    const miMesa = $('miPartidaContenido')
+    if (miMesa) miMesa.classList.toggle('checkin-vencido', ya >= cierreCheckin && (ctx.torneo.checkin_minutes || 0) > 0 && Boolean(miMesa.querySelector('[data-checkin-falta]')))
     // El aviso de «Tu partida»: la ventana de check-in con su cuenta.
     const aviso = $('avisoCheckin')
     if (aviso) {
@@ -3010,7 +3021,12 @@ function pintarMiPartida() {
     </div>
     ${
       faltaCheckin
-        ? `<p class="torneo-checkin-aviso hidden" id="avisoCheckin">Quedan <strong id="cuentaCheckinPartida">–:––</strong> de check-in — quien no lo haga pierde la ronda.</p>`
+        ? `<p class="torneo-checkin-aviso hidden" id="avisoCheckin">Quedan <strong id="cuentaCheckinPartida">–:––</strong> de check-in — quien no lo haga pierde la ronda.</p>
+           <p class="torneo-checkin-perdido" data-checkin-falta role="status">${
+             !miListo
+               ? '<b>No hiciste check-in a tiempo.</b> Esta ronda la pierdes por no presentarte; ya no se puede dar resultado.'
+               : `<b>${escapeHtml(rivalNombre)} no hizo check-in a tiempo.</b> La ronda es tuya: la mesa se cierra sola en unos segundos.`
+           }</p>`
         : ''
     }
     ${miListo ? '' : '<button class="btn-primary torneo-boton-checkin" id="btnCheckin">Hacer check-in</button>'}`

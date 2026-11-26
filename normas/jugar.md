@@ -590,3 +590,16 @@ segundo en la ficha. La barra fija del móvil (`#torneoHoyBarra`) no tiene
 manejador propio: pulsa el botón de verdad de «Tu plaza». Si una misión nueva
 tiene botón, que lleve `.sala-mision-boton` dentro de `.sala-mision.toca` y la
 barra la encuentra sola.
+
+**Sin check-in no hay resultado, y la regla es de la base** (tanda 1470, Manso
+vía PINGU: «si no haces el check-in y pasan esos 5 minutos, que no te deje dar
+a victoria o derrota porque ya has perdido»). Vencida la ventana
+(`started_at + checkin_minutes`, con `checkin_minutes > 0`) con algún check-in
+sin hacer, `torneos_reportar` NO apunta el parte: cierra la mesa con la MISMA
+regla que el barredor y `torneos_reclamar_ausencia` (forfeit_b, forfeit_a o
+forfeit_both, `score 'check_in'`) y devuelve `sin_checkin`. Si cambias la regla,
+cambias las tres. En la ficha, el tictac pone `.checkin-vencido` en tu mesa y el
+CSS esconde Victoria/Derrota, el BO3 y el botón de check-in, y enseña el
+`.torneo-checkin-perdido` que ya venía pintado. Esconder botones no es la regla:
+es la cortesía; la regla la pone la base. En persona (`checkin_minutes: 0`) no
+aplica: la puerta es el check-in.

@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (709) — PINGU-Claude (1470 — sin check-in no hay resultado)
+
+**Hecho** (Manso, vía PINGU: «si no haces el check-in y pasan esos 5 minutos…
+que no te deje dar a victoria o derrota porque ya has perdido»):
+- **La base** (`supabase-migration-1470-sin-checkin-no-hay-resultado.sql`):
+  `torneos_reportar`, vencida la ventana de check-in con el de alguno sin
+  hacer, no apunta el parte: cierra la mesa con la regla del barredor
+  (forfeit_b / forfeit_a / forfeit_both, `score 'check_in'`) y devuelve
+  `sin_checkin`. Antes de vencer, con los dos presentes o sin ventana (en
+  persona, 0 min), todo como siempre. El resto de la función es la de hoy.
+- **La ficha**: vencido el plazo, tu mesa esconde Victoria/Derrota (y el BO3
+  y el check-in) y dice «No hiciste check-in a tiempo. Esta ronda la pierdes…»
+  o, si el que faltó es tu rival, «La ronda es tuya: la mesa se cierra sola».
+  Si a alguien le llega a dar tiempo a pulsar, el aviso de `sin_checkin`.
+
+**Ficheros**: `supabase-migration-1470-sin-checkin-no-hay-resultado.sql`
+(nuevo), `js/torneos/ronda.js`, `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1470.mjs` (contra PostgreSQL: dentro
+de la ventana, vencida con uno, con ninguno, con los dos, sin ventana; y la
+ficha).
+
+**Pendiente**: **ejecutar la migración 1470** en el SQL Editor. La web va bien
+sin ella (esconde los botones igual; el barredor cierra la mesa al minuto).
+
 ## 2026-11-26 (708) — PINGU-Claude (1469 — el día del torneo, en «modo Hoy»)
 
 **Hecho** (propuesta «Arena: siguientes mejoras», idea 5; PINGU: «adelante
