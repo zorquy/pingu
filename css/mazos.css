@@ -537,3 +537,7 @@
   .cm-mazo-pie { padding: 0 var(--e-md) var(--e-md); }
 }
 @media (prefers-reduced-motion: reduce) { .cm-mazo-pie .cm-mazo-probar:active { transform: none; } }
+/* El dibujo oficial en la portada (1480): más grande que el sprite y sin
+   pixelar; el segundo se monta un poco sobre el primero. */
+.cm-mazo-portada .mz-portada-arte { width: 52%; max-width: 168px; margin: 0 -8%; image-rendering: auto; }
+.cm-mazo-portada .mz-portada-arte + .mz-portada-arte { width: 44%; max-width: 144px; }

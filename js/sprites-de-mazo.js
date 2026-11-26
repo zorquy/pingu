@@ -15,6 +15,15 @@ export function spritesDeMazoGuardado(cards, filaDe) {
 
 // Las <img> con su cadena de respaldos (si un origen no contesta, el
 // siguiente; agotada, se esconde).
+// Los números de la Pokédex de esos mismos Pokémon (1480), para pintar su
+// dibujo oficial donde hay sitio (la portada de un mazo en /mazos). Los que
+// no son Pokémon (un objeto) no tienen número y se quedan fuera.
+export function dexesDeMazoGuardado(cards, filaDe) {
+  const lista = listaDeMazoGuardado(cards, filaDe)
+  if (!lista.pokemon.length) return []
+  return deducirIconos(lista).map((i) => dexesDeNombre(i.nombre)[0]).filter(Boolean).slice(0, 2)
+}
+
 export function spritesHtml(urls, clase, tam = 96) {
   return urls.map((u) => `<img class="${clase}" src="${escapeHtml(u)}" alt="" width="${tam}" height="${tam}" loading="lazy"${atributosDeRespaldo(u)} />`).join('')
 }

@@ -15,6 +15,9 @@ import { abrirPestania } from './perfil-pestanias.js'
 import { getAllAchievements } from './gamification.js'
 import { achievementIconHtml } from './app.js'
 import { fotosDe, imgDeFoto, engancharCadena } from './fotos-cadena.js'
+import { mazoMasJugado } from './perfil-torneos.js'
+import { dexesDeNombre } from './torneos/arquetipos.js'
+import { artePokemonHtml } from './arte-pokemon.js'
 
 // El «Ver» de cada bloque es un BOTÓN en pastilla que dice adónde lleva (1299,
 // PINGU: «que fuesen botones, no letras»).
@@ -34,7 +37,7 @@ async function ultimoTorneo(userId) {
   const { data: ins } = await supabase.from('tournament_registrations').select('tournament_id').eq('user_id', userId)
   const ids = [...new Set((ins || []).map((i) => i.tournament_id))]
   if (!ids.length) return null
-  const { data } = await supabase.from('tournaments').select('slug, name, status, start_at, champion_id, podium').in('id', ids).in('status', ['finished', 'in_progress']).order('start_at', { ascending: false }).limit(1)
+  const { data } = await supabase.from('tournaments').select('id, slug, name, status, start_at, champion_id, podium').in('id', ids).in('status', ['finished', 'in_progress']).order('start_at', { ascending: false }).limit(1)
   return data?.[0] || null
 }
 
@@ -54,7 +57,10 @@ export function resumenHtml({ guia = null, torneo = null, foro = null, logros = 
     const p = torneo.champion_id === userId ? 0 : Array.isArray(torneo.podium) ? torneo.podium.indexOf(userId) : -1
     const medalla = p === 0 ? '<span class="pr-medalla pr-oro">1.º</span>' : p > 0 ? `<span class="pr-medalla${p === 1 ? ' pr-plata' : p === 2 ? ' pr-bronce' : ''}">${p + 1}.º</span>` : `<span class="pr-ico pr-ico-jugar" aria-hidden="true">${icons.trophy(18)}</span>`
     const sub = [torneo.status === 'in_progress' ? 'En juego' : p === 0 ? 'Campeón' : p > 0 ? `${p + 1}.º puesto` : 'Jugado', String(torneo.start_at || '').slice(0, 10)].filter(Boolean).join(' · ')
-    partes.push(bloque('torneos', propia ? 'Tu último torneo' : 'Su último torneo', fila(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, medalla, torneo.name, sub), 'Todos los torneos'))
+    // Un cartel, no una fila (1480): con su mazo dibujado cuando la lista se ve
+    // (torneo terminado, regla 230); lo pone `ponerArteDelTorneo` al llegar.
+    const cartel = fila(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, medalla, torneo.name, sub).replace('class="pr-fila"', 'class="pr-fila pr-torneo-cartel"').replace(/<\/a>$/, '<span class="pr-torneo-arte" data-pr-torneo-arte hidden></span></a>')
+    partes.push(bloque('torneos', propia ? 'Tu último torneo' : 'Su último torneo', cartel, 'Todos los torneos'))
   }
   if (foro) partes.push(bloque('foro', 'En el foro', fila(`/tema/${encodeURIComponent(foro.id)}`, `<span class="pr-ico pr-ico-comunidad" aria-hidden="true">${icons.messageSquare(18)}</span>`, foro.title, `${foro.abrio ? 'Abrió el tema' : 'Respondió'} · ${haceCuanto(foro.created_at)}`), 'Todo en el foro'))
   if (logros.length) {
@@ -78,6 +84,7 @@ export async function pintarResumen(caja, { userId, propia = false, logros = [] 
   const vitrinaAntes = caja.querySelector('.pr-vitrina')?.outerHTML
   caja.innerHTML = resumenHtml({ guia, torneo, foro, logros: ganados, userId, propia })
   if (vitrinaAntes) caja.querySelector('.pr-vitrina').outerHTML = vitrinaAntes
+  if (torneo?.status === 'finished') ponerArteDelTorneo(caja, torneo, userId)
   caja.dataset.vacio = String(!guia && !torneo && !foro && !ganados.length)
   if (!caja.querySelector('.pr-vitrina:not([hidden])') && caja.dataset.vacio === 'true') caja.insertAdjacentHTML('beforeend', `<p class="empty-state pr-vacio">${propia ? 'Aquí saldrá lo último que hagas: tu vitrina, tus guías, tus torneos y tus logros.' : 'Todavía no hay nada que enseñar.'}</p>`)
   if (!caja.dataset.prEnganchado) {
@@ -89,6 +96,25 @@ export async function pintarResumen(caja, { userId, propia = false, logros = [] 
       document.getElementById('profileTabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }
+}
+
+// El dibujo del mazo con el que jugó su último torneo (1480): de su lista,
+// que solo se ve con el torneo terminado (230), con la cuenta del perfil
+// (`mazoMasJugado` de una lista). Sin lista o sin dibujo, el cartel sigue sin él.
+async function ponerArteDelTorneo(caja, torneo, userId) {
+  try {
+    const [{ data: listas }, { data: catalogo }] = await Promise.all([
+      supabase.from('tournament_decklists').select('tournament_id, parsed_cards').eq('user_id', userId).eq('tournament_id', torneo.id),
+      supabase.from('tcg_archetypes').select('*').eq('activo', true),
+    ])
+    const mazo = mazoMasJugado(listas, catalogo || [])
+    const dex = mazo ? dexesDeNombre(mazo.iconos?.[0]?.nombre || mazo.nombre)[0] : null
+    const hueco = caja.querySelector('[data-pr-torneo-arte]')
+    if (!dex || !hueco) return
+    hueco.innerHTML = artePokemonHtml(dex, 'pr-torneo-arte-img')
+    hueco.title = mazo.nombre
+    hueco.hidden = false
+  } catch {}
 }
 
 // La vitrina, cuando llega: sus fotos en una tira, con «Ver» a Colección.

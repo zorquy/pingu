@@ -55231,6 +55231,17 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1480 — El dibujo oficial en Mis mazos y en el perfil
+
+Sin cambios de esquema. `dexesDeMazoGuardado(cards, filaDe)` (sprites-de-mazo.js):
+los números de los mismos iconos que `spritesDeMazoGuardado` (`deducirIconos` +
+`dexesDeNombre`), dos como mucho. En /mazos la portada pinta
+`artePokemonHtml(dex, 'mz-portada-sprite mz-portada-arte')` si hay números y los
+sprites si no. En el perfil, `ultimoTorneo` pide también `id`; la fila del
+torneo lleva `.pr-torneo-cartel` y un hueco `[data-pr-torneo-arte]` que rellena
+`ponerArteDelTorneo` con la lista del torneo (solo `finished`) y `mazoMasJugado`
+de perfil-torneos.js.
+
 ## Tanda 1477 — Partidas, más visual (1477 Estadísticas, 1478 sueltas, 1479 torneos)
 
 Sin cambios de esquema. **Estadísticas**: los ids de los filtros de la 628 no

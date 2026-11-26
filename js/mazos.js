@@ -17,7 +17,8 @@ import { misMazos, cartasPorIds, borrarMazo, guardarMazo, cambiarPortada, buscar
 import { nombreVisible, esEnergiaBasica, imagenDeEnergiaBasica, seccionesDelMazo, validarMazo } from './constructor/nucleo.js'
 import { marcasLegales, nombresConReimpresionLegal } from './carta-legalidad.js'
 import { tipoDelMazo, reparto, estadoDelMazo, textoDeRecord, ordenarMazos } from './mazos-nucleo.js'
-import { spritesDeMazoGuardado, spritesHtml } from './sprites-de-mazo.js'
+import { spritesDeMazoGuardado, spritesHtml, dexesDeMazoGuardado } from './sprites-de-mazo.js'
+import { artePokemonHtml } from './arte-pokemon.js'
 
 const $ = (id) => document.getElementById(id)
 const FORMATOS = { standard: 'Estándar', expanded: 'Expandido', libre: 'Libre' }
@@ -84,6 +85,10 @@ function costeHtml(m) {
 // la portada que elegiste (413) queda detrás, difuminada. Sin Pokémon que
 // deducir, la portada como siempre.
 const spritesDelMazo = (m) => spritesDeMazoGuardado(m.cards, (id) => cartas.get(id))
+// Y, desde la 1480, su dibujo oficial cuando se sabe su número: la portada
+// mide 150 px y los sprites de 96 se veían pixelados (PINGU: «donde haya
+// espacio para meter una imagen, metemos»).
+const dexesDelMazo = (m) => dexesDeMazoGuardado(m.cards, (id) => cartas.get(id))
 
 function tarjetaHtml(m) {
   const entradas = entradasDe(m)
@@ -98,14 +103,16 @@ function tarjetaHtml(m) {
   const tipo = tipoDelMazo(entradas, portada)
   const r = costes.get(m.id)
   const sprites = spritesDelMazo(m)
+  const dexes = dexesDelMazo(m)
+  const caras = dexes.length ? dexes.map((d) => artePokemonHtml(d, 'mz-portada-sprite mz-portada-arte')).join('') : spritesHtml(sprites, 'mz-portada-sprite')
   // Cada mazo un póster con UN botón (1398, «PokeDoc en modo app»): «Probar»
   // a lo ancho; Editar y «A un torneo» van al «⋯». Tocar el mazo (la portada
   // o el nombre) ya abre el constructor.
   return `
     <article class="cm-mazo-tarjeta" data-id="${escapeHtml(m.id)}"${tipo ? ` data-tipo="${escapeHtml(tipo)}"` : ''}>
-      <a class="cm-mazo-portada${sprites.length ? ' con-sprites' : ''}" href="${enlace}" aria-hidden="true" tabindex="-1">
+      <a class="cm-mazo-portada${caras ? ' con-sprites' : ''}" href="${enlace}" aria-hidden="true" tabindex="-1">
         ${imagenDe(portada, 'high')}
-        ${sprites.length ? `<span class="mz-portada-sprites">${spritesHtml(sprites, 'mz-portada-sprite')}</span>` : ''}
+        ${caras ? `<span class="mz-portada-sprites">${caras}</span>` : ''}
         <span class="cm-mazo-portada-chip">${escapeHtml(FORMATOS[m.format] || m.format)}</span>
         <span class="cm-mazo-portada-nombre">${portada ? escapeHtml(nombreVisible(portada)) : ''}</span>
       </a>

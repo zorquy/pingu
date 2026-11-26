@@ -2334,3 +2334,11 @@ button.perfil-logro-destacado,
 .perfil-vitrina-mazo b { font-family: var(--font-marca); font-size: var(--t-lg); color: var(--blanco-fijo); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .perfil-vitrina-mazo em { font-style: normal; font-size: var(--t-xs); color: var(--juego-tenue); }
 .perfil-vitrina-arte { width: 72px; height: 72px; object-fit: contain; flex: none; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45)); }
+/* «Tu último torneo» como cartel (1480): la medalla grande y el dibujo del
+   mazo con el que jugó a la derecha, sobre un brillo del color de Jugar. */
+.pr-fila.pr-torneo-cartel { position: relative; overflow: hidden; min-height: 96px; padding-right: 128px;
+  background: radial-gradient(120% 160% at 100% 100%, color-mix(in srgb, var(--juego-violeta) 22%, transparent), transparent 60%), var(--white); }
+.pr-torneo-cartel .pr-medalla, .pr-torneo-cartel .pr-ico { width: 52px; height: 52px; font-size: var(--t-lg); }
+.pr-torneo-cartel .pr-fila-t b { font-family: var(--font-marca); font-size: var(--t-lg); white-space: normal; }
+.pr-torneo-arte { position: absolute; right: -8px; bottom: -20px; width: 128px; height: 128px; pointer-events: none; }
+.pr-torneo-arte-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35)); }

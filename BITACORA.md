@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (717) — PINGU-Claude (1480 — el dibujo oficial en Mis mazos y en el perfil)
+
+**Hecho** (la O1 y la O2 de la propuesta «Partidas más visual», PINGU: «donde
+haya espacio para meter una imagen, metemos; si no, sprites»):
+- **Mis mazos** (/mazos): la portada de cada mazo (150 px) lleva el dibujo
+  oficial de sus dos Pokémon en vez de los sprites de 96 px estirados. Sin
+  número de Pokédex (un objeto), los sprites de siempre.
+- **Perfil › Resumen › Tu último torneo**: de fila con una copa a cartel, con
+  la medalla grande y, si el torneo ha terminado, el dibujo del mazo con el que
+  jugó (de su lista, que con el torneo en juego no se ve: regla 230).
+
+**Ficheros**: `js/sprites-de-mazo.js` (`dexesDeMazoGuardado`), `js/mazos.js`,
+`css/mazos.css` (`.mz-portada-arte`), `js/perfil-resumen.js`
+(`ponerArteDelTorneo`), `css/perfil.css` (`.pr-torneo-cartel`).
+
+**Pruebas** (rama `pruebas`): 1284 y 1394 en verde; capturas de /mazos y
+/perfil con el doble.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (716) — PINGU-Claude (1477–1479 — Partidas, más visual)
 
 **Hecho** (PINGU: «las estadísticas, demasiadísimo scroll… y demasiado filtro»,

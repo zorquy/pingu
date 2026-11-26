@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Tus mazos lucen el dibujo oficial de sus Pokémon en la portada, y en tu perfil «Tu último torneo» es un cartel con tu medalla y el mazo con el que jugaste.", "enlace": "/mazos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Mis partidas, más visual: las estadísticas caben en una pantalla (tus mazos con su dibujo, contra cada mazo en colores y una sola gráfica), las partidas sueltas van en tarjetas por semanas y tus torneos llevan el dibujo de tu mazo.", "enlace": "/mis-partidas" },
     { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "Si Jugar te marca un aviso de torneos, ahora lo ves arriba en Torneos, con su enlace y «Marcar como leídos»; y al abrir la ficha del torneo se quita solo.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "En las cifras de un mazo de un torneo (y en su imagen para compartir), «Contra cada mazo» va de mayor a menor porcentaje de victorias.", "enlace": "/torneos#terminados" },
