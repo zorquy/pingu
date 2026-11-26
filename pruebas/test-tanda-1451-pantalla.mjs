@@ -123,6 +123,26 @@ console.log('\n── 4. Quien solo juega ──')
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()
 }
+console.log('\n── PC con el menú lateral (1454): las columnas no se pisan ──')
+{
+  const { page, errores } = await abrir('admin-1')
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.waitForTimeout(500)
+  await page.click('.torneo-juez-mesa[data-ver-mesa="m3"]')
+  await page.waitForTimeout(400)
+  const r = await page.evaluate(() => {
+    const caja = (s) => { const e = document.querySelector(s); const b = e.getBoundingClientRect(); return { x: Math.round(b.left), d: Math.round(b.right) } }
+    const consola = caja('#torneoJuezConsola')
+    return { consola, cols: ['tickets', 'mesas', 'chat'].map((c) => caja(`.torneo-juez-col[data-col='${c}']`)), hijos: [...document.querySelectorAll('.torneo-juez-col > .simple-card')].filter((c) => c.checkVisibility()).map((c) => { const b = c.getBoundingClientRect(); return Math.round(b.right) }) }
+  })
+  const [t, m, c] = r.cols
+  check('a 1440 con el menú lateral, tickets · mesas · chat sin pisarse', t.d <= m.x && m.d <= c.x && c.d <= r.consola.d + 1, JSON.stringify(r))
+  check('  …y ninguna tarjeta se sale de la consola', r.hijos.every((d) => d <= r.consola.d + 1), JSON.stringify(r.hijos))
+  check('  …y el chat se cierra con su ✕', Boolean(await page.$('[data-cerrar-mesa] svg')))
+  check('sin errores', !errores.length, errores.join(' | '))
+  await page.close()
+}
+
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLOS` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
