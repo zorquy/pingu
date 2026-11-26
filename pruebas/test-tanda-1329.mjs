@@ -11,7 +11,8 @@ const check = (l, ok, extra = '') => { if (!ok) fails++; console.log(`${ok ? '  
 
 const ap = await import(`${REPO}/js/mi-coleccion/importar-apps.js`)
 const csv = await import(`${REPO}/js/mi-coleccion/importar-csv.js`)
-check('seis orígenes: Dex, Collectr, TCGplayer, Cardmarket, Pokellector y «Excel u otra»', JSON.stringify(ap.APPS.map((a) => a.id)) === '["dex","collectr","tcgplayer","cardmarket","pokellector","otra"]')
+// La 1459 metió TheHobbyClub detrás de Cardmarket (lee su id de producto).
+check('siete orígenes: Dex, Collectr, TCGplayer, Cardmarket, TheHobbyClub, Pokellector y «Excel u otra»', JSON.stringify(ap.APPS.map((a) => a.id)) === '["dex","collectr","tcgplayer","cardmarket","thehobbyclub","pokellector","otra"]')
 check('los pasos dicen cómo sacarla y qué se lee, sin inventarse menús de otra app', /En Dex, busca «Exportar»/.test(ap.pasosDe('dex')) && /expansión y el número/.test(ap.pasosDe('dex')) && /Guarda la hoja como CSV/.test(ap.pasosDe('otra')) && ap.pasosDe('x') === '')
 // TCGplayer
 const tp = csv.leerCsv('Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language,Rarity,Product ID,SKU\n2,Pikachu ex - 063/191,Pikachu ex,SV08: Surging Sparks,063/191,SSP,Holofoil,Near Mint,English,Double Rare,123,456')
@@ -48,7 +49,7 @@ await page.goto(`${BASE}/mi-coleccion.html?ver=resumen`, { waitUntil: 'domconten
 await page.waitForSelector('#mcImportarAbrir', { state: 'attached', timeout: 10000 }).catch(() => {})
 await page.evaluate(() => document.getElementById('mcImportarAbrir')?.click())
 await page.waitForSelector('#mcImpApps', { timeout: 8000 }).catch(() => {})
-check('al abrir: «¿De dónde la traes?» con las seis', (await page.locator('#mcImpApps [data-imp-app]').count()) === 6)
+check('al abrir: «¿De dónde la traes?» con las siete', (await page.locator('#mcImpApps [data-imp-app]').count()) === 7)
 await page.click('#mcImpApps [data-imp-app="tcgplayer"]')
 check('elegir TCGplayer dice cómo sacarla y qué se lee', /En TCGplayer, busca «Exportar»/.test(await page.locator('#mcImpPasos').textContent()) && (await page.getAttribute('[data-imp-app="tcgplayer"]', 'aria-pressed')) === 'true')
 await page.fill('#mcImpTexto', 'Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language\n1,Pikachu - 025/193,Pikachu,Paldea Evolved,025/193,PAL,Normal,Near Mint,English\n1,Mew,Mew,Set Inventado,151/165,ZZZ,Normal,Near Mint,English')
