@@ -27,7 +27,9 @@ console.log('── 0. Lo puro ──')
   check('cuentaAtras: 1 día, 2 h y 3 min', JSON.stringify(cuentaAtras('2026-11-19T12:03:30Z', ahora)) === '{"d":1,"h":2,"m":3}')
   check('cuentaAtras: ya pasó o sin fecha → null', cuentaAtras('2026-11-18T09:00:00Z', ahora) === null && cuentaAtras(null, ahora) === null)
   const h = salaHtml({ name: 'Copa <b>', status: 'registration_open', start_at: '2026-11-19T12:03:30Z', max_players: 8, swiss_rounds: 3, top_cut_size: 4 }, [{ perfil: { username: 'ana' } }, { perfil: { username: 'bea' } }], { ahora })
-  check('salaHtml: nombre escapado, «2/8 en la sala», 4 losas y «DÍA» en singular', h.includes('Copa &lt;b&gt;') && h.includes('2/8 en la sala') && (h.match(/class="sala-losa"/g) || []).length === 4 && h.includes('>DÍA<'))
+  // Desde la 1465 la sala no repite el nombre ni la cuenta atrás (los dice la
+  // cabecera): el día, el sitio y la sala en una fila y el formato en una tira.
+  check('salaHtml: sin el nombre, «2/8 en la sala», «quedan 6», el día y 4 pastillas', !h.includes('Copa') && h.includes('2/8 en la sala') && h.includes('quedan 6') && h.includes('class="sala-dia"') && (h.match(/class="sala-pastilla"/g) || []).length === 4, h.slice(0, 300))
   check('salaHtml: sin límite de plazas lo dice', salaHtml({ name: 'X', start_at: null }, []).includes('sin límite de plazas'))
   const m0 = misionesHtml({ tcg: 'Ana', listaHecha: false })
   const m1 = misionesHtml({ tcg: 'Ana', listaHecha: true })
@@ -49,15 +51,15 @@ for (const movil of [true, false]) {
   const errores = []
   p.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
   await p.goto(`${BASE}/torneo?slug=copa-delta`, { waitUntil: 'domcontentloaded' })
-  await p.waitForSelector('.torneo-sala .sala-cartel', { timeout: 15000 }).catch(() => {})
+  await p.waitForSelector('.torneo-sala .sala-tres', { timeout: 15000 }).catch(() => {})
   const d = await p.evaluate(() => {
     const vis = (s) => { const e = document.querySelector(s); return !!e && e.getClientRects().length > 0 }
     return {
-      cartel: vis('.sala-cartel') && /Copa Delta/.test(document.querySelector('.sala-nombre')?.textContent || ''),
-      mascota: !!document.querySelector('.sala-cartel .mascota-3d[data-mascota]'),
-      cuenta: [...document.querySelectorAll('.sala-cuenta b')].map((x) => x.textContent),
+      tres: vis('.sala-tres .sala-dia') && vis('.sala-tres .sala-sitio') && vis('.sala-tres .sala-gente'),
+      repetido: !!document.querySelector('.sala-cartel, .sala-cuenta, .sala-mascota'),
+      cuenta: document.getElementById('torneoCuenta')?.textContent.replace(/\s+/g, ' ').trim() || '',
       gente: document.querySelector('.sala-gente-texto b')?.textContent || '',
-      losas: document.querySelectorAll('.sala-losa').length,
+      losas: document.querySelectorAll('.sala-pastilla').length,
       viejas: ['#torneoCuando', '#torneoFormato', '.torneo-plazas'].filter(vis),
       anillo: document.querySelector('.sala-anillo b')?.textContent,
       inscrito: !!document.querySelector('.sala-mision.hecha') && /Inscrito/.test(document.querySelector('.sala-mision.hecha')?.textContent || ''),
@@ -67,9 +69,9 @@ for (const movil of [true, false]) {
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
     }
   })
-  check('el cartel con su nombre y la mascota', d.cartel && d.mascota, JSON.stringify(d))
-  check('la cuenta atrás en tres losas de dos cifras (12 días)', d.cuenta.length === 3 && d.cuenta.every((x) => /^\d{2,}$/.test(x)) && Number(d.cuenta[0]) >= 12, d.cuenta.join(' '))
-  check('«N/16 en la sala» y las cuatro losas del formato', /^\d+\/16 en la sala$/.test(d.gente) && d.losas === 4, d.gente + ' · ' + d.losas)
+  check('el día, el sitio y la sala en una fila, sin cartel ni losas repetidas (1465)', d.tres && !d.repetido, JSON.stringify(d))
+  check('la cuenta atrás, una y en la cabecera, con minutos (12 días)', /^Empieza en\s*1\d d \d+ h \d+ min$/.test(d.cuenta), d.cuenta)
+  check('«N/16 en la sala» y el formato en cuatro pastillas', /^\d+\/16 en la sala$/.test(d.gente) && d.losas === 4, d.gente + ' · ' + d.losas)
   check('las piezas viejas (día, chapas, barra de plazas) escondidas', d.viejas.length === 0, d.viejas.join(', '))
   check('misiones: 1/3, Inscrito hecha, «Elegir mazo» la que toca y confirmar cerrada', d.anillo === '1/3' && d.inscrito && d.toca === 'Elegir mazo' && d.cerrada && !d.estoy, JSON.stringify(d))
   check('nada se sale de lado', d.ancho)

@@ -114,8 +114,10 @@ console.log('── 1221 · Torneos: «Ver» y el día en la chapa ──')
     // Desde la 1454 el día va en la casilla de la izquierda de cada fila de la
     // agenda (número y día o mes, o la hora si es hoy): sigue sin el recuadro
     // viejo de la tarjeta.
-    cuando: [...document.querySelectorAll('.torneo-fila-fecha')].map((x) => x.textContent.trim()),
-    acciones: [...document.querySelectorAll('.torneo-pie-accion')].map((a) => [a.textContent.trim(), a.getAttribute('aria-label') || '']),
+    // Desde la 1463–1464 los primeros van en cartel (su losa: «VIE / 27 /
+    // 18:00») y los terminados en Campeones («Ver resultados»).
+    cuando: [...document.querySelectorAll('.torneo-fila-fecha, .t-cartel-dia')].map((x) => x.classList.contains('t-cartel-dia') ? `${x.querySelector('b')?.textContent} ${x.querySelector('small')?.textContent}` : x.textContent.trim()),
+    acciones: [...document.querySelectorAll('.torneo-pie-accion, .t-cartel-boton, .t-campeon-ver')].map((a) => [a.textContent.trim().replace(/^Ver .*/, 'Ver'), a.getAttribute('aria-label') || '']),
   }))
   check('sin el recuadro del día; el día va en la casilla de la fila (1454)', r.recuadro === 0 && r.cuando.length > 0 && r.cuando.every((x) => /^(\d{1,2}\s*\S+|\d{2}:\d{2}\s*\S+)$/.test(x)), JSON.stringify(r.cuando))
   const ver = r.acciones.filter(([t]) => t === 'Ver')

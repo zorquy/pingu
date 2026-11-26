@@ -73,7 +73,11 @@ const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INS
   await page.waitForTimeout(2400)
   return { page, errores }
 }
-const tarjetaDe = (page, nombre) => page.locator('.torneo-tarjeta').filter({ hasText: nombre }).first()
+// Desde la 1463 los tres primeros van en CARTEL (`.t-cartel`) y el resto en fila:
+// lo que se prueba vale para los dos, cada uno con sus clases.
+const TARJETA = '.torneo-tarjeta, .t-cartel'
+const ACCION = '.torneo-pie-accion, .t-cartel-boton'
+const tarjetaDe = (page, nombre) => page.locator(TARJETA).filter({ hasText: nombre }).first()
 
 // Desde la 1454 cada torneo es una FILA de la agenda (sin portada ni caras):
 // lo que la 297 prometía —una acción que dice la verdad según el estado, las
@@ -82,15 +86,15 @@ console.log('\n── 1. Una fila por torneo, y UNA acción ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  check('los cuatro torneos, cada uno en su fila', (await page.locator('.torneo-tarjeta.torneo-fila').count()) === 4,
-    String(await page.locator('.torneo-tarjeta').count()))
+  check('los cuatro torneos, cada uno en su cartel o su fila', (await page.locator('.t-cartel').count()) === 3 && (await page.locator('.torneo-tarjeta.torneo-fila').count()) === 1,
+    String(await page.locator(TARJETA).count()))
   const copa = tarjetaDe(page, 'Copa de Invierno')
-  check('cada fila tiene UNA acción', (await copa.locator('.torneo-pie-accion').count()) === 1)
+  check('cada uno tiene UNA acción', (await copa.locator(ACCION).count()) === 1)
   // user-1 está inscrito en la Copa: no se le ofrece apuntarse otra vez.
-  check('inscrito → «Inscrito», que lleva a ver el torneo', (await copa.locator('.torneo-pie-accion').evaluate(accionDe)) === 'Estás inscrito')
-  check('  …y se le marca que está dentro', await copa.evaluate((f) => f.classList.contains('torneo-tarjeta-mia')))
-  const hrefTarjeta = await copa.locator('.torneo-tarjeta-enlace').getAttribute('href')
-  const hrefBoton = await copa.locator('.torneo-pie-accion').getAttribute('href')
+  check('inscrito → «Inscrito», que lleva a ver el torneo', (await copa.locator(ACCION).evaluate(accionDe)) === 'Estás inscrito')
+  check('  …y se le marca que está dentro', await copa.evaluate((f) => f.classList.contains('torneo-tarjeta-mia') || f.classList.contains('t-cartel-mio')))
+  const hrefTarjeta = await copa.locator('.torneo-tarjeta-enlace, .t-cartel-nombre a').getAttribute('href')
+  const hrefBoton = await copa.locator(ACCION).getAttribute('href')
   check('el botón lleva al mismo torneo que la fila', hrefTarjeta === hrefBoton && /slug=copa-invierno/.test(hrefTarjeta), `${hrefTarjeta} / ${hrefBoton}`)
   await page.close()
 }
@@ -99,12 +103,12 @@ console.log('\n── 2. La acción dice la verdad según el estado ──')
 {
   const { page } = await abrir({ sesion: 'user-2' })
   check('no inscrito y abierto → «Apuntarme»',
-    (await tarjetaDe(page, 'Casi llena').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Apuntarme')
+    (await tarjetaDe(page, 'Casi llena').locator(ACCION).evaluate(accionDe)) === 'Apuntarme')
   check('  …y va en verde', await tarjetaDe(page, 'Casi llena').locator('.torneo-btn-apuntarse').count() === 1)
   check('  …y el de al lado, donde SÍ está, no lo ofrece',
-    (await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Estás inscrito')
-  check('en juego → «Ver el directo»', (await tarjetaDe(page, 'Pachanga').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el directo')
-  check('terminado → «Resultados y mazos»', (await tarjetaDe(page, 'Inaugural').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver resultados y mazos')
+    (await tarjetaDe(page, 'Copa de Invierno').locator(ACCION).evaluate(accionDe)) === 'Estás inscrito')
+  check('en juego → «Ver el directo»', (await tarjetaDe(page, 'Pachanga').locator(ACCION).evaluate(accionDe)) === 'Ver el directo')
+  check('terminado → «Resultados y mazos»', (await tarjetaDe(page, 'Inaugural').locator(ACCION).evaluate(accionDe)) === 'Ver resultados y mazos')
   const fin = tarjetaDe(page, 'Inaugural')
   check('y en vez de las plazas, el campeón', (await fin.locator('.torneo-campeon').textContent())?.includes('Ash'),
     await fin.locator('.torneo-campeon').textContent())
@@ -117,10 +121,12 @@ console.log('\n── 3. Las plazas ──')
   const { page } = await abrir()
   const copa = tarjetaDe(page, 'Copa de Invierno')
   const casi = tarjetaDe(page, 'Casi llena')
-  check('la barra se pone apurada al 80%', (await casi.locator('.torneo-ocupacion-barra.apurada').count()) === 1)
-  check('  …y la de la Copa (5/32) no', (await copa.locator('.torneo-ocupacion-barra.apurada').count()) === 0)
-  check('la cifra dice cuántos de cuántos', (await casi.locator('.torneo-ocupacion-cifra').textContent()) === '4/5',
-    await casi.locator('.torneo-ocupacion-cifra').textContent())
+  const APURADA = '.torneo-ocupacion-barra.apurada, .t-cartel-plazas.apurada'
+  const CIFRA = '.torneo-ocupacion-cifra, .t-cartel-plazas > span:last-child'
+  check('la barra se pone apurada al 80%', (await casi.locator(APURADA).count()) === 1)
+  check('  …y la de la Copa (5/32) no', (await copa.locator(APURADA).count()) === 0)
+  check('la cifra dice cuántos de cuántos', (await casi.locator(CIFRA).textContent()) === '4/5',
+    await casi.locator(CIFRA).textContent())
   await page.close()
 }
 
@@ -149,7 +155,7 @@ console.log('\n── 6. Sin cuenta ──')
   // cuenta. «Apuntarme» sale igual y lleva a la ficha, que es la que
   // manda al registro — el botón no miente, solo no hace el trabajo.
   const { page, errores } = await abrir({ sesion: 'none' })
-  check('la lista se ve sin cuenta', (await page.locator('.torneo-tarjeta').count()) > 0)
+  check('la lista se ve sin cuenta', (await page.locator(TARJETA).count()) > 0)
   check('  …sin errores', errores.length === 0, errores.join(' | '))
   check('  …y no hay barra de «estás jugando»', !(await page.locator('#torneoVivo').isVisible()))
   check('  …y «Apuntarme» sigue saliendo', (await page.locator('.torneo-btn-apuntarse').count()) > 0)
@@ -187,8 +193,13 @@ console.log('\n── 8. Los filtros son chips; Lista/Calendario, la cápsula �
   const desborde = await estrecho.page.evaluate(() => {
     // La fila de filtros sangra a propósito hasta el borde (se desliza de
     // lado); lo que no puede salirse es la agenda ni la página.
+    // Desde la 1463 el carrusel de carteles sangra igual que los filtros:
+    // lo que cuenta es que nada MÁS se salga de la agenda.
     const l = document.querySelector('#torneosAgenda')
-    return { lista: l.scrollWidth - l.clientWidth, pagina: document.documentElement.scrollWidth - document.documentElement.clientWidth }
+    const borde = l.getBoundingClientRect().right
+    const fuera = [...l.querySelectorAll('*')].filter((e) => !e.closest('.t-carteles') && e.getClientRects().length)
+      .reduce((m, e) => Math.max(m, e.getBoundingClientRect().right - borde), 0)
+    return { lista: Math.round(fuera), pagina: document.documentElement.scrollWidth - document.documentElement.clientWidth }
   })
   check('a 320 px la agenda no se sale', desborde.lista <= 1, JSON.stringify(desborde))
   check('  …ni la página entera', desborde.pagina <= 1, JSON.stringify(desborde))

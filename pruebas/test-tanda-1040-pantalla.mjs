@@ -37,7 +37,7 @@ const LISTAS = [
   ['/usuarios', '.com-persona'],
   ['/tiendas', '#tagRejilla .tag-tarjeta:not(.skeleton), #tagRejilla .tag-vacio'],
   ['/avisos', '.av-lista .nav-bell-item'],
-  ['/torneos', '#torneosLigas:not([hidden]) .lc-tarjeta, .torneos-rejilla > *'],
+  ['/torneos', '.t-cartel, .t-cartel-hueco, .torneos-rejilla > *'], // 1463: lo primero es el primer cartel
   ['/mis-partidas', '#partidasResumenJuego .pr-resumen, #partidasResumenJuego .empty-state'],
   ['/laboratorio', 'section.lp-bloque'],
   ['/repeticiones', '#repTexto'],

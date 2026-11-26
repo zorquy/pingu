@@ -78,14 +78,16 @@ for (const movil of [false, true]) {
   const err = []
   page.on('pageerror', (e) => err.push(String(e).slice(0, 200)))
   await page.goto(`${BASE}/torneos`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.torneo-tarjeta', { timeout: 15000 }).catch(() => {})
+  await page.waitForSelector('.torneo-tarjeta, .t-cartel', { timeout: 15000 }).catch(() => {})
   await page.waitForTimeout(800)
-  const r = await page.evaluate(() => [...document.querySelectorAll('.torneo-tarjeta')].map((t) => ({ nombre: t.querySelector('.torneo-nombre')?.textContent, tienda: Boolean(t.querySelector('.torneo-de-tienda')), precio: t.querySelector('.torneo-etiqueta-precio')?.textContent || null })))
+  // Desde la 1462 no hay chapa «Torneo de tienda»: la tienda va dentro de «En
+  // persona» y lo que sigue diciéndose es el PRECIO, en la fila o en el cartel.
+  const r = await page.evaluate(() => [...document.querySelectorAll('.torneo-tarjeta, .t-cartel')].map((t) => ({ nombre: (t.querySelector('.torneo-nombre, .t-cartel-nombre')?.textContent || '').trim(), chapaVieja: Boolean(t.querySelector('.torneo-de-tienda')), texto: t.textContent.replace(/\s+/g, ' ') })))
   const q = movil ? 'móvil' : 'PC'
   const copa = r.find((x) => x.nombre === 'Copa Delta Reign')
   const quedada = r.find((x) => x.nombre === 'Quedada del barrio')
-  check(`${q}: la de la tienda lleva «Torneo de tienda» y «10 € en tienda»`, copa?.tienda && copa?.precio === '10 € en tienda', JSON.stringify(r))
-  check('  …la de una persona, ni chapa ni precio (no lo dijo)', quedada && !quedada.tienda && !quedada.precio, JSON.stringify(quedada))
+  check(`${q}: la de la tienda dice «10 € en tienda» (sin la chapa vieja)`, copa && /10 € en tienda/.test(copa.texto) && !copa.chapaVieja, JSON.stringify(r).slice(0, 300))
+  check('  …la de una persona, sin precio (no lo dijo)', quedada && !/€/.test(quedada.texto), JSON.stringify(quedada))
   check('  …sin errores', err.length === 0, err.join(' | '))
   await ctx.close()
 }

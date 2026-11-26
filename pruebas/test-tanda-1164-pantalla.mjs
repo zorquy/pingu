@@ -40,25 +40,24 @@ console.log('── J1: Torneos, una fila de mandos en el PC ──')
 {
   const { p, ctx, errores } = await abrir('/torneos')
   check('sin errores', errores.length === 0, errores.join(' | '))
+  // Desde la 1462 Lista/Calendario es UN botón redondo (`#torneosVistaIcono`)
+  // al final de la fila de filtros; en el calendario vuelve a la cabecera.
   const r = await p.evaluate(() => {
     const chips = document.querySelector('.torneo-pestanas-chips')
-    const conm = document.querySelector('.torneo-vista-conmutador')
-    // Por el centro y no por el borde de arriba (1454): la cápsula, los chips y
-    // el buscador no miden lo mismo de alto, y centrados en la misma fila sus
-    // bordes de arriba no coinciden.
+    const icono = document.getElementById('torneosVistaIcono')
     const filas = new Set([...chips.children].map((x) => { const r = x.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 8) }))
-    return { dentro: conm?.parentElement === chips, primero: chips.firstElementChild === conm, filas: filas.size, semana: getComputedStyle(document.getElementById('torneosSemana')).display, mandos: getComputedStyle(document.querySelector('.torneos-mandos')).display, primerTorneo: Math.round(document.querySelector('#torneosLigas:not([hidden]) .lc-tarjeta, .torneo-card, .torneo-tarjeta, #listaTorneos article')?.getBoundingClientRect().top || 0) }
+    return { dentro: icono?.parentElement === chips, ultimo: chips.lastElementChild === icono, visible: icono && getComputedStyle(icono).display !== 'none', filas: filas.size, semana: getComputedStyle(document.getElementById('torneosSemana')).display, mandos: getComputedStyle(document.querySelector('.torneos-mandos')).display, primerTorneo: Math.round(document.querySelector('.t-cartel, .torneo-tarjeta, #listaTorneos article')?.getBoundingClientRect().top || 0) }
   })
-  check('Lista/Calendario delante de los chips de estado, en una fila', r.dentro && r.primero && r.filas === 1, JSON.stringify(r))
+  check('Lista/Calendario, un botón al final de la fila de filtros, en una fila', r.dentro && r.ultimo && r.visible && r.filas === 1, JSON.stringify(r))
   check('  …sin la semana ni su fila', r.semana === 'none' && r.mandos === 'none', JSON.stringify(r))
   check('  …y el primer torneo antes de 480 px', r.primerTorneo > 0 && r.primerTorneo < 480, JSON.stringify(r))
-  await p.click('[data-vista-torneos="calendario"]')
+  await p.click('#torneosVistaIcono')
   await p.waitForTimeout(600)
-  const c = await p.evaluate(() => ({ conmEnMandos: document.querySelector('.torneo-vista-conmutador').parentElement.classList.contains('torneos-mandos'), semana: getComputedStyle(document.getElementById('torneosSemana')).display, hay: document.getElementById('torneosSemana').dataset.hay }))
-  check('en Calendario, el conmutador vuelve a su fila con la semana', c.conmEnMandos && (c.hay !== '1' || c.semana !== 'none'), JSON.stringify(c))
-  await p.click('[data-vista-torneos="lista"]')
+  const c = await p.evaluate(() => ({ enCabecera: document.getElementById('torneosVistaIcono').closest('.torneos-heroe-acciones') !== null, calendario: !document.getElementById('torneosCalendario').classList.contains('hidden') }))
+  check('en Calendario, el botón vuelve a la cabecera', c.enCabecera && c.calendario, JSON.stringify(c))
+  await p.click('#torneosVistaIcono')
   await p.waitForTimeout(600)
-  check('  …y al volver a la lista, otra vez en la fila de chips', await p.evaluate(() => document.querySelector('.torneo-vista-conmutador').parentElement.classList.contains('torneo-pestanas-chips')))
+  check('  …y al volver a la lista, otra vez al final de la fila', await p.evaluate(() => document.querySelector('.torneo-pestanas-chips').lastElementChild?.id === 'torneosVistaIcono'))
   await ctx.close()
 }
 

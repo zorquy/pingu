@@ -93,7 +93,11 @@ console.log('\n── 2. La lista ──')
   const { page, errores } = await abrir('/torneos', { torneos: [T(), T({ id: 'torneo-2', slug: 'online', name: 'Copa Online', modalidad: 'online', lugar: null })] })
   // Desde la 1454 la lista es una agenda: «dónde» va en la segunda línea de
   // cada fila (la ciudad en persona, «Online» si no).
-  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila')].map((t) => `${t.dataset.torneoId}:${t.querySelector('.torneo-fila-donde')?.classList.contains('persona') ? t.querySelector('.torneo-fila-donde').textContent.trim() : 'Online'}`))
+  // Desde la 1463 los primeros van en cartel: ahí lo dice su color de tipo y
+  // la línea de debajo del nombre («Cartas Bilbao · Bilbao»).
+  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila, .t-cartel')].map((t) => t.classList.contains('t-cartel')
+    ? `${t.dataset.torneoId}:${t.dataset.tipoTorneo === 'persona' ? (/Bilbao/.test(t.querySelector('.t-cartel-sub')?.textContent || '') ? 'Bilbao' : '?') : 'Online'}`
+    : `${t.dataset.torneoId}:${t.querySelector('.torneo-fila-donde')?.classList.contains('persona') ? t.querySelector('.torneo-fila-donde').textContent.trim() : 'Online'}`))
   check('en persona dice la ciudad; online, «Online»', chapas.sort().join() === 'torneo-1:Bilbao,torneo-2:Online', chapas.join())
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()
@@ -116,7 +120,7 @@ console.log('\n── 3. La ficha ──')
 {
   const { page, errores } = await abrir('/torneo?slug=copa&ver=torneo', { inscripciones: [{ id: 'i1', tournament_id: 'torneo-1', user_id: 'user-1', status: 'active', tcg_live_username: '', registered_at: dentroDe(-1) }] })
   const billete = await page.evaluate(() => ({ qr: Boolean(document.querySelector('.torneo-billete-qr svg')), texto: document.querySelector('.torneo-billete')?.textContent.replace(/\s+/g, ' '), tcg: /TCG Live:/.test(document.getElementById('miPlazaContenido')?.textContent || '') }))
-  check('el cartel de Info dice «En persona», no «Online» (1454b)', await page.evaluate(() => /En persona/i.test(document.querySelector('.sala-cartel, .t-sala-cartel, [class*="cartel"]')?.textContent || '') && !/·\s*Online/i.test(document.querySelector('.sala-cartel, .t-sala-cartel, [class*="cartel"]')?.textContent || '')))
+  check('la sala de Info dice «En persona», no «Online» (1454b; desde la 1465, en su casilla del sitio)', await page.evaluate(() => /En persona/i.test(document.querySelector('.sala-sitio')?.textContent || '') && !/·\s*Online/i.test(document.querySelector('.sala-sitio')?.textContent || '')))
   check('inscrito: tu entrada con su QR, para la puerta', billete.qr && /TU ENTRADA/.test(billete.texto || '') && /Cartas Bilbao/.test(billete.texto || ''), JSON.stringify(billete))
   check('…y ni rastro de TCG Live', !billete.tcg)
   check('sin errores', !errores.length, errores.join(' | '))

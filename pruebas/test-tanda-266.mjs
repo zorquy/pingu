@@ -119,7 +119,8 @@ console.log('\n── 4. La chapa de «Oficial» en la lista ──')
 {
   const conChapa = async (torneos) => {
     const { page } = await abrir('/torneos', { __FAKE_SESSION__: 'user-1', __FAKE_TORNEOS__: torneos })
-    const n = await page.locator('.torneo-oficial').count()
+    // Desde la 1462 la chapa de oficial es la dorada de tipo.
+    const n = await page.locator('.torneo-oficial, .chapa-tipo[data-tipo-torneo="oficial"]').count()
     await page.close()
     return n
   }

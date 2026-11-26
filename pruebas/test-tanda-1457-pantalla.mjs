@@ -82,7 +82,8 @@ console.log('── 1. El creador ──')
 console.log('\n── 2. La agenda ──')
 {
   const { page, errores } = await abrir('/torneos', { sesion: 'user-1', torneos: [T(), T({ id: 'torneo-2', slug: 'otro', name: 'Copa suelta', repite: null })] })
-  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila')].map((f) => `${f.dataset.torneoId}:${f.querySelector('.torneo-chapa-repite')?.textContent.trim() || '-'}`).sort())
+  // Desde la 1462–1463 la chapa es la rosa de tipo, y con dos torneos los dos van en cartel.
+  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila, .t-cartel')].map((f) => `${f.dataset.torneoId}:${f.querySelector('.chapa-tipo[data-tipo-torneo="repite"]')?.textContent.trim() || '-'}`).sort())
   check('«Cada viernes» en la fila del que se repite, y nada en el otro', chapas.join() === 'torneo-1:Cada viernes,torneo-2:-', chapas.join())
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()
