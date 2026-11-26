@@ -251,3 +251,46 @@ export function porMeses(partidas) {
   }
   return grupos
 }
+
+// ── La lista de sueltas por semanas (1478, «Partidas, más visual»): cada
+// semana con su marcador y sus resultados en orden, y en cada tarjeta su día
+// («Hoy», «Ayer», «Mar 24»). Primero se probó por días, pero con una o dos
+// partidas al día cada día era una fila con una tarjeta. Los grupos salen en
+// el orden en que llegan, y «Sin fecha» al final. Puro: lo prueba Node.
+const DIAS_CORTOS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+export function diaCorto(f, hoy = hoyLocal()) {
+  if (!esFecha(f)) return ''
+  if (f === hoy) return 'Hoy'
+  if (f === sumarDias(hoy, -1)) return 'Ayer'
+  const [a, m, d] = f.split('-').map(Number)
+  return `${DIAS_CORTOS[new Date(aMs(f)).getUTCDay()]} ${d} ${MESES[m - 1]}${String(a) !== hoy.slice(0, 4) ? ` ${a}` : ''}`
+}
+export function tituloDeSemana(lunes, hoy = hoyLocal()) {
+  if (!esFecha(lunes)) return 'Sin fecha'
+  const esta = cuboDe(hoy, 'semana')
+  if (lunes === esta) return 'Esta semana'
+  if (lunes === sumarDias(esta, -7)) return 'La semana pasada'
+  const [a, m, d] = lunes.split('-').map(Number)
+  return `Semana del ${d} ${MESES[m - 1]}${String(a) !== hoy.slice(0, 4) ? ` ${a}` : ''}`
+}
+export function porSemanas(partidas, hoy = hoyLocal()) {
+  const grupos = []
+  const porClave = new Map()
+  for (const p of partidas || []) {
+    const clave = esFecha(p.fecha) ? cuboDe(p.fecha, 'semana') : 'sin-fecha'
+    let g = porClave.get(clave)
+    if (!g) {
+      g = { clave, titulo: tituloDeSemana(clave, hoy), partidas: [] }
+      porClave.set(clave, g)
+      grupos.push(g)
+    }
+    g.partidas.push(p)
+  }
+  const sinFecha = grupos.findIndex((g) => g.clave === 'sin-fecha')
+  if (sinFecha >= 0) grupos.push(grupos.splice(sinFecha, 1)[0])
+  for (const g of grupos) {
+    const c = cuenta(g.partidas)
+    g.balance = `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''}`
+  }
+  return grupos
+}

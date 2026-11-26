@@ -139,6 +139,15 @@
   nuevo «de un vistazo» va ahí; las gráficas, en Estadísticas. «Contra quién»
   pide 3 partidas o más (un 100 % de una partida no dice nada). La franja de
   arriba (838) ya no existe: no la vuelvas a poner encima de las pestañas.
+- **Estadísticas de Mis partidas es UNA pantalla** (1477, PINGU:
+  «demasiadísimo scroll… y demasiado filtro»): a la vista solo el periodo en
+  chips y «Tu mazo»; lo demás va en «Filtros», plegado. Cuatro losas, tus mazos
+  con su dibujo, contra cada mazo en una rejilla de color (que con un mazo
+  elegido ES su tabla de cruces: las tablas de Enfrentamientos se fueron) y UNA
+  gráfica. Un dato nuevo entra en una de esas piezas
+  (`js/partidas-estadisticas.js`), no como otra lista debajo. Las sueltas van
+  en tarjetas por SEMANAS (1478) y los torneos en tarjetas (1479); «Tu último
+  torneo» es el más reciente con rondas, de PokeDoc o apuntado.
 - **Una cifra nueva al lado de una vieja usa la MISMA definición** (tanda
   628). Las estadísticas nuevas de /mis-partidas sacaban el porcentaje como
   victorias sobre el total, y la matriz de siempre cuenta el empate como
@@ -405,8 +414,8 @@ su Pokémon si el nombre lo dice (`dexesDeNombre`, el mismo que el Resumen).
 tres días (`updated_at`), al abrirlo sale la pantalla de campeón
 (`celebrarFinal`, una vez por torneo: `pd-campeon-<id>`); un torneo viejo no
 celebra nada aunque se abra por primera vez. Mis partidas › Torneos lleva
-arriba «Tu último torneo» (el de PokeDoc más reciente, solo con la lista sin
-filtrar). Inicio dice «Tu torneo · ¡Campeón!» esos mismos días, con el podio
+arriba «Tu último torneo» (el más reciente con rondas, de PokeDoc o apuntado
+desde la 1479, solo con la lista sin filtrar). Inicio dice «Tu torneo · ¡Campeón!» esos mismos días, con el podio
 que trae `portada_hoy()` (migración 1394): **Inicio no hace consultas sueltas**
 (la 1017 lo vigila), así que lo que necesite va en esa función.
 **La vitrina del perfil** (1395): Perfil › Torneos abre con las cifras, las

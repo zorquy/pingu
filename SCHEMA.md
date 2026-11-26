@@ -55231,6 +55231,35 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1477 — Partidas, más visual (1477 Estadísticas, 1478 sueltas, 1479 torneos)
+
+Sin cambios de esquema. **Estadísticas**: los ids de los filtros de la 628 no
+cambian (`filtrosDeStats`); `#filtroMazo` sale a la fila de arriba y el resto va
+en `#statsFiltros` (plegado, lo abre `#statsFiltrar`, como `listaFiltros`). Los
+chips `#statsPeriodo [data-periodo]` escriben en `#filtroPeriodo`; el número de
+`#statsFiltrosN` cuenta resultado, guardado, rival, origen y un periodo que no
+sea de chip. `pintarEstadisticas(jugadas, filtrado)` llena `#partidasResumen`
+(`losasHtml`), `#partidasExtra` (`mazosHtml`, `[data-pe-mazo]`), `#partidasMatriz`
+(`crucesHtml`, `[data-pe-rival]`, `CRUCES_DE_GOLPE` = 10 y «Ver los N» con
+`[data-pe-cruces]`) y `#partidasCuando` (`cuandoDondeHtml`); un toque en un mazo
+o un rival pone su filtro y otro lo quita. Las cuentas son las de
+`estadisticas-partidas.js` (`cuenta`, `porGrupo`, `rachas`) y
+`cifrasDeJuegos`; los tonos, los de la matriz (≥ 60 % verde, ≤ 40 % rojo) y las
+chapas de mejor y peor piden 3 partidas. `#partidasGraficos` es una caja con UNA
+gráfica (`graficoBarras` por la unidad de `porPeriodo`), medida al verse como
+antes. **Sueltas**: `porSemanas(partidas, hoy)` (lunes de cada semana con
+`cuboDe`, «Esta semana», «La semana pasada», «Semana del 10 nov», «Sin fecha»
+al final, `balance` V-D[-E]) y `diaCorto(f, hoy)`. La tarjeta conserva
+`.partidas-fila`, `.partidas-fila-mazos`, `.partidas-fila-donde` (con su
+`<time>` en `sr-only`) y el ⋯; nuevas `.ps-tarjeta`, `.ps-caras`,
+`.ps-dia-carta`, `.ps-forma`, `.ps-tarjetas`. **Torneos**: las tarjetas van en
+`.pt-rejilla` (la abierta lleva `.pt-abierto` y va a lo ancho); sin rondas,
+`.pt-sin` («Apuntar rondas» si se puede editar); `.pt-forma` con las rondas;
+`arteDeTorneoHtml(t, clase)` (`dexesDeNombre` del mazo → `artePokemonHtml`) en
+la tarjeta (`.pt-arte`) y en «Tu último torneo» (`.tu-torneo-arte`, sprites si
+no hay dibujo), que ahora es el más reciente con rondas, sea de PokeDoc o
+apuntado.
+
 ## Tanda 1476 — Tus avisos de torneos, a la vista
 
 Sin cambios de esquema. `casaConLaPagina(link, loc)`: para la ruta `/torneo`

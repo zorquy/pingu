@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (716) — PINGU-Claude (1477–1479 — Partidas, más visual)
+
+**Hecho** (PINGU: «las estadísticas, demasiadísimo scroll… y demasiado filtro»,
+«las partidas sueltas se ven demasiado como una lista»; eligió lo recomendado
+de la propuesta «Partidas más visual»):
+- **1477 · Estadísticas en una pantalla** (de 3.653 px a ~1.570 en el PC):
+  arriba el periodo en chips (7 días · 30 días · 3 meses · Todo) y «Tu mazo»;
+  resultado, rival, mazo guardado, origen y los periodos raros van plegados en
+  «Filtros», con un número de cuántos hay puestos. Cuatro losas (victorias con
+  su anillo, partidas, racha con sus cinco últimas, empezando tú o el rival),
+  **Tus mazos** en tarjetas con su dibujo oficial (tocar uno es el filtro),
+  **Contra cada mazo** en rejilla de color (verde le ganas, rojo te gana; chapas
+  «El que más sale», «Tu mejor cruce» y «Tu bestia negra», estas dos con 3
+  partidas o más; tocar uno es el filtro «Rival»), una sola gráfica (semana a
+  semana, apilada) y «Cuándo y dónde» en chips. Fuera las tablas de
+  Enfrentamientos (D2), la evolución y las barras por día.
+- **1478 · Partidas sueltas en tarjetas por semanas**: tu sprite contra el del
+  rival con el color del resultado, el día en la tarjeta («Hoy», «Mar 24 nov»),
+  dónde y quién empezó. Las semanas llevan su marcador y sus resultados. Se
+  probó por días, como decía la propuesta, pero con una o dos partidas al día
+  cada día era una fila con una sola tarjeta.
+- **1479 · Torneos**: «Tu último torneo» con el dibujo oficial del mazo en
+  grande (y ahora también con un torneo apuntado a mano, si tiene rondas); el
+  resto en tarjetas de dos en fila con el dibujo en la esquina, las rondas como
+  fichas y «Apuntar rondas» en vez de «0-0». La abierta va a lo ancho.
+
+**Ficheros**: `mis-partidas.html` (`#vista-stats`: `.pe-mandos`,
+`#statsPeriodo`, `#statsFiltrar`, `#statsFiltros`, `#partidasCuando`),
+`js/mis-partidas.js` (`pintarEstadisticas`, `pintarGraficos` con una gráfica,
+`pintarLista` en tarjetas, `arteDeTorneoHtml`, `.pt-rejilla`), nuevo
+`js/partidas-estadisticas.js` (puro: `losasHtml`, `mazosHtml`, `crucesHtml`,
+`cuandoDondeHtml`), `js/estadisticas-partidas.js` (`porSemanas`,
+`tituloDeSemana`, `diaCorto`), `css/partidas.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1477-pantalla.mjs`; 628,
+`test-partidas-pagina` y 899 adaptadas (y la 628 abre Torneos antes de
+buscarlos, que fallaba desde la 1390); 790, 1143, 1164, 1358 y 1394 en verde.
+627 (`.partidas-fila-guardado`) y 251 ya fallaban antes.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (715) — PINGU-Claude (1476 — tus avisos de torneos, a la vista)
 
 **Hecho** (PINGU: «en Jugar y Torneos tengo una notificación, pero luego no

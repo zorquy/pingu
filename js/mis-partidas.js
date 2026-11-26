@@ -19,7 +19,7 @@ import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
-import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe, pestaniaConAlgo, rotuloDeRonda, ordenDeRondas } from './matriz-partidas.js'
+import { porcentaje, miResultado, filtrarTorneos, pestaniaConAlgo, rotuloDeRonda, ordenDeRondas } from './matriz-partidas.js'
 import { montarSelectorMazo, opcionDeArquetipo } from './torneos/selector-mazo.js'
 import {
   arquetipoDeMazoGuardado,
@@ -35,22 +35,22 @@ import {
   filtrarPartidas,
   hoyLocal,
   ordenarPartidas,
-  porDiaDeLaSemana,
   porGrupo,
   porPeriodo,
-  rachas,
   rangoDePeriodo,
   seJugo,
-  ultimas,
   fechaCorta,
-  porMeses,
+  porSemanas,
+  diaCorto,
 } from './estadisticas-partidas.js'
 import { icons } from './icons.js'
-import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
+import { graficoBarras } from './graficos-partidas.js'
+import { losasHtml, mazosHtml, crucesHtml, cuandoDondeHtml } from './partidas-estadisticas.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { resumenHtml } from './partidas-resumen.js'
+import { artePokemonHtml } from './arte-pokemon.js'
 import { montarElegirMazo, filaDePredeterminado } from './partidas-elegir-mazo.js'
 
 const $ = (id) => document.getElementById(id)
@@ -288,93 +288,6 @@ async function torneosApuntados() {
 
 // ── Pintar ──
 
-function pct(casilla) {
-  const r = porcentaje(casilla)
-  return r === null ? '—' : `${Math.round(r * 100)}%`
-}
-
-// El color de una casilla: verde si ganas, rojo si pierdes. Se pinta con
-// opacidad y no con colores fijos para que funcione igual en tema claro
-// y oscuro sin duplicar reglas.
-function claseDeCasilla(casilla) {
-  const r = porcentaje(casilla)
-  if (r === null) return ''
-  if (r >= 0.6) return ' partidas-bien'
-  if (r <= 0.4) return ' partidas-mal'
-  return ' partidas-igualado'
-}
-
-function pintarResumen(m) {
-  const r = resumen(m)
-  const caja = $('partidasResumen')
-  if (!r.total.total) {
-    caja.innerHTML = ''
-    return
-  }
-  const linea = (titulo, e) =>
-    e
-      ? `<div class="partidas-dato"><span class="partidas-dato-titulo">${titulo}</span>
-          <strong>${escapeHtml(e.mio)} vs ${escapeHtml(e.rival)}</strong>
-          <span class="subtext">${e.casilla.ganadas}-${e.casilla.perdidas}${e.casilla.empatadas ? `-${e.casilla.empatadas}` : ''} · ${Math.round(e.ratio * 100)}%</span></div>`
-      : ''
-  caja.innerHTML = `
-    <div class="partidas-dato"><span class="partidas-dato-titulo">Partidas</span>
-      <strong>${r.total.total}</strong>
-      <span class="subtext">${r.total.ganadas}-${r.total.perdidas}${r.total.empatadas ? `-${r.total.empatadas}` : ''} · ${pct(r.total)}</span></div>
-    ${linea('Mejor enfrentamiento', r.mejor)}
-    ${linea('Peor enfrentamiento', r.peor)}`
-}
-
-// Los enfrentamientos, en bloques: uno por mazo mío, con su lista de
-// rivales dentro. Sustituye a la tabla ancha que había que arrastrar de
-// lado (ver enfrentamientosDe en matriz-partidas.js).
-//
-// Cada fila lleva una barra proporcional al porcentaje: es lo que hace
-// que se lea de un vistazo sin tener que comparar números. Y el récord
-// al lado, porque un 100% de una partida y un 100% de doce no son lo
-// mismo — la barra sola mentiría.
-function filaEnfrentamientoHtml(e) {
-  const c = e.casilla
-  const pctNum = e.ratio === null ? null : Math.round(e.ratio * 100)
-  const record = `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''}`
-  return `
-    <li class="partidas-enf">
-      <span class="partidas-enf-rival">${spritesDeMazoHtml(e.nombre, e.clave)}<span>${escapeHtml(e.nombre)}</span></span>
-      <span class="partidas-enf-barra${claseDeCasilla(c)}" role="img" aria-label="${pctNum ?? 0}% de victorias">
-        <span style="width:${pctNum ?? 0}%"></span>
-      </span>
-      <span class="partidas-enf-record">${record}</span>
-      <span class="partidas-enf-pct">${pctNum === null ? '—' : pctNum + '%'}</span>
-    </li>`
-}
-
-function pintarMatriz(m) {
-  const caja = $('partidasMatriz')
-  if (!m.filas.length) {
-    caja.innerHTML = `<div class="simple-card"><p>Todavía no hay partidas que contar.</p>
-      <p class="subtext">Las de los torneos de PokeDoc entran solas cuando el torneo termina (en una liga, cada jornada al jugarse). Las de fuera, con «Apuntar una partida».</p></div>`
-    return
-  }
-  caja.innerHTML = m.filas
-    .map((f) => {
-      const enfrentamientos = enfrentamientosDe(f, m.columnas)
-      const total = f.total
-      const pctTotal = pct(total)
-      return `
-        <section class="partidas-mazo-bloque">
-          <header class="partidas-mazo-cab">
-            <span class="partidas-mazo-nombre">${spritesDeMazoHtml(f.nombre, f.clave)}<strong>${escapeHtml(f.nombre)}</strong></span>
-            <span class="partidas-mazo-total${claseDeCasilla(total)}">
-              ${total.ganadas}-${total.perdidas}${total.empatadas ? `-${total.empatadas}` : ''}
-              <span class="subtext">${pctTotal}</span>
-            </span>
-          </header>
-          <ul class="partidas-enfrentamientos">${enfrentamientos.map(filaEnfrentamientoHtml).join('')}</ul>
-        </section>`
-    })
-    .join('')
-}
-
 const TEXTO_RESULTADO = { win: 'Ganada', loss: 'Perdida', draw: 'Empate' }
 
 // Cuántas partidas sueltas se enseñan de golpe.
@@ -400,16 +313,20 @@ function pintarLista(partidas) {
       : `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
     return
   }
-  // Una partida, una fila (1143, V1 de «Lo que se ha quedado viejo»): el
-  // resultado en su chapa, los dos mazos, dónde y cuándo en una línea, y las
-  // acciones en un ⋯. Por meses con su balance cuando se ordena por fecha.
+  // Una partida, una TARJETA (1478, «Partidas, más visual»; antes una fila,
+  // 1143): tu sprite contra el del rival con el color del resultado, los dos
+  // nombres, dónde y quién empezó, los juegos y el ⋯. Las clases de la fila
+  // (partidas-fila, -mazos, -donde) se quedan: las usan el ⋯, Editar y las
+  // pruebas. Por semanas, con su marcador y sus resultados en orden.
+  const salida = (p) => ({ 1: 'Empezaste tú', 2: 'Empezó el rival' })[p.juegos?.[0]?.s] || ''
   const fila = (p) => `
-    <div class="partidas-fila partidas-${p.resultado}${p.provisional ? ' partidas-fila-provisional' : ''}"${p.provisional ? ' aria-busy="true"' : ''}${p.deTorneo ? '' : ` data-fila="${escapeHtml(p.id)}"`}>
+    <div class="partidas-fila ps-tarjeta partidas-${p.resultado}${p.provisional ? ' partidas-fila-provisional' : ''}"${p.provisional ? ' aria-busy="true"' : ''}${p.deTorneo ? '' : ` data-fila="${escapeHtml(p.id)}"`}>
       <span class="partidas-ronda-res partidas-ronda-${p.resultado}" title="${escapeHtml(TEXTO_RESULTADO[p.resultado] || 'Sin resultado')}">${LETRA_RESULTADO[p.resultado] || '?'}</span>
+      ${p.fecha ? `<span class="ps-dia-carta">${escapeHtml(diaCorto(p.fecha, hoyLocal()))}</span>` : ''}
+      <span class="ps-caras" aria-hidden="true"><span class="ps-yo">${spritesDeMazoHtml(p.mioNombre, p.mio)}</span><small>VS</small><span class="ps-el">${spritesDeMazoHtml(p.rivalNombre, p.rival)}</span></span>
       <div class="partidas-fila-centro">
-        <span class="partidas-fila-mazos"><span class="partidas-fila-mazo">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong></span>
-          <span class="partidas-fila-mazo"><span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}<span class="partidas-fila-rival">${escapeHtml(p.rivalNombre)}</span></span></span>
-        <span class="subtext partidas-fila-donde"><span class="partidas-fila-cuando">${cuandoYDondeHtml(p)}</span>${p.mazoGuardado ? mazoGuardadoHtml(p.mazoGuardado) : ''}</span>
+        <span class="partidas-fila-mazos"><strong>${escapeHtml(p.mioNombre)}</strong><span class="partidas-fila-rival"><span class="sr-only">contra </span>${escapeHtml(p.rivalNombre)}</span></span>
+        <span class="subtext partidas-fila-donde"><span class="partidas-fila-cuando">${cuandoYDondeHtml(p, true)}</span>${salida(p) ? `<span class="ps-salida">${salida(p)}</span>` : ''}${p.mazoGuardado ? mazoGuardadoHtml(p.mazoGuardado) : ''}</span>
         ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
       </div>
       ${juegosMiniHtml(p)}
@@ -427,14 +344,15 @@ function pintarLista(partidas) {
             </details>`
       }
     </div>`
-  // Las dos maneras de ordenar son por fecha: los meses salen en ese orden.
-  const grupos = porMeses(visibles)
+  // Las dos maneras de ordenar son por fecha: las semanas salen en ese orden.
+  const grupos = porSemanas(visibles, hoyLocal())
   caja.innerHTML =
     grupos
       .map(
-        (g) => `<section class="partidas-mes" aria-label="${escapeHtml(g.titulo || 'Partidas')}">
-      ${g.titulo ? `<h3 class="partidas-mes-titulo">${escapeHtml(g.titulo)} <span class="partidas-mes-balance" title="Victorias, derrotas y empates">${escapeHtml(g.balance)}</span></h3>` : ''}
-      <div class="partidas-mes-lista en-cascada">${g.partidas.map(fila).join('')}</div>
+        (g) => `<section class="partidas-mes ps-semana" aria-label="${escapeHtml(g.titulo)}">
+      <h3 class="partidas-mes-titulo">${escapeHtml(g.titulo)} <span class="partidas-mes-balance" title="Victorias y derrotas de esa semana">${escapeHtml(g.balance)}</span>
+        <span class="ps-forma" aria-hidden="true">${g.partidas.slice(0, 12).map((x) => `<i class="partidas-ronda-${x.resultado}">${LETRA_RESULTADO[x.resultado] || '?'}</i>`).join('')}</span></h3>
+      <div class="partidas-mes-lista ps-tarjetas en-cascada">${g.partidas.map(fila).join('')}</div>
     </section>`
       )
       .join('') +
@@ -505,8 +423,11 @@ function pintarLista(partidas) {
 // una partida de fuera de PokeDoc, «26 oct · Liga FDN · J2» para una de
 // torneo (con su enlace). «Fuera de PokeDoc · 29 oct · Con tu mazo Charizard
 // ex Pidgeot» se cortaba en el móvil justo donde estaba el mazo.
-function cuandoYDondeHtml(p) {
+function cuandoYDondeHtml(p, fechaEscondida = false) {
   const partes = []
+  // En las tarjetas de sueltas (1478) la fecha ya la dice la tarjeta: va solo
+  // para quien lee con lector de pantalla.
+  if (p.fecha && fechaEscondida) return [`<time class="sr-only" datetime="${escapeHtml(p.fecha)}">${escapeHtml(fechaCorta(p.fecha))}</time>`, p.donde ? escapeHtml(p.donde === 'Fuera de PokeDoc' ? 'Fuera' : p.donde) : ''].join('')
   if (p.fecha) partes.push(`<time datetime="${escapeHtml(p.fecha)}">${escapeHtml(fechaCorta(p.fecha))}</time>`)
   const donde = p.donde === 'Fuera de PokeDoc' ? 'fuera' : p.donde
   if (donde) partes.push(p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(donde)}</a>` : escapeHtml(donde))
@@ -663,7 +584,7 @@ function tarjetaTorneoHtml(t) {
     .join('')
   const abierto = torneosAbiertos.has(t.id)
   return `
-    <div class="partidas-torneo${t.cerrado ? ' cerrado' : ''}">
+    <div class="partidas-torneo${t.cerrado ? ' cerrado' : ''}${abierto ? ' pt-abierto' : ''}">
       <button type="button" class="partidas-torneo-cab" data-abrir-torneo="${escapeHtml(t.id)}" aria-expanded="${abierto}">
         ${fechaDeTarjetaHtml(t.fecha)}
         <span class="partidas-torneo-sprites">${spritesDeMazoHtml(t.mazo, t.mazoClave) || '<span class="partidas-sprite-hueco"></span>'}</span>
@@ -673,7 +594,11 @@ function tarjetaTorneoHtml(t) {
         </span>
         ${t.cerrado ? '<span class="partidas-chapa-cerrado">Cerrado</span>' : ''}
         ${puestoHtml(t)}
-        <span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>
+        ${rondas.length
+          ? `<span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>`
+          : `<span class="partidas-torneo-record pt-sin">${editable ? 'Apuntar rondas' : 'Sin rondas'}</span>`}
+        ${rondas.length ? `<span class="pt-forma" aria-hidden="true">${rondas.slice(0, 12).map((r) => `<i class="partidas-ronda-${r.resultado}">${LETRA_RESULTADO[r.resultado] || '?'}</i>`).join('')}</span>` : ''}
+        ${arteDeTorneoHtml(t, 'pt-arte')}
       </button>
       <div class="partidas-torneo-detalle ${abierto ? '' : 'hidden'}">
         ${t.mazo ? `<p class="subtext">Jugaste <strong>${escapeHtml(t.mazo)}</strong>${t.mazoGuardado ? ` con tu mazo <a href="/constructor?mazo=${encodeURIComponent(t.mazoGuardado)}">${escapeHtml(mazosGuardados.find((m) => m.id === t.mazoGuardado)?.name || 'guardado')}</a>` : ''}${t.puesto ? ` · quedaste <strong>${escapeHtml(`${t.puesto}.º${t.jugadores ? ` de ${t.jugadores}` : ''}`)}</strong>` : ''}</p>` : ''}
@@ -684,6 +609,14 @@ function tarjetaTorneoHtml(t) {
         </div>
       </div>
     </div>`
+}
+
+// El dibujo oficial del mazo de un torneo (1479, PINGU: «donde haya espacio
+// para meter una imagen, metemos»), del nombre del mazo como el Resumen.
+// Sin dibujo, '' y quien llama pone los sprites.
+function arteDeTorneoHtml(t, clase) {
+  const dex = dexesDeNombre(t.mazo || '')[0]
+  return dex ? artePokemonHtml(dex, clase) : ''
 }
 
 // «Tu último torneo» (1394, la propuesta «Torneos en modo juego»): el puesto
@@ -697,7 +630,7 @@ function tuTorneoHtml(t) {
   return `
     <section class="pr-caja pr-juego tu-torneo" aria-label="Tu último torneo">
       <span class="pr-brillo" aria-hidden="true"></span>
-      <span class="tu-torneo-mazo">${spritesDeMazoHtml(t.mazo, t.mazoClave)}</span>
+      ${arteDeTorneoHtml(t, 'tu-torneo-arte') || `<span class="tu-torneo-mazo">${spritesDeMazoHtml(t.mazo, t.mazoClave)}</span>`}
       <small class="pr-kick">TU ÚLTIMO TORNEO</small>
       <h3>${escapeHtml(t.nombre)}</h3>
       <div class="tu-torneo-fila">
@@ -859,11 +792,13 @@ function pintarTorneos() {
   // «Tu último torneo» (1394), arriba y solo con la lista sin filtrar: el de
   // PokeDoc más reciente, en el panel de juego.
   const sinFiltro = !$('torneoBuscar')?.value && !$('torneoEstado')?.value && signo < 0
-  const ultimo = sinFiltro ? tarjetas.find((t) => !t.aMano && t.rondas.length) : null
+  // Desde la 1479 cuenta también uno apuntado a mano, si tiene rondas.
+  const ultimo = sinFiltro ? tarjetas.find((t) => t.rondas.length) : null
   if (ultimo) tarjetasPintadas.set(ultimo.id, ultimo)
   caja.innerHTML =
     (ultimo ? tuTorneoHtml(ultimo) : '') +
-    visibles.map(tarjetaTorneoHtml).join('') +
+    // En tarjetas, dos por fila en el PC (1479); la abierta va a lo ancho.
+    `<div class="pt-rejilla">${visibles.map(tarjetaTorneoHtml).join('')}</div>` +
     (ocultos > 0
       ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTorneosLog">Ver ${ocultos} más</button>`
       : '')
@@ -1019,18 +954,15 @@ function repintar() {
   // emparejamiento. Un ID sí entra: se jugó lo justo para pactar, y
   // cuenta como empate.
   const jugadas = partidas.filter(seJugo)
-  const m = construirMatriz(jugadas)
   const filtrado = hayFiltro(filtros)
   $('filtroLimpiar').classList.toggle('hidden', !filtrado)
   const n = jugadas.length
   $('filtroCuenta').textContent = filtrado ? `${n} de ${todas.filter(seJugo).length} partidas con estos filtros.` : ''
-  pintarResumen(m)
-  pintarExtra(jugadas)
+  pintarEstadisticas(jugadas, filtrado)
   // La franja de arriba (838) se va: lo suyo está en la pestaña Resumen (1390).
   pintarResumenJuego(todas.filter(seJugo))
   ultimasJugadas = jugadas
   pintarGraficos()
-  pintarMatriz(m)
   pintarTorneos()
   // La lista de la pestaña de sueltas: SOLO las sueltas (las rondas de
   // torneo ya viven en su tarjeta), con SUS filtros y su orden.
@@ -1052,7 +984,7 @@ function rellenarFiltroYSugerencias() {
     for (const p of todas) if (p[clave] && !mapa.has(p[clave])) mapa.set(p[clave], p[nombre])
     return [...mapa.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])))
   }
-  rellenar('filtroMazo', 'Todos los míos', por('mio', 'mioNombre'))
+  rellenar('filtroMazo', 'Todos tus mazos', por('mio', 'mioNombre'))
   rellenar('filtroRival', 'Todos', por('rival', 'rivalNombre').filter(([c]) => c !== 'sin-mazo'))
   // El de los mazos guardados, solo si alguna partida lleva uno.
   const guardados = [...new Set(todas.map((p) => p.mazoGuardado).filter(Boolean))].map((id) => [id, mazosGuardados.find((m) => m.id === id)?.name || 'Un mazo que ya no está en tu lista'])
@@ -1063,10 +995,6 @@ function rellenarFiltroYSugerencias() {
   // mismo mazo de dos formas y partir el enfrentamiento en dos.
 }
 
-// ── Las cifras de más (tanda 628) ──
-const TEXTO_RACHA = { win: ['victoria', 'victorias'], loss: ['derrota', 'derrotas'], draw: ['empate', 'empates'] }
-const enPalabras = (n, r) => `${n} ${TEXTO_RACHA[r][n === 1 ? 0 : 1]}`
-
 // La pestaña Resumen (1390): de TODO lo jugado, como la franja que sustituye.
 function pintarResumenJuego(jugadas) {
   const caja = $('partidasResumenJuego')
@@ -1074,91 +1002,40 @@ function pintarResumenJuego(jugadas) {
   caja.innerHTML = resumenHtml(jugadas, { sprites: spritesDeMazoHtml }) || `<p class="empty-state">Aquí saldrá tu resumen en cuanto apuntes partidas: tu % de victorias, tu mazo estrella y contra qué ganas y pierdes.</p>`
 }
 
-function pintarExtra(jugadas) {
-  const caja = $('partidasExtra')
-  if (!jugadas.length) {
-    caja.innerHTML = ''
-    return
-  }
-  const r = rachas(jugadas)
-  const diez = ultimas(jugadas, 10).reverse()
-  const masJugado = porGrupo(jugadas, (p) => p.mio, (p) => p.mioNombre)[0]
-  const masRival = porGrupo(jugadas.filter((p) => p.rival !== 'sin-mazo'), (p) => p.rival, (p) => p.rivalNombre)[0]
-  const dato = (titulo, fuerte, sub = '') =>
-    `<div class="partidas-dato"><span class="partidas-dato-titulo">${titulo}</span><strong>${fuerte}</strong>${sub ? `<span class="subtext">${sub}</span>` : ''}</div>`
-  const rec = (c) => `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''} · ${c.pct == null ? '—' : `${Math.round(c.pct * 100)}%`}`
-  caja.innerHTML = [
-    r.actual
-      ? dato('Racha actual', escapeHtml(`${enPalabras(r.actual.n, r.actual.resultado)}${r.actual.n > 1 ? ' seguidas' : ''}`), escapeHtml(`Mejor: ${r.mejorVictorias ? enPalabras(r.mejorVictorias, 'win') : 'ninguna victoria'} · peor: ${r.peorDerrotas ? enPalabras(r.peorDerrotas, 'loss') : 'ninguna derrota'}`))
-      : '',
-    dato(
-      `Últimas ${diez.length}`,
-      `<span class="partidas-forma" aria-label="${escapeHtml(diez.map((p) => TEXTO_RESULTADO[p.resultado]).join(', '))}">${diez.map((p) => `<span class="partidas-ronda-res partidas-ronda-${p.resultado}" title="${escapeHtml(`${TEXTO_RESULTADO[p.resultado]} contra ${p.rivalNombre}${p.fecha ? ` · ${p.fecha}` : ''}`)}">${LETRA_RESULTADO[p.resultado] || '?'}</span>`).join('')}</span>`,
-      'La más reciente, a la derecha'
-    ),
-    masJugado ? dato('Tu mazo más jugado', escapeHtml(masJugado.nombre), escapeHtml(`${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'} · ${rec(masJugado)}`)) : '',
-    masRival ? dato('El rival que más te sale', escapeHtml(masRival.nombre), escapeHtml(`${masRival.total} ${masRival.total === 1 ? 'partida' : 'partidas'} · ${rec(masRival)}`)) : '',
-    ...datosDeJuegos(jugadas, dato),
-  ].join('')
+// ── Estadísticas en una pantalla (1477) ──
+// Las piezas las pinta js/partidas-estadisticas.js; aquí se les da lo
+// filtrado y se atan los toques (un mazo o un rival son sus filtros).
+let crucesTodos = false
+function pintarEstadisticas(jugadas, filtrado) {
+  const f = filtrosDeStats()
+  const vacio = !jugadas.length
+  $('partidasResumen').innerHTML = losasHtml(jugadas, { hoy: hoyLocal() })
+  $('partidasExtra').innerHTML = mazosHtml(jugadas, { sprites: spritesDeMazoHtml, elegido: f.mazo })
+  const nombreMazo = f.mazo ? jugadas.find((p) => p.mio === f.mazo)?.mioNombre || '' : ''
+  $('partidasMatriz').innerHTML = vacio
+    ? filtrado
+      ? `<div class="simple-card"><p>Ninguna partida con estos filtros.</p><button type="button" class="btn-secondary" data-pe-limpiar>Quitar filtros</button></div>`
+      : `<div class="simple-card"><p>Todavía no hay partidas que contar.</p>
+      <p class="subtext">Las de los torneos de PokeDoc entran solas cuando el torneo termina (en una liga, cada jornada al jugarse). Las de fuera, con «Apuntar una partida».</p></div>`
+    : crucesHtml(jugadas, { sprites: spritesDeMazoHtml, rival: f.rival, todos: crucesTodos, mazo: nombreMazo })
+  $('partidasCuando').innerHTML = cuandoDondeHtml(jugadas)
+  $('partidasGraficos').classList.toggle('hidden', vacio)
+  // Los chips del periodo dicen el que está puesto; «Hoy», «Último año» o
+  // un rango van en Filtros y cuentan en su número.
+  const chips = [...document.querySelectorAll('#statsPeriodo [data-periodo]')]
+  for (const b of chips) b.setAttribute('aria-pressed', String(b.dataset.periodo === (f.periodo || 'siempre')))
+  const n = ['resultado', 'guardado', 'rival', 'origen'].filter((k) => f[k]).length + (chips.some((b) => b.dataset.periodo === (f.periodo || 'siempre')) ? 0 : 1)
+  $('statsFiltrosN').textContent = n ? String(n) : ''
+  $('statsFiltrosN').classList.toggle('hidden', !n)
 }
 
-// Lo que dicen los juegos (tanda 632): cuántos ganas al mejor de tres y
-// cómo te va empezando tú y empezando el rival. Solo con las partidas que
-// los traen; sin ninguna, no se enseña (no es un cero, es «no se sabe»).
-function datosDeJuegos(jugadas, dato) {
-  const c = cifrasDeJuegos(jugadas)
-  if (!c.partidas) return []
-  const pct = (g, t) => (t ? `${Math.round((g / t) * 100)}%` : '—')
-  const jugados = c.juegos.g + c.juegos.p + c.juegos.e
-  const salida = c.primero.total + c.segundo.total
-  return [
-    dato(
-      'Juegos',
-      escapeHtml(`${c.juegos.g}-${c.juegos.p}${c.juegos.e ? `-${c.juegos.e}` : ''} · ${pct(c.juegos.g + c.juegos.e / 2, jugados)}`),
-      escapeHtml(`En ${c.partidas} ${c.partidas === 1 ? 'partida apuntada' : 'partidas apuntadas'} juego a juego`)
-    ),
-    salida
-      ? dato(
-          'Empezando tú / el rival',
-          escapeHtml(`${pct(c.primero.g, c.primero.total)} / ${pct(c.segundo.g, c.segundo.total)}`),
-          escapeHtml(`Juegos ganados: ${c.primero.g} de ${c.primero.total} empezando tú, ${c.segundo.g} de ${c.segundo.total} empezando el rival`)
-        )
-      : '',
-  ]
-}
-
-// ── Los gráficos (tanda 628) ──
+// ── La gráfica (tanda 628; desde la 1477, solo una) ──
 //
-// Se miden con el ancho de su caja, así que solo se pueden pintar con la
-// pestaña A LA VISTA (escondida, la caja mide 0): si no lo está, se dejan
-// pendientes y se pintan al abrirla. Y se repintan si cambia el ancho.
+// Se mide con el ancho de su caja, así que solo se puede pintar con la
+// pestaña A LA VISTA (escondida, la caja mide 0): si no lo está, se deja
+// pendiente y se pinta al abrirla. Y se repinta si cambia el ancho.
 let ultimasJugadas = []
 let anchoPintado = 0
-
-function filaBarraHtml({ nombre, sprites = '', c }) {
-  const pctNum = c.pct === null ? null : Math.round(c.pct * 100)
-  const rec = `${c.ganadas}-${c.perdidas}${c.empatadas ? `-${c.empatadas}` : ''}`
-  return `
-    <li class="partidas-enf">
-      <span class="partidas-enf-rival">${sprites}<span>${escapeHtml(nombre)}</span></span>
-      <span class="partidas-enf-barra${claseDeCasilla(c)}" role="img" aria-label="${pctNum ?? 0}% de victorias">
-        <span style="width:${pctNum ?? 0}%"></span>
-      </span>
-      <span class="partidas-enf-record">${rec}</span>
-      <span class="partidas-enf-pct">${pctNum === null ? '—' : pctNum + '%'}</span>
-    </li>`
-}
-
-function bloqueGrafico(titulo, cuerpo, { leyenda = '', nota = '' } = {}) {
-  return `<section class="partidas-graf-bloque">
-      <h3 class="partidas-graf-titulo">${titulo}</h3>
-      ${leyenda}
-      ${cuerpo}
-      ${nota ? `<p class="subtext">${nota}</p>` : ''}
-    </section>`
-}
-
-const LEYENDA_RESULTADOS = `<p class="partidas-graf-leyenda"><span class="graf-muestra graf-v"></span>Victorias <span class="graf-muestra graf-e"></span>Empates <span class="graf-muestra graf-d"></span>Derrotas</p>`
 
 function pintarGraficos() {
   const caja = $('partidasGraficos')
@@ -1173,34 +1050,10 @@ function pintarGraficos() {
   const f = filtrosDeStats()
   const { desde, hasta } = rangoDePeriodo(f.periodo, hoyLocal(), f.desde, f.hasta)
   const serie = porPeriodo(jugadas, { desde, hasta })
-  const unidadTexto = { dia: 'día', semana: 'semana', mes: 'mes' }[serie.unidad]
-  const anchoGraf = Math.max(240, ancho - 2 * 16 - 2)
-  const evol = graficoEvolucion(serie.cubos, { ancho: anchoGraf, unidad: serie.unidad })
-  const barras = graficoBarras(serie.cubos, { ancho: anchoGraf })
-  const semana = graficoBarras(porDiaDeLaSemana(jugadas), { ancho: anchoGraf, todasLasEtiquetas: true })
-  const lista = (filas) => `<ul class="partidas-enfrentamientos">${filas.join('')}</ul>`
-  const grupos = (clave, nombre, conSprites = true, max = 10) =>
-    porGrupo(jugadas, (p) => p[clave], (p) => p[nombre])
-      .filter((g) => g.clave !== 'sin-mazo')
-      .slice(0, max)
-      .map((g) => filaBarraHtml({ nombre: g.nombre, sprites: conSprites ? spritesDeMazoHtml(g.nombre, g.clave) : '', c: g }))
-  const guardados = porGrupo(jugadas.filter((p) => p.mazoGuardado), (p) => p.mazoGuardado, (p) => mazosGuardados.find((m) => m.id === p.mazoGuardado)?.name || 'Un mazo que ya no está en tu lista').map((g) => filaBarraHtml({ nombre: g.nombre, c: g }))
-  const rivales = grupos('rival', 'rivalNombre')
-  const totalRivales = new Set(jugadas.map((p) => p.rival).filter((r) => r && r !== 'sin-mazo')).size
-
-  caja.innerHTML = [
-    bloqueGrafico(
-      'Tus victorias en el tiempo',
-      evol.svg ? `<div class="partidas-graf">${evol.svg}</div>` : `<p class="subtext">${escapeHtml(evol.vacio)}</p>`,
-      { leyenda: evol.svg ? `<p class="partidas-graf-leyenda"><span class="graf-muestra graf-muestra-punto"></span>Cada ${unidadTexto} <span class="graf-muestra graf-muestra-linea"></span>Acumulado</p>` : '' }
-    ),
-    bloqueGrafico(`Partidas por ${unidadTexto}`, barras.svg ? `<div class="partidas-graf">${barras.svg}</div>` : `<p class="subtext">${escapeHtml(barras.vacio)}</p>`, { leyenda: barras.svg ? LEYENDA_RESULTADOS : '' }),
-    bloqueGrafico('Por día de la semana', semana.svg ? `<div class="partidas-graf">${semana.svg}</div>` : `<p class="subtext">${escapeHtml(semana.vacio)}</p>`, { leyenda: semana.svg ? LEYENDA_RESULTADOS : '' }),
-    bloqueGrafico('Con cada mazo tuyo', lista(grupos('mio', 'mioNombre'))),
-    guardados.length ? bloqueGrafico('Con cada mazo guardado', lista(guardados)) : '',
-    rivales.length ? bloqueGrafico('Contra qué mazos', lista(rivales), { nota: totalRivales > rivales.length ? `Los ${rivales.length} que más te han salido, de ${totalRivales}.` : '' }) : '',
-    bloqueGrafico('Dónde juegas', lista(grupos('donde', 'donde', false))),
-  ].join('')
+  const unidadTexto = { dia: 'Día a día', semana: 'Semana a semana', mes: 'Mes a mes' }[serie.unidad]
+  const barras = graficoBarras(serie.cubos, { ancho: Math.max(240, ancho - 2 * 16 - 2) })
+  caja.innerHTML = `<div class="pe-cab"><h3>${unidadTexto}</h3><small>${serie.cubos.length} ${{ dia: 'días', semana: 'semanas', mes: 'meses' }[serie.unidad]}</small></div>
+    ${barras.svg ? `<div class="partidas-graf">${barras.svg}</div><p class="partidas-graf-leyenda"><span class="graf-muestra graf-v"></span>Victorias <span class="graf-muestra graf-e"></span>Empates <span class="graf-muestra graf-d"></span>Derrotas</p>` : `<p class="subtext">${escapeHtml(barras.vacio)}</p>`}`
 }
 
 // El cartel de los gráficos: uno para todos, siguiendo al dedo o al ratón.
@@ -2004,7 +1857,7 @@ async function cargar() {
 
 async function init() {
   // «Filtrar» (838): abre y cierra los filtros de su pestaña.
-  for (const [boton, caja] of [['torneoFiltrar', 'torneoFiltros'], ['listaFiltrar', 'listaFiltros']]) {
+  for (const [boton, caja] of [['torneoFiltrar', 'torneoFiltros'], ['listaFiltrar', 'listaFiltros'], ['statsFiltrar', 'statsFiltros']]) {
     $(boton).addEventListener('click', () => {
       const abrir = $(caja).classList.contains('hidden')
       $(caja).classList.toggle('hidden', !abrir)
@@ -2226,6 +2079,24 @@ async function init() {
     $('filtroPeriodo').value = 'siempre'
     mostrarRango('filtro')
     repintar()
+  })
+  // Estadísticas en una pantalla (1477): los chips del periodo, y tocar un
+  // mazo o un rival es su filtro (otra vez, lo quita).
+  const ponerFiltro = (id, valor) => {
+    $(id).value = valor
+    mostrarRango('filtro')
+    repintar()
+  }
+  for (const b of document.querySelectorAll('#statsPeriodo [data-periodo]')) b.addEventListener('click', () => ponerFiltro('filtroPeriodo', b.dataset.periodo))
+  $('vista-stats').addEventListener('click', (e) => {
+    const mazo = e.target.closest('[data-pe-mazo]')
+    const rival = e.target.closest('[data-pe-rival]')
+    if (mazo) ponerFiltro('filtroMazo', $('filtroMazo').value === mazo.dataset.peMazo ? '' : mazo.dataset.peMazo)
+    else if (rival) ponerFiltro('filtroRival', $('filtroRival').value === rival.dataset.peRival ? '' : rival.dataset.peRival)
+    else if (e.target.closest('[data-pe-cruces]')) {
+      crucesTodos = true
+      repintar()
+    } else if (e.target.closest('[data-pe-limpiar]')) $('filtroLimpiar').click()
   })
   for (const id of ['listaOrden', 'listaPeriodo', 'listaFechaDesde', 'listaFechaHasta', 'listaResultado']) {
     $(id).addEventListener('change', () => {
