@@ -89,15 +89,18 @@ console.log('\n── 1. Las de torneo entran solas ──')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
   const resumen = await page.locator('#partidasResumen').innerText()
   // Dos mesas jugadas, una ganada y una perdida. El bye NO cuenta.
-  check('cuenta 2 partidas, sin el bye', /\b2\b/.test(resumen) && !/\b3\b/.test(resumen), resumen.replace(/\n/g, ' | '))
+  check('cuenta 2 partidas, sin el bye', /Partidas\s*2(?!\d)/i.test(resumen) && !/Partidas\s*3/i.test(resumen), resumen.replace(/\n/g, ' | '))
   // Y el porcentaje tiene que ser 50%, no 67%: si el bye entrase como
   // victoria nadie lo notaría mirando el número de partidas.
   check('y el bye no infla el porcentaje', /50%/.test(resumen) && !/67%/.test(resumen), resumen.replace(/\n/g, ' | '))
   // Desde la tanda 251 esto ya no es una tabla que hay que arrastrar de
   // lado: es un bloque por mazo mío con sus rivales en lista.
-  const matriz = await page.locator('#partidasMatriz').innerText()
+  // Desde la 1477 tus mazos van en tarjetas (#partidasExtra) y la rejilla de
+  // cruces (#partidasMatriz) es contra quién.
+  const matriz = await page.locator('#partidasExtra').innerText()
   check('el bloque es mi mazo', /Dragapult ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
-  check('y dentro está el del rival', /Gardevoir ex/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
+  const cruces = await page.locator('#partidasMatriz').innerText()
+  check('y el rival, en la rejilla de cruces', /Gardevoir ex/.test(cruces), cruces.replace(/\n/g, ' | ').slice(0, 90))
   check('1-1 son el 50%', /50%/.test(matriz), matriz.replace(/\n/g, ' | ').slice(0, 90))
   await page.close()
 }
@@ -132,12 +135,12 @@ console.log('\n── 3. Las apuntadas a mano se suman a las de torneo ──')
     },
   })
   const resumen = await page.locator('#partidasResumen').innerText()
-  check('ahora son 3 partidas', /\b3\b/.test(resumen), resumen.replace(/\n/g, ' | '))
+  check('ahora son 3 partidas', /Partidas\s*3(?!\d)/i.test(resumen), resumen.replace(/\n/g, ' | '))
   const matriz = await page.locator('#partidasMatriz').innerText()
   check('con su enfrentamiento nuevo', /Charizard/.test(matriz))
   // La clave es la misma («d:dragapult ex»), así que la apuntada a mano
   // tiene que caer en el MISMO bloque, no abrir un segundo.
-  const bloques = await page.locator('.partidas-mazo-bloque').count()
+  const bloques = await page.locator('#partidasExtra [data-pe-mazo]').count()
   check('y en el MISMO bloque, no en uno nuevo', bloques === 1, String(bloques))
   const lista = await page.locator('#partidasLista').innerText()
   check('sale en «las últimas» con su sitio', /TCG Live/.test(lista))

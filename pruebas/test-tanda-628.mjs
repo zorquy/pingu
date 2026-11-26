@@ -151,21 +151,24 @@ console.log('\n── 3. La pestaña de estadísticas ──')
   check('con la pestaña escondida no se pintan gráficos (su caja mide 0)', (await page.locator('#partidasGraficos svg').count()) === 0)
   await page.click('#partidasTabs [data-vista="stats"]')
   await page.waitForTimeout(300)
-  check('al abrirla, sí: evolución, por periodo y por día de la semana', (await page.locator('#partidasGraficos svg.graf').count()) === 3, String(await page.locator('#partidasGraficos svg.graf').count()))
+  // Desde la 1477 (Estadísticas en una pantalla) es UNA gráfica: semana a semana.
+  check('al abrirla, sí: la de semana a semana', (await page.locator('#partidasGraficos svg.graf').count()) === 1, String(await page.locator('#partidasGraficos svg.graf').count()))
   const ancho = await page.evaluate(() => [document.getElementById('partidasGraficos').clientWidth, +document.querySelector('#partidasGraficos svg').getAttribute('width')])
   check('  …medidos con el ancho de su caja', ancho[1] > 0 && ancho[1] <= ancho[0] && ancho[1] > ancho[0] - 60, ancho.join(' / '))
   const resumen = await texto(page, '#partidasResumen')
-  check('el resumen de siempre: 12 partidas, 7-4-1, 63% (el empate cuenta medio)', /12/.test(resumen) && /7-4-1/.test(resumen) && /63%/.test(resumen), resumen)
+  check('el resumen de siempre: 12 partidas, 7-4-1, 63% (el empate cuenta medio)', /PARTIDAS 12/i.test(resumen) && /7 V · 4 D · 1 E/.test(resumen) && /63%/.test(resumen), resumen)
+  // La racha va en su losa (1477): la de ahora, la mejor y las cinco últimas.
+  check('la racha de ahora y la mejor', /1 derrota/i.test(resumen) && /tu mejor, 3/.test(resumen), resumen)
+  const forma = (await page.$$eval('#partidasResumen .pe-forma i', (xs) => xs.map((x) => x.textContent))).join('')
+  check('  …las últimas 5, con la más reciente a la derecha', forma === 'EVDVD', forma)
   const extra = await texto(page, '#partidasExtra')
-  check('las cifras nuevas: la racha de ahora y la mejor', /Racha actual 1 derrota/i.test(extra) && /Mejor: 3 victorias/.test(extra), extra)
-  const forma = (await page.$$eval('#partidasExtra .partidas-forma .partidas-ronda-res', (xs) => xs.map((x) => x.textContent))).join('')
-  check('  …las últimas 10, con la más reciente a la derecha', forma === 'DVVVDEVDVD', forma)
-  check('  …y el mazo más jugado (Dragapult, 8)', /Tu mazo más jugado Dragapult ex 8 partidas/i.test(extra), extra)
-  const graf = await texto(page, '#partidasGraficos')
-  check('por mazo, por rival y dónde juegas', /Con cada mazo tuyo/.test(graf) && /Contra qué mazos/.test(graf) && /Dónde juegas/.test(graf) && /Liga de tienda/.test(graf), graf.slice(0, 300))
+  check('  …y tus mazos, el más jugado primero (Dragapult, 8)', /^Tus mazos .*Dragapult ex \d+% 8 partidas/i.test(extra), extra)
+  const cruces = await texto(page, '#partidasMatriz')
+  const cuando = await texto(page, '#partidasCuando')
+  check('contra cada mazo y cuándo y dónde juegas', /Contra cada mazo/.test(cruces) && /Lugia VSTAR/.test(cruces) && /Cuándo y dónde/.test(cuando) && /Liga de tienda/.test(cuando), `${cruces.slice(0, 150)} | ${cuando.slice(0, 150)}`)
 
   // El cartel: al pasar por una columna dice lo que hay.
-  const zona = page.locator('#partidasGraficos svg').nth(1).locator('.graf-zona').first()
+  const zona = page.locator('#partidasGraficos svg').first().locator('.graf-zona').first()
   // Dos veces: la primera puede traer un desplazamiento hasta la columna,
   // y desplazarse esconde el cartel (a propósito).
   await zona.hover()
@@ -175,11 +178,28 @@ console.log('\n── 3. La pestaña de estadísticas ──')
   const cartel = await page.evaluate(() => { const c = document.querySelector('.partidas-cartel'); return c && !c.classList.contains('hidden') ? c.textContent : '' })
   check('al pasar por encima sale el cartel con el número', /partida|sin partidas/.test(cartel), cartel)
 
+  // Los chips del periodo (1477): «7 días» es el filtro de siempre.
+  await page.click('#statsPeriodo [data-periodo="7"]')
+  await page.waitForTimeout(200)
+  check('el chip «7 días» filtra: las dos de los últimos 5 días', /2 de 12 partidas/.test(await texto(page, '#filtroCuenta')) && (await page.getAttribute('#statsPeriodo [data-periodo="7"]', 'aria-pressed')) === 'true', await texto(page, '#filtroCuenta'))
+  await page.click('#statsPeriodo [data-periodo="siempre"]')
+  await page.waitForTimeout(200)
+  // Tocar un mazo es el filtro «Tu mazo», y otra vez lo quita.
+  await page.click('#partidasExtra [data-pe-mazo]')
+  await page.waitForTimeout(200)
+  check('tocar un mazo lo filtra', Boolean(await page.inputValue('#filtroMazo')) && /8 de 12 partidas/.test(await texto(page, '#filtroCuenta')), await texto(page, '#filtroCuenta'))
+  await page.click('#partidasExtra [data-pe-mazo]')
+  await page.waitForTimeout(200)
+  check('  …y tocarlo otra vez lo quita', (await page.inputValue('#filtroMazo')) === '')
+  // El resto de filtros, plegados en «Filtros»; el botón dice cuántos hay puestos.
+  check('los demás filtros, plegados', !(await page.isVisible('#filtroResultado')))
+  await page.click('#statsFiltrar')
   // Los filtros mandan en todo.
   await page.selectOption('#filtroResultado', 'win')
   await page.waitForTimeout(200)
   check('«Victorias»: el resumen cuenta 7, y lo dice', /7/.test(await texto(page, '#partidasResumen')) && /7 de 12 partidas/.test(await texto(page, '#filtroCuenta')), await texto(page, '#filtroCuenta'))
   check('  …y aparece «Quitar filtros»', await page.isVisible('#filtroLimpiar'))
+  check('  …y «Filtros» cuenta uno', (await texto(page, '#statsFiltrosN')) === '1', await texto(page, '#statsFiltrosN'))
   await page.selectOption('#filtroResultado', '')
   await page.selectOption('#filtroPeriodo', '7')
   await page.waitForTimeout(200)
@@ -238,7 +258,9 @@ console.log('\n── 4. La lista de sueltas y los torneos ──')
     { id: 'tl-viejo', user_id: 'user-1', nombre: 'Liga de agosto', mi_mazo: 'd:x', mi_mazo_nombre: 'X', jugado_el: '2026-08-01' },
     { id: 'tl-nuevo', user_id: 'user-1', nombre: 'Liga de octubre', mi_mazo: 'd:x', mi_mazo_nombre: 'X', jugado_el: '2026-10-01' },
   ] } })
-  const nombres = () => page.$$eval('#partidasTorneos .partidas-torneo-titulo strong', (xs) => xs.map((x) => x.textContent))
+  // Mis partidas abre en Resumen (1390): los torneos, en su pestaña.
+  await page.click('#partidasTabs [data-vista="torneos"]')
+  const nombres = () => page.$$eval('#partidasTorneos .pt-rejilla .partidas-torneo-titulo strong', (xs) => xs.map((x) => x.textContent))
   check('los torneos, el más reciente arriba', (await nombres()).join(',') === 'Liga de octubre,Liga de agosto', (await nombres()).join(','))
   await page.click('#torneoFiltrar')
   await page.selectOption('#torneoOrden', 'antiguas')
