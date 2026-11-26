@@ -114,7 +114,10 @@ export function montarSala(caja, t, gente) {
 // verde, la que toca brillando y la que aún no se puede con candado. El botón
 // de confirmar conserva su id (`btnConfirmarParticipacion`): el manejador de
 // torneo.js es el mismo. Puro.
-export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false, enPersona = false }) {
+export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false, enPersona = false, conPuerta = false, dentro = false }) {
+  // En persona con puerta (1453) el tercer paso no es «¡Estoy!» sino entrar por
+  // la puerta con tu QR, y la lista ya no te deja fuera.
+  if (conPuerta) confirmado = dentro
   const hechas = 1 + (listaHecha ? 1 : 0) + (confirmado ? 1 : 0)
   const mision = (estado, icono, titulo, sub, extra = '') => `
     <li class="sala-mision ${estado}">
@@ -132,12 +135,16 @@ export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false,
       ${mision('hecha', icons.checkCircle(20), 'Inscrito', enPersona ? 'tienes plaza (en persona no hace falta TCG Live)' : `como ${escapeHtml(tcg || '—')} <button type="button" class="link-btn sala-cambiar" id="btnEditarTcg">Cambiar</button>`)}
       ${listaHecha
         ? mision('hecha', icons.checkCircle(20), 'Lista entregada', 'puedes cambiarla hasta la ronda 1', '<button type="button" class="link-btn" data-abrir-lista>Ver</button>')
-        : mision('toca', icons.layers(20), 'Manda tu lista', 'sin ella no juegas', '<button type="button" class="btn-primary sala-mision-boton" data-abrir-lista>Elegir mazo</button>')}
-      ${confirmado
+        : mision('toca', icons.layers(20), 'Manda tu lista', conPuerta ? 'la ve el juez y cuenta en los mazos del torneo' : 'sin ella no juegas', '<button type="button" class="btn-primary sala-mision-boton" data-abrir-lista>Elegir mazo</button>')}
+      ${conPuerta
+        ? confirmado
+          ? mision('hecha', icons.checkCircle(20), '¡Dentro!', 'has pasado por la puerta: juegas la ronda 1')
+          : mision('toca', icons.mapPin(20), 'Entra por la puerta', 'enseña el QR de tu entrada al llegar; sin entrar no juegas')
+        : confirmado
         ? mision('hecha', icons.checkCircle(20), '¡Estás!', 'entras en el pareo de la ronda 1')
         : listaHecha
           ? mision('toca', icons.zap ? icons.zap(20) : icons.checkCircle(20), 'Confirma que juegas', 'sin esto no te emparejan')
           : mision('cerrada', icons.lock(20), 'Confirma que juegas', 'se abre al mandar tu lista')}
     </ol>
-    ${listaHecha && !confirmado ? `<button type="button" class="sala-estoy" id="btnConfirmarParticipacion"><span>¡ESTOY!<small>toca para confirmar</small></span></button>` : ''}`
+    ${listaHecha && !confirmado && !conPuerta ? `<button type="button" class="sala-estoy" id="btnConfirmarParticipacion"><span>¡ESTOY!<small>toca para confirmar</small></span></button>` : ''}`
 }

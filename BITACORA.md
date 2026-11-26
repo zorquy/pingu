@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (702) — PINGU-Claude (1453 — La puerta de un torneo en persona)
+
+**Hecho** (propuesta «Torneos, versión final», PINGU: adelante con lo
+recomendado): en un torneo en persona con «piden plaza» u «organizador», quien
+lo lleva ve **La puerta** arriba de Jugadores: cuántos están dentro y cuántos
+faltan, «Escanear entrada» (la cámara lee el QR de la entrada del jugador, en
+bucle, con `BarcodeDetector`), un buscador por @usuario (primero los apuntados;
+si no, cualquier cuenta con «Apuntar y dar entrada») y «Viene sin cuenta», que
+enseña el QR de la ficha para que se la haga en un minuto. Cada fila de la
+lista lleva «Dar entrada» o «Dentro · HH:MM» con «Quitar» (dos toques). Todo
+va por las funciones de la 1446 (`torneos_dar_entrada`,
+`torneos_quitar_entrada`). Al **emparejar la ronda 1** se avisa de cuántos se
+quedan fuera y se llama a `torneos_cerrar_puerta`: juega solo quien entró. Con
+puerta, la doble confirmación de antes de la ronda 1 no aplica (la puerta ES
+el check-in). El jugador, en su sala, tiene como tercera misión «Entra por la
+puerta» / «¡Dentro!» en lugar del botón «¡ESTOY!».
+
+**Ficheros**: `js/torneos/puerta.js` (nuevo), `js/torneos/torneo.js`,
+`js/torneos/ronda.js`, `js/torneos/sala.js`, `css/torneos.css`. En pruebas:
+`test-tanda-1453-pantalla.mjs` y el doble de Supabase con las tres funciones.
+
+**Pendiente**: necesita la migración 1446 ejecutada (sin ella, «Dar entrada»
+avisa de que falta). La 306 sale roja por las clases `celebra-*` (viene de la
+1399, `celebrar-momento.js` mete su hoja a mano): no es de esta tanda.
+
 ## 2026-11-26 (701) — PINGU-Claude (1458 — La ventana del código de dos pasos, en el centro)
 
 **Hecho** (un usuario, con captura: «tanto en PC como en móvil, el campo para

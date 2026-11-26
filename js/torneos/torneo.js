@@ -46,6 +46,7 @@ import { pintarCabecera } from './cabecera.js'
 import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo, engancharAbrirLista } from './hoy-tarjetas.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { montarSala, misionesHtml } from './sala.js'
+import { pintarPuerta, hayPuerta, entradaDeFilaHtml } from './puerta.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 import { artePokemonHtml } from '../arte-pokemon.js'
 import { dexesDeNombre } from './arquetipos.js'
@@ -1081,7 +1082,7 @@ function pintarMiPlazaDentro(caja) {
   if (miInscripcion?.status === 'active' && checklistDosPasos()) {
     if (!pintarSiCambia(caja, `
       ${enPersona() ? tuEntradaHtml() : ''}
-      ${misionesHtml({ tcg: miInscripcion.tcg_live_username, listaHecha: !!miDecklist, confirmado: !!miInscripcion.participation_confirmed_at, enPersona: enPersona() })}
+      ${misionesHtml({ tcg: miInscripcion.tcg_live_username, listaHecha: !!miDecklist, confirmado: !!miInscripcion.participation_confirmed_at, enPersona: enPersona(), conPuerta: enPersona() && inscripcionPersona() !== 'libre', dentro: Boolean(miInscripcion.entrada_at) })}
       <div id="cajaEditarTcg"></div>
       <button type="button" class="link-btn sala-baja" id="btnBaja">Darme de baja</button>`)) return
     engancharConfirmarParticipacion()
@@ -1790,11 +1791,13 @@ function pintarInscritos() {
         mando() && i.status === 'active' && i.user_id !== session.user.id && !['finished', 'cancelled'].includes(torneo.status)
           ? `<button class="btn-secondary torneo-expulsar" data-expulsar="${escapeHtml(i.id)}">Expulsar</button>`
           : ''
+      // La puerta (1453): en persona, quien organiza da la entrada fila a fila.
+      const entrada = mando() && hayPuerta(torneo) ? entradaDeFilaHtml(i) : ''
       return `
-      <div class="torneo-inscrito${i.user_id === session?.user?.id ? ' yo' : ''}">
+      <div class="torneo-inscrito${i.user_id === session?.user?.id ? ' yo' : ''}${entrada ? ' con-puerta' : ''}${entrada && i.entrada_at ? ' dentro' : ''}">
         <span class="torneo-inscrito-nombre">${caraDe(i.perfil, nombre)}<a href="/usuario/${encodeURIComponent(i.perfil?.username || '')}"${atributosDeRango(i.perfil)}>${escapeHtml(nombre)}</a>${retirado}</span>
         ${tcgLiveDe(i)}
-        ${decklist}${confirmado}${expulsar}
+        ${decklist}${confirmado}${entrada}${expulsar}
       </div>`
     })
     .join('')
@@ -1826,6 +1829,8 @@ function pintarInscritos() {
       (libres > 7 ? `<div class="torneo-inscrito sala-libre" aria-hidden="true"><span class="torneo-inscrito-nombre"><span class="sala-libre-cara">+${libres - 7}</span>libres</span></div>` : '')
     : ''
   pintarCarasInscritos()
+  // La puerta (1453), encima de la lista: solo para quien lleva el torneo.
+  pintarPuerta({ supabase, torneo: mando() ? torneo : null, inscripciones, recargar: () => recargar() })
   if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlLibres + htmlCola)) return
   filtrarGente()
   document.querySelectorAll('[data-expulsar]').forEach((b) =>

@@ -55275,6 +55275,22 @@ solo pide organizadores y campeones). `accionDe`: borrador con `corto: 'Editar'`
 `min-width: 0` y `overflow-wrap: anywhere`. `[data-cerrar-mesa]` pinta
 `icons.x(16)`.
 
+## Tanda 1453 — La puerta (torneos en persona)
+
+`js/torneos/puerta.js`: `hayPuerta(t)` (presencial, inscripción ≠ libre, aún sin
+empezar), `leerEntrada(texto, torneoId)` (lee `pokedoc-entrada:<torneo>:<usuario>`),
+`cuentaDePuerta(inscripciones)` → `{dentro, faltan}`, `entradaDeFilaHtml(i)` (una
+celda: «Dar entrada» o «Dentro · HH:MM» + Quitar) y `pintarPuerta({supabase,
+torneo, inscripciones, recargar})` (crea `#torneoPuerta` antes de `#listaInscritos`;
+`torneo: null` la quita). Clics delegados: `[data-dar-entrada]` →
+`torneos_dar_entrada`; `[data-quitar-entrada]` (dos toques) → `torneos_quitar_entrada`.
+
+Filas con puerta: clase `con-puerta` (seis columnas en PC con la entrada en la 5 y
+Expulsar en la 6, fijadas; en el móvil, flex: nombre, chapas, y abajo la entrada
+con Expulsar). `ronda.js`: en la ronda 1 de un presencial con puerta, confirma,
+llama a `torneos_cerrar_puerta` y marca fuera a quien no entró; `retirarNoConfirmados`
+no hace nada con puerta. `sala.js`: `misionesHtml({…, conPuerta, dentro})`.
+
 ## Tanda 1458 — Ventanas modales centradas
 
 `style.css`: `:where(dialog:modal) { margin: auto; }` tras el reseteo `*` (especificidad

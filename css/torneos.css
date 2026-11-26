@@ -5812,3 +5812,52 @@ button.torneo-tj { cursor: pointer; }
   .torneo-fila-der .torneo-pie-accion { min-height: 34px; padding: 0 11px; font-size: 0.8rem; }
   .torneo-vivo-despues .torneo-vivo-despues-ir { margin-left: 0; }
 }
+
+/* ── 1453: la puerta de un torneo en persona (js/torneos/puerta.js) ── */
+.torneo-puerta { display: grid; gap: 10px; padding: 14px; margin-bottom: 12px; border-radius: var(--radius-lg); border: 1px solid color-mix(in srgb, var(--acento) 35%, var(--border)); background: color-mix(in srgb, var(--acento) 6%, var(--white)); }
+.torneo-puerta-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.torneo-puerta-titulo { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; margin-right: auto; }
+.torneo-puerta-cifra { color: var(--text-mid); font-size: 0.9rem; }
+.torneo-puerta-cifra b { font-family: var(--font-display); font-size: 1.3rem; color: var(--text); }
+.torneo-puerta-cifra.dentro b { color: var(--success); }
+.torneo-puerta-mandos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.torneo-puerta-buscar { display: inline-flex; align-items: center; gap: 6px; flex: 1 1 200px; min-height: 40px; padding: 0 12px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--white); color: var(--text-dim); }
+.torneo-puerta-buscar input { border: 0; outline: none; background: transparent; color: var(--text); font: inherit; width: 100%; min-width: 0; }
+.torneo-puerta-resultado { display: grid; gap: 6px; }
+.torneo-puerta-resultado:empty { display: none; }
+.torneo-puerta-fila { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: var(--radius-md); background: var(--white); border: 1px solid var(--border); }
+.torneo-puerta-fila > span:first-child { font-weight: 700; margin-right: auto; }
+.torneo-puerta-sin-cuenta { display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: var(--radius-md); background: var(--white); border: 1px dashed var(--border-strong); }
+.torneo-puerta-qr { flex: 0 0 auto; line-height: 0; }
+.torneo-puerta-qr svg { width: 120px; height: 120px; }
+.torneo-puerta-nota { margin: 0; font-size: 0.8rem; }
+.torneo-entrada-dentro-chapa { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); font-weight: 700; font-size: 0.78rem; white-space: nowrap; }
+.torneo-entrada-quitar { font-size: 0.78rem; }
+.torneo-entrada-dar { min-height: 32px; padding: 0 12px; font-size: 0.82rem; }
+/* Con puerta, una columna más (la entrada) entre las chapas y Expulsar.
+   Columnas FIJADAS: sin usuario de TCG Live la fila trae una celda menos y,
+   dejándolas fluir, la entrada caía en el hueco de 108 px y Quitar no cabía. */
+.torneo-inscrito.con-puerta { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 108px 108px 168px 104px; }
+.torneo-inscrito.con-puerta > .torneo-entrada-celda { grid-column: 5; }
+.torneo-inscrito.con-puerta > .torneo-expulsar { grid-column: 6; }
+.torneo-entrada-celda { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.torneo-entrada-celda .torneo-entrada-quitar { padding: 4px 6px; min-height: 0; font-size: 0.8rem; }
+/* En el móvil la fila con puerta deja la rejilla: nombre arriba, chapas en
+   una línea y abajo la entrada (lo que se toca en la puerta) con Expulsar. */
+@media (max-width: 560px) {
+  .torneo-inscrito.con-puerta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .torneo-inscrito.con-puerta > .torneo-inscrito-nombre,
+  .torneo-inscrito.con-puerta > .subtext { flex: 1 0 100%; }
+  .torneo-inscrito.con-puerta > .torneo-entrada-celda { flex: 1 1 60%; }
+  .torneo-inscrito.con-puerta > .torneo-entrada-celda .torneo-entrada-dar { flex: 1; min-height: 40px; }
+  .torneo-inscrito.con-puerta > .torneo-expulsar { flex: 0 0 auto; }
+}
+.torneo-inscrito.dentro { border-color: color-mix(in srgb, var(--success) 35%, var(--border)); }
+.torneo-puerta-escaner { width: min(420px, calc(100vw - 24px)); padding: 12px; border: 0; border-radius: var(--radius-xl); background: var(--white); color: var(--text); }
+.torneo-puerta-escaner::backdrop { background: rgba(5, 10, 15, 0.7); }
+.torneo-puerta-escaner-cab { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+.torneo-puerta-escaner video { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-lg); background: #000; }
+@media (max-width: 599px) {
+  .torneo-puerta-mandos > .btn-primary, .torneo-puerta-mandos > .btn-secondary { flex: 1 1 auto; }
+  .torneo-puerta-sin-cuenta { flex-direction: column; text-align: center; }
+}

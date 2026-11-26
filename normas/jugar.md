@@ -472,3 +472,12 @@ organizador sale firmado «Juez» y en ámbar, también en la mesa del jugador. 
 cola se repinta solo si cambia (`pintarSiCambia`): rehacerla en cada recarga
 cerraba los chats abiertos del juez.
 
+
+**En persona, la puerta ES el check-in** (1453). Con «piden plaza» u
+«organizador», juega quien ha entrado (`entrada_at`), y nada más: emparejar la
+ronda 1 llama a `torneos_cerrar_puerta`, y la doble confirmación de antes
+(`retirarNoConfirmados`) NO se aplica con puerta —si se aplicara, echaría a
+todos los que entraron por no haber pulsado «¡ESTOY!», que con puerta ni sale—.
+Dar o quitar la entrada lo decide la base (`torneos_dar_entrada`); la web solo
+pinta. En la fila de Jugadores la entrada es UNA celda (chapa + Quitar) con su
+columna fijada: suelta empujaba «Expulsar» a otra línea.

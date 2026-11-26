@@ -531,6 +531,10 @@ async function crearBye(rondaId, mesa, jugadorId, { bracket = null } = {}) {
 // Si la columna del paso 2 aún no existe (migración pendiente), no se
 // echa a nadie: sin regla anunciada no hay castigo.
 async function retirarNoConfirmados() {
+  // En persona con puerta (1453) lo que decide quién juega es la PUERTA: ya
+  // se cerró antes de emparejar, y quien entró juega aunque no haya pulsado
+  // «¡Estoy!» ni mandado lista (en una tienda, la lista la pide el juez).
+  if (ctx.torneo.modalidad === 'presencial' && (ctx.torneo.inscripcion || 'pedir') !== 'libre') return []
   const activos = ctx.inscripciones.filter((i) => i.status === 'active')
   // La columna se busca en CUALQUIER inscripción (una fila recién
   // insertada por la app aún no la trae aunque la base ya la tenga).
@@ -681,6 +685,22 @@ async function generarPareos() {
   if (n > ctx.torneo.swiss_rounds) {
     showToast('Las suizas están completas. La siembra del top cut llega en la próxima tanda.', 'error')
     return
+  }
+
+  // La puerta (1453): en persona, emparejar la ronda 1 la cierra y quien no ha
+  // entrado se queda fuera. Se avisa antes, con cuántos son.
+  if (n === 1 && ctx.torneo.modalidad === 'presencial' && (ctx.torneo.inscripcion || 'pedir') !== 'libre') {
+    const fuera = ctx.inscripciones.filter((i) => ['active', 'waitlisted'].includes(i.status) && !i.entrada_at)
+    if (fuera.length && !window.confirm(`${fuera.length === 1 ? 'Hay 1 persona que no ha entrado' : `Hay ${fuera.length} personas que no han entrado`} por la puerta: se ${fuera.length === 1 ? 'queda' : 'quedan'} fuera del torneo. ¿Emparejar la ronda 1?`)) return
+    const { error } = await supabase.rpc('torneos_cerrar_puerta', { p_torneo: ctx.torneo.id })
+    if (error) {
+      showToast(/does not exist|Could not find the function/i.test(error.message || '') ? 'Falta ejecutar la migración 1446 (supabase-migration-1446-torneos-en-persona.sql).' : `No se ha podido cerrar la puerta: ${error.message}`, 'error')
+      return
+    }
+    // Ya fuera, y dicho una vez: que el aviso de bajas de abajo no los cuente
+    // como «se ha retirado».
+    for (const i of fuera) i.status = 'dropped'
+    if (fuera.length) showToast(`Puerta cerrada: ${fuera.length === 1 ? '1 persona se queda fuera' : `${fuera.length} personas se quedan fuera`}.`, 'info')
   }
 
   // Las bajas, frescas (1436): sin esto, quien se retiró después del último
