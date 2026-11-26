@@ -86,7 +86,10 @@ export function cifrasDeArquetipo({ meta, clave, partidas = [], resultadoDe = ()
 
   const filas = [...cruces.values()]
     .map((c) => ({ ...c, partidas: jugadas(c), porcentaje: tasa(c.v, c), empates: tasa(c.e, c), espejo: c.clave === clave }))
-    .sort((a, b) => b.partidas - a.partidas || (b.porcentaje ?? 0) - (a.porcentaje ?? 0))
+    // De más a menos % de victorias (pedido de la gente, 2026-11-26): lo
+    // primero que se lee es contra qué gana. A igual %, el que más partidas
+    // lleva; los que no tienen % (solo empates sin jugar), al final.
+    .sort((a, b) => (b.porcentaje ?? -1) - (a.porcentaje ?? -1) || b.partidas - a.partidas)
 
   return {
     grupo,

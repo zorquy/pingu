@@ -55231,6 +55231,13 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1475 — «Contra cada mazo», de mayor a menor
+
+Sin cambios de esquema. `cifrasDeArquetipo(...).cruces` sale ordenado por
+`porcentaje` descendente (los `null`, al final) y, a igual %, por `partidas`
+descendente. La imagen (`meta-imagen.js`) corta los primeros `MAX_CRUCES` de
+ese mismo orden.
+
 ## Tanda 1474 — El banner, entero
 
 Sin cambios de esquema. `destacadoHtml`: `.tdest-arte.con-banner` con

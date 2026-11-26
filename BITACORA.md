@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (714) — PINGU-Claude (1475 — «Contra cada mazo», de mayor a menor)
+
+**Hecho** (PINGU, con la imagen del Alakazam Dudunsparce: «que los
+porcentajes sean de mayor a menor»):
+- Los cruces de un mazo (la tabla «Contra cada mazo» de la ficha y la imagen
+  que se descarga) van de **más a menos % de victorias**; a igual %, el que
+  más partidas lleva primero. Antes iban por partidas jugadas y salía un 33 %
+  encima de un 100 %.
+
+**Ficheros**: `js/torneos/meta-cruces.js` (solo el `sort` de `cifrasDeArquetipo`).
+
+**Pruebas** (rama `pruebas`): `test-tanda-1444.mjs` comprueba el orden; de
+paso, abre la pestaña Mazos (desde la 1447 los mazos no están en
+Clasificación) y por eso volvía a encontrar el botón de la imagen.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (713) — PINGU-Claude (1474 — el banner, entero)
 
 **Hecho** (PINGU, con la captura de /torneos: «hay errores»):
