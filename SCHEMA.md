@@ -55231,6 +55231,36 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1466 — Los arquetipos de Limitless, al día solos
+
+Sin migración. `netlify/functions/arquetipos-limitless.mjs`, programada
+`23 5,17 * * *` (UTC), con la clave de servicio. Lee `rpc/meta_resumen`
+(`p_dias` 60, todas las fuentes: los «vivos», con `mazos` y `listas`),
+`tcg_archetypes` (con `updated_at`), los ids de `meta_arquetipos` y el último
+`meta_torneos.fecha` online. Estado en `scrydex_estado`, clave
+`arquetipos_limitless`: `{ dia, propios: { id: updated_at escrito },
+conocidos: [ids], retirados: { id: día }, pendientes: { id: { motivo, fecha,
+listas, suyas?, robadas? } }, anadidos: [{ id, nombre, suyas, listas, robadas,
+dia }] (50), ultimaPasada, ultimaMirada, ultimoError: { fecha, motivo } }`.
+La primera vez, `propios` = las filas con id de `meta_arquetipos`.
+`planDelDia` (puro): renombra/apaga/enciende solo filas con
+`updated_at` = `propios[id]`; apaga si no está en los vivos, con el último
+torneo online de menos de 3 días y 30 vivos o más (tope 10); enciende las que
+apagó si vuelven; nuevos = vivos fuera de `other`/`basic-box*`/`pokedoc-*`, no
+conocidos, con `listas` ≥ 3, sin descartar en los últimos 7 días, de más a
+menos mazos (6 por pasada, 20 s de reloj). Un nuevo: sus listas
+(`meta_resultados`, `con_lista`, sin `torneo_id` `pokedoc-*`, 400), las de los
+demás que llevan su ancla (`lista=cs.{…}`, 2.000), y `reglaDeArquetipo`
+(candidatas al 85 % con sus copias, Pokémon antes que entrenadores; ancla =
+las cartas de sus iconos; voraz de una en una hasta 5 y, si sus listas se las
+lleva uno con más requisitos, las que falten de una vez; entra si sube los
+aciertos y reconoce la mitad de sus listas, y no si su regla es la de otro).
+El cruce con el catálogo (`prepararCatalogo` + `ganadorDelCatalogo`) es el de
+`arquetipoDelCatalogo` con mapas de copias (y `llevaLaCarta` para los
+requisitos con set y número). Los nombres en español, de `tcg_cards`
+(`name_en`/`name` → `name_es`/`name`). Alta con `resolution=ignore-duplicates`.
+En /admin, `pintarArquetiposAlDia` (Arquetipos) y la clave en `PASADAS`.
+
 ## Tanda 1461 — Los arquetipos de Limitless en el buscador de Mis partidas
 
 Sin cambios de esquema. `buscarOpciones(texto, catalogo)` (js/torneos/selector-mazo.js)

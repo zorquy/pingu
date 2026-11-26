@@ -259,7 +259,12 @@ función `ligas-jornadas`, que avisa la víspera (Telegram y campanita
 pasa por ahí, no por otra cuenta.
 
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
-al pintarla. El CATÁLOGO (`tcg_archetypes`) son los de Limitless desde la
+al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda
+equivocar — se ve el mazo de alguien exactamente cuando la base deja ver
+su lista (torneo terminado, o de lista abierta en juego). Si algún día
+lo cacheas en una columna, te llevas esa garantía por delante.
+
+El CATÁLOGO (`tcg_archetypes`) son los de Limitless desde la
 1460 (Ibai: «tráete todos los arquetipos de mazos de Limitless»): el mismo id
 y nombre que /meta, sus dos iconos con el nombre de su carta, y requisitos
 sacados de sus listas (las cartas de sus iconos y, si hace falta para no
@@ -270,10 +275,16 @@ pierde contra los que piden dos: se le ponen las que le hagan falta. Los
 nombres de un requisito van en inglés y en español (el export de TCG Live
 viene en el idioma de cada jugador). Para rehacerlo con el meta de otro
 momento, el andamio está en la rama `pruebas`
-(`herramientas/arquetipos-limitless/`): no se escribe a mano. Eso es lo que hace que la regla de visibilidad no se pueda
-equivocar — se ve el mazo de alguien exactamente cuando la base deja ver
-su lista (torneo terminado, o de lista abierta en juego). Si algún día
-lo cacheas en una columna, te llevas esa garantía por delante.
+(`herramientas/arquetipos-limitless/`): no se escribe a mano. Y desde la
+1466 se mantiene SOLO (Ibai: «que mire cada día los arquetipos de
+Limitless»): `netlify/functions/arquetipos-limitless.mjs` añade los nuevos
+(con una regla de sus listas que solo entra si MEJORA lo que la web acierta;
+si no, se apunta con su motivo y se vuelve a mirar a la semana), APAGA los
+que llevan 60 días sin un mazo (nunca borra: Mis partidas los guarda por
+`a:<id>`) y renombra como Limitless. Lo que guarda una persona en /admin
+deja de ser suyo (la pasada reconoce lo suyo por el `updated_at` que
+escribió), y un id borrado no vuelve (`conocidos`). Nada se apaga con el
+meta parado. Una pasada que mantenga filas que también se editan a mano, igual.
 
 El motor puro (pareos suizos,
 desempates, top cut, decklists) está en `js/torneos/motor.js`,

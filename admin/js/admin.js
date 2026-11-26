@@ -1894,6 +1894,9 @@ async function loadArquetipos() {
     return
   }
   arquetiposCache = data || []
+  // La pasada diaria de Limitless (1466): qué ha hecho y cuáles lleva ella.
+  const alDia = await pintarArquetiposAlDia()
+  const loLleva = (a) => Boolean(alDia?.propios?.[a.id]) && Date.parse(alDia.propios[a.id]) === Date.parse(a.updated_at)
   if (!arquetiposCache.length) {
     caja.innerHTML =
       '<p class="admin-note">Todavía no hay ninguno. Mientras tanto, los mazos salen deducidos y marcados en las clasificaciones.</p>'
@@ -1906,7 +1909,7 @@ async function loadArquetipos() {
         .map(
           (a) => `
         <tr${a.activo ? '' : ' class="admin-fila-apagada"'}>
-          <td>${escapeHtml(a.nombre)}${a.activo ? '' : ' <span class="subtext">(inactivo)</span>'}</td>
+          <td>${escapeHtml(a.nombre)}${a.activo ? '' : ' <span class="subtext">(inactivo)</span>'}${loLleva(a) ? ' <span class="subtext">· lo lleva Limitless</span>' : ''}</td>
           <td class="subtext">${escapeHtml(a.id)}</td>
           <td class="subtext">${escapeHtml((a.requiere || []).map(requisitoATexto).join(' + '))}</td>
           <td class="subtext">${escapeHtml((a.iconos || []).map((i) => `${i.set || '?'} ${i.numero || '?'}`).join(', '))}</td>
@@ -1925,6 +1928,32 @@ async function loadArquetipos() {
   caja.querySelectorAll('[data-borrar-arq]').forEach((b) =>
     b.addEventListener('click', () => borrarArquetipo(b.dataset.borrarArq))
   )
+}
+
+// Lo que ha hecho la pasada diaria (`arquetipos_limitless` en
+// `scrydex_estado`, que el admin puede leer): la última, lo añadido hace poco
+// y lo que se ha quedado fuera con su motivo. Devuelve el estado (o null).
+async function pintarArquetiposAlDia() {
+  const caja = document.getElementById('arquetiposAlDia')
+  const { data, error } = await supabase.from('scrydex_estado').select('valor,updated_at').eq('clave', 'arquetipos_limitless').maybeSingle()
+  const v = data?.valor || null
+  if (!caja) return v
+  if (error || !v) {
+    caja.innerHTML = `<p class="admin-note">${error ? `No se puede leer el estado de la pasada diaria: ${escapeHtml(error.message)}` : 'La pasada diaria de Limitless todavía no ha corrido.'}</p>`
+    return v
+  }
+  const u = v.ultimaPasada || {}
+  const cuando = (f) => (f ? new Date(f).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) : '—')
+  const anadidos = (v.anadidos || []).slice(0, 8)
+  const fuera = Object.entries(v.pendientes || {}).slice(0, 8)
+  caja.innerHTML = `
+    <p class="admin-note"><strong>Al día con Limitless.</strong> Última pasada: ${escapeHtml(cuando(u.cuando))} ·
+      ${u.nuevos ?? 0} nuevos, ${u.retirados ?? 0} apagados, ${u.encendidos ?? 0} encendidos, ${u.renombrados ?? 0} renombrados.
+      ${u.retirarBloqueado ? ` No se apaga nada: ${escapeHtml(u.retirarBloqueado)}.` : ''}
+      ${v.ultimoError ? ` <strong>Último error</strong> (${escapeHtml(cuando(v.ultimoError.fecha))}): ${escapeHtml(v.ultimoError.motivo || '')}` : ''}</p>
+    ${anadidos.length ? `<p class="admin-note">Añadidos hace poco: ${anadidos.map((a) => `${escapeHtml(a.nombre)} (${escapeHtml(a.dia)}, ${a.suyas}/${a.listas} listas)`).join(' · ')}</p>` : ''}
+    ${fuera.length ? `<p class="admin-note">Sin añadir (se vuelven a mirar a la semana): ${fuera.map(([id, x]) => `${escapeHtml(id)}: ${escapeHtml(x.motivo || '')}`).join(' · ')}</p>` : ''}`
+  return v
 }
 
 function limpiarFormularioArquetipo() {
@@ -2011,7 +2040,9 @@ async function borrarArquetipo(id) {
   // Borrar no rompe nada del histórico: los arquetipos no se guardan por
   // torneo, se deducen al pintar. Lo que pasa es que esos mazos vuelven a
   // salir deducidos, como antes de catalogarlos.
-  if (!confirm(`¿Borrar «${a?.nombre || id}»? Los mazos que lo usaban volverán a salir deducidos.`)) return
+  // Y la pasada diaria de Limitless no lo vuelve a añadir (1466): recuerda
+  // los ids que el catálogo ha tenido.
+  if (!confirm(`¿Borrar «${a?.nombre || id}»? Los mazos que lo usaban volverán a salir deducidos, y no se volverá a añadir solo desde Limitless.`)) return
   const { error } = await supabase.from('tcg_archetypes').delete().eq('id', id)
   if (error) {
     showToast('No se ha podido borrar: ' + error.message, 'error')

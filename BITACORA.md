@@ -4,6 +4,56 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 — IBAI-Claude (1466 — Los arquetipos de Limitless, al día solos)
+
+**Hecho** (Ibai: «estaría bien que para lo de los arquetipos PokeDoc mire cada
+día los arquetipos de Limitless para traerse nuevos arquetipos, borrar antiguos
+si es necesario, etc.»):
+- **Una pasada diaria** (`netlify/functions/arquetipos-limitless.mjs`, a las
+  5:23 y 17:23 UTC; la segunda solo mira si la primera acabó) que, con lo que
+  ya trae `meta-limitless` a la base (nada de fuera, nada de pago):
+  - **añade** los arquetipos que Limitless juega (60 días, `meta_resumen`) y
+    el catálogo no ha tenido nunca, con sus iconos y una regla sacada de sus
+    listas como las de la 1460. Solo entra si MEJORA lo que la web acierta con
+    esas listas y las de los demás que llevan lo mismo; si no, queda apuntado
+    con su motivo y se vuelve a mirar a la semana. Como mucho 6 por pasada;
+  - **apaga** (`activo = false`, nunca borra: Mis partidas guarda `a:<id>`) los
+    que llevan 60 días sin un mazo, y los **enciende** si vuelven. Nada se
+    apaga si el último torneo online tiene más de 3 días o hay menos de 30
+    arquetipos vivos, y como mucho 10 al día;
+  - **renombra** como Limitless.
+- **Lo de /admin manda**: la pasada reconoce lo suyo por el `updated_at` que
+  escribió (en `scrydex_estado`, `arquetipos_limitless`); lo que alguien guarda
+  a mano ya no lo toca, y un id borrado no vuelve (recuerda los `conocidos`).
+  En /admin → Arquetipos sale qué ha hecho, lo añadido, lo que se quedó fuera
+  y por qué, y «lo lleva Limitless» en cada fila suya; y la pasada entra en el
+  semáforo.
+- **Probado con los datos de verdad** (en pokedoc.es, solo leyendo): con 30
+  arquetipos del catálogo hechos «nuevos» uno a uno, acepta 20 y reconoce 495
+  de sus 498 listas (las reglas de la 1460: 496) quitándole 19 a otros (la
+  1460: 47); los demás se quedan fuera con motivo (casi todos por tener menos
+  de 3 listas). Su primera pasada en producción apagaría 6 que no tienen un
+  mazo en 60 días (Gardevoir, Gardevoir Jellicent, Charizard Pidgeot,
+  Charizard Noctowl, Gholdengo Lunatone, Greninja Blaziken) y miraría
+  `wailord-ex` (fuera: sin listas).
+- Norma en `normas/jugar.md` (el catálogo se mantiene solo; lo de /admin manda).
+
+**Ficheros**: nuevo `netlify/functions/arquetipos-limitless.mjs`,
+`admin/js/admin.js`, `admin/js/semaforo.js`, `admin/index.html`,
+`novedades.json`, SCHEMA, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1466.mjs` (lo puro; que el cruce
+rápido da lo mismo que `arquetipoDelCatalogo`; la regla de un nuevo; el plan
+del día; y pasadas enteras con una base de mentira: la primera, la segunda del
+día, lo borrado y lo tocado a mano al día siguiente, el meta parado y la base
+caída).
+
+**Pendiente**: sin migración. Hace falta `SUPABASE_SERVICE_ROLE_KEY` en Netlify
+(ya está: la usan las demás pasadas).
+
+**Renumerada**: se escribió como 1462 y PINGU había subido de la 1462 a la
+1465 (hasta b5f993f): rehecha encima, con su prueba como `test-tanda-1466`.
+
 ## 2026-11-26 (705) — PINGU-Claude (1464–1465 — los campeones en grande y la ficha de antes de empezar, de un vistazo)
 
 **Hecho** (propuesta «Campeones y ficha», PINGU: «adelante con todo lo

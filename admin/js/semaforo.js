@@ -45,6 +45,8 @@ export const PASADAS = [
   ['timbre', 'Timbre de la base'],
   // El color de cada ilustración para Tus colores y «Sugerir» (1419).
   ['colores_cartas', 'Colores de las ilustraciones'],
+  // Los arquetipos de Limitless, al día cada mañana (1466).
+  ['arquetipos_limitless', 'Arquetipos de Limitless'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000
