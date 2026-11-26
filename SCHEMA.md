@@ -58929,6 +58929,22 @@ mismas reglas en JavaScript): **A casa 503** (todas las de sus sets, una a una
 y sin dobles), **B 1.008** (ninguna con duda), **C1 12** y **C2 81**: las
 1.604. Lo que el SELECT final diga que queda se corrige en /admin → Catálogo.
 
+**El SQL Editor la paró la primera vez** («relation "schools" does not
+exist», y nada aplicado: 1.604 seguían igual). El editor de Supabase busca
+con expresiones regulares, SIN mirar si está dentro de una cadena, `SELECT …
+INTO tabla` (y `CREATE TABLE`, `INSERT INTO`, `COPY … FROM`, `ALTER TABLE`):
+las sentencias A llevaban un `(select array_agg …)` para los tipos y el texto
+de Wishiwashi dice «gathering up into schools», así que creyó que se creaba
+la tabla `schools`, le añadió activarle la RLS y falló todo. Segunda versión:
+las A no llevan `select` (tipos y Pokédex con `translate(…, '[]', '{}')::text[]`),
+en el JSON esas palabras y el `$` van con la primera letra en `\u00XX`
+(jsonb guarda el texto igual), sin `$` en anclas de regex (`\Z`) ni comillas
+en los comentarios. Comprobado con una imitación del detector: la primera
+versión da `schools`, igual que el editor; la segunda, ningún evento. Y los
+textos, como los guarda el engorde: «Energía {W}» en vez del
+`<span class="energy-symbol …">` de cards-database, sin `<em>`/`<p>` y sin
+el hueco `$$$CARD.RULES.MISSING.TOKEN$$$` de dos cartas.
+
 No toca `name`, la foto, el precio ni `detalle_lang` (marca el idioma del
 NOMBRE, la 335). Lo corregido a mano gana (disparador de la 885). Ejecutarla
 dos veces no cambia nada la segunda. **Sin marca de Delta Reign**: TCGdex

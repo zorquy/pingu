@@ -73,7 +73,15 @@ siendo las migraciones).
   `\i` en psql —la prueba— sí. Nada de tablas temporales entre sentencias:
   la lista va en un `(values …)` dentro de cada una, o todo en un `do`.
   Lo vigila `test-tanda-631.mjs`, que ejecuta la migración sentencia a
-  sentencia, cada una en su conexión.
+  sentencia, cada una en su conexión. **Y el editor lee el SQL con
+  expresiones regulares que NO miran si están dentro de una cadena**
+  (tanda 1281): si una sentencia dice `select` y más adelante «into
+  palabra» —aunque sea en el texto de una carta, «gathering up into
+  schools»—, cree que crea la tabla `palabra`, le añade activarle la RLS y
+  todo falla y se deshace («relation "schools" does not exist»). Igual con
+  `create table`, `insert into`, `copy … from` y `alter table`. Con textos
+  dentro (JSON de cartas), esas palabras y el `$` van escapados en el JSON
+  (`\u0069nto`), y nada de comillas en los comentarios.
 - **Netlify** despliega la rama `claude/react-native-web-migration-wl51z5`
   DIRECTAMENTE a producción. Cada push sale en vivo en minutos: no
   subas nada roto. Las funciones de servidor van en `netlify/functions/`

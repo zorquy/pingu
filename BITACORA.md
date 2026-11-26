@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 — IBAI-Claude (1281b — en el repo, la 1281 que se ejecutó)
+
+**Hecho**: el commit de la 1281 que subió (e8bced1) llevaba la PRIMERA versión
+de `supabase-migration-1281-cartas-nuevas-para-jugar.sql`, la que el SQL
+Editor paró con «relation "schools" does not exist». La que se EJECUTÓ fue la
+segunda (comprobado hoy en producción: Delta Reign con ficha, los textos con
+«Energía {W}» y sin HTML de TCGdex, y solo quedan sin categoría las 15 de
+`m26`). Esta tanda pone en el repo la que corrió, con su explicación en SCHEMA
+(1281) y la regla del editor en CLAUDE.md, junto a la de la 631: el SQL Editor
+busca `select … into tabla`, `create table`, `insert into`, `copy … from` y
+`alter table` con regex que no miran si están dentro de una cadena.
+
+**Ficheros**: `supabase-migration-1281-cartas-nuevas-para-jugar.sql`, SCHEMA,
+CLAUDE.md, BITACORA. Sin código ni migración nueva.
 ## 2026-11-26 (703) — PINGU-Claude (1457 — Torneos que se repiten, con migración)
 
 **Hecho** (propuesta «Torneos, versión final», lo recomendado tras la puerta):
@@ -4448,6 +4462,12 @@ constructor, el laboratorio no las juega y las repeticiones no las reconocen.
   `detalle_lang`; lo corregido a mano gana; dos ejecuciones = una.
 - Delta Reign sigue sin marca de regulación (TCGdex no la da todavía): siguen
   legales por colección reciente, como hasta hoy.
+- **Primera ejecución: el SQL Editor la paró** con «relation "schools" does
+  not exist» (no se aplicó nada). El editor busca `select … into tabla` con
+  regex sin mirar cadenas, y el texto de Wishiwashi dice «into schools»: se
+  inventó una tabla y le añadió activarle la RLS. Rehecha sin `select` en las
+  sentencias con textos y con esas palabras escapadas en el JSON; regla
+  nueva en CLAUDE.md (junto a la de la 631).
 
 **Ficheros**: `supabase-migration-1281-cartas-nuevas-para-jugar.sql` (nueva),
 SCHEMA (1281), CLAUDE.md (la nota de Jugar), novedades, BITACORA. Probada en un
