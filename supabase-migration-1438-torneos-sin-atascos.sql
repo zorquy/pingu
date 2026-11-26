@@ -18,8 +18,10 @@
 --        El aviso nunca puede tumbar la escritura: si Realtime falla, se calla.
 --
 --  1440. `torneos_reclamar_ausencia(mesa)`: cuando vence el check-in y tu rival
---        no está, tu ficha cierra la mesa al momento con la MISMA regla que el
+--        no está, la mesa se cierra al momento con la MISMA regla que el
 --        barredor (que se queda de red de seguridad). La hora la mira la base.
+--        La piden las fichas de los dos jugadores y las del organizador y los
+--        jueces (1445): basta con que UNA esté abierta.
 --
 -- Se puede ejecutar dos veces. Sin tablas temporales (tanda 631).
 
@@ -225,13 +227,18 @@ declare
 begin
   select * into v_m from tournament_matches where id = p_partida for update;
   if not found then raise exception 'Mesa no encontrada.'; end if;
-  if auth.uid() is null or auth.uid() not in (v_m.player_a_id, v_m.player_b_id) then
-    raise exception 'Solo los jugadores de la mesa.';
+  select * into v_r from rounds where id = v_m.round_id;
+  -- Los dos jugadores, y quien lleva o arbitra el torneo (1445): el que vino
+  -- puede tener el móvil bloqueado, y el organizador suele tener la ficha
+  -- abierta en el PC. La regla es la misma la pida quien la pida.
+  if auth.uid() is null or (auth.uid() not in (v_m.player_a_id, v_m.player_b_id)
+     and not coalesce(torneos_mando(v_r.tournament_id), false)
+     and not coalesce(torneos_soy_juez(v_r.tournament_id), false)) then
+    raise exception 'Solo los jugadores de la mesa o quien lleva el torneo.';
   end if;
   -- Ya cerrada (el barredor o el rival llegaron antes): se dice cómo quedó.
   if v_m.status <> 'active' then return v_m.status; end if;
 
-  select * into v_r from rounds where id = v_m.round_id;
   if v_r.status is distinct from 'active' or v_r.started_at is null then return 'pronto'; end if;
   select coalesce(checkin_minutes, 0) into v_min from tournaments where id = v_r.tournament_id;
   -- Sin ventana de check-in no se cierra nada desde aquí: lo decide el barredor.

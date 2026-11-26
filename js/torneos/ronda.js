@@ -572,28 +572,50 @@ function mesaMasHtml() {
 
 // Una vez por mesa y página: si la base dice «pronto» (el reloj del móvil va
 // adelantado), se vuelve a probar a los 20 s.
+//
+// QUIÉN la pide (1445, PINGU: «solo pasaba si recargabas la página»): antes,
+// solo la ficha del que SÍ hizo check-in, y si tenía el móvil bloqueado nadie
+// la pedía hasta el barredor del minuto. Ahora cualquier ficha abierta que
+// pueda: los dos jugadores de la mesa y, para TODAS las mesas de la ronda,
+// quien lleva o arbitra (suele tener el PC abierto). La regla la aplica la
+// base, así que da igual quién llegue primero; los demás reciben «ya estaba».
 const reclamadas = new Map()
 function reclamarAusencia(ronda) {
   if (cicloPorRpc === false) return
   const yo = miId()
-  const mia = partidas.find((m) => m.round_id === ronda.id && m.status === 'active' && (m.player_a_id === yo || m.player_b_id === yo))
-  if (!mia) return
-  const soyA = mia.player_a_id === yo
-  const miCheckin = soyA ? mia.check_in_a_at : mia.check_in_b_at
-  const suyo = soyA ? mia.check_in_b_at : mia.check_in_a_at
-  if (!miCheckin || suyo) return
-  const antes = reclamadas.get(mia.id)
-  if (antes && Date.now() - antes < 20000) return
-  reclamadas.set(mia.id, Date.now())
-  void supabase.rpc('torneos_reclamar_ausencia', { p_partida: mia.id }).then(async ({ data, error }) => {
-    if (faltaLaRpc(error)) {
-      cicloPorRpc = false
-      return
-    }
-    if (error || !String(data || '').startsWith('forfeit')) return
+  if (!yo) return
+  const arbitro = Boolean(mando() || ctx.esJuez)
+  const pendientes = partidas.filter(
+    (m) =>
+      m.round_id === ronda.id &&
+      m.status === 'active' &&
+      !(m.check_in_a_at && m.check_in_b_at) &&
+      (arbitro || m.player_a_id === yo || m.player_b_id === yo)
+  )
+  for (const m of pendientes) {
+    const antes = reclamadas.get(m.id)
+    if (antes && Date.now() - antes < 20000) continue
+    reclamadas.set(m.id, Date.now())
+    void supabase.rpc('torneos_reclamar_ausencia', { p_partida: m.id }).then(({ data, error }) => {
+      if (faltaLaRpc(error)) {
+        cicloPorRpc = false
+        return
+      }
+      if (error || !String(data || '').startsWith('forfeit')) return
+      // Lo cerrado llega también por el canal; esto es para no esperarlo.
+      recargaTrasReclamar()
+    })
+  }
+}
+
+// Varias mesas cerradas de golpe (el organizador) son UNA recarga, no una por mesa.
+let recargaReclamo = null
+function recargaTrasReclamar() {
+  clearTimeout(recargaReclamo)
+  recargaReclamo = setTimeout(async () => {
     await cargarCiclo()
     pintarCiclo()
-  })
+  }, 400)
 }
 
 // Delegado: la cabecera de la mesa se pinta por varios caminos (sin empezar,
@@ -1723,9 +1745,10 @@ function arrancarReloj(ronda) {
                 : 'En juego'
       }
     }
-    // Sin check-in, la victoria al momento (1440): vencido el plazo, con tu
-    // check-in hecho y el del rival no, tu ficha pide cerrar la mesa. La hora
-    // la mira la base; el barredor de cada minuto sigue de red.
+    // Sin check-in, la victoria al momento (1440, 1445): vencido el plazo, la
+    // ficha de cualquiera de los dos jugadores —o la de quien lleva o arbitra,
+    // para todas las mesas— pide cerrar las que tengan un check-in sin hacer.
+    // La hora y la regla las pone la base; el barredor de cada minuto sigue de red.
     if (ya >= cierreCheckin && (ctx.torneo.checkin_minutes || 0) > 0) reclamarAusencia(ronda)
     // El aviso de «Tu partida»: la ventana de check-in con su cuenta.
     const aviso = $('avisoCheckin')

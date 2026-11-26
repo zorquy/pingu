@@ -1827,10 +1827,15 @@ function alAviso(aviso, recargaEntera) {
       tablonPronto(500, 4000)
       break
     case 'torneo': {
+      // Cambia de estado (empieza, termina, se cancela): se pide la fila entera
+      // —trae el campeón, el podio…— y se recarga ya, sin la espera al azar de
+      // los avisos (pasa una vez por torneo, no por mesa).
       const cambiaEstado = fila.status && fila.status !== torneo.status
       if (fila.current_round_id !== undefined) torneo.current_round_id = fila.current_round_id
-      if (cambiaEstado) recargaEntera()
-      else repintarCabecera()
+      if (cambiaEstado) {
+        torneo.status = fila.status
+        void recargar({ conTorneo: true })
+      } else repintarCabecera()
       break
     }
     case 'recargar':
@@ -1858,7 +1863,23 @@ function avisarBaja(cambio) {
 // cambia en una ronda.
 let recargasSolas = 0
 
-async function recargar({ ligera = false } = {}) {
+// El torneo en sí, otra vez (1445, PINGU: «solo pasaba si recargabas la
+// página»). La recarga automática pedía inscripciones, rondas y mesas, pero
+// NUNCA la fila del torneo: si se cerraba, se cancelaba o empezaba, quien tenía
+// la ficha abierta seguía viendo el estado viejo hasta recargar a mano. Se
+// actualiza EN SU SITIO (Object.assign): ronda.js y los demás guardan esta misma
+// referencia.
+async function refrescarTorneo() {
+  if (!torneo?.id) return false
+  const { data } = await supabase.from('tournaments').select('*').eq('id', torneo.id).maybeSingle()
+  if (!data) return false
+  const cambio = data.status !== torneo.status
+  Object.assign(torneo, data)
+  return cambio
+}
+
+async function recargar({ ligera = false, conTorneo = !ligera } = {}) {
+  if (conTorneo) await refrescarTorneo()
   await cargarInscripciones({ ligera })
   // Un juez aprobado lleva el torneo como el organizador (970) y ve las
   // decklists ajenas: por eso va ANTES de las jornadas y las listas, que
@@ -1947,7 +1968,7 @@ async function init() {
   engancharLoPegado(ficha)
   engancharApuntarse(ficha)
   engancharBuscarGente()
-  await recargar()
+  await recargar({ conTorneo: false }) // el torneo se acaba de leer
   arrancarSondeoFicha()
 }
 

@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (692) — PINGU-Claude (1445 — Sin recargar: la victoria sin check-in y el final del torneo)
+
+**Hecho** (PINGU: «pasados los 5 minutos de check-in se daba la victoria, pero
+solo si recargabas la página […] y había más problemas de este tipo»):
+- **La victoria sin check-in la pide cualquier ficha abierta**: antes, solo la
+  del jugador que SÍ hizo check-in (con el móvil bloqueado, nadie hasta el
+  barredor del minuto). Ahora también la del ausente y, para TODAS las mesas
+  de la ronda, la del organizador y los jueces. `torneos_reclamar_ausencia`
+  (migración 1438, aún sin ejecutar, así que se ha cambiado en el mismo
+  fichero) deja pedirla a quien lleva o arbitra. Varias mesas cerradas de
+  golpe son una sola recarga.
+- **La recarga automática nunca volvía a leer el torneo**: pedía
+  inscripciones, rondas y mesas, pero no la fila del torneo, así que si
+  terminaba (o empezaba, o se cancelaba) la ficha abierta seguía en el estado
+  viejo hasta recargar a mano. Ahora la lee en cada recarga completa
+  (`refrescarTorneo`, en su sitio con `Object.assign`) y, con el canal, al
+  momento en cuanto cambia de estado.
+- `test-tanda-1445-pantalla.mjs`, todo con la ficha abierta y SIN recargar:
+  vence el check-in (desde quien vino, desde el ausente y desde el
+  organizador), check-in del rival, resultado, ronda nueva con mesa nueva,
+  tablón y final del torneo.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/torneo.js`,
+`supabase-migration-1438-torneos-sin-atascos.sql`. Pruebas: la 1438
+(PostgreSQL: organizador y juez pueden pedirlo), la 1445 y el doble de Supabase.
+
+**Pendiente**: nada de esto; sigue esperando el «sube» con lo demás.
+
 ## 2026-11-25 (691) — PINGU-Claude (1442 — Prueba de carga y vigilancia de los torneos)
 
 **Hecho** (el último punto de «Torneos sin atascos»):

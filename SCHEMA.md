@@ -55231,6 +55231,17 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1445 — Sin recargar
+
+`supabase-migration-1438-torneos-sin-atascos.sql` (sin ejecutar aún):
+`torneos_reclamar_ausencia` acepta también a `torneos_mando(torneo)` y
+`torneos_soy_juez(torneo)`. `js/torneos/ronda.js`: `reclamarAusencia(ronda)`
+recorre las mesas activas de la ronda con algún check-in sin hacer (las suyas,
+o todas si es organizador o juez), una llamada por mesa cada 20 s como mucho, y
+`recargaTrasReclamar()` junta las recargas. `js/torneos/torneo.js`:
+`refrescarTorneo()` y `recargar({ ligera, conTorneo = !ligera })`; el aviso
+`tournaments` con cambio de estado recarga al momento con el torneo.
+
 ## Tanda 1444 — Cómo le fue a cada mazo
 
 Sin migración. `js/torneos/meta-cruces.js`: `cifrasDeArquetipo({ meta, clave,
