@@ -19,7 +19,7 @@ import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaCartelHtml, completarLiga, conJornadas } from './ligas-franja.js'
 import { jornadasDeLiga } from './liga-en-curso.js'
 import { esTorneoDeTienda, textoDePrecio } from './torneo-tienda.js'
-import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
+import { pintarAvisosDeTorneos } from './avisos-huerfanos.js'
 import { chapaTipoHtml, tipoPrincipal } from '../chapa-tipo.js'
 import { CARTELES, cartelHtml, cartelesHtml, campeonHtml, campeonesHtml } from './carteles.js'
 import { ciudadDe, ciudadesDe, tramoDe, TRAMOS, ordenarProximos, terminadosPorMes, filtrarTorneos, borradoresDe, textoDeRepite } from './agenda-puro.js'
@@ -1436,8 +1436,9 @@ function engancharFormulario(session, perfil) {
 async function init() {
   const session = await getSession()
   const perfil = session ? await getProfile(session.user.id) : null
-  // Los avisos de torneos que ya no existen (1406): por su lado, sin esperar.
-  if (session) leerAvisosHuerfanos(supabase, session.user.id).catch(() => {})
+  // Tus avisos de torneos (1476) —y fuera los de torneos que ya no existen,
+  // 1406—: por su lado, sin esperar.
+  if (session) pintarAvisosDeTorneos(supabase, session.user.id, $('torneosAvisos'), escapeHtml).catch(() => {})
   // Esta página NO echa a nadie: la lista y el calendario se ven sin
   // cuenta (escaparate). Apuntarse ya se lo pide la ficha, que a quien
   // no tenga cuenta lo manda al registro.

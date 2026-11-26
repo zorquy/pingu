@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (715) — PINGU-Claude (1476 — tus avisos de torneos, a la vista)
+
+**Hecho** (PINGU: «en Jugar y Torneos tengo una notificación, pero luego no
+tengo nada… esa notificación no la puedo borrar»):
+- **Por qué pasaba**: el número de Jugar cuenta los avisos de torneos sin leer
+  (y la campana no, 1142), y un aviso solo se daba por leído al abrir su
+  dirección EXACTA. Los de la ficha llevan `&ver=jugar` (o `ver=clasificacion`)
+  y la ficha cambia la dirección al abrir, así que no casaban nunca; y en
+  /torneos no salía en ningún sitio.
+- **La ficha de un torneo** da por leídos sus avisos con que sea ese torneo
+  (`casaConLaPagina`: en `/torneo` solo cuenta el `slug`).
+- **En /torneos**, arriba, «Tienes N avisos de torneos»: cada uno con su título,
+  su línea y su fecha, enlazado (al abrirlo se da por leído), y «Marcar como
+  leídos». Sin avisos, no hay caja. Los de torneos borrados se siguen leyendo
+  solos (1406).
+
+**Ficheros**: `js/numeros-seccion.js`, `js/torneos/avisos-huerfanos.js`
+(`pintarAvisosDeTorneos`, `avisosDeTorneosHtml`), `js/torneos/torneos.js`,
+`torneos.html` (`#torneosAvisos`), `css/torneos.css`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1476-pantalla.mjs`; 1139, 1142,
+1264 (pantalla), 1406 (pantalla) y 1472 en verde.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (714) — PINGU-Claude (1475 — «Contra cada mazo», de mayor a menor)
 
 **Hecho** (PINGU, con la imagen del Alakazam Dudunsparce: «que los

@@ -6478,3 +6478,13 @@ a.t-campeon-tu:hover { color: var(--acento); }
 .tdest-arte.con-banner::before, .tficha-banda.con-banner::before { content: ''; position: absolute; inset: -24px; background: var(--banner) center / cover no-repeat; filter: blur(20px) brightness(0.55); }
 .tdest-arte.con-banner::after { content: ''; position: absolute; inset: 0; background: var(--banner) center / contain no-repeat; }
 .tficha .tficha-banda.con-banner .torneo-banner { object-fit: contain; z-index: 1; }
+/* Tus avisos de torneos (1476): lo que cuenta el número de Jugar, a la vista. */
+.tav { margin: 0 0 var(--e-md); padding: var(--e-md) var(--e-lg); border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--danger) 6%, var(--white)); }
+.tav-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-md); flex-wrap: wrap; }
+.tav-cab b { font-family: var(--font-display); }
+.tav ul { list-style: none; margin: var(--e-sm) 0 0; padding: 0; display: grid; gap: var(--e-xs); }
+.tav li { display: flex; align-items: center; gap: var(--e-md); }
+.tav-aviso { flex: 1; min-width: 0; display: grid; gap: 2px; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--white); color: var(--text); text-decoration: none; }
+.tav-aviso:hover { background: var(--ice); }
+.tav-aviso span { font-size: var(--t-sm); color: var(--text-mid); }
+.tav li small { flex: none; font-size: var(--t-xs); color: var(--text-mid); }

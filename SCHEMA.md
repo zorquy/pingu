@@ -55231,6 +55231,17 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1476 — Tus avisos de torneos, a la vista
+
+Sin cambios de esquema. `casaConLaPagina(link, loc)`: para la ruta `/torneo`
+compara solo `slug` (el resto de parámetros, como `ver`, no cuenta).
+`avisos-huerfanos.js`: `pintarAvisosDeTorneos(supabase, userId, caja, esc)`
+(primero `leerAvisosHuerfanos`, luego los `torneo_*`/`tournament_*` sin leer,
+20 como mucho) y `avisosDeTorneosHtml(avisos, esc)` (`.tav-cab`,
+`[data-tav-todos]`, `.tav-aviso[data-tav-id]`). Al marcar, se quitan de
+`window.__pdAvisos` (evento `pd-avisos-cambiados`) y se ponen `read_at` en
+`user_notifications`. `torneos.html`: `#torneosAvisos.tav` tras `#torneoVivo`.
+
 ## Tanda 1475 — «Contra cada mazo», de mayor a menor
 
 Sin cambios de esquema. `cifrasDeArquetipo(...).cruces` sale ordenado por

@@ -77,3 +77,51 @@ function quitarDeLaCampana(ids) {
   limpiar()
   window.addEventListener('pd-avisos', limpiar)
 }
+
+// TUS AVISOS DE TORNEOS, en /torneos (1476). El número de Jugar y de Torneos
+// cuenta estos avisos, pero en la lista no salía ninguno: había un «1» y nada
+// que lo explicara ni forma de quitarlo (PINGU, 2026-11-26). Ahora salen
+// arriba, cada uno con su enlace (al abrirlo se da por leído) y «Marcar como
+// leídos» para todos. Sin avisos, la caja no existe.
+const fechaCorta = (iso) => {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+}
+export function avisosDeTorneosHtml(avisos, esc) {
+  if (!avisos?.length) return ''
+  const filas = avisos.map((a) => `<li><a class="tav-aviso" href="${esc(a.link || '/torneos')}" data-tav-id="${esc(String(a.id))}"><b>${esc(a.title || 'Aviso de un torneo')}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</a><small>${esc(fechaCorta(a.created_at))}</small></li>`).join('')
+  return `<div class="tav-cab"><b>${avisos.length === 1 ? 'Tienes 1 aviso de torneos' : `Tienes ${avisos.length} avisos de torneos`}</b><button type="button" class="link-btn" data-tav-todos>Marcar como leídos</button></div><ul>${filas}</ul>`
+}
+
+async function marcarLeidos(supabase, ids) {
+  if (!ids.length) return
+  quitarDeLaCampana(ids)
+  const { error } = await supabase.from('user_notifications').update({ read_at: new Date().toISOString() }).in('id', ids)
+  if (error) console.warn('No se han podido marcar los avisos de torneos:', error.message)
+}
+
+export async function pintarAvisosDeTorneos(supabase, userId, caja, esc) {
+  if (!userId || !caja) return
+  // Primero los huérfanos (1406): esos no tienen a dónde llevar.
+  const fuera = new Set(await leerAvisosHuerfanos(supabase, userId).catch(() => []))
+  const { data, error } = await supabase
+    .from('user_notifications')
+    .select('id, type, title, body, link, created_at, read_at')
+    .eq('recipient_id', userId)
+    .is('read_at', null)
+    .or('type.like.torneo_*,type.like.tournament_*')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  const avisos = error ? [] : (data || []).filter((a) => !fuera.has(a.id))
+  caja.innerHTML = avisosDeTorneosHtml(avisos, esc)
+  caja.classList.toggle('hidden', !avisos.length)
+  if (!avisos.length) return
+  caja.querySelector('[data-tav-todos]')?.addEventListener('click', () => {
+    marcarLeidos(supabase, avisos.map((a) => a.id))
+    caja.classList.add('hidden')
+  })
+  caja.querySelectorAll('[data-tav-id]').forEach((a) => a.addEventListener('click', () => {
+    const id = avisos.find((x) => String(x.id) === a.dataset.tavId)?.id
+    if (id != null) marcarLeidos(supabase, [id])
+  }))
+}

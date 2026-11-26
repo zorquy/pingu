@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "Si Jugar te marca un aviso de torneos, ahora lo ves arriba en Torneos, con su enlace y «Marcar como leídos»; y al abrir la ficha del torneo se quita solo.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "En las cifras de un mazo de un torneo (y en su imagen para compartir), «Contra cada mazo» va de mayor a menor porcentaje de victorias.", "enlace": "/torneos#terminados" },
     { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "El banner de un torneo se ve entero, sin recortar, en el destacado de la lista y en su ficha.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La ficha de cada torneo, renovada: su banner arriba, cuatro datos de un vistazo (cuándo, formato, jugadores y cómo va) y cuatro pestañas iguales. Si juegas, tu mesa va siempre a mano en una barra y te dice cómo va tu rival antes de empezar.", "enlace": "/torneos" },

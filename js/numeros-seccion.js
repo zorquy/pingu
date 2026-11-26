@@ -74,6 +74,11 @@ export function casaConLaPagina(link, loc) {
   const ruta = rutaLimpia(u.pathname)
   if (ruta === '/' || ruta !== rutaLimpia(loc.pathname)) return false
   const aqui = new URLSearchParams(loc.search || '')
+  // La ficha de un torneo (1476): basta con que sea ESE torneo. El aviso puede
+  // llevar `&ver=jugar` y la ficha se lo quita al abrir (o abre otra
+  // pestaña), así que el aviso no casaba nunca y su número en Jugar no se iba
+  // (PINGU: «tengo una notificación y luego no tengo nada»).
+  if (ruta === '/torneo') return Boolean(u.searchParams.get('slug')) && aqui.get('slug') === u.searchParams.get('slug')
   for (const [k, v] of u.searchParams) if (aqui.get(k) !== v) return false
   return true
 }
