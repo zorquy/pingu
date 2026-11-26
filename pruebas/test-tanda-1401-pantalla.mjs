@@ -118,6 +118,9 @@ for (const movil of [false, true]) {
     const reg = await page.evaluate(() => { const d = document.getElementById('torneoRegistro'); return { visible: getComputedStyle(d).display !== 'none', abierto: d.open, foco: document.activeElement?.id } })
     check(`${q}: «Pegar el registro» lo abre y te deja en el cuadro`, reg.visible && reg.abierto && reg.foco === 'torneoRegistroTexto', JSON.stringify(reg))
     await page.click('.torneo-algo-raro [data-raro="juez"]')
+    // Desde la 1441, primero el motivo.
+    await page.waitForTimeout(400)
+    await page.click('#torneoMotivoJuez button[type="submit"]')
     await page.waitForTimeout(800)
     const juez = await page.evaluate(() => (window.__FAKE_DB__?.judge_calls || window.__T__?.judge_calls || []).length + ' ' + [...document.querySelectorAll('.toast, [class*="toast"]')].map((t) => t.textContent).join(' | '))
     check(`${q}: «Llamar al juez» llama`, /juez/i.test(juez), juez)

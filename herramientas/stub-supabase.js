@@ -3375,7 +3375,10 @@ export const supabase = {
         })), error: null }
       }
       const m = T.tournament_matches.find((x) => x.id === args.p_partida)
-      if (!m || (yo !== m.player_a_id && yo !== m.player_b_id)) return { data: null, error: { message: 'Solo los jugadores de la mesa.' } }
+      // 1445: también quien lleva o arbitra el torneo.
+      const tm = T.tournaments.find((x) => x.id === T.rounds.find((r) => r.id === m?.round_id)?.tournament_id)
+      const arbitra = yo && tm && (tm.admin_id === yo || (T.judge_applications || []).some((j) => j.tournament_id === tm.id && j.user_id === yo && j.status === 'approved'))
+      if (!m || (yo !== m.player_a_id && yo !== m.player_b_id && !arbitra)) return { data: null, error: { message: 'Solo los jugadores de la mesa o quien lleva el torneo.' } }
       if (m.status !== 'active') return { data: m.status, error: null }
       const r = T.rounds.find((x) => x.id === m.round_id)
       const t = T.tournaments.find((x) => x.id === r?.tournament_id)

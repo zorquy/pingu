@@ -106,6 +106,8 @@ check('quien no es de la mesa no puede', !como(U(3), `select public.torneos_recl
 admin(`update tournament_matches set check_in_b_at = null where id = '${M1}'`)
 admin(`update rounds set started_at = now() - interval '2 minutes' where id = '${R1}'`)
 check('con el check-in aún abierto: «pronto»', como(U(1), `select public.torneos_reclamar_ausencia('${M1}')`).out === 'pronto')
+// 1445: el organizador (U8) y el juez (U9) también pueden pedirlo.
+check('el organizador y el juez también pueden pedirlo (1445)', como(U(8), `select public.torneos_reclamar_ausencia('${M1}')`).out === 'pronto' && como(U(9), `select public.torneos_reclamar_ausencia('${M1}')`).out === 'pronto')
 admin(`update rounds set started_at = now() - interval '10 minutes' where id = '${R1}'`)
 check('los dos presentes: no se cierra', como(U(3), `select public.torneos_reclamar_ausencia('${M2}')`).out === 'presentes')
 const gana = como(U(1), `select public.torneos_reclamar_ausencia('${M1}')`)
