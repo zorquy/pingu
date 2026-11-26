@@ -1,0 +1,148 @@
+alakazam-dusknoir|Alakazam Dusknoir|MEG,56,Alakazam;PRE,37,Dusknoir|Alakazam~Dusknoir
+ogerpon-meganium-hydrapple|Ogerpon Meganium Hydrapple|TWM,25,Teal Mask Ogerpon ex;SCR,14,Hydrapple ex|Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex~Hydrapple ex~Bayleef*2
+mega-lucario-ex|Mega Lucario|MEG,77,Mega Lucario ex|Mega Lucario ex~Premium Power Pro^Potencia Prémium Plus
+lucario-hariyama|Lucario Hariyama|MEG,77,Mega Lucario ex;MEG,73,Hariyama|Mega Lucario ex~Hariyama*2
+mega-chandelure-ex|Mega Chandelure|PBL,38,Mega Chandelure ex|Mega Chandelure ex~Litwick~Lampent
+dragapult-ex|Dragapult|TWM,130,Dragapult ex|Dragapult ex~Night Stretcher^Camilla Nocturna*2~Crushing Hammer^Martillo Demoledor
+festival-lead|Festival Lead|TWM,18,Dipplin;TWM,15,Thwackey|Dipplin~Thwackey~Applin*3
+cynthia-garchomp-ex|Cynthia's Garchomp|DRI,104,Cynthia's Garchomp ex|Cynthia's Garchomp ex^Garchomp ex de Cintia~Cynthia's Gible^Gible de Cintia
+lopunny-dusknoir|Lopunny Dusknoir|PFL,128,Mega Lopunny ex;PRE,37,Dusknoir|Mega Lopunny ex~Dusknoir~Duskull~Lillie's Determination^Determinación de Lylia
+slowking-scr|Slowking|SCR,58,Slowking|Slowking~Slowpoke~Latias ex~Kyurem~Lillie's Determination^Determinación de Lylia~Ciphermaniac's Codebreaking^Ciberentusiasta Descifracódigos
+toxtricity-box|Toxtricity Box|PFL,68,Toxtricity;MEG,86,Mega Absol ex|Toxtricity~Mega Absol ex~Toxel*4
+dhelmise-pbl|Dhelmise|PBL,39,Dhelmise;PBL,34,Banette|Dhelmise~Banette
+sharpedo-toxtricity|Sharpedo Toxtricity|PFL,61,Mega Sharpedo ex;PFL,68,Toxtricity|Mega Sharpedo ex~Toxtricity
+alakazam-dudunsparce|Alakazam Dudunsparce|MEG,56,Alakazam;TEF,129,Dudunsparce|Alakazam~Dudunsparce*2
+dragapult-blaziken|Dragapult Blaziken|TWM,130,Dragapult ex;JTG,24,Blaziken ex|Dragapult ex~Blaziken ex~Torchic*2
+mega-dragonite-ex|Mega Dragonite|ASC,152,Mega Dragonite ex|Mega Dragonite ex~Dratini~Torchic
+n-zoroark|N's Zoroark|JTG,98,N's Zoroark ex|N's Zoroark ex^Zoroark ex de N~N's PP Up^Más PP de N~N's Zorua^Zorua de N~Lillie's Determination^Determinación de Lylia
+lopunny-dudunsparce|Lopunny Dudunsparce|PFL,128,Mega Lopunny ex;TEF,129,Dudunsparce|Dudunsparce~Mega Lopunny ex*2
+stevens-metagross|Steven's Metagross|DRI,145,Steven's Metagross ex|Steven's Metagross ex^Metagross ex de Máximo~Ultra Ball^Ultraball*2
+beedrill-ex-cri|Beedrill|CRI,3,Beedrill ex|Beedrill ex
+ogerpon-meganium-arboliva|Ogerpon Meganium Arboliva|TWM,25,Teal Mask Ogerpon ex;DRI,23,Arboliva ex|Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex~Arboliva ex~Dawn^Maya*2
+grimmsnarl-froslass|Grimmsnarl Froslass|DRI,136,Marnie's Grimmsnarl ex;TWM,53,Froslass|Marnie's Grimmsnarl ex^Grimmsnarl ex de Roxy~Froslass~Munkidori~Snorunt*2
+dragapult-dudunsparce|Dragapult Dudunsparce|TWM,130,Dragapult ex;TEF,129,Dudunsparce|Dudunsparce~Dragapult ex
+crustle-dri|Crustle|DRI,12,Crustle|Crustle~Dwebble
+mega-excadrill-ex|Mega Excadrill|PBL,65,Mega Excadrill ex|Mega Excadrill ex
+dragapult-dusknoir|Dragapult Dusknoir|TWM,130,Dragapult ex;PRE,37,Dusknoir|Dragapult ex~Dusknoir~Dreepy~Drakloak
+starmie-froslass|Starmie Froslass|POR,21,Mega Starmie ex;ASC,47,Mega Froslass ex|Mega Starmie ex~Mega Froslass ex~Froslass~Staryu*2
+rockets-honchkrow|Rocket's Honchkrow|ASC,127,Team Rocket's Honchkrow;DRI,154,Team Rocket's Porygon2|Team Rocket's Honchkrow^Honchkrow del Team Rocket~Team Rocket's Porygon2^Porygon2 del Team Rocket
+rocket-mewtwo-ex|Rocket's Mewtwo|DRI,81,Team Rocket's Mewtwo ex;DRI,20,Team Rocket's Spidops|Team Rocket's Spidops^Spidops del Team Rocket~Team Rocket's Mewtwo ex^Mewtwo ex del Team Rocket*2
+hops-trevenant|Hop's Trevenant|ASC,96,Hop's Trevenant|Hop's Trevenant^Trevenant de Paul
+toucannon-pbl|Toucannon|PBL,68,Toucannon|Fan Rotom^Rotom Ventilador~Pikipek~Toucannon*3
+raging-bolt-ogerpon|Raging Bolt Ogerpon|TEF,123,Raging Bolt ex;TWM,25,Teal Mask Ogerpon ex|Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex~Latias ex~Raging Bolt ex^Electrofuria ex*2
+mega-starmie-ex|Mega Starmie|POR,21,Mega Starmie ex|Mega Starmie ex~Boss's Orders^Órdenes de Jefes*3~Staryu*3
+greninja-ex|Greninja|TWM,106,Greninja ex|Greninja ex~Duskull~Froakie
+mega-absol-box|Mega Absol Box|MEG,86,Mega Absol ex;MEG,104,Mega Kangaskhan ex|Mega Absol ex~Mega Kangaskhan ex~Munkidori*3
+clefairy-ogerpon|Clefairy Ogerpon|JTG,56,Lillie's Clefairy ex;TWM,25,Teal Mask Ogerpon ex|Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex~Lillie's Clefairy ex^Clefairy ex de Lylia*2
+seaking-pre|Seaking Festival Lead|PRE,21,Seaking;TWM,15,Thwackey|Seaking~Thwackey~Goldeen*3
+hop-zacian|Hop's Zacian|JTG,111,Hop's Zacian ex;JTG,117,Hop's Snorlax|Hop's Snorlax^Snorlax de Paul~Hop's Zacian ex^Zacian ex de Paul*2
+paldean-tauros-pfl|Paldean Tauros|CRI,69,Tauros|Tauros
+hydreigon-ex|Hydreigon|SSP,119,Hydreigon ex|Hydreigon ex~Crispin^Denis
+mega-camerupt-ex|Mega Camerupt|MEG,22,Mega Camerupt ex|Mega Camerupt ex
+ethan-typhlosion|Ethan's Typhlosion|DRI,34,Ethan's Typhlosion|Ethan's Typhlosion^Typhlosion de Eco
+froslass-munkidori|Froslass Munkidori|TWM,53,Froslass;TWM,95,Munkidori|Munkidori~Froslass*3
+mega-greninja-ex|Mega Greninja|CRI,22,Mega Greninja ex|Mega Greninja ex~Froakie~Frogadier
+ogerpon-meganium|Ogerpon Meganium|TWM,25,Teal Mask Ogerpon ex;MEG,10,Meganium|Meganium~Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex*4
+kangaskhan-bouffalant|Kangaskhan Bouffalant|MEG,104,Mega Kangaskhan ex;SCR,119,Bouffalant|Mega Kangaskhan ex~Bouffalant~Crispin^Denis
+sinistcha-ogerpon|Sinistcha Ogerpon|PBL,6,Sinistcha;TWM,25,Teal Mask Ogerpon ex|Sinistcha~Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex
+yanmega-ex|Yanmega|DRI,3,Yanmega ex|Yanmega ex~Yanma*2
+okidogi-barbaracle|Okidogi Barbaracle|TWM,111,Okidogi;POR,43,Barbaracle|Okidogi~Barbaracle
+iono-bellibolt|Iono's Bellibolt|JTG,53,Iono's Bellibolt ex;JTG,47,Iono's Voltorb|Iono's Bellibolt ex^Bellibolt ex de e-Nigma~Iono's Voltorb^Voltorb de e-Nigma
+mew-ex-30c|Mew Box|30C,66,Mew ex;JTG,56,Lillie's Clefairy ex|Mew ex~Lillie's Clefairy ex^Clefairy ex de Lylia~Wondrous Patch^Refuerzo Prodigioso*3~Meowth ex~Ultra Ball^Ultraball*3
+manectric-eelektrik|Manectric Eelektrik|MEG,50,Mega Manectric ex;ASC,60,Eelektrik|Mega Manectric ex~Eelektrik
+mega-darkrai-ex|Mega Darkrai|PBL,116,Mega Darkrai ex|Mega Darkrai ex
+mega-froslass-ex|Mega Froslass|ASC,47,Mega Froslass ex|Mega Froslass ex~Snorunt*2
+mega-venusaur-ex|Mega Venusaur|MEG,3,Mega Venusaur ex|Mega Venusaur ex~Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex
+rocket-spidops|Rocket's Spidops|DRI,20,Team Rocket's Spidops|Team Rocket's Spidops^Spidops del Team Rocket
+tera-box|Tera Box|SCR,115,Noctowl;TWM,64,Wellspring Mask Ogerpon ex|Noctowl~Wellspring Mask Ogerpon ex^Ogerpon Máscara Fuente ex~Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex
+blaziken-zoroark|Blaziken Zoroark|JTG,24,Blaziken ex;JTG,98,N's Zoroark ex|Blaziken ex~N's Zoroark ex^Zoroark ex de N~Tatsugiri
+ceruledge-ex|Ceruledge|SSP,36,Ceruledge ex|Ceruledge ex
+archaludon-dudunsparce|Archaludon Dudunsparce|SSP,130,Archaludon ex;TEF,129,Dudunsparce|Archaludon ex~Dudunsparce
+misty-gyarados|Misty's Gyarados|DRI,49,Misty's Gyarados;DRI,45,Misty's Psyduck|Misty's Gyarados^Gyarados de Misty~Misty's Psyduck^Psyduck de Misty
+archaludon-zoroark|Archaludon Zoroark|SSP,130,Archaludon ex;JTG,98,N's Zoroark ex|Archaludon ex~N's Zoroark ex^Zoroark ex de N
+gengar-ex|Gengar|30C,90,Gengar ex|Gengar ex*3
+hydrapple-ogerpon|Hydrapple Ogerpon|SCR,14,Hydrapple ex;TWM,25,Teal Mask Ogerpon ex|Hydrapple ex~Teal Mask Ogerpon ex^Ogerpon Máscara Turquesa ex
+mega-rayquaza-ex|Mega Rayquaza|DLR,84,Mega Rayquaza ex|Mega Rayquaza ex~Latias ex
+talonflame-dusknoir|Talonflame Dusknoir|DLR,88,Talonflame ex;PRE,37,Dusknoir|Talonflame ex~Dusknoir
+mega-malamar-ex|Mega Malamar|DLR,69,Mega Malamar ex|Mega Malamar ex
+starmie-dusknoir|Starmie Dusknoir|POR,21,Mega Starmie ex;PRE,37,Dusknoir|Mega Starmie ex~Dusknoir~Night Stretcher^Camilla Nocturna*2
+lillie-clefairy|Lillie's Clefairy|JTG,56,Lillie's Clefairy ex|Lillie's Clefairy ex^Clefairy ex de Lylia
+decidueye-ex|Decidueye|POR,12,Decidueye ex|Decidueye ex
+diancie-dusknoir|Diancie Dusknoir|PFL,41,Mega Diancie ex;PRE,37,Dusknoir|Mega Diancie ex~Dusknoir
+gardevoir|Gardevoir|SVI,86,Gardevoir ex|Gardevoir ex
+gholdengo-lunatone|Gholdengo Lunatone|PAR,139,Gholdengo ex;MEG,74,Lunatone|Gholdengo ex~Lunatone
+joltik-box|Joltik Box|SCR,50,Joltik;SSP,57,Pikachu ex|Joltik~Pikachu ex~Iron Leaves ex^Ferroverdor ex
+gardevoir-jellicent|Gardevoir Jellicent|SVI,86,Gardevoir ex;WHT,45,Jellicent ex|Gardevoir ex~Jellicent ex
+charizard-pidgeot|Charizard Pidgeot|OBF,125,Charizard ex;OBF,164,Pidgeot ex|Charizard ex~Pidgeot ex
+ursaluna-lunatone|Ursaluna Lunatone|PRE,54,Bloodmoon Ursaluna;MEG,74,Lunatone|Bloodmoon Ursaluna^Ursaluna Luna Carmesí~Lunatone
+charizard-noctowl|Charizard Noctowl|OBF,125,Charizard ex;SCR,115,Noctowl|Charizard ex~Noctowl
+toxtricity-brute-bonnet|Toxtricity Brute Bonnet|PFL,68,Toxtricity;TWM,118,Brute Bonnet|Toxtricity~Brute Bonnet^Furioseta
+mega-charizard-x-ex|Mega Charizard X|PFL,13,Mega Charizard X ex|Mega Charizard X ex*2
+blissey-ex|Blissey|TWM,134,Blissey ex|Blissey ex
+metagross-cri|Metagross|CRI,61,Metagross|Metagross
+flareon-noctowl|Flareon Noctowl|PRE,14,Flareon ex;SCR,115,Noctowl|Flareon ex~Noctowl
+mega-abomasnow-ex|Mega Abomasnow|MEG,36,Mega Abomasnow ex|Mega Abomasnow ex
+cinccino-ex|Cinccino|CRI,73,Cinccino ex|Cinccino ex
+toxtricity-pfl|Toxtricity|PFL,68,Toxtricity|Toxtricity
+alakazam-meg|Alakazam|MEG,56,Alakazam|Alakazam
+hydrapple-ex|Hydrapple|SCR,14,Hydrapple ex|Hydrapple ex
+mega-zygarde-ex|Mega Zygarde|POR,47,Mega Zygarde ex|Mega Zygarde ex
+zygarde-barbaracle|Zygarde Barbaracle|POR,47,Mega Zygarde ex;POR,43,Barbaracle|Mega Zygarde ex~Barbaracle
+iron-thorns-ex|Iron Thorns|TWM,77,Iron Thorns ex|Iron Thorns ex^Ferropúas ex
+blaziken-ex-jtg|Blaziken|JTG,24,Blaziken ex|Blaziken ex
+marnie-grimmsnarl-ex|Marnie's Grimmsnarl|DRI,136,Marnie's Grimmsnarl ex|Marnie's Grimmsnarl ex^Grimmsnarl ex de Roxy
+mega-froslass-dudunsparce|Froslass Dudunsparce|ASC,47,Mega Froslass ex;TEF,129,Dudunsparce|Mega Froslass ex~Dudunsparce
+doublade-por|Doublade|POR,57,Doublade|Doublade
+eelektrik-blk|Eelektrik|ASC,60,Eelektrik|Eelektrik
+cinderace-ex|Cinderace|SCR,28,Cinderace ex|Cinderace ex
+terapagos-noctowl|Terapagos Noctowl|SCR,128,Terapagos ex;SCR,115,Noctowl|Terapagos ex~Noctowl
+erikas-victreebel|Erika's Victreebel|ASC,6,Erika's Victreebel;ASC,7,Erika's Tangela|Erika's Victreebel^Victreebel de Erika~Erika's Tangela^Tangela de Erika
+reging-bolt-bellibolt|Raging Bolt Bellibolt|TEF,123,Raging Bolt ex;JTG,53,Iono's Bellibolt ex|Raging Bolt ex^Electrofuria ex~Iono's Bellibolt ex^Bellibolt ex de e-Nigma
+mega-absol-mega-audino|Absol Audino|MEG,86,Mega Absol ex;ASC,172,Mega Audino ex|Mega Absol ex~Mega Audino ex
+igglybuff-30c|Igglybuff|30C,120,Igglybuff|Igglybuff~Poltchageist
+milotic-ex|Milotic|SSP,42,Milotic ex|Milotic ex
+jellicent-dusknoir|Jellicent Dusknoir|WHT,45,Jellicent ex;PRE,37,Dusknoir|Jellicent ex~Dusknoir~Latias ex*2
+dudunsparce-control|Dudunsparce Control|TEF,129,Dudunsparce;BLK,40,Elgyem|Dudunsparce~Elgyem
+mega-sharpedo-ex|Mega Sharpedo|PFL,61,Mega Sharpedo ex|Mega Sharpedo ex
+sylveon-pre|Sylveon|PRE,40,Sylveon|Sylveon
+mega-charizard-y-ex|Mega Charizard Y|ASC,22,Mega Charizard Y ex|Mega Charizard Y ex
+archaludon-ex|Archaludon|SSP,130,Archaludon ex|Archaludon ex
+mega-manectric-ex-meg|Mega Manectric|MEG,50,Mega Manectric ex|Mega Manectric ex
+mega-golisopod-ex|Mega Golisopod|DLR,11,Mega Golisopod ex|Mega Golisopod ex
+mega-gengar-ex|Mega Gengar|PFL,56,Mega Gengar ex|Mega Gengar ex
+palafin-ex|Palafin|TWM,60,Palafin|Palafin
+miraidon-ex|Miraidon|SVI,81,Miraidon ex|Miraidon ex
+cornerstone-mask-ogerpon-ex|Cornerstone Mask Ogerpon|TWM,112,Cornerstone Mask Ogerpon ex|Cornerstone Mask Ogerpon ex^Ogerpon Máscara Cimiento ex
+dragapult-alakazam|Dragapult Alakazam|TWM,130,Dragapult ex;MEG,56,Alakazam|Dragapult ex~Alakazam
+wailord-ex-pbl|Wailord|PBL,16,Wailord ex|Wailord ex
+bronzong-tef|Bronzong|TEF,69,Bronzong|Bronzong
+dragapult-iron-thorns|Dragapult Iron Thorns|TWM,130,Dragapult ex;TWM,77,Iron Thorns ex|Dragapult ex~Iron Thorns ex^Ferropúas ex
+alolan-exeggutor-ex|Alolan Exeggutor ex|,,Alolan Exeggutor ex|Alolan Exeggutor ex^Exeggutor de Alola ex
+feraligatr-tef|Feraligatr|,,Feraligatr|Feraligatr
+greninja-blaziken|Greninja Blaziken|TWM,106,Greninja ex;JTG,24,Blaziken ex|Greninja ex~Blaziken ex
+flareon-ex|Flareon|PRE,14,Flareon ex|Flareon ex
+rocket-nidoking-ex|Rocket's Nidoking|,,Team Rocket's Nidoking ex|Team Rocket's Nidoking ex^Nidoking ex del Team Rocket
+relicanth-pbl|Relicanth|TEF,84,Relicanth|Relicanth
+greninja-froslass|Greninja Froslass|TWM,106,Greninja ex;TWM,53,Froslass|Greninja ex~Froslass
+slaking-ex|Slaking|,,Slaking ex|Slaking ex
+dragonite-eelektrik|Dragonite Eelektrik|ASC,152,Mega Dragonite ex;ASC,60,Eelektrik|Mega Dragonite ex~Eelektrik
+galvantula-ex|Galvantula|SCR,51,Galvantula ex|Galvantula ex
+ethan-magcargo|Ethan's Magcargo|,,Ethan's Magcargo;DRI,39,Ethan's Ho-Oh ex|Ethan's Magcargo^Magcargo de Eco~Ethan's Ho-Oh ex^Ho-Oh ex de Eco
+raging-bolt-ex|Raging Bolt|TEF,123,Raging Bolt ex|Raging Bolt ex^Electrofuria ex
+mega-feraligatr-ex|Mega Feraligatr|,,Mega Feraligatr ex|Mega Feraligatr ex
+mamoswine-ex|Mamoswine|,,Mamoswine ex|Mamoswine ex
+tyranitar-jtg|Tyranitar|JTG,95,Tyranitar|Tyranitar
+mega-lopunny-ex|Mega Lopunny|PFL,128,Mega Lopunny ex|Mega Lopunny ex
+flygon-ex-ssp|Flygon|,,Flygon ex|Flygon ex
+mega-latias-ex|Mega Latias|MEG,100,Mega Latias ex|Mega Latias ex
+azumarill-ssp|Azumarill|SSP,74,Azumarill|Azumarill
+luxray-ex|Luxray|TWM,68,Luxray ex|Luxray ex
+scovillain-ex|Scovillain|,,Scovillain ex|Scovillain ex
+bloodmoon-ursaluna-sfa|Bloodmoon Ursaluna|PRE,54,Bloodmoon Ursaluna|Bloodmoon Ursaluna^Ursaluna Luna Carmesí
+heatran-metang|Heatran Metang|TWM,123,Heatran;TEF,114,Metang|Heatran~Metang
+incineroar-ex|Incineroar|,,Incineroar ex|Incineroar ex
+dragapult-froslass|Dragapult Froslass|TWM,130,Dragapult ex;TWM,53,Froslass|Dragapult ex~Froslass
+mega-diancie-ex|Mega Diancie|PFL,41,Mega Diancie ex|Mega Diancie ex
+ancient-box|Ancient Box|,,Roaring Moon|Roaring Moon^Bramaluna
+salamence-ex|Salamence|,,Salamence ex|Salamence ex
+tapu-koko-spread|Tapu Koko Spread|,,Tapu Koko|Tapu Koko

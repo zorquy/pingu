@@ -114,7 +114,9 @@ const irA = (page, n) =>
   const s = await shaymin(page)
   check('con el meta, el Shaymin es el de Rivales Predestinados (80 PS, DRI)', /\/80/.test(s.ps) && /sv10|DRI/i.test(s.fuentes) && !/me02|PFL/i.test(s.fuentes), JSON.stringify(s))
   const consultas = await page.evaluate(() => window.__CONSULTAS__.porTabla.meta_cartas_dia || 0)
-  check('  …con UNA consulta al meta para todos los Pokémon', consultas === 1, consultas)
+  // Desde la 1460, una consulta por NOMBRE (juntos, la Boss's Orders se comía
+  // el tope de 1.000 filas de los demás): pocas, no una por jugada.
+  check('  …con una consulta al meta por nombre, no una por jugada', consultas >= 1 && consultas <= 12, consultas)
   check('  …sin errores', !errores.length, errores.join(' | '))
   await page.close()
 }
@@ -140,10 +142,14 @@ const irA = (page, n) =>
 
 console.log('\n── 3. Lo estático ──')
 {
+  // Desde la 1460 el meta lo mira el resolutor por nombre del constructor
+  // (js/impresion-del-meta.js) para todo lo que se encuentra por el nombre, y
+  // por SECCIÓN: un Pokémon solo con las filas de Pokémon.
   const JS = readFileSync(`${RAIZ}/js/repeticiones.js`, 'utf8')
-  const D = readFileSync(`${RAIZ}/js/repeticiones/datos.js`, 'utf8')
-  check('se pide solo la sección de Pokémon y de los últimos días', /\.eq\('seccion', 'pokemon'\)/.test(D) && /\.gte\('dia', desde\)/.test(D))
-  check('el meta se mira ANTES de afinar por lo que se le ve hacer', JS.indexOf('preferirLasDelMeta(resueltos, vez)') > 0 && JS.indexOf('preferirLasDelMeta(resueltos, vez)') < JS.indexOf('afinarTodas(porAfinar, vez)'))
+  const M = readFileSync(`${RAIZ}/js/impresion-del-meta.js`, 'utf8')
+  const C = readFileSync(`${RAIZ}/js/constructor/datos.js`, 'utf8')
+  check('se piden los últimos días, y se cuenta por sección', /\.gte\('dia', desde\)/.test(M) && /masJugadas\(filas, \{ seccion/.test(C))
+  check('el meta se mira ANTES de afinar por lo que se le ve hacer (lo hace resolverLineas)', /preferirLaDelMeta\(deNombre/.test(C) && JS.indexOf('resolverLineas(tanda.map') > 0 && JS.indexOf('resolverLineas(tanda.map') < JS.indexOf('afinarTodas(porAfinar, vez)'))
 }
 
 await browser.close()
