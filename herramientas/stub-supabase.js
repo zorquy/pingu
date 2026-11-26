@@ -1865,6 +1865,45 @@ export const supabase = {
     // El Calendario de Adviento (1285), con la regla de la base: el día de
     // España, la XP solo la primera vez y el logro con la 24.ª. La de verdad
     // se prueba contra PostgreSQL (test-tanda-1285).
+    // La puerta de un torneo en persona (1446/1453), con las reglas de la base:
+    // solo quien lo lleva; dar entrada marca `entrada_at` (o apunta al que llega
+    // sin plaza si queda sitio); cerrar la puerta retira a quien no ha entrado.
+    // La de verdad se prueba contra PostgreSQL (test-tanda-1446).
+    if (['torneos_dar_entrada', 'torneos_quitar_entrada', 'torneos_cerrar_puerta'].includes(nombre)) {
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
+      const t = T.tournaments.find((x) => x.id === args.p_torneo)
+      const fallo = (message) => ({ data: null, error: { code: 'P0001', message } })
+      if (!t) return fallo('Torneo no encontrado.')
+      const esAdmin = T.user_profiles.find((u) => u.id === yo)?.is_admin
+      if (!yo || (t.admin_id !== yo && !esAdmin)) return fallo('Solo quien lleva el torneo da entrada.')
+      const regs = T.tournament_registrations.filter((r) => r.tournament_id === t.id)
+      if (nombre === 'torneos_cerrar_puerta') {
+        if (t.modalidad !== 'presencial' || t.inscripcion === 'libre') return { data: 0, error: null }
+        let n = 0
+        for (const r of regs) if (['active', 'waitlisted'].includes(r.status) && !r.entrada_at) { r.status = 'dropped'; r.dropped_at = new Date().toISOString(); n++ }
+        return { data: n, error: null }
+      }
+      if (nombre === 'torneos_quitar_entrada') {
+        if (T.rounds.some((r) => r.tournament_id === t.id)) return fallo('El torneo ya ha empezado.')
+        const r = regs.find((x) => x.user_id === args.p_usuario)
+        if (r) { r.entrada_at = null; r.entrada_por = null }
+        return { data: Boolean(r), error: null }
+      }
+      if (t.modalidad !== 'presencial') return fallo('Este torneo es online: no tiene puerta.')
+      if (!T.user_profiles.some((u) => u.id === args.p_usuario)) return fallo('No existe esa cuenta.')
+      const ocupadas = regs.filter((r) => r.status === 'active').length
+      const r = regs.find((x) => x.user_id === args.p_usuario)
+      if (r) {
+        if (r.status === 'dropped') return fallo('Se retiró del torneo: ya no puede volver a entrar.')
+        if (r.entrada_at && r.status === 'active') return { data: 'ya_estaba', error: null }
+        if (r.status === 'waitlisted' && t.max_players != null && ocupadas >= t.max_players) return fallo('No quedan plazas: está en la lista de espera.')
+        r.entrada_at = new Date().toISOString(); r.entrada_por = yo; r.status = 'active'
+        return { data: 'entrada', error: null }
+      }
+      if (t.max_players != null && ocupadas >= t.max_players) return fallo('No quedan plazas.')
+      T.tournament_registrations.push({ id: `insc-${Date.now()}`, tournament_id: t.id, user_id: args.p_usuario, status: 'active', tcg_live_username: '', registered_at: new Date().toISOString(), entrada_at: new Date().toISOString(), entrada_por: yo })
+      return { data: 'nuevo', error: null }
+    }
     if (nombre === 'adviento_abrir') {
       const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
       if (!yo) return { data: null, error: { code: 'P0001', message: 'hay que tener sesión para abrir el calendario' } }
