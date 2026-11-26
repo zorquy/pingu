@@ -5,6 +5,9 @@
 //
 // ABIERTA AL PÚBLICO desde la tanda 252, igual que /torneos: la ficha
 // se ve sin cuenta y la visibilidad fina la decide la política de la base.
+import { datosDeFicha, datosDeFichaHtml } from './arena-ficha.js'
+import { inicialesDe } from './arena-lista.js'
+import { tipoPrincipal } from '../chapa-tipo.js'
 import { supabase } from '../supabase.js'
 import { avisarExito } from '../exito.js'
 import { escapeHtml, getSession, getProfile, burstConfetti, avatarStyle, getInitial } from '../app.js'
@@ -250,6 +253,20 @@ function activos() {
 // La fecha corta de la próxima jornada, para la chapa: «vie 16 oct».
 const diaCorto = (f) => new Date(f).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')
 
+// Arena limpia: la imagen del torneo y los cuatro datos de la cabecera
+// (arena-ficha.js). Con la cuenta del «modo Hoy» se repinta cada segundo.
+function pintarArenaCabecera() {
+  const avatar = $('torneoAvatar')
+  if (avatar) {
+    // Si la imagen no carga, sus iniciales: nunca el cuadro vacío.
+    avatar.dataset.tipoTorneo = tipoPrincipal(torneo)
+    pintarSiCambia(avatar, torneo.image_url ? `<img src="${escapeHtml(torneo.image_url)}" alt="" onerror="this.parentElement.textContent=${escapeHtml(JSON.stringify(inicialesDe(torneo.name)))}" />` : escapeHtml(inicialesDe(torneo.name)))
+  }
+  $('torneoCabecera')?.setAttribute('data-tipo-torneo', tipoPrincipal(torneo))
+  const campeon = inscripciones.find((i) => i.user_id === torneo.champion_id)?.perfil?.username || ''
+  pintarSiCambia($('torneoDatos'), datosDeFichaHtml(datosDeFicha(torneo, { ronda: ronda?.rondaDeAhora?.() || null, rondas: jornadas?.rondas || null, activos: activos(), campeon })))
+}
+
 function pintarFicha() {
   // Una liga en juego sin ronda viva y con su jornada acabada está ENTRE
   // JORNADAS (850): ni punto que late ni «En juego».
@@ -277,6 +294,7 @@ function pintarFicha() {
   pill.className = `torneo-estado ${estado.clase}`
   // El reloj y las rayitas de la cabecera (1375).
   pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda?.rondaDeAhora?.() || null }, pintarSiCambia)
+  pintarArenaCabecera()
   vigilarDiaDelTorneo()
   // El sello de OFICIAL, al lado del estado. Se pinta aquí y no en el
   // HTML porque depende del torneo.
@@ -1992,6 +2010,7 @@ function vigilarDiaDelTorneo() {
   if (hoy && !relojHoy) {
     relojHoy = setInterval(() => {
       pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda?.rondaDeAhora?.() || null }, pintarSiCambia)
+      pintarArenaCabecera()
       if (!esDiaDelTorneo(torneo)) vigilarDiaDelTorneo()
     }, 1000)
   } else if (!hoy && relojHoy) {
@@ -2037,6 +2056,7 @@ function pintarBarraHoy() {
 function repintarCabecera() {
   if (!ronda) return
   pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda.rondaDeAhora() }, pintarSiCambia)
+  pintarArenaCabecera()
 }
 
 function alAviso(aviso, recargaEntera) {
@@ -2156,6 +2176,7 @@ async function recargar({ ligera = false, conTorneo = !ligera } = {}) {
   await ronda.montarCiclo(contexto)
   // Con las rondas ya cargadas, la cabecera sabe en qué ronda va (1375).
   pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda.rondaDeAhora() }, pintarSiCambia)
+  pintarArenaCabecera()
   await montarJueces(contexto)
   // El tablón (878): después de los jueces, que es quien sabe si quien
   // mira puede escribir en él.

@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (712) — PINGU-Claude (1473 — Arena limpia: la ficha y tu mesa)
+
+**Hecho** (misma propuesta):
+- **La cabecera** de la ficha: el banner arriba (sin él, el color de su tipo),
+  la imagen del torneo encima de su borde, el nombre, y **cuatro datos del
+  mismo tamaño** (`js/torneos/arena-ficha.js`): cuándo, formato, jugadores y
+  estado. La pastilla de la cuenta y las rayitas se esconden (el dato de
+  Cuándo y el de Estado ya lo dicen); la chapa del estado, también.
+- **Cuatro pestañas fijas e iguales**: Resumen · Clasificación · Rondas ·
+  Mazos (antes de empezar, Resumen · Jugadores). La vacía dice cuándo se
+  llena (`.torneo-panel-vacio`) en vez de desaparecer. En el móvil,
+  Clasificación se llama «Tabla».
+- **Tu mesa ya no es pestaña**: se abre sola si juegas y, en las demás, la
+  barra de encima dice «Tu mesa 4 · contra erika · Los dos listos» con el
+  reloj y «Ir a tu mesa».
+- **Cara a cara** en tu mesa: tu rival, su puesto, cómo va y qué hizo en la
+  ronda anterior.
+- **Resumen en dos paneles** en el PC: el torneo a la izquierda, tu plaza y
+  los jueces a la derecha, quién juega debajo.
+- «Quedaste 3.º» (y no «semifinalista») en un torneo sin top cut.
+- **«Tu mesa» a mano**: si juegas y estás en otra pestaña (y la barra de tu
+  mesa no está a la vista), un botón «Tu mesa» (o «Tu torneo» al acabar) en
+  lo pegado de abajo te lleva a ella (`#torneoTuLinea`).
+- La cabecera también lleva lo que organiza quién, si se repite y si es
+  privado; en el móvil, el banner baja a 64 px y los datos van dos y dos
+  (así lo que te toca, como «Mandar mi lista», sale sin bajar). Si la imagen
+  del torneo no carga, sus iniciales: nunca el cuadro vacío.
+
+**Ficheros**: `js/torneos/arena-ficha.js` (nuevo), `js/torneos/torneo.js`,
+`js/torneos/pestanas.js`, `js/torneos/ronda.js`, `torneo.html`,
+`css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1473-pantalla.mjs` y las de la ficha
+adaptadas a las cuatro pestañas y a la cabecera nueva.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (711) — PINGU-Claude (1472 — Arena limpia: la lista de /torneos)
 
 **Hecho** (propuesta «Arena limpia, montada de verdad»; PINGU: «me gusta,

@@ -55231,6 +55231,24 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1473 — Arena limpia: la ficha y tu mesa
+
+Sin cambios de esquema. `torneo.html`: la cabecera es `.tficha` con
+`.tficha-banda` (dentro, `#torneoBanner`), `#torneoAvatar` y `dl#torneoDatos`;
+en los paneles `rondas`, `clasificacion` y `meta`, un `p.torneo-panel-vacio`
+que el CSS esconde si hay otra caja a la vista. `js/torneos/arena-ficha.js`:
+`datosDeFicha(t, { ronda, rondas, activos, campeon, ahora })` → cuatro
+`{ b, s, clase, rotulo }` y `datosDeFichaHtml`. `torneo.js`:
+`pintarArenaCabecera()` tras cada `pintarCabecera`. `pestanas.js`: `FILA`
+(antes: torneo, jugadores; luego: torneo, clasificacion, rondas, meta); `jugar`
+sigue siendo panel y la de entrada si juegas, pero no va en la fila;
+`--pestanas` en el nav. `ronda.js`: `caraACaraHtml(rivalId, nombre, ronda)`
+(`p.torneo-cara-a-cara`), la barra viva con `.con-mia` y «Tu mesa N · contra
+X», `.torneo-viva-listos`; «Quedaste N.º» sin top cut. `pestanas.js`:
+`pintarTuLinea(fase, visibles)` enseña `button#torneoTuLinea` (en
+`#torneoPegado`) cuando hay panel `jugar`, la barra viva no está `.con-mia`
+y la pestaña activa no es `jugar` ni `jueces`.
+
 ## Tanda 1472 — Arena limpia: la lista de /torneos
 
 Sin cambios de esquema (usa `image_url` y `banner_url` de `tournaments`, que

@@ -6379,11 +6379,94 @@ a.t-campeon-tu:hover { color: var(--acento); }
   .tdest-ceja .chapa-tipo:not([data-tipo-torneo='oficial']) { display: none; }
 }
 
+/* ══ Arena limpia — la ficha (SCHEMA «Arena limpia»): el banner arriba (o el
+   color de su tipo), la imagen del torneo encima de su borde, el nombre, y
+   cuatro datos iguales; las pestañas del mismo ancho y la barra de tu mesa. ══ */
+.torneo-cabecera.tficha { position: relative; display: block; margin: var(--e-sm) 0 var(--e-md); padding: 0; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); color: var(--text); overflow: hidden; box-shadow: var(--shadow-sm); }
+.torneo-cabecera.tficha::before, .torneo-cabecera.tficha::after { display: none; }
+.tficha-banda { position: relative; height: 168px; background: linear-gradient(135deg, color-mix(in srgb, var(--c, var(--acento)) 75%, #0b1219), color-mix(in srgb, var(--c, var(--acento)) 25%, #0b1219)); }
+.tficha .tficha-banda .torneo-banner { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; object-fit: cover; border-radius: 0; z-index: 0; }
+.tficha .torneo-cabecera-dentro { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--e-sm) var(--e-lg); padding: 0 var(--e-xl) var(--e-lg); }
+/* El estado ya es el cuarto dato: la chapa sobra. */
+.tficha #torneoEstado { display: none; }
+.tficha-avatar { display: grid; place-items: center; width: 104px; height: 104px; margin-top: -40px; border-radius: var(--radius-xl); overflow: hidden; background: color-mix(in srgb, var(--c, var(--acento)) 22%, var(--white)); color: var(--c, var(--acento)); font: 800 var(--t-2xl)/1 var(--font-display); box-shadow: 0 0 0 4px var(--white), var(--shadow-md); }
+.tficha-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tficha .torneo-hero-texto { min-width: 0; padding-top: var(--e-md); }
+.tficha h1, html.torneo-jugando .tficha #torneoNombre { margin: 0; color: var(--text); font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem); text-shadow: none; }
+.tficha .torneo-hero-sub .torneo-meta { color: var(--text-mid); }
+.tficha .torneo-hero-cuenta, .tficha .torneo-rayitas { display: none !important; }
+/* Compartir, ⋯ y el modo juez, sobre el banner arriba a la derecha. */
+.tficha .torneo-hero-lado { position: absolute; top: -152px; right: var(--e-lg); }
+.tficha .torneo-hero-lado .torneo-compartir, .tficha .torneo-hero-lado .torneo-mas-boton, .tficha .torneo-hero-lado .torneo-modo-juez { background: rgba(11, 18, 25, 0.6); color: #fff; border-color: rgba(255, 255, 255, 0.25); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.tficha-datos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); margin: 0; padding: 0 var(--e-xl) var(--e-xl); }
+.tficha-dato dd { display: grid; gap: 2px; margin: 0; padding: var(--e-md) var(--e-sm); border-radius: var(--radius-md); background: var(--ice); text-align: center; }
+.tficha-dato b { display: inline-flex; align-items: center; justify-content: center; gap: var(--e-sm); font: 800 var(--t-lg)/1.2 var(--font-display); color: var(--text); white-space: nowrap; }
+.tficha-dato:first-child b { text-transform: capitalize; }
+.tficha-dato small { font-size: var(--t-xs); color: var(--text-mid); }
+.tficha-dato.vivo dd { background: color-mix(in srgb, var(--danger) 12%, var(--white)); }
+.tficha-dato.vivo b { color: var(--danger); }
+.tficha-dato.oro b { color: var(--tipo-oficial); }
+.tficha-dato.abierto b { color: var(--success); }
+.tficha-dato.hoy b { color: var(--success); }
 
+/* Las pestañas: del mismo ancho, siempre. */
+.torneo-pegado .torneo-pestanas-pastillas .seg-btn { flex: 1 1 0; justify-content: center; min-width: 0; }
+.torneo-panel-vacio { margin: 0; padding: var(--e-2xl) var(--e-lg); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); color: var(--text-mid); text-align: center; }
+.torneo-panel:has(> :not(.torneo-panel-vacio):not(.hidden)) > .torneo-panel-vacio { display: none; }
+
+/* La barra de tu mesa: en todas las pestañas menos en tu mesa. */
+.torneo-viva.con-mia { border-color: color-mix(in srgb, var(--acento) 55%, var(--border)); background: color-mix(in srgb, var(--acento) 10%, var(--white)); }
+.torneo-viva.con-mia .torneo-viva-titular { font: 800 var(--t-lg)/1.2 var(--font-display); }
+.torneo-viva-listos { display: inline-flex; align-items: center; gap: var(--e-xs); font-size: var(--t-sm); font-weight: 700; color: var(--success); }
+
+@media (max-width: 599px) {
+  /* Baja: lo que te toca (Mandar mi lista…) sale sin bajar (1376). */
+  .tficha-banda { height: 64px; }
+  .tficha .torneo-cabecera-dentro { grid-template-columns: auto minmax(0, 1fr); padding: 0 var(--e-lg) var(--e-md); gap: var(--e-xs) var(--e-md); }
+  .tficha-avatar { width: 56px; height: 56px; margin-top: -24px; font-size: var(--t-lg); }
+  .tficha .torneo-hero-texto { padding-top: var(--e-sm); }
+  .tficha h1, html.torneo-jugando .tficha #torneoNombre { font-size: var(--t-xl); }
+  .tficha .torneo-hero-lado { top: -56px; right: var(--e-md); }
+  .tficha .torneo-hero-lado .torneo-compartir span, .tficha .torneo-modo-juez-txt { display: none; }
+  .tficha-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-xs); padding: 0 var(--e-md) var(--e-sm); }
+  .tficha-dato dd { padding: var(--e-xs); gap: 0; }
+  .tficha-dato b { font-size: var(--t-sm); }
+  .tficha-dato small { font-size: var(--t-2xs); }
+  .torneo-pegado .torneo-pestanas-pastillas .seg-btn { padding: 0 var(--e-xs); font-size: var(--t-sm); }
+  .torneo-viva-listos { display: none; }
+}
+@media (max-width: 900px) {
+  /* La de la 1375 deshacía las cajas del texto en el móvil: aquí vuelven. */
+  .tficha .torneo-hero-texto { display: block; grid-column: 2; grid-row: 1; }
+  .tficha .torneo-hero-lado { display: flex; }
+  .tficha h1 { grid-column: auto; grid-row: auto; }
+  .tficha .torneo-hero-sub { margin-top: var(--e-xs); }
+  .tficha .torneo-ficha-cabecera { grid-column: auto; grid-row: auto; }
+}
+/* Cara a cara: lo que sabes de tu rival, en una línea bajo el duelo. */
+.torneo-cara-a-cara { display: flex; align-items: center; gap: var(--e-sm); margin: var(--e-sm) 0 0; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-cara-a-cara > svg { flex: none; color: var(--acento); }
+.torneo-cara-a-cara b { color: var(--text); }
 .tf .tf-campeon-mazo .torneo-arte-meta { position: static; inset: auto; display: flex; padding-left: var(--e-sm); transform: none; }
 @media (max-width: 599px) {
   .tf .tf-campeon-mazo.torneo-arte, .tf .tf-der .torneo-tarjeta-mas { display: none; }
 }
+/* Resumen en dos paneles iguales en el PC (Arena limpia): a la izquierda el
+   torneo (cuándo, formato, premios, descripción), a la derecha tu plaza y los
+   jueces; quién juega, a lo ancho debajo. */
+@media (min-width: 901px) {
+  .torneo-panel[data-panel='torneo']:not(.hidden) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-lg); align-items: start; }
+  .torneo-panel[data-panel='torneo'] > * { margin: 0; min-width: 0; }
+  .torneo-panel[data-panel='torneo'] > #torneoInfoCaja, .torneo-panel[data-panel='torneo'] > #torneoInfoMas { grid-column: 1; }
+  .torneo-panel[data-panel='torneo'] > #torneoMiPlaza, .torneo-panel[data-panel='torneo'] > #torneoJuecesCaja { grid-column: 2; }
+  .torneo-panel[data-panel='torneo'] > #torneoInscritosCaja { grid-column: 1 / -1; }
+}
+/* La línea a tu mesa (o «Tu torneo») cuando no está la barra viva. */
+.torneo-tu-linea { display: flex; align-items: center; gap: var(--e-sm); width: 100%; margin: var(--e-sm) 0 0; padding: var(--e-sm) var(--e-md); border: 1px solid color-mix(in srgb, var(--acento) 45%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--acento) 9%, var(--white)); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.torneo-tu-linea.hidden { display: none; }
+.torneo-tu-linea > svg { flex: none; color: var(--acento); }
+.torneo-tu-linea b { font-family: var(--font-display); }
+.torneo-tu-linea span { flex: 1; min-width: 0; font-size: var(--t-sm); color: var(--text-mid); }
 .tdest-accion .tdest-tuyo { min-height: 44px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); display: inline-flex; align-items: center; }
 @media (min-width: 901px) { .tdest-accion { grid-auto-flow: column; align-items: center; } .tdest-accion .tf-caras { grid-column: 1 / -1; justify-self: end; } }
 /* Casi lleno (297): lo que queda, en naranja. */

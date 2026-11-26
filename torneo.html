@@ -117,6 +117,14 @@
   <link rel="modulepreload" href="/js/torneos/sala.js" />
   <link rel="modulepreload" href="/js/arte-pokemon.js" />
   <link rel="modulepreload" href="/js/torneos/caras.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/torneos/arena-ficha.js" />
+  <link rel="modulepreload" href="/js/torneos/arena-lista.js" />
+  <link rel="modulepreload" href="/js/chapa-tipo.js" />
+  <link rel="modulepreload" href="/js/qr.js" />
+  <link rel="modulepreload" href="/js/torneos/puerta.js" />
+  <link rel="modulepreload" href="/js/torneos/agenda-puro.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
@@ -243,9 +251,13 @@
          Compartir, «⋯» y el reloj en una pastilla («Jornada 7 en 4 d 7 h»);
          abajo, una rayita por jornada (o por ronda). El formato, las plazas,
          los premios y la descripción siguen en la pestaña Info (1341). -->
-    <header class="torneo-cabecera torneo-cab-linea torneo-hero" id="torneoCabecera">
-      <img id="torneoBanner" class="torneo-banner hidden" alt="" />
+    <!-- Arena limpia: el banner arriba (o el color de su tipo), la imagen del
+         torneo encima de su borde, el nombre y, debajo, CUATRO datos del
+         mismo tamaño (los pinta js/torneos/arena-ficha.js). -->
+    <header class="torneo-cabecera torneo-cab-linea torneo-hero tficha" id="torneoCabecera">
+      <div class="tficha-banda" aria-hidden="true"><img id="torneoBanner" class="torneo-banner hidden" alt="" /></div>
       <div class="torneo-cabecera-dentro">
+        <span class="tficha-avatar" id="torneoAvatar" aria-hidden="true"></span>
         <div class="torneo-hero-texto">
           <h1 id="torneoNombre"></h1>
           <div class="torneo-hero-sub">
@@ -265,6 +277,7 @@
         </div>
         <div class="torneo-rayitas hidden" id="torneoRayitas"></div>
       </div>
+      <dl class="tficha-datos" id="torneoDatos"></dl>
     </header>
 
     <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
@@ -286,6 +299,10 @@
         <div class="torneo-viva-aviso hidden" id="torneoVivaAviso"></div>
         <span class="torneo-reloj hidden" id="torneoReloj"></span>
       </div>
+      <!-- Arena limpia: «Tu mesa» no es pestaña. Cuando la barra viva no está
+           (entre rondas, o con el torneo terminado: «Tu torneo»), esta línea
+           lleva a tu panel. La pinta js/torneos/pestanas.js. -->
+      <button type="button" class="torneo-tu-linea hidden" id="torneoTuLinea"></button>
       <div class="torneo-apuntarse hidden" id="torneoApuntarse"></div>
       <button type="button" class="torneo-tablon-linea hidden" id="torneoTablonLinea" aria-controls="torneoTablon" aria-expanded="false"></button>
     </div>
@@ -350,6 +367,7 @@
 
     <!-- Pestaña RONDAS: el ciclo entero, organizador y mesas. -->
     <section class="torneo-panel" data-panel="rondas">
+      <p class="torneo-panel-vacio">Las rondas y sus mesas salen aquí en cuanto empiece el torneo.</p>
       <div class="simple-card hidden" id="torneoRondasCaja">
         <h3>Rondas</h3>
         <div id="rondasAdmin"></div>
@@ -359,6 +377,7 @@
     </section>
 
     <section class="torneo-panel" data-panel="clasificacion">
+      <p class="torneo-panel-vacio">La clasificación arranca cuando acabe la primera ronda.</p>
       <div class="simple-card hidden" id="torneoClasificacionCaja">
         <h3>Clasificación</h3>
         <div id="clasificacionContenido"></div>
@@ -370,6 +389,7 @@
          verse). De la 1378 a la 1446 fue un apartado de Tabla, al fondo de 60
          filas: PINGU, «al scrollar hacia abajo te encuentras los mazos». -->
     <section class="torneo-panel" data-panel="meta">
+      <p class="torneo-panel-vacio">Los mazos se ven aquí cuando el torneo termine.</p>
       <div class="simple-card hidden" id="torneoMetaCaja">
         <h3>Los mazos del torneo</h3>
         <div id="metaContenido"></div>

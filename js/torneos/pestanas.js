@@ -14,12 +14,14 @@ import { icons } from '../icons.js'
 // llama Hoy y tiene una casa y está ahí?»): «Hoy» es «Tu mesa», «Tabla» es
 // «Clasificación» y los mazos vuelven a tener pestaña («Mazos», id `meta`).
 // El tercero de cada una es el nombre corto del móvil.
+// Arena limpia: Resumen · Clasificación · Rondas · Mazos, siempre las cuatro y
+// del mismo ancho. «Tu mesa» ya no es pestaña: es la barra de encima.
 export const PESTANAS = {
-  torneo: ['Info', 'info', 'Info'],
+  torneo: ['Resumen', 'info', 'Resumen'],
   jugadores: ['Jugadores', 'users', 'Jugadores'],
   jugar: ['Tu mesa', 'gamepad', 'Tu mesa'],
-  rondas: ['Mesas', 'layoutGrid', 'Mesas'],
-  clasificacion: ['Clasificación', 'trophy', 'Clasif.'],
+  rondas: ['Rondas', 'layoutGrid', 'Rondas'],
+  clasificacion: ['Clasificación', 'trophy', 'Tabla'],
   meta: ['Mazos', 'cards', 'Mazos'],
   jueces: ['Jueces', 'shield', 'Jueces'],
 }
@@ -30,6 +32,9 @@ export const PESTANAS = {
 // es el «Modo juez» de la cabecera (`pintarBotonJuez`).
 const ORDEN = ['jugar', 'clasificacion', 'rondas', 'meta', 'torneo', 'jugadores']
 const ORDEN_DE_PESTANAS = { antes: ORDEN, juego: ORDEN, fin: ORDEN }
+// La FILA (Arena limpia): lo que se ve arriba. Antes de empezar, el resumen y
+// quién va; luego, las cuatro de siempre (las vacías dicen cuándo se llenan).
+const FILA = { antes: ['torneo', 'jugadores'], juego: ['torneo', 'clasificacion', 'rondas', 'meta'], fin: ['torneo', 'clasificacion', 'rondas', 'meta'] }
 // En la fila del móvil caben cinco; con más, las últimas van en «Más».
 const CABEN_ABAJO = 5
 const MOVIL = '(max-width: 900px)'
@@ -139,6 +144,26 @@ function irAPestanaConUrl(id) {
   window.scrollTo({ top: 0 })
 }
 
+// TU MESA FUERA DE LA FILA (Arena limpia): la barra viva lleva a ella mientras
+// se juega una ronda; cuando no está (entre rondas, o terminado, donde tu panel
+// es «Tu torneo»), una línea debajo de las pestañas.
+function pintarTuLinea(fase, visibles) {
+  const linea = $('torneoTuLinea')
+  if (!linea) return
+  const hay = visibles.some((p) => p.id === 'jugar')
+  const barra = $('torneoBarraViva')
+  const conBarra = Boolean(barra && !barra.classList.contains('hidden') && barra.classList.contains('con-mia'))
+  const ver = hay && !conBarra && pestanaActiva !== 'jugar' && pestanaActiva !== 'jueces'
+  linea.classList.toggle('hidden', !ver)
+  if (!ver) return
+  const texto = fase === 'fin' ? '<b>Tu torneo</b><span>tu puesto, tus rivales y tu lista</span>' : '<b>Tu mesa</b><span>lo que te toca ahora</span>'
+  f.pintarSiCambia(linea, `${icons.gamepad?.(18) || ''}${texto}${icons.chevronRight?.(16) || '›'}`)
+  if (!linea.dataset.enganchada) {
+    linea.dataset.enganchada = '1'
+    linea.addEventListener('click', () => irAPestanaConUrl('jugar'))
+  }
+}
+
 // `forzar`: el ancho ha cambiado y la barra se rehace aunque nada más cambie.
 export function pintarPestanas(forzar = false) {
   if (!f) return
@@ -175,7 +200,9 @@ export function pintarPestanas(forzar = false) {
   const nav = $('torneoPestanas')
   // Una barra con UNA sola pestaña no es una barra (tanda 310): se esconde.
   // En el modo juez tampoco: la consola tiene su barra (1447).
-  const visible = visibles.length >= 2 && pestanaActiva !== 'jueces'
+  const fila = FILA[fase].filter((id) => visibles.some((p) => p.id === id)).map((id) => ({ id }))
+  const visible = fila.length >= 2 && pestanaActiva !== 'jueces'
+  nav.style.setProperty('--pestanas', String(fila.length))
   nav.classList.toggle('hidden', !visible)
   colocar(nav)
   // La de jueces lleva cuántas cosas esperan (394); la de jugadores, cuántos hay.
@@ -189,19 +216,20 @@ export function pintarPestanas(forzar = false) {
         ? ` <span class="torneo-pestana-cuenta">${activos}</span>`
         : ''
   let html
-  if (enMovil() && visibles.length > CABEN_ABAJO) {
-    const delante = visibles.slice(0, CABEN_ABAJO - 1)
-    const resto = visibles.slice(CABEN_ABAJO - 1)
+  if (enMovil() && fila.length > CABEN_ABAJO) {
+    const delante = fila.slice(0, CABEN_ABAJO - 1)
+    const resto = fila.slice(CABEN_ABAJO - 1)
     const dentro = resto.some((p) => p.id === pestanaActiva)
     html =
       delante.map((p) => botonHtml(p, cuenta)).join('') +
       `<button type="button" class="seg-btn torneo-tab-mas${dentro ? ' activa' : ''}" aria-expanded="false" aria-controls="torneoTabMenu"><span class="torneo-tab-ic" aria-hidden="true">${icons.moreHorizontal?.(20) || ''}</span><span class="torneo-tab-txt">Más</span>${resto.some((p) => cuenta(p.id)) ? '<span class="torneo-tab-punto" aria-hidden="true"></span>' : ''}</button>` +
       `<div class="torneo-tab-menu hidden" id="torneoTabMenu">${resto.map((p) => botonHtml(p, cuenta)).join('')}</div>`
   } else {
-    html = visibles.map((p) => botonHtml(p, cuenta)).join('')
+    html = fila.map((p) => botonHtml(p, cuenta)).join('')
   }
   // Las pestañas se repintan solo si cambian de verdad: rehacerlas mueve lo
   // de debajo. Esconder y enseñar paneles no las toca.
+  pintarTuLinea(fase, visibles)
   const cambiaron = f.pintarSiCambia(nav, html) || forzar
   document.querySelectorAll('.torneo-panel').forEach((s) => {
     s.classList.toggle('hidden', s.dataset.panel !== pestanaActiva)

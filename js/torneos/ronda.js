@@ -1538,13 +1538,15 @@ function pintarBarraViva(ronda) {
   } else if (mia) {
     const soyA = mia.player_a_id === yo
     const rivalId = soyA ? mia.player_b_id : mia.player_a_id
-    titular = `Tu partida contra ${nombreDe(rivalId)}`
+    // Arena limpia: la barra de tu mesa dice cuál y contra quién.
+    titular = `Tu mesa ${mia.table_number || ''} · contra ${nombreDe(rivalId)}`.replace('  ', ' ')
     const miListo = soyA ? mia.check_in_a_at : mia.check_in_b_at
     const rivalListo = soyA ? mia.check_in_b_at : mia.check_in_a_at
     // Lo que FALTA, y solo eso: si ya has hecho check-in y tu rival
     // también, la barra no tiene nada que pedirte.
     if (!miListo) der = '<span class="torneo-viva-pide">Te falta el check-in</span>'
     else if (!rivalListo) der = `<span class="torneo-viva-espera">${escapeHtml(nombreDe(rivalId))} aún no ha hecho check-in</span>`
+    else der = `<span class="torneo-viva-listos">${icons.checkCircle?.(14) || ''} Los dos listos</span>`
     der += '<a class="btn-primary torneo-viva-boton" href="#torneoMiPartida">Ir a tu mesa</a>'
   }
 
@@ -1561,6 +1563,7 @@ function pintarBarraViva(ronda) {
 
   const html = `${rotulo}|${titular}|${der}|${mesasHtml}|${estadoHtml}`
   caja.classList.remove('hidden')
+  caja.classList.toggle('con-mia', Boolean(mia && mia.status !== 'bye' && !TERMINALES.has(mia.status)))
   // MIENTRAS JUEGAS, LA RONDA PRIMERO (748, J2): la cabecera se queda en el
   // nombre y lo de inscribirse —formato, plazas, calendario— se aparta,
   // para que tu mesa salga en la primera pantalla y no dos más abajo.
@@ -2888,6 +2891,33 @@ async function confirmarRegistro(mia, juego, adjuntable, boton) {
   if (fallo) showToast(`El resultado va, pero la repetición no se ha adjuntado: ${fallo}`, 'error')
 }
 
+// CARA A CARA (Arena limpia, de la propuesta «Arena: siguientes mejoras»): lo
+// que sabes de tu rival antes de sentarte, en una línea: su puesto, cómo va y
+// qué hizo en la ronda anterior. Sale de lo que ya tiene la ficha.
+function caraACaraHtml(rivalId, rivalNombre, actual) {
+  if (!rivalId) return ''
+  let e = null
+  let puesto = 0
+  try {
+    const tabla = computeStandings(montarSnapshot(rondas.length))
+    puesto = tabla.findIndex((x) => x.playerId === rivalId) + 1
+    e = tabla[puesto - 1] || null
+  } catch {}
+  const previa = rondas.filter((r) => r.round_number < actual.round_number).sort((a, b) => b.round_number - a.round_number)[0]
+  const mesa = previa ? partidas.find((m) => m.round_id === previa.id && (m.player_a_id === rivalId || m.player_b_id === rivalId)) : null
+  let ultima = ''
+  if (mesa) {
+    const otro = mesa.player_a_id === rivalId ? mesa.player_b_id : mesa.player_a_id
+    const r = resultadoDe(mesa.id)
+    const gano = r && ((r.result === 'a_wins' && mesa.player_a_id === rivalId) || (r.result === 'b_wins' && mesa.player_b_id === rivalId))
+    const perdio = r && ((r.result === 'b_wins' && mesa.player_a_id === rivalId) || (r.result === 'a_wins' && mesa.player_b_id === rivalId))
+    ultima = !otro ? 'tuvo bye en la anterior' : gano ? `en la anterior ganó a ${nombreDe(otro)}` : perdio ? `en la anterior perdió con ${nombreDe(otro)}` : r?.result === 'draw' ? `en la anterior empató con ${nombreDe(otro)}` : ''
+  }
+  const partes = [puesto && e ? `va ${puesto}.º con ${e.wins}-${e.losses}-${e.draws}` : '', ultima].filter(Boolean)
+  if (!partes.length) return ''
+  return `<p class="torneo-cara-a-cara">${icons.users?.(14) || ''}<span><b>${escapeHtml(rivalNombre)}</b> ${escapeHtml(partes.join(' · '))}</span></p>`
+}
+
 function pintarMiPartida() {
   const caja = $('torneoMiPartida')
   const actual = rondaActual()
@@ -3029,6 +3059,7 @@ function pintarMiPartida() {
            }</p>`
         : ''
     }
+    ${caraACaraHtml(rivalId, rivalNombre, actual)}
     ${miListo ? '' : '<button class="btn-primary torneo-boton-checkin" id="btnCheckin">Hacer check-in</button>'}`
 
   // Al mejor de tres, cada partida se marca por separado (tanda 291):
@@ -3823,7 +3854,7 @@ function pintarClasificacion() {
     ? ''
     : podio.length
     ? miPodio >= 0
-      ? `<p class="torneo-podio-tuyo">${icons.trophy(16)} <span>Quedaste <b>${PUESTOS[miPodio].toLowerCase()}</b> de este torneo.</span>
+      ? `<p class="torneo-podio-tuyo">${icons.trophy(16)} <span>Quedaste <b>${ctx.torneo.top_cut_size ? PUESTOS[miPodio].toLowerCase() : `${miPodio + 1}.º`}</b> de este torneo.</span>
           <button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${miPodio}">${icons.share(14)} Compartir</button></p>`
       : ''
     : campeon
