@@ -308,6 +308,15 @@ se pone DESPUÉS de pintar: dentro del HTML, cada tecla cambiaría el HTML, se
 repintaría la lista y se perdería el foco. Y una mesa es un jugador por línea:
 en una sola fila los nombres largos salían cortados.
 
+**/torneos es una agenda, y lo terminado y lo tuyo tienen su sitio**
+(1454–1456): lo que viene va por días (Hoy · Esta semana · Más adelante) y lo
+de arriba son FILTROS (Los míos, Online, En persona por ciudad, Oficiales,
+Ligas), no pestañas de estado; el estado lo dice la chapa de cada fila. Los
+terminados no se mezclan con lo que viene: abajo los tres últimos y su vista
+propia (`#terminados`). Un borrador es de quien lo creó y de NADIE más, tampoco
+de un admin (`borradoresDe`): no es de la comunidad hasta que se abre. Lo puro
+(ciudad, tramos, filtros) vive en `agenda-puro.js` y lo prueba node.
+
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus
 pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticiones.

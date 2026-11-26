@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (698) — PINGU-Claude (1454–1456 — /torneos como agenda: días, filtros, terminados aparte y borradores solo tuyos)
+
+**Hecho** (la propuesta «Los torneos, de un vistazo» y las dos dudas de PINGU:
+«¿qué pasa con los terminados?» y «los borradores solo deberían salir a los
+que lo han creado»):
+- **1454, la agenda**: una FILA por torneo en vez del cartel (en el móvil caben
+  siete u ocho por pantalla), por días: Hoy · Esta semana · Más adelante, por
+  fecha y con lo que se juega delante. Cada fila: el día, el nombre con sus
+  chapas pequeñas, dónde (Online, o la ciudad en persona), la hora y la
+  estructura; en el PC, quién organiza (con su cara) y las plazas. Lo tuyo,
+  con la raya del acento e «Inscrito» en verde; en persona con plaza a pedir,
+  «Pedir plaza». Fuera las caras de los inscritos y el arte de la tarjeta.
+- **Lo tuyo en una pieza**: jugando, el combate lleva tu mesa y contra quién
+  (dos consultas, solo si juegas) y el siguiente torneo va en una línea debajo
+  («Después: …»); sin jugar, el cartel del próximo. En persona, «entrada en la
+  puerta» y «Tu entrada» en vez de «check-in desde las…» y «Tu lista».
+- **1455, filtros**: Todos · Los míos · Online · En persona ▾ (las ciudades
+  salen de la dirección, con su cuenta; se recuerda la última) · Oficiales ·
+  Ligas · Terminados, y el buscador (sin tildes; nombre, sitio, dirección u
+  organizador). El menú de ciudades se cuelga de la página: la fila del móvil,
+  que se desliza, lo recortaba.
+- **1456, terminados**: no se mezclan con lo que viene. Abajo, «Últimos
+  resultados» (tres) y «Ver los N terminados»; su vista propia (el chip, el
+  botón o `/torneos#terminados`) va por meses, con quién ganó (cara y los
+  Pokémon de su mazo) y tu puesto (del podio guardado; fuera de él, «Jugaste»).
+- **Borradores**: solo los de quien los creó, arriba («solo los ves tú»),
+  aunque mire un admin.
+
+**Ficheros**: `js/torneos/agenda-puro.js` (nuevo), `js/torneos/torneos.js`,
+`css/torneos.css`. Pruebas nuevas: `test-tanda-1454.mjs` (lo puro) y
+`test-tanda-1454-pantalla.mjs`; puestas al día 248 y 297 (sin pestañas de
+estado), 836 (fila en vez de franja) y 1164 (la fila de mandos se cuenta por
+el centro).
+
+**Pendiente**: nada de base de datos. Sale en el próximo push junto a
+1446–1452. Rojos de antes, sin tocar: 836 (constructor y heroe), 909, 968,
+1040 (glosario) y 1331 (busca el formulario viejo de crear).
+
 ## 2026-11-26 (697) — PINGU-Claude (1452 — Torneos en persona: el creador, la lista y la ficha)
 
 **Hecho** (sobre la base de la 1446; PINGU: las tres maneras de apuntarse a

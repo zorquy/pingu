@@ -19,6 +19,7 @@ import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
 import { esTorneoDeTienda, textoDePrecio } from './torneo-tienda.js'
 import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
+import { ciudadDe, ciudadesDe, tramoDe, TRAMOS, ordenarProximos, terminadosPorMes, filtrarTorneos, borradoresDe } from './agenda-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -66,21 +67,6 @@ const CHAPA_OFICIAL = () => `<span class="torneo-oficial" title="Torneo oficial,
 // Por eso hay UNA acción por tarjeta, y el estado manda sobre todo lo
 // demás.
 
-// Seis degradados para los torneos que no traen imagen. Se elige por el
-// slug, no al azar: así un torneo se ve SIEMPRE igual, en cada recarga
-// y en el móvil de cada uno. Si cambiara en cada pintada, la lista
-// parpadearía de colores en cada refresco.
-// Cuántas caras caben en una tarjeta antes del «+N».
-const CARAS_POR_TARJETA = 4
-
-const ARTES = 6
-function arteDe(t) {
-  const clave = String(t.slug || t.id || '')
-  let suma = 0
-  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
-  return (suma % ARTES) + 1
-}
-
 // Las caras de quien va apuntado. Un avatar de verdad si lo tiene, y si
 // no la inicial sobre un color sacado del mismo nombre (mismo truco que
 // el arte: estable, no aleatorio).
@@ -100,7 +86,7 @@ function caraHtml(perfil) {
 // del torneo privado y la lista de espera): esto lleva allí, no hace el
 // trabajo. Un botón que promete más de lo que hace es peor que ninguno.
 function accionDe(t, miEstado, pausa = false) {
-  if (t.status === 'draft') return { texto: 'Seguir editando', clase: 'btn-secondary' }
+  if (t.status === 'draft') return { texto: 'Seguir editando', corto: 'Editar', clase: 'btn-secondary' }
   if (t.status === 'registration_open') {
     return miEstado === 'active'
       ? { texto: 'Ver el torneo', corto: 'Ver', clase: 'btn-secondary' }
@@ -134,7 +120,10 @@ export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
   const dias = Math.max(0, Math.round((new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()) - new Date(new Date(ahora).getFullYear(), new Date(ahora).getMonth(), new Date(ahora).getDate())) / 864e5))
   const cuando = dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : `en ${dias} días`
   const hora = (d) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  const checkin = Number(t.checkin_minutes) > 0 ? `check-in desde las ${hora(new Date(inicio.getTime() - Number(t.checkin_minutes) * 6e4))}` : ''
+  // En persona no hay check-in en la web: se entra por la puerta, con el QR
+  // de tu entrada (1452). Decía «check-in desde las 16:55» igualmente.
+  const enPersona = t.modalidad === 'presencial'
+  const checkin = enPersona ? 'entrada en la puerta' : Number(t.checkin_minutes) > 0 ? `check-in desde las ${hora(new Date(inicio.getTime() - Number(t.checkin_minutes) * 6e4))}` : ''
   const plazas = t.max_players == null ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas} de ${t.max_players} plazas`
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   // La losa lee «12 días» al lector de pantalla; «hoy» lleva la hora debajo.
@@ -143,110 +132,113 @@ export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
     <span class="t-proximo-ceja">Tu próximo torneo<span class="sr-only"> · ${escapeHtml(cuando)}</span></span>
     <a class="t-proximo-nombre" href="${url}">${escapeHtml(t.name)}</a>
     <span class="t-proximo-datos">${escapeHtml([`${inicio.getDate()} ${inicio.toLocaleString('es-ES', { month: 'short' }).replace('.', '')} · ${hora(inicio)}`, plazas, checkin].filter(Boolean).join(' · '))}</span>
-    <span class="t-proximo-botones"><a class="btn-secondary" href="${url}&ver=jugar">Tu lista</a><a class="btn-primary" href="${url}">Ver el torneo</a></span>`
+    <span class="t-proximo-botones">${enPersona ? `<a class="btn-secondary" href="${url}&ver=torneo">Tu entrada</a>` : `<a class="btn-secondary" href="${url}&ver=jugar">Tu lista</a>`}<a class="btn-primary" href="${url}">Ver el torneo</a></span>`
 }
 
-function tarjetaHtml(t, datos) {
-  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, campeonPerfil = null, soyCampeon = false, puedeBorrar = false, rondas = null, deTienda = false } = datos || {}
-  // El precio de la inscripción (1331): informativo, se paga en persona.
-  const precio = textoDePrecio(t.precio_entrada, { deTienda })
-  // Una liga entre jornadas se dice así, sin el punto que late (850).
+// ── Una fila por torneo (1454, la agenda) ──
+//
+// Hasta la 1453 cada torneo era un cartel con su degradado: en el móvil
+// cabían dos y medio por pantalla, las chapas se apilaban encima del nombre
+// y lo que decide («¿cuándo?, ¿dónde?, ¿queda sitio?») iba en letra pequeña
+// debajo. Ahora es UNA fila: el día a la izquierda, el nombre y dónde se
+// juega en medio, las plazas y un botón a la derecha. En el PC, además,
+// quién lo organiza. La foto del torneo, si la tiene, se ve en la ficha.
+//
+// Los nombres de siempre se quedan (`torneo-tarjeta`, `torneo-nombre`,
+// `torneo-pie-accion`, `torneo-ocupacion-cifra`, `torneo-tarjeta-mas`):
+// el «⋯», Borrar y Duplicar los recogen por ellos.
+const DIA_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+function filaHtml(t, datos) {
+  const { ocupadas = 0, miEstado = null, organizador = null, organiza = '', campeonPerfil = null, soyCampeon = false, puedeBorrar = false, puedeDuplicar = false, rondas = null, deTienda = false, tramo = null, puesto = null } = datos || {}
   const estado = estadoDeTorneo(t, rondas)
   const viva = t.status === 'in_progress' && !estado.pausa
+  const hecho = ['finished', 'cancelled'].includes(t.status)
   const fecha = new Date(t.start_at)
-  const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
   const hora = fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  // max_players NULL = aforo sin límite (tanda 228): sin denominador no
-  // hay barra de ocupación que pintar — se dice cuánta gente hay y ya.
+  const mes = fecha.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  const enPersona = t.modalidad === 'presencial'
+  const ciudad = ciudadDe(t)
+  // El día: hoy manda la hora (y si se juega ya, lo dice); esta semana, el
+  // día de la semana; más adelante y lo pasado, el mes.
+  const losa = tramo === 'hoy'
+    ? { b: hora, s: viva ? 'ahora' : estado.pausa ? 'pausa' : 'hoy', clase: viva ? 'viva' : 'hoy' }
+    : { b: String(fecha.getDate()), s: tramo === 'semana' ? DIA_SEMANA[fecha.getDay()] : mes, clase: '' }
+  const donde = enPersona
+    ? `<span class="torneo-fila-donde persona">${icons.mapPin(12)} ${escapeHtml(ciudad || t.lugar || 'En persona')}</span>`
+    : `<span class="torneo-fila-donde">${icons.globe(12)} Online</span>`
+  // Lo de la segunda línea, en orden de lo que más decide: dónde, la hora
+  // (si no la dice ya la losa), los premios, el precio y la estructura.
+  const precio = textoDePrecio(t.precio_entrada, { deTienda })
+  const sub = [
+    donde,
+    tramo !== 'hoy' && !hecho ? `<span>${escapeHtml(hora)}</span>` : '',
+    hecho ? `<span>${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}</span>` : `<span class="torneo-fila-estructura">${escapeHtml(estructuraCorta(t))}${t.top_cut_size ? ` · top ${t.top_cut_size}` : ''}</span>`,
+    !hecho && hayPremios(t) ? `<span class="torneo-fila-premio">${icons.trophy(12)} ${escapeHtml(resumenDePremios(t))}</span>` : '',
+    !hecho && precio ? `<span class="torneo-fila-precio">${escapeHtml(precio)}</span>` : '',
+  ].filter(Boolean).join('')
+  // Las chapas van detrás del nombre, pequeñas y en una sola línea.
+  const chapas = [
+    viva ? `<span class="torneo-estado ${estado.clase}"><span class="torneo-punto"></span>${escapeHtml(estado.texto)}</span>` : '',
+    t.status === 'registration_closed' ? `<span class="torneo-estado ${estado.clase}">${escapeHtml(estado.texto)}</span>` : '',
+    t.status === 'cancelled' ? `<span class="torneo-estado ${estado.clase}">${escapeHtml(estado.texto)}</span>` : '',
+    esOficial(t) ? CHAPA_OFICIAL() : '',
+    t.format === 'league' ? '<span class="torneo-oficial torneo-chapa-liga">Liga</span>' : '',
+    t.is_private ? CHAPA_PRIVADO() : '',
+    deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Tienda</span>` : '',
+  ].filter(Boolean).join('')
+  // La tercera columna: quién organiza; en un terminado, quién ganó, con su
+  // cara y los Pokémon de su mazo (los pone arte-meta.js en `data-torneo`).
+  const quien = hecho
+    ? campeonPerfil
+      ? `<span class="torneo-campeon">${icons.trophy(13)}<span class="torneo-fila-mazo torneo-arte con-meta" data-torneo="${escapeHtml(String(t.id))}"></span>${caraHtml(campeonPerfil)}<b>${escapeHtml(campeonPerfil.username)}</b></span>`
+      : ''
+    : organiza
+      ? `<span class="torneo-fila-organiza">${organizador ? caraHtml(organizador) : ''}<span>${escapeHtml(organiza)}</span></span>`
+      : ''
+  // Las plazas: la barra se pone ámbar al 80 %, como siempre.
   const sinLimite = t.max_players == null
   const porcentaje = sinLimite ? 0 : Math.min(100, (ocupadas / t.max_players) * 100)
-  // La barra se pone naranja cuando quedan pocas plazas: es lo que
-  // convierte «12/32» en «corre, que se llena».
-  const apurado = !sinLimite && porcentaje >= 80
-  const accion = accionDe(t, miEstado, estado.pausa)
-  const sobran = Math.max(0, ocupadas - caras.length)
-  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  const plazas = hecho
+    ? soyCampeon
+      ? `<span class="torneo-fila-puesto oro">${icons.trophy(12)} Campeón</span>`
+      : puesto
+        ? `<span class="torneo-fila-puesto">Tú: ${puesto}.º</span>`
+        : miEstado
+          ? '<span class="torneo-fila-puesto suave">Jugaste</span>'
+          : ''
+    : `<span class="torneo-ocupacion">${sinLimite ? '' : `<span class="torneo-ocupacion-barra ${porcentaje >= 80 ? 'apurada' : ''}"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}<span class="torneo-ocupacion-cifra">${sinLimite ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas}/${t.max_players}`}</span></span>`
+  // El botón. Lo tuyo abierto dice «Inscrito» en verde (y lleva a la ficha);
+  // en persona con plaza a pedir, «Pedir plaza».
+  const accion = t.status === 'registration_open' && !miEstado && enPersona && (t.inscripcion || 'pedir') === 'pedir'
+    ? { texto: 'Pedir plaza', clase: 'torneo-btn-apuntarse' }
+    : viva && miEstado === 'active'
+      ? { texto: 'Ir a tu mesa', clase: 'btn-primary' }
+      : accionDe(t, miEstado, estado.pausa)
+  const inscrito = !hecho && t.status !== 'draft' && miEstado === 'active' && !viva
+  const masMenu = (() => {
+    const duplicar = puedeDuplicar ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>` : ''
+    const borrar = puedeBorrar ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>` : ''
+    return duplicar || borrar
+      ? `<details class="torneo-mas torneo-tarjeta-mas"><summary class="torneo-mas-boton" aria-label="Más opciones: ${escapeHtml(t.name)}">⋯</summary><div class="torneo-mas-menu">${duplicar}${borrar}</div></details>`
+      : ''
+  })()
+  const clases = ['torneo-tarjeta', 'torneo-fila', viva ? 'torneo-fila-viva' : '', miEstado === 'active' ? 'torneo-tarjeta-mia' : '', hecho ? 'torneo-fila-hecha' : '', t.status === 'draft' ? 'torneo-fila-borrador' : ''].filter(Boolean).join(' ')
   return `
-  <article class="torneo-tarjeta torneo-tarjeta-${viva ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}${miEstado === 'active' ? ' torneo-tarjeta-mia' : ''}">
-    <a class="torneo-tarjeta-enlace" href="${url}">
-      <span class="torneo-arte torneo-arte-${arteDe(t)}" data-torneo="${escapeHtml(String(t.id))}">
-        ${
-          // La imagen del torneo (tanda 239) pasa de un cuadradito de
-          // 48 px a ser la portada entera de la tarjeta. Si no carga se
-          // esconde y queda el degradado debajo — nunca el icono roto.
-          t.image_url
-            ? `<img class="torneo-arte-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
-            : ''
-        }
-        <span class="torneo-arte-chapas">
-          <span class="torneo-estado ${estado.clase}">${viva ? `<span class="torneo-punto"></span>` : ''}${estado.texto}${estado.pausa && estado.proxima ? ` · J${estado.proxima.n}` : ''}</span>
-          <span class="torneo-arte-chapas-der">
-            ${
-              // Lo tuyo en la esquina (1348): campeón, retirado o inscrito.
-              soyCampeon
-                ? `<span class="torneo-mio-arte campeon">${icons.trophy(11)} Campeón</span>`
-                : miEstado === 'dropped'
-                  ? '<span class="torneo-mio-arte retirado">Retirado</span>'
-                  : miEstado
-                    ? '<span class="torneo-mio-arte">Inscrito</span>'
-                    : ''
-            }
-            ${t.modalidad === 'presencial' ? `<span class="torneo-oficial torneo-en-persona" title="Se juega en persona${t.lugar ? `: ${escapeHtml(t.lugar)}` : ''}">${icons.mapPin(11)} En persona</span>` : ''}
-            ${t.is_private ? CHAPA_PRIVADO() : ''}
-            ${esOficial(t) ? CHAPA_OFICIAL() : ''}
-            ${deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Torneo de tienda</span>` : ''}
-          </span>
-        </span>
+  <article class="${clases}" data-torneo-id="${escapeHtml(String(t.id))}">
+    <a class="torneo-tarjeta-enlace torneo-fila-enlace" href="${url}">
+      <span class="torneo-fila-fecha ${losa.clase}" aria-hidden="true"><b>${escapeHtml(losa.b)}</b><small>${escapeHtml(losa.s)}</small></span>
+      <span class="torneo-fila-texto">
+        <span class="torneo-fila-titulo"><strong class="torneo-nombre">${escapeHtml(t.name)}</strong>${chapas}</span>
+        <span class="torneo-fila-sub">${sub}</span>
       </span>
-      <span class="torneo-cuerpo">
-        <strong class="torneo-nombre">${escapeHtml(t.name)}</strong>
-        <span class="torneo-etiquetas">
-          ${
-            // Los premios (tanda 352) van los PRIMEROS de las etiquetas y
-            // con color propio: es lo que decide si alguien abre el
-            // torneo, y entre «3 rondas suizas» y «19:00» no lo miraría
-            // nadie. Se enseña el del primer puesto; los demás, dentro.
-            hayPremios(t)
-              ? `<span class="torneo-etiqueta torneo-etiqueta-premio">${icons.trophy(13)} ${escapeHtml(resumenDePremios(t))}</span>`
-              : ''
-          }
-          ${precio ? `<span class="torneo-etiqueta torneo-etiqueta-precio">${escapeHtml(precio)}</span>` : ''}
-          <span class="torneo-etiqueta">${escapeHtml(estructuraCorta(t))}</span>
-          ${t.swiss_bo === 3 ? '<span class="torneo-etiqueta">BO3</span>' : ''}
-          ${t.top_cut_size ? `<span class="torneo-etiqueta">Top ${t.top_cut_size}</span>` : ''}
-          <span class="torneo-etiqueta torneo-etiqueta-cuando">${fecha.getDate()} ${escapeHtml(mes)} · ${escapeHtml(hora)}</span>
-        </span>
-        ${
-          campeon
-            ? `<span class="torneo-campeon">${campeonPerfil ? caraHtml(campeonPerfil) : icons.trophy(15)} Campeón: <b>${escapeHtml(campeon)}</b></span>`
-            : `<span class="torneo-ocupacion">
-                 ${caras.length ? `<span class="torneo-caras">${caras.map(caraHtml).join('')}${sobran ? `<span class="torneo-cara torneo-cara-mas">+${sobran}</span>` : ''}</span>` : ''}
-                 ${sinLimite ? '' : `<span class="torneo-ocupacion-barra ${apurado ? 'apurada' : ''}"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}
-                 <span class="torneo-ocupacion-cifra">${sinLimite ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas}/${t.max_players}`}</span>
-               </span>`
-        }
-      </span>
+      <span class="torneo-fila-quien">${quien}</span>
+      <span class="torneo-fila-plazas">${plazas}</span>
     </a>
-    <div class="torneo-pie">
-      <span class="torneo-pie-quien">
-        ${organiza ? `<span class="torneo-pie-organiza">${escapeHtml(organiza)}</span>` : ''}
-      </span>
-      ${(() => {
-        // Duplicar (218) y Borrar (223), en el «⋯» desde la 1348 (PINGU eligió
-        // la recomendada): con cuatro botones abajo, la tarjeta no decía cuál
-        // era el bueno. Los mismos `data-*` de siempre: el clic se recoge igual.
-        const duplicar = ['finished', 'cancelled'].includes(t.status)
-          ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
-          : ''
-        const borrar = puedeBorrar
-          ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>`
-          : ''
-        return duplicar || borrar
-          ? `<details class="torneo-mas torneo-tarjeta-mas"><summary class="torneo-mas-boton" aria-label="Más opciones: ${escapeHtml(t.name)}">⋯</summary><div class="torneo-mas-menu">${duplicar}${borrar}</div></details>`
-          : ''
-      })()}
-      <a class="${accion.clase} torneo-pie-accion" href="${url}"${accion.corto ? ` aria-label="${escapeHtml(/^Ver /.test(accion.texto) ? accion.texto : `Ver ${accion.texto.toLowerCase()}`)}: ${escapeHtml(t.name)}"` : ''}>${accion.corto || accion.texto}</a>
-    </div>
+    <span class="torneo-fila-der">
+      ${masMenu}
+      ${inscrito ? `<a class="torneo-fila-inscrito torneo-pie-accion" href="${url}" aria-label="Estás inscrito: ver ${escapeHtml(t.name)}">${icons.checkCircle(13)} Inscrito</a>` : `<a class="${accion.clase} torneo-pie-accion" href="${url}"${accion.corto ? ` aria-label="${escapeHtml(/^Ver /.test(accion.texto) ? accion.texto : `Ver ${accion.texto.toLowerCase()}`)}: ${escapeHtml(t.name)}"` : ''}>${accion.corto || accion.texto}</a>`}
+    </span>
   </article>`
 }
 
@@ -266,7 +258,19 @@ function textoCuenta(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
-async function pintarVivo(torneo) {
+// «Después: …» (1454): el siguiente torneo tuyo en una línea bajo el
+// combate, en vez de un segundo cartel que empujaba la lista hacia abajo.
+function despuesHtml(t) {
+  const d = new Date(t.start_at)
+  const hoy = new Date()
+  const mismoDia = d.toDateString() === hoy.toDateString()
+  const cuando = `${mismoDia ? 'hoy' : d.toLocaleDateString('es-ES', { weekday: 'long' })} ${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  const enPersona = t.modalidad === 'presencial'
+  return `<span class="torneo-vivo-despues"><span>Después:</span> <a href="${url}">${escapeHtml(t.name)}</a> · ${escapeHtml(cuando)}${enPersona ? '<span class="torneo-vivo-despues-puerta"> · en persona, entrada en la puerta</span>' : ''}<a class="torneo-vivo-despues-ir" href="${url}${enPersona ? '&ver=torneo' : '&ver=jugar'}">${enPersona ? 'Tu entrada' : 'Tu lista'}</a></span>`
+}
+
+async function pintarVivo(torneo, despues = null) {
   const caja = $('torneoVivo')
   if (!caja) return
   if (relojVivo) {
@@ -280,11 +284,24 @@ async function pintarVivo(torneo) {
   }
   const { data: rondas } = await supabase
     .from('rounds')
-    .select('round_number, status, ends_at, phase')
+    .select('id, round_number, status, ends_at, phase')
     .eq('tournament_id', torneo.id)
     .eq('status', 'active')
     .limit(1)
   const ronda = (rondas || [])[0] || null
+  // Tu mesa y contra quién (1454): lo primero que se busca al volver a la
+  // lista en mitad de una ronda. Dos consultas, y solo cuando juegas.
+  const yo = quienMira.session?.user?.id || null
+  let mesa = null
+  if (ronda?.id && yo) {
+    const { data: mesas } = await supabase.from('tournament_matches').select('table_number, player_a_id, player_b_id, is_bye').eq('round_id', ronda.id)
+    const mia = (mesas || []).find((m) => m.player_a_id === yo || m.player_b_id === yo)
+    if (mia) {
+      const rival = mia.player_a_id === yo ? mia.player_b_id : mia.player_a_id
+      const { data: perfilRival } = rival ? await supabase.from('user_profiles').select('username').eq('id', rival).maybeSingle() : { data: null }
+      mesa = mia.is_bye || !rival ? 'Descansas esta ronda' : `Mesa ${mia.table_number}${perfilRival?.username ? ` · contra ${perfilRival.username}` : ''}`
+    }
+  }
   // Las rondas de verdad (1346): las suizas y, si hay corte, «Top N» detrás;
   // en el corte, la ronda dice «Top cut», no «Ronda 4 de 3».
   const total = torneo.swiss_rounds || 0
@@ -301,12 +318,13 @@ async function pintarVivo(torneo) {
       <span class="torneo-vivo-chapa"><span class="torneo-punto"></span>En juego</span>
       <strong>${escapeHtml(torneo.name)}</strong>
       ${total && total <= 12 ? `<span class="torneo-vivo-rondas" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${enCorte || (ronda && i + 1 < ronda.round_number) ? 'hecha' : ronda && i + 1 === ronda.round_number ? 'ahora' : ''}"></i>`).join('')}${torneo.top_cut_size ? `<i class="corte${enCorte ? ' ahora' : ''}"></i>` : ''}</span>` : ''}
-      <span class="torneo-vivo-sub">${escapeHtml(rotuloRonda)}</span>
+      <span class="torneo-vivo-sub">${escapeHtml(rotuloRonda)}${mesa ? ` · <b>${escapeHtml(mesa)}</b>` : ''}</span>
     </span>
     <span class="torneo-vivo-der">
       ${ronda?.ends_at ? '<span class="torneo-vivo-reloj"><span class="torneo-vivo-rotulo">Queda de ronda</span><b id="torneoVivoReloj">—</b></span>' : ''}
       <a class="btn-primary" href="/torneo?slug=${encodeURIComponent(torneo.slug)}">Ir a tu mesa</a>
-    </span>`
+    </span>
+    ${despues ? despuesHtml(despues) : ''}`
   if (!ronda?.ends_at) return
   // El reloj del navegador es ORIENTATIVO, igual que en la ficha: quien
   // cierra la ronda de verdad es el barredor por minuto del servidor.
@@ -319,11 +337,8 @@ async function pintarVivo(torneo) {
   relojVivo = setInterval(tic, 1000)
 }
 
-// La lista por PESTAÑAS (petición de los admins): Tus torneos, Abiertas,
-// Por empezar, En juego, Terminados y — como aquí todos somos organizadores mientras
-// dure la prueba — Borradores. Las vacías ni aparecen. El «Mis torneos»
-// del menú de cuenta llega con #mios para abrir directamente la tuya.
-let pestanaLista = window.location.hash === '#mios' ? 'mios' : null
+// El «Mis torneos» del menú de cuenta llega con #mios: la agenda abre con el
+// filtro «Los míos» puesto (ver `filtroLista`, más abajo).
 
 // LA SEMANA DE UN VISTAZO (790, PA15): los siete días desde hoy, cada uno
 // con sus torneos como puntos y la hora del primero. Pura para la prueba.
@@ -391,39 +406,222 @@ function colocarMandosTorneos({ aCasa = false } = {}) {
 }
 telefono.addEventListener?.('change', () => colocarMandosTorneos())
 
-function pintarGrupos(grupos) {
+// ── La agenda (1454), los filtros (1455) y los terminados (1456) ──
+//
+// Antes eran pestañas de estado (Tus torneos · Abiertas · Por empezar · En
+// juego · Terminados · Borradores): para saber qué había el sábado había que
+// mirar en tres, y dentro no iban por fecha. Ahora lo que viene va en UNA
+// lista por días (Hoy · Esta semana · Más adelante) y lo de arriba son
+// filtros que la recortan: Los míos, Online, En persona (con su ciudad),
+// Oficiales y Ligas, y el buscador.
+//
+// LOS TERMINADOS (PINGU: «¿qué pasa con los torneos terminados? ¿deberían
+// salir en otro sitio? ¿se van hacia abajo? ¿con filtro?»): no se mezclan con
+// lo que viene, que es a lo que se viene aquí. Abajo del todo van los tres
+// últimos («Últimos resultados»), y «Terminados» es su propia vista, con los
+// mismos filtros, por meses, con quién ganó y tu puesto. Se llega por el chip
+// del final de la fila, por el botón de abajo o con /torneos#terminados.
+//
+// LOS BORRADORES, solo de quien los creó (ver `borradoresDe`), arriba del
+// todo, que es lo que su dueño viene a terminar.
+let agenda = null
+let filtroLista = window.location.hash === '#mios' ? 'mios' : 'todos'
+let vistaHechos = window.location.hash === '#terminados'
+let buscaLista = ''
+let ciudadLista = (() => { try { return localStorage.getItem('pokedoc-torneos-ciudad') || null } catch { return null } })()
+const ULTIMOS_RESULTADOS = 3
+
+function chipsDeFiltroHtml() {
+  const { proximos, hechos, mio } = agenda
+  const base = vistaHechos ? hechos : proximos
+  const ciudades = ciudadesDe(base)
+  const mios = base.filter(mio).length
+  const chip = (id, texto, extra = '') => `<button type="button" class="chip-filtro${filtroLista === id ? ' activa' : ''}" data-filtro-lista="${id}" aria-pressed="${filtroLista === id}">${texto}${extra}</button>`
+  const persona = filtroLista === 'persona'
+  return `
+    ${chip('todos', 'Todos')}
+    ${mios ? chip('mios', 'Los míos', ` <span class="torneo-pestana-cuenta">${mios}</span>`) : ''}
+    ${chip('online', `${icons.globe(13)} Online`)}
+    <details class="torneos-ciudad">
+      <summary class="chip-filtro${persona ? ' activa' : ''}" data-filtro-lista="persona">${icons.mapPin(13)} En persona${persona && ciudadLista ? ` · ${escapeHtml(ciudadLista)}` : ''} <span class="torneos-ciudad-flecha" aria-hidden="true">▾</span></summary>
+      <div class="torneos-ciudad-menu" role="menu">
+        <button type="button" role="menuitem" data-ciudad=""${persona && !ciudadLista ? ' class="activa"' : ''}>Todas las ciudades <small>${base.filter((t) => t.modalidad === 'presencial').length}</small></button>
+        ${ciudades.map((c) => `<button type="button" role="menuitem" data-ciudad="${escapeHtml(c.ciudad)}"${ciudadLista === c.ciudad ? ' class="activa"' : ''}>${escapeHtml(c.ciudad)} <small>${c.n}</small></button>`).join('')}
+      </div>
+    </details>
+    ${chip('oficiales', `${icons.star(13)} Oficiales`)}
+    ${chip('ligas', 'Ligas')}
+    <button type="button" class="chip-filtro torneos-chip-hechos${vistaHechos ? ' activa' : ''}" data-ver-hechos aria-pressed="${vistaHechos}">Terminados <span class="torneo-pestana-cuenta">${hechos.length}</span></button>
+    <label class="torneos-buscar"><span class="sr-only">Busca un torneo</span>${icons.search(15)}<input type="search" id="torneosBuscar" placeholder="Busca un torneo" autocomplete="off" value="${escapeHtml(buscaLista)}" /></label>`
+}
+
+function filtrados(lista) {
+  const { mio, oficial, organiza } = agenda
+  return filtrarTorneos(lista, { filtro: filtroLista, ciudad: ciudadLista, busca: buscaLista, mio, oficial, organiza })
+}
+
+const tramoHtml = (titulo, filas, { extra = '', clase = '' } = {}) =>
+  `<section class="torneos-tramo ${clase}"><h2 class="torneos-tramo-cab">${titulo}${extra}</h2><div class="torneos-filas">${filas.join('')}</div></section>`
+
+function cuerpoProximosHtml() {
+  const { proximos, hechos, borradores, fila } = agenda
+  const partes = []
+  if (borradores.length && ['todos', 'mios'].includes(filtroLista)) {
+    const suyos = buscaLista ? filtrarTorneos(borradores, { busca: buscaLista }) : borradores
+    if (suyos.length) partes.push(tramoHtml('Tus borradores', suyos.map((t) => fila(t, null)), { extra: '<span>solo los ves tú</span>', clase: 'torneos-tramo-borradores' }))
+  }
+  const lista = filtrados(proximos)
+  const hoy = new Date()
+  for (const [id, texto] of TRAMOS) {
+    const delTramo = lista.filter((t) => tramoDe(t, hoy) === id)
+    if (!delTramo.length) continue
+    const extra = id === 'hoy' ? `<span>${escapeHtml(hoy.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' }))}</span>` : ''
+    partes.push(tramoHtml(texto, delTramo.map((t) => fila(t, id)), { extra }))
+  }
+  if (!lista.length) partes.push(vacioDeFiltrosHtml(proximos.length ? 'No hay torneos con estos filtros.' : 'No hay ningún torneo por jugar ahora mismo.'))
+  const ultimos = filtrados(hechos).sort((a, b) => new Date(b.start_at) - new Date(a.start_at))
+  if (ultimos.length) {
+    partes.push(tramoHtml('Últimos resultados', ultimos.slice(0, ULTIMOS_RESULTADOS).map((t) => fila(t, null)), { clase: 'torneos-ultimos' }) +
+      `<button type="button" class="btn-secondary torneos-ver-hechos" data-ver-hechos>Ver ${ultimos.length === 1 ? 'el terminado' : `los ${ultimos.length} terminados`}</button>`)
+  }
+  return partes.join('')
+}
+
+function cuerpoHechosHtml() {
+  const lista = filtrados(agenda.hechos)
+  const grupos = terminadosPorMes(lista)
+  let quedan = verTodosLosTerminados ? Infinity : TERMINADOS_DE_GOLPE
+  const partes = [`<div class="torneos-hechos-cab"><button type="button" class="link-btn" data-volver-proximos>${icons.chevronLeft?.(15) || '←'} Próximos</button><h2>Terminados</h2><span>${lista.length}</span></div>`]
+  for (const g of grupos) {
+    if (quedan <= 0) break
+    const filas = g.torneos.slice(0, quedan)
+    quedan -= filas.length
+    partes.push(tramoHtml(escapeHtml(g.texto), filas.map((t) => agenda.fila(t, null))))
+  }
+  if (!lista.length) partes.push(vacioDeFiltrosHtml(agenda.hechos.length ? 'Ningún terminado con estos filtros.' : 'Todavía no ha terminado ningún torneo.'))
+  const ocultos = lista.length - Math.min(lista.length, verTodosLosTerminados ? lista.length : TERMINADOS_DE_GOLPE)
+  if (ocultos > 0) partes.push(`<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTerminados">Ver ${ocultos} más</button>`)
+  return partes.join('')
+}
+
+function vacioDeFiltrosHtml(texto) {
+  const conFiltro = filtroLista !== 'todos' || buscaLista
+  return `<div class="torneos-vacio-filtros"><p>${escapeHtml(texto)}</p>${conFiltro ? '<button type="button" class="btn-secondary" data-quitar-filtros>Quitar los filtros</button>' : ''}</div>`
+}
+
+function pintarCuerpoAgenda() {
+  const caja = $('torneosAgenda')
+  if (!caja || !agenda) return
+  caja.innerHTML = vistaHechos ? cuerpoHechosHtml() : cuerpoProximosHtml()
+  caja.classList.toggle('torneos-agenda-hechos', vistaHechos)
+  // La franja de ligas en curso es de lo que viene: en Terminados, fuera.
+  const franja = $('torneosLigas')
+  if (franja) franja.classList.toggle('hidden', vistaHechos)
+  // Los Pokémon del mazo de cada campeón, en las filas que se acaban de pintar.
+  if (caja.querySelector('.torneo-fila-mazo')) import('./arte-meta.js').then((m) => m.ponerArteDeCampeones(caja, agenda.hechos)).catch(() => {})
+}
+
+function pintarFiltros() {
+  const nav = $('listaTorneos')?.querySelector('.torneos-filtros')
+  if (!nav) return
+  // Lo que se mudó a la fila (el conmutador del PC, los botones del móvil)
+  // vuelve a casa antes de repintarla, y luego se coloca otra vez.
+  colocarMandosTorneos({ aCasa: true })
+  const foco = document.activeElement?.id === 'torneosBuscar'
+  nav.innerHTML = chipsDeFiltroHtml()
+  colocarMandosTorneos()
+  if (foco) { const i = $('torneosBuscar'); i?.focus(); i?.setSelectionRange(i.value.length, i.value.length) }
+}
+
+function pintarAgenda(datos) {
+  agenda = datos
   colocarMandosTorneos({ aCasa: true })
   const lista = $('listaTorneos')
-  const conAlgo = grupos.filter((g) => g.filas.length)
-  if (!conAlgo.length) {
-    lista.innerHTML = ''
-    return
-  }
-  if (!pestanaLista || !conAlgo.some((g) => g.id === pestanaLista)) pestanaLista = conAlgo[0].id
-  const activa = conAlgo.find((g) => g.id === pestanaLista)
-  lista.innerHTML = `
-    <nav class="torneo-pestanas-chips" aria-label="Grupos de torneos">
-      ${conAlgo
-        .map(
-          (g) =>
-            `<button type="button" class="chip-filtro${g.id === pestanaLista ? ' activa' : ''}" data-grupo="${g.id}">${g.texto} <span class="torneo-pestana-cuenta">${g.filas.length}</span></button>`
-        )
-        .join('')}
-    </nav>
-    <div class="torneos-rejilla en-cascada">${activa.filas.join('')}</div>
-    ${activa.pie || ''}`
-  lista.querySelectorAll('[data-grupo]').forEach((b) =>
-    b.addEventListener('click', () => {
-      pestanaLista = b.dataset.grupo
-      pintarGrupos(grupos)
-    })
-  )
+  lista.innerHTML = `<nav class="torneo-pestanas-chips torneos-filtros" aria-label="Filtrar los torneos">${chipsDeFiltroHtml()}</nav><div id="torneosAgenda" class="torneos-agenda en-cascada"></div>`
   colocarMandosTorneos()
-  // «Ver N más» de los terminados: levanta el corte y vuelve a pedir la
-  // lista (no basta con repintar: las filas de más ni se construyeron).
-  document.getElementById('btnVerMasTerminados')?.addEventListener('click', () => {
-    verTodosLosTerminados = true
-    recargarLista()
+  pintarCuerpoAgenda()
+}
+
+function cambiarVista(hechos) {
+  vistaHechos = hechos
+  try { history.replaceState(null, '', hechos ? '#terminados' : location.pathname + location.search) } catch {}
+  pintarFiltros()
+  pintarCuerpoAgenda()
+  if (hechos) $('listaTorneos')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+}
+
+// Los mandos de la agenda, delegados en la lista: la fila se repinta entera
+// con cada cambio y los manejadores sueltos se perderían.
+function engancharAgenda() {
+  const lista = $('listaTorneos')
+  if (!lista || lista.dataset.agenda) return
+  lista.dataset.agenda = '1'
+  lista.addEventListener('click', (e) => {
+    const filtro = e.target.closest('[data-filtro-lista]')
+    if (filtro && filtro.dataset.filtroLista !== 'persona') {
+      filtroLista = filtro.dataset.filtroLista
+      pintarFiltros()
+      return pintarCuerpoAgenda()
+    }
+    // El chip de la fila va y vuelve; el botón de abajo solo va.
+    const verHechos = e.target.closest('[data-ver-hechos]')
+    if (verHechos) return cambiarVista(verHechos.classList.contains('torneos-chip-hechos') ? !vistaHechos : true)
+    if (e.target.closest('[data-volver-proximos]')) return cambiarVista(false)
+    if (e.target.closest('[data-quitar-filtros]')) {
+      filtroLista = 'todos'
+      buscaLista = ''
+      pintarFiltros()
+      return pintarCuerpoAgenda()
+    }
+    if (e.target.closest('#btnVerMasTerminados')) {
+      verTodosLosTerminados = true
+      return pintarCuerpoAgenda()
+    }
+  })
+  // El menú de ciudades se pinta FUERA de la fila, colgado de la página: en
+  // el móvil la fila se desliza de lado y su `overflow` lo recortaba entero.
+  // Se coloca bajo su chip al abrirse y se cierra al elegir, al tocar fuera
+  // o si la página se mueve.
+  const cerrarCiudades = () => {
+    document.getElementById('torneosCiudadMenu')?.remove()
+    const d = lista.querySelector('details.torneos-ciudad[open]')
+    if (d) d.open = false
+  }
+  lista.addEventListener('toggle', (e) => {
+    const d = e.target
+    if (!d.matches?.('details.torneos-ciudad')) return
+    document.getElementById('torneosCiudadMenu')?.remove()
+    if (!d.open) return
+    const r = d.querySelector('summary').getBoundingClientRect()
+    const menu = d.querySelector('.torneos-ciudad-menu').cloneNode(true)
+    menu.id = 'torneosCiudadMenu'
+    menu.hidden = false
+    menu.style.top = `${Math.round(r.bottom + 6)}px`
+    menu.style.left = `${Math.max(8, Math.min(Math.round(r.left), window.innerWidth - 226))}px`
+    menu.addEventListener('click', (ev) => {
+      const b = ev.target.closest('[data-ciudad]')
+      if (!b) return
+      filtroLista = 'persona'
+      ciudadLista = b.dataset.ciudad || null
+      // La ciudad elegida se queda para la próxima vez (la de quien vive en
+      // Bilbao es casi siempre Bilbao).
+      try { ciudadLista ? localStorage.setItem('pokedoc-torneos-ciudad', ciudadLista) : localStorage.removeItem('pokedoc-torneos-ciudad') } catch {}
+      cerrarCiudades()
+      pintarFiltros()
+      pintarCuerpoAgenda()
+    })
+    document.body.append(menu)
+  }, true)
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('torneosCiudadMenu')) return
+    if (e.target.closest('#torneosCiudadMenu, details.torneos-ciudad > summary')) return
+    cerrarCiudades()
+  })
+  window.addEventListener('scroll', cerrarCiudades, { passive: true })
+  lista.addEventListener('input', (e) => {
+    if (e.target.id !== 'torneosBuscar') return
+    buscaLista = e.target.value
+    pintarCuerpoAgenda()
   })
 }
 
@@ -498,16 +696,9 @@ async function cargarLista(session, perfil = null) {
   pintarCalendario()
   const ocupadasDe = {}
   const miEstado = {}
-  // Los primeros inscritos de cada torneo, para las caras de la tarjeta
-  // (tanda 297). Se corta en CARAS_POR_TARJETA: pedir el perfil de los
-  // 32 de cada uno de 50 torneos por enseñar cuatro es tirar la consulta
-  // a la basura.
-  const primerosDe = {}
   for (const i of inscripciones || []) {
     if (i.status === 'active') {
       ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
-      const ya = (primerosDe[i.tournament_id] ||= [])
-      if (ya.length < CARAS_POR_TARJETA) ya.push(i.user_id)
     }
     // `session?.user` y no `session.user`: sin cuenta esto reventaba, y
     // hasta la 252 daba igual porque la página echaba a quien no fuese
@@ -522,16 +713,15 @@ async function cargarLista(session, perfil = null) {
   const rondasDe = {}
   const ligasEnJuego = torneos.filter((t) => t.format === 'league' && t.status === 'in_progress').map((t) => t.id)
 
-  // UNA consulta de perfiles para tres cosas: quién de los creadores es
-  // admin del sitio (→ torneos oficiales), cómo se llama quien organiza
-  // y quién ganó, y las caras de los inscritos. Antes era una consulta
-  // solo para lo primero; pedir las otras dos por separado serían tres
-  // viajes para lo mismo. Si falla, la lista sigue sin caras ni nombres.
+  // UNA consulta de perfiles para dos cosas: quién de los creadores es
+  // admin del sitio (→ torneos oficiales) y la cara y el nombre de quien
+  // organiza y de quien ganó. Las caras de los inscritos se fueron con las
+  // tarjetas (1454): la fila dice cuántos son, y quiénes, la ficha. Si
+  // falla, la lista sigue sin caras ni nombres.
   const quienes = new Set()
   for (const t of torneos) {
     if (t.admin_id) quienes.add(t.admin_id)
     if (t.champion_id) quienes.add(t.champion_id)
-    for (const u of primerosDe[t.id] || []) quienes.add(u)
   }
   // Las rondas de las ligas y los perfiles salen de lo ya traído y no
   // dependen una de otra: a la vez (894, R3).
@@ -578,65 +768,61 @@ async function cargarLista(session, perfil = null) {
         : 'Todavía no hay ningún torneo. Entra con tu cuenta para crear el primero.'
   }
 
-  const tarjeta = (t) =>
-    tarjetaHtml(t, {
+  const yo = session?.user?.id || null
+  const fila = (t, tramo) =>
+    filaHtml(t, {
+      tramo,
       ocupadas: ocupadasDe[t.id] || 0,
       miEstado: miEstado[t.id] || null,
-      caras: (primerosDe[t.id] || []).map((u) => gente[u]).filter(Boolean),
       // «Organiza el equipo» y no el nombre del admin: un torneo oficial
       // lo firma PokeDoc, no la persona que le dio al botón.
       organiza: esOficial(t) ? 'Organiza el equipo' : gente[t.admin_id]?.username ? `Organiza ${gente[t.admin_id].username}` : '',
-      campeon: t.status === 'finished' ? gente[t.champion_id]?.username || null : null,
+      organizador: esOficial(t) ? null : gente[t.admin_id] || null,
       campeonPerfil: t.status === 'finished' ? gente[t.champion_id] || null : null,
-      soyCampeon: Boolean(session?.user?.id && t.status === 'finished' && t.champion_id === session.user.id),
-      puedeBorrar: puedeBorrarTorneo(perfil, t, session?.user?.id),
+      soyCampeon: Boolean(yo && t.status === 'finished' && t.champion_id === yo),
+      // Tu puesto en un terminado sale del podio guardado (como en el
+      // perfil, 1395): fuera del podio, «Jugaste».
+      puesto: yo && Array.isArray(t.podium) && t.podium.indexOf(yo) > 0 ? t.podium.indexOf(yo) + 1 : null,
+      puedeBorrar: puedeBorrarTorneo(perfil, t, yo),
+      puedeDuplicar: Boolean(yo) && ['finished', 'cancelled'].includes(t.status),
       rondas: rondasDe[t.id] || null,
       deTienda: esTorneoDeTienda(t, gente),
     })
-  // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
-  // (raro pero posible), el que empezó antes — es el que lleva prisa.
-  // Una liga en curso con sus rondas ya va EN VIVO en su tarjeta de la franja
-  // (1346): el aviso de arriba solo para los torneos de un día.
-  const vivoListo = pintarVivo(
-    torneos
-      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t) && !(t.format === 'league' && rondasDe[t.id]))
-      .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
-  )
 
-  const mios = torneos.filter((t) => miEstado[t.id] && t.status !== 'draft').map((t) => tarjeta(t))
-  const abiertas = torneos.filter((t) => t.status === 'registration_open').map((t) => tarjeta(t))
-  // «Por empezar» y «En juego» son cosas DISTINTAS, y hasta la tanda 248
-  // iban en el mismo montón: un torneo con las inscripciones cerradas
-  // salía bajo la pestaña «En juego» días antes de jugarse, mientras su
-  // propia chapa decía «Inscripciones cerradas». La misma pantalla se
-  // contradecía. En juego es lo que tiene la R1 arrancada, y nada más.
-  // Una liga entre jornadas está esperando a la siguiente (850): va con lo
-  // que está por empezar, no con lo que se juega ahora.
-  // Una LIGA EN CURSO (1303) va en su franja de arriba, con sus jornadas y su
-  // clasificación, y no repetida en «Por empezar» o «En juego» (sí en «Tus
-  // torneos»). Solo si se saben sus rondas: si no, va donde iba.
+  // «Por empezar» y «En juego» son cosas distintas (248) y lo siguen siendo
+  // en la chapa de cada fila; en la agenda van juntos, por fecha. Una LIGA EN
+  // CURSO (1303) va en su franja de arriba, con sus jornadas y su
+  // clasificación, y no repetida en la agenda (sí con «Los míos»). Solo si se
+  // saben sus rondas: si no, va donde iba.
   const ligasEnCurso = torneos.filter((t) => t.format === 'league' && t.status === 'in_progress' && rondasDe[t.id])
   const enFranja = new Set(ligasEnCurso.map((t) => t.id))
-  const porEmpezar = torneos.filter((t) => !enFranja.has(t.id) && (t.status === 'registration_closed' || (t.status === 'in_progress' && enPausa(t)))).map((t) => tarjeta(t))
-  const enJuegoT = torneos.filter((t) => !enFranja.has(t.id) && t.status === 'in_progress' && !enPausa(t))
-  const enJuego = enJuegoT.map((t) => tarjeta(t))
-  const ligasListas = pintarLigas(ligasEnCurso, { rondasDe, miEstado, ocupadasDe, gente, session })
+  const abiertas = torneos.filter((t) => t.status === 'registration_open')
+  const enJuego = torneos.filter((t) => !enFranja.has(t.id) && t.status === 'in_progress' && !enPausa(t))
+  const proximos = ordenarProximos(torneos.filter((t) => !enFranja.has(t.id) && ['registration_open', 'registration_closed', 'in_progress'].includes(t.status)))
   const acabados = torneos.filter((t) => ['finished', 'cancelled'].includes(t.status))
-  const terminados = (verTodosLosTerminados ? acabados : acabados.slice(0, TERMINADOS_DE_GOLPE)).map((t) => tarjeta(t))
-  const ocultos = acabados.length - terminados.length
-  const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
+  const ligasListas = pintarLigas(ligasEnCurso, { rondasDe, miEstado, ocupadasDe, gente, session })
 
   pintarSemana(conJornadas(torneos))
-  // Tu próximo torneo en la banda (1215): el más cercano en el que estás
-  // inscrito y que todavía no ha empezado.
+  // Tu próximo torneo (1215): el más cercano en el que estás inscrito y que
+  // todavía no ha empezado.
   const proximo = torneos
     .filter((t) => miEstado[t.id] && miEstado[t.id] !== 'dropped' && ['registration_open', 'registration_closed'].includes(t.status) && new Date(t.start_at) > Date.now() - 36e5)
     .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0]
+  // El tuyo en juego: el que manda arriba. Si hubiera dos (raro pero
+  // posible), el que empezó antes — es el que lleva prisa. Una liga en curso
+  // con sus rondas ya va EN VIVO en su tarjeta de la franja (1346).
+  const vivo = torneos
+    .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t) && !(t.format === 'league' && rondasDe[t.id]))
+    .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
+  // LO TUYO EN UNA PIEZA (1454): jugando, el combate manda y el próximo va
+  // en una línea debajo («Después: …»); sin jugar, el próximo es el cartel.
+  const vivoListo = pintarVivo(vivo, proximo || null)
   const cajaProximo = $('torneosProximo')
   if (cajaProximo) {
-    cajaProximo.innerHTML = proximo ? proximoHtml(proximo, ocupadasDe[proximo.id] || 0) : ''
-    cajaProximo.hidden = !proximo
-    document.querySelector('.torneos-heroe')?.classList.toggle('con-proximo', Boolean(proximo))
+    const enCartel = proximo && !vivo
+    cajaProximo.innerHTML = enCartel ? proximoHtml(proximo, ocupadasDe[proximo.id] || 0) : ''
+    cajaProximo.hidden = !enCartel
+    document.querySelector('.torneos-heroe')?.classList.toggle('con-proximo', Boolean(enCartel))
   }
   // Las cifras de la banda (1212), de los torneos ya cargados.
   // «En juego» cuenta también las ligas en curso (1303), y si solo hay ligas
@@ -647,19 +833,16 @@ async function cargarLista(session, perfil = null) {
   }
   const textoEnJuego = $('tNEnJuegoTexto')
   if (textoEnJuego) textoEnJuego.textContent = ligasEnCurso.length && !enJuego.length ? (ligasEnCurso.length === 1 ? 'liga en curso' : 'ligas en curso') : 'en juego'
-  pintarGrupos([
-    { id: 'mios', texto: 'Tus torneos', filas: mios },
-    { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
-    { id: 'porempezar', texto: 'Por empezar', filas: porEmpezar },
-    { id: 'enjuego', texto: 'En juego', filas: enJuego },
-    {
-      id: 'terminados',
-      texto: 'Terminados',
-      filas: terminados,
-      pie: ocultos > 0 ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasTerminados">Ver ${ocultos} más</button>` : '',
-    },
-    { id: 'borradores', texto: 'Borradores', filas: borradores },
-  ])
+  pintarAgenda({
+    proximos,
+    hechos: acabados,
+    borradores: borradoresDe(torneos, yo),
+    fila,
+    // «Los míos»: donde estás apuntado (o jugaste) y los que organizas tú.
+    mio: (t) => Boolean(miEstado[t.id]) || (Boolean(yo) && t.admin_id === yo),
+    oficial: esOficial,
+    organiza: (t) => gente[t.admin_id]?.username || '',
+  })
   // Lo de ahora, guardado para la próxima vez (894): ya, y otra vez cuando
   // lleguen la barra del torneo en juego y los sprites del meta.
   guardar()
@@ -667,7 +850,8 @@ async function cargarLista(session, perfil = null) {
   Promise.resolve(ligasListas).then(guardar, () => {})
   // Los torneos sin imagen llevan los sprites del meta (796, SI4).
   // Y los terminados, el mazo de su campeón (1216), encima de los del meta.
-  import('./arte-meta.js').then(async (m) => { await m.ponerArteDeCampeones(document, torneosCargados).catch(() => {}); await m.ponerArteDelMeta(document) }).catch(() => {}).then(guardar)
+  // (El del campeón lo pone ya la agenda al pintar los terminados.)
+  import('./arte-meta.js').then((m) => m.ponerArteDelMeta(document)).catch(() => {}).then(guardar)
 }
 
 // ── El calendario anual (tanda 242, pedido por Ibai) ──
@@ -959,6 +1143,7 @@ async function init() {
   }
   engancharFormulario(session, perfil)
   engancharVistas()
+  engancharAgenda()
   pintarMazoElegido()
   // «Crear uno» desde /colabora (1153): `?crear=1` abre el formulario ya.
   // Sin cuenta el botón está escondido y el formulario no serviría: se queda

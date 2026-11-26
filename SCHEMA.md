@@ -55231,6 +55231,40 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1454–1456 — /torneos como agenda
+
+`js/torneos/agenda-puro.js` (puro, lo prueba node): `ciudadDe(t)` (el último
+trozo de `direccion` tras la coma, sin código postal ni país; online → null),
+`ciudadesDe`, `tramoDe(t, ahora)` → `hoy` / `semana` (≤ 7 días de calendario)
+/ `luego`, `TRAMOS`, `ordenarProximos` (en juego delante, luego por fecha),
+`terminadosPorMes`, `filtrarTorneos(lista, { filtro, ciudad, busca, mio,
+oficial, organiza })` con `FILTROS = todos · mios · online · persona ·
+oficiales · ligas`, y `borradoresDe(torneos, userId)` (solo `admin_id ===
+userId`).
+
+`torneos.js`: `filaHtml(t, datos)` sustituye a `tarjetaHtml` (se quedan las
+clases `torneo-tarjeta`, `torneo-nombre`, `torneo-pie-accion`,
+`torneo-ocupacion-cifra`, `torneo-tarjeta-mas` y `torneo-tarjeta-mia`; nuevas
+`torneo-fila`, `-fecha` (`.hoy`/`.viva`), `-texto`, `-titulo`, `-sub`,
+`-donde`, `-quien`, `-plazas`, `-puesto` (`.oro`/`.suave`), `-der`,
+`-inscrito`, `-hecha`, `-borrador`, `data-torneo-id`). `pintarAgenda(datos)`
+pinta `nav.torneo-pestanas-chips.torneos-filtros` + `#torneosAgenda`; los
+filtros repintan solo el cuerpo (`pintarCuerpoAgenda`) para no perder el foco
+del buscador `#torneosBuscar`. Estado: `filtroLista` (`#mios` lo pone),
+`vistaHechos` (`#terminados`), `buscaLista`, `ciudadLista` (localStorage
+`pokedoc-torneos-ciudad`). Mandos delegados en `engancharAgenda()`:
+`[data-filtro-lista]`, `[data-ver-hechos]`, `[data-volver-proximos]`,
+`[data-quitar-filtros]`, `#btnVerMasTerminados`; el menú de ciudades se clona
+a `#torneosCiudadMenu` en `body` al abrir `details.torneos-ciudad`. Tramos:
+`section.torneos-tramo` con `h2.torneos-tramo-cab`; borradores
+`.torneos-tramo-borradores`, últimos `.torneos-ultimos` + `.torneos-ver-hechos`,
+cabecera de terminados `.torneos-hechos-cab`. `pintarVivo(torneo, despues)`:
+pide `rounds.id` y la mesa (`tournament_matches` por `round_id`) y el rival;
+`despuesHtml(t)` → `.torneo-vivo-despues`. `proximoHtml`: en persona
+«entrada en la puerta» y «Tu entrada» (`&ver=torneo`). Se fueron `arteDe`,
+`CARAS_POR_TARJETA` y las caras de los inscritos (la consulta de perfiles ya
+solo pide organizadores y campeones). `accionDe`: borrador con `corto: 'Editar'`.
+
 ## Tanda 1452 — Torneos en persona: creador, lista y ficha
 
 `crear-puro.js`: `PREGUNTAS` con `donde` y `lugar` tras `nombre`;
