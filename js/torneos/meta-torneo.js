@@ -160,7 +160,24 @@ export function metaHtml(meta, abierto, ayudas) {
   if (!meta.arquetipos.length) return '<p class="subtext">Todavía no hay listas que mirar.</p>'
   const elegido = abierto ? meta.arquetipos.find((g) => g.clave === abierto) : null
   if (elegido) return detalleHtml(elegido, meta, ayudas)
-  const filas = meta.arquetipos
+  // El MOSAICO (1449, «El torneo, de nuevo»; PINGU: «los mazos están como si
+  // fuese una lista… no me convence»): los seis más jugados en recuadros, el
+  // primero el doble de alto; el resto, en tarjetas pequeñas. Con muy pocos
+  // mazos (tres o menos) el mosaico no dice nada y van todos en tarjetas.
+  const enMosaico = meta.arquetipos.length > 3 ? meta.arquetipos.slice(0, 6) : []
+  const resto = meta.arquetipos.slice(enMosaico.length)
+  const teselas = enMosaico
+    .map(
+      (g, i) => `
+      <button type="button" class="torneo-meta-tesela tesela-${i + 1}" data-meta-arquetipo="${escapeHtml(g.clave)}">
+        <span class="torneo-meta-mazo">${ayudas.chapa(g.arq)}</span>
+        <strong class="torneo-meta-cuota">${pct(g.cuota)}</strong>
+        <span class="torneo-meta-nombre">${escapeHtml(g.arq.nombre)}</span>
+        <span class="subtext">${g.cuantos} ${g.cuantos === 1 ? 'jugador' : 'jugadores'} · mejor ${ordinal(g.mejorPuesto)}${g.porcentajeVictorias !== null ? ` · ${pct(g.porcentajeVictorias)} vict.` : ''}</span>
+      </button>`
+    )
+    .join('')
+  const filas = resto
     .map(
       (g) => `
       <li>
@@ -183,10 +200,11 @@ export function metaHtml(meta, abierto, ayudas) {
     : ''
   return `
     <div class="torneo-meta-resumen">
-      <p class="subtext">${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} · ${meta.arquetipos.length} ${meta.arquetipos.length === 1 ? 'mazo distinto' : 'mazos distintos'}.${ayudas.enJuego ? ' El torneo sigue en juego: los puestos van cambiando.' : ''} Pulsa uno para ver quién lo jugó.</p>
+      <p class="subtext">${meta.total} ${meta.total === 1 ? 'lista' : 'listas'} · ${meta.arquetipos.length} ${meta.arquetipos.length === 1 ? 'mazo distinto' : 'mazos distintos'}.${ayudas.enJuego ? ' El torneo sigue en juego: los puestos van cambiando.' : ''} Pulsa uno para ver sus cifras y quién lo jugó.</p>
       ${imagen}
     </div>
-    <ul class="torneo-meta-lista">${filas}</ul>`
+    ${teselas ? `<div class="torneo-meta-mosaico">${teselas}</div>` : ''}
+    ${filas ? `<ul class="torneo-meta-lista${teselas ? ' torneo-meta-lista-resto' : ''}">${filas}</ul>` : ''}`
 }
 
 // Una fila por jugador y no una tabla: con cinco columnas, en el móvil el

@@ -4,6 +4,114 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (697) — PINGU-Claude (1452 — Torneos en persona: el creador, la lista y la ficha)
+
+**Hecho** (sobre la base de la 1446; PINGU: las tres maneras de apuntarse a
+elegir, sin cuenta se la hace en la puerta, los crea todo el mundo):
+- El creador pregunta «¿Dónde se juega?» (Online · En persona). En persona:
+  el sitio y la dirección, «¿Cómo se apunta la gente?» con las tres maneras
+  (Piden plaza y les das entrada, recomendada · Solo tú los apuntas · Se
+  apuntan solos), sin check-in ni código. Se guarda con `modalidad`, `lugar`,
+  `direccion`, `inscripcion` y `checkin_minutes = 0`. Duplicar lo copia.
+- /torneos: la chapa «En persona» en la tarjeta.
+- La ficha: el sitio arriba de Info con «Cómo llegar» (Google Maps).
+  Apuntarse sin TCG Live («Pedir plaza»; la base recibe ''), y con «solo el
+  organizador», sin formulario. Inscrito: tu entrada con un QR
+  (`pokedoc-entrada:<torneo>:<usuario>`) que la puerta escaneará en la 1453;
+  si ya entraste, «Ya has entrado».
+
+**Ficheros**: `js/torneos/crear.js`, `js/torneos/crear-puro.js`,
+`css/torneo-crear.css`, `js/torneos/torneos.js`, `js/torneos/torneo.js`,
+`js/torneos/sala.js`, `css/torneos.css`. Prueba nueva:
+`test-tanda-1452-pantalla.mjs`; puestas al día 1434 y 266 (la pregunta nueva).
+
+**Pendiente**: **la web de esta tanda necesita la migración 1446**: online
+funciona sin ella (no se mandan las columnas nuevas), pero crear uno en
+persona avisa de que falta. Se sube cuando PINGU vaya a ejecutar la 1446.
+Luego 1453 (la puerta: escáner, dar entrada, al empezar solo quien entró).
+
+## 2026-11-26 (696) — PINGU-Claude (1451 — El Modo juez en consola y tickets que se cierran solos)
+
+**Hecho** (la propuesta «El torneo, de nuevo», punto 7):
+- El Modo juez es una consola: en el PC tres columnas, **tickets** (sin
+  check-in y los tickets) · **mesas** de la ronda (y debajo el resumen de las
+  listas) · **chat** de la mesa o el ticket que abras, donde escribes como
+  juez. En el móvil, tres vistas (Tickets · Mesas · Listas, con su cifra) y el
+  chat en una hoja desde abajo. Cuando no hay nada, lo dice.
+- Las listas ya no van debajo de todo: «11/12 entregadas · 9 selladas», quién
+  falta y «Ver las listas», que abre una ventana con buscador. Ya no se
+  repintan solas y no se cierra la que estás mirando.
+- Migración `supabase-migration-1451-tickets-que-se-cierran.sql`: un ticket
+  abierto o en curso se cierra solo cuando su mesa termina (resultado, bye o
+  no presentados) y todos los que queden cuando el torneo termina o se
+  cancela, con una nota que lo dice (la del juez, si la había, se respeta).
+  Limpia también los que ya estaban colgados.
+- Arreglado: abrir una mesa desde un ticket fuera del Modo juez entraba y
+  salía (el panel se marca con `hidden`, no con `activa`).
+
+**Ficheros**: `torneo.html` (panel `jueces`), `js/torneos/jueces.js`,
+`js/torneos/pestanas.js` (cuándo hay Modo juez), `css/torneos.css`, la
+migración. Pruebas: `test-tanda-1451.mjs` (PostgreSQL) y
+`test-tanda-1451-pantalla.mjs`.
+
+**Pendiente**: que PINGU ejecute la migración 1451 (la web no la necesita para
+funcionar: sin ella los tickets se cierran a mano, como antes). Luego 1452 y
+1453 (En persona) y «ver los torneos en general».
+
+## 2026-11-26 (695) — PINGU-Claude (1448, 1449 y 1450 — Clasificación, Mazos y Mesas, de nuevo)
+
+**Hecho** (la propuesta «El torneo, de nuevo», lo recomendado):
+- **1448 Clasificación**: el podio en una tira; debajo el Top 8 (o el corte si
+  es mayor), la línea del corte y TU fila aunque quedes lejos (con «…» antes).
+  «Ver los N jugadores» abre la tabla entera con un buscador que no pierde lo
+  escrito al repintar; «Ver solo el Top 8» vuelve. Fuera la columna de TCG
+  Live. **Info**: con el torneo empezado y más de diez inscritos, una fila de
+  diez caras con «+N» y «Ver los N»; la lista, plegada hasta que se pide.
+- **1449 Mazos**: los seis más jugados en un mosaico (el primero el doble de
+  alto, el segundo también en el PC), con su cuota, jugadores, mejor puesto y
+  % de victorias; el resto en tarjetas pequeñas. Tocar uno abre sus cifras
+  (las de la 1444).
+- **1450 Mesas**: cada mesa es una tarjeta: arriba número, «la tuya», marcador,
+  estado y «⋯»; debajo un jugador por línea con su casilla V / D / E. Filtros
+  Todas · Jugando · Disputa (si hay) · Cerradas con la ronda en juego, y un
+  buscador por nombre que se suma al filtro. Fuera la fila de cajas «Ronda N ·
+  Terminada»: las rondas son pastillas (las que faltan, apagadas; la saltada,
+  tachada) y el reloj va al lado del título. En el móvil, la tuya la primera.
+
+**Ficheros**: `js/torneos/ronda.js` (clasificación, mesas, pastillas),
+`js/torneos/torneo.js` (caras de Info), `js/torneos/meta-torneo.js`
+(mosaico), `css/torneos.css` (fuera el CSS de la línea de tiempo y de los
+filtros viejos). Pruebas nuevas: 1448, 1449 y 1450 (pantalla); puestas al día
+298, 421, 833 y 849 (las dos últimas además abren el «⋯» antes de pulsar lo
+plegado, que llevaba rojo desde la 1344).
+
+**Pendiente**: 1451 (Modo juez en consola). En la 849 sigue en rojo lo del
+editor de ligas («Rondas por jornada»), que no es de estas tandas. Sin
+migración.
+
+## 2026-11-26 (694) — PINGU-Claude (1447 — El torneo, de nuevo: pestañas fijas y Modo juez)
+
+**Hecho** (la propuesta «El torneo, de nuevo», PINGU: «adelante con todo lo
+recomendado»; las tandas de En persona pasan a la 1452 y la 1453):
+- Las pestañas en UN orden fijo: Tu mesa · Clasificación · Mesas · Mazos ·
+  Info (y Jugadores antes de empezar). Cambia la que se abre, no dónde está
+  cada una. «Hoy» es «Tu mesa» (icono de mando), «Tabla» es «Clasificación»
+  («Clasif.» en el móvil) y los mazos vuelven a tener pestaña («Mazos»).
+- `?ver=meta` abre Mazos; sin listas a la vista, Clasificación.
+- Jueces sale de la fila: «Modo juez» en la cabecera (con los tickets que
+  esperan) cambia la ficha a la consola, sin pestañas, con su barra y «Volver
+  al torneo».
+- Al terminar, Tu mesa es «Tu torneo»: puesto final, récord, el camino, contra
+  quién jugaste ronda a ronda, «Mi lista» y «Compartir».
+
+**Ficheros**: `js/torneos/pestanas.js`, `js/torneos/ronda.js` (Tu torneo),
+`torneo.html` (panel `meta` y la barra del juez), `css/torneos.css`,
+`normas/jugar.md` (el orden fijo y el Modo juez). Prueba nueva:
+`test-tanda-1447-pantalla.mjs`; puestas al día 1341, 1352, 1375 y 1378.
+
+**Pendiente**: 1448 (Clasificación e Info), 1449 (Mazos), 1450 (Mesas), 1451
+(Modo juez en consola). Sin migración.
+
 ## 2026-11-26 (693) — PINGU-Claude (1446 — Torneos en persona: la base)
 
 **Hecho** (la propuesta «Torneos en persona»; PINGU: las tres maneras de

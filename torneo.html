@@ -363,9 +363,13 @@
         <h3>Clasificación</h3>
         <div id="clasificacionContenido"></div>
       </div>
-      <!-- El META (tanda 413: qué mazos se jugaron y quién jugó cada uno; solo
-           cuando las listas pueden verse) es desde la 1378 un apartado de Tabla,
-           no una pestaña: una pestaña menos (PINGU, «que no tenga mucha cosa»). -->
+    </section>
+
+    <!-- Pestaña MAZOS (1447, «El torneo, de nuevo»): el META (tanda 413: qué
+         mazos se jugaron y quién jugó cada uno; solo cuando las listas pueden
+         verse). De la 1378 a la 1446 fue un apartado de Tabla, al fondo de 60
+         filas: PINGU, «al scrollar hacia abajo te encuentras los mazos». -->
+    <section class="torneo-panel" data-panel="meta">
       <div class="simple-card hidden" id="torneoMetaCaja">
         <h3>Los mazos del torneo</h3>
         <div id="metaContenido"></div>
@@ -377,29 +381,66 @@
          decklists del torneo. Solo para jueces aprobados y el
          organizador. -->
     <section class="torneo-panel" data-panel="jueces">
+      <!-- El MODO JUEZ (1447): se entra desde el botón de la cabecera y esta
+           barra dice dónde estás y cómo volver. -->
+      <div class="torneo-juezbar" id="torneoJuezBar">
+        <span class="torneo-juezbar-titulo" id="torneoJuezBarTitulo">Modo juez</span>
+        <button type="button" class="btn-secondary torneo-juezbar-salir" data-salir-juez>Volver al torneo</button>
+      </div>
       <div class="torneo-juez-cifras hidden" id="torneoJuezCifras"></div>
-      <!-- Lo primero, porque es lo que corre prisa (tanda 394): quién no
-           ha hecho check-in en la ronda viva, para avisarle y, si no
-           aparece, darle de baja. La baja la da siempre un juez. -->
-      <div class="simple-card hidden" id="torneoSinCheckinCaja">
-        <h3>Sin check-in</h3>
-        <div id="sinCheckinContenido"></div>
+      <!-- La CONSOLA (1451, «El torneo, de nuevo»; PINGU: «la interfaz de juez
+           es horrible… las decklists ahí abajo, scroll infinito»): en el PC tres
+           columnas (tickets · mapa de mesas · chat de lo abierto); en el móvil,
+           tres vistas con esta fila y el chat en una hoja. Las listas, en una
+           ventana con buscador. -->
+      <div class="seg torneo-juez-vistas" id="torneoJuezVistas" role="group" aria-label="Qué ver"></div>
+      <div class="torneo-juez-consola" id="torneoJuezConsola" data-vista="tickets">
+        <div class="torneo-juez-col" data-col="tickets">
+          <!-- Lo primero, porque es lo que corre prisa (tanda 394): quién no
+               ha hecho check-in en la ronda viva, para avisarle y, si no
+               aparece, darle de baja. La baja la da siempre un juez. -->
+          <div class="simple-card hidden" id="torneoSinCheckinCaja">
+            <h3>Sin check-in</h3>
+            <div id="sinCheckinContenido"></div>
+          </div>
+          <div class="simple-card hidden" id="torneoColaCaja">
+            <h3>Tickets</h3>
+            <div id="colaContenido"></div>
+          </div>
+          <p class="subtext torneo-juez-nada" id="torneoJuezNada">Sin tickets ni disputas: todo en orden.</p>
+        </div>
+        <div class="torneo-juez-col" data-col="mesas">
+          <!-- Las mesas de la ronda para el juez (1441): el mapa con el estado
+               de cada una; al tocarla, su chat sale en la columna de al lado. -->
+          <div class="simple-card hidden" id="torneoMesasJuezCaja">
+            <h3>Mesas de la ronda</h3>
+            <div id="mesasJuezContenido"></div>
+          </div>
+          <p class="subtext torneo-juez-nada" id="torneoJuezSinMesas">Sin ronda en juego: no hay mesas que mirar.</p>
+        </div>
+        <div class="torneo-juez-col" data-col="listas">
+          <div class="simple-card hidden" id="torneoDecklistsJuezCaja">
+            <h3>Listas</h3>
+            <div id="listasJuezResumen"></div>
+          </div>
+        </div>
+        <div class="torneo-juez-col" data-col="chat">
+          <div class="simple-card torneo-juez-chat" id="torneoJuezChatCaja">
+            <p class="subtext torneo-juez-chat-vacio">Toca una mesa o un ticket para ver su chat y escribir como juez.</p>
+            <div class="torneo-juez-mesa-abierta hidden" id="mesaJuezAbierta"></div>
+          </div>
+        </div>
       </div>
-      <div class="simple-card hidden" id="torneoColaCaja">
-        <h3>Tickets</h3>
-        <div id="colaContenido"></div>
-      </div>
-      <!-- Las mesas de la ronda para el juez (1441): el mapa con el estado de
-           cada una y, al tocarla, su chat, en el que el juez escribe. -->
-      <div class="simple-card hidden" id="torneoMesasJuezCaja">
-        <h3>Mesas de la ronda</h3>
-        <div id="mesasJuezContenido"></div>
-        <div class="torneo-juez-mesa-abierta hidden" id="mesaJuezAbierta"></div>
-      </div>
-      <div class="simple-card hidden" id="torneoDecklistsJuezCaja">
-        <h3>Decklists del torneo</h3>
-        <div id="decklistsJuezContenido"></div>
-      </div>
+      <dialog class="torneo-lista-ventana" id="torneoListasJuez" aria-labelledby="torneoListasJuezTitulo">
+        <div class="simple-card">
+          <div class="torneo-lista-ventana-cab">
+            <h3 id="torneoListasJuezTitulo">Las listas del torneo</h3>
+            <button type="button" class="torneo-lista-cerrar" data-cerrar-listas aria-label="Cerrar"></button>
+          </div>
+          <label class="torneo-buscar-gente"><span class="sr-only">Busca un jugador</span><input type="search" id="listasJuezBuscar" placeholder="Busca un jugador" autocomplete="off" enterkeyhint="search" /></label>
+          <div id="decklistsJuezContenido"></div>
+        </div>
+      </dialog>
     </section>
     </div>
     <!-- La columna de la derecha del PC (1345) y, en el móvil, la hoja que

@@ -52,17 +52,49 @@ let reloj = null
 // El tictac del reloj, a mano (1343): «Tu partida» se repinta entera y su
 // anillo nace en «–:––»; se llama al momento para no esperar al segundo.
 let tictacYa = null
-// Qué mesas se ven en Rondas (1344): todas, las que faltan o las terminadas.
+// Qué mesas se ven en Mesas (1344; 1450 por estado): todas, jugando, en
+// disputa o cerradas. Y lo que se busca: «¿dónde juega rubengp?».
 let filtroMesas = 'todas'
+let mesasBusca = ''
 
-// Los filtros salen con la ronda en juego y más de cuatro mesas: con menos,
-// se ven todas de un vistazo.
+// Los filtros salen con más de cuatro mesas: con menos, se ven todas de un
+// vistazo. Por estado solo con la ronda en juego (en una cerrada todas lo
+// están); el buscador, siempre.
 function filtroDeMesasHtml(ronda) {
   const mesas = partidas.filter((m) => m.round_id === ronda.id)
-  if (ronda.status !== 'active' || mesas.length <= 4) return ''
-  const faltan = mesas.filter((m) => !TERMINALES.has(m.status) && m.status !== 'bye').length
-  const opcion = (id, texto) => `<button type="button" class="seg-btn${filtroMesas === id ? ' activa' : ''}" data-filtro-mesas="${id}">${texto}</button>`
-  return `<div class="seg torneo-mesas-filtro">${opcion('todas', `Todas · ${mesas.length}`)}${opcion('faltan', `Faltan · ${faltan}`)}${opcion('terminadas', `Terminadas · ${mesas.length - faltan}`)}</div>`
+  if (mesas.length <= 4) return ''
+  const cuenta = { jugando: 0, disputa: 0, cerrada: 0, espera: 0 }
+  for (const m of mesas) cuenta[estadoDeMesa(m)]++
+  const opcion = (id, texto, n) => `<button type="button" class="seg-btn${filtroMesas === id ? ' activa' : ''}" data-filtro-mesas="${id}">${texto}${n != null ? ` · ${n}` : ''}</button>`
+  const seg =
+    ronda.status === 'active'
+      ? `<div class="seg torneo-mesas-filtro" role="group" aria-label="Qué mesas ver">${opcion('todas', 'Todas', mesas.length)}${opcion('jugando', 'Jugando', cuenta.jugando + cuenta.espera)}${cuenta.disputa || filtroMesas === 'disputa' ? opcion('disputa', 'Disputa', cuenta.disputa) : ''}${opcion('cerradas', 'Cerradas', cuenta.cerrada)}</div>`
+      : ''
+  return `${seg}<label class="torneo-mesas-buscar"><span class="sr-only">Busca un jugador</span>${icons.search?.(16) || ''}<input type="search" id="torneoMesasBuscar" placeholder="Busca un jugador" autocomplete="off" enterkeyhint="search"></label>`
+}
+
+// Filtra a mano, sin repintar (1450): el buscador se queda con su foco y
+// lo que lleva escrito, y el filtro por estado se suma a la búsqueda.
+function filtrarMesas() {
+  const caja = $('mesasContenido')
+  if (!caja) return
+  const q = mesasBusca.trim().toLowerCase()
+  const pasaEstado = (e) =>
+    filtroMesas === 'todas' ||
+    (filtroMesas === 'jugando' && (e === 'jugando' || e === 'espera')) ||
+    (filtroMesas === 'disputa' && e === 'disputa') ||
+    (filtroMesas === 'cerradas' && e === 'cerrada')
+  let vistas = 0
+  caja.querySelectorAll('.torneo-mesa[data-estado]').forEach((el) => {
+    const pasa = pasaEstado(el.dataset.estado) && (!q || (el.dataset.nombres || '').includes(q))
+    el.classList.toggle('hidden', !pasa)
+    if (pasa) vistas++
+  })
+  const nada = $('torneoMesasNada')
+  if (nada) {
+    nada.textContent = q ? `Nadie se llama «${mesasBusca.trim()}» en esta ronda.` : 'Ninguna mesa así ahora mismo.'
+    nada.classList.toggle('hidden', vistas > 0)
+  }
 }
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 // Los arquetipos (tanda 230): userId → {id, nombre, iconos, curado}.
@@ -1808,13 +1840,20 @@ function pintarMesas(ronda) {
       // quién se la llevó, sin leer la chapa.
       const pierdeA = terminal && ganaB
       const pierdeB = terminal && ganaA && m.status !== 'bye'
+      // 1450: cada jugador en SU línea, como un marcador (PINGU: «visualmente
+      // es horripilante»: con los dos en una fila, los nombres salían
+      // cortados). A la derecha, la casilla: V al que gana, D al que pierde,
+      // E en un empate y «–» si no se presentó nadie.
+      const empate = terminal && outcomeDe(m) === 'draw'
+      const casilla = (gana, pierde) => (gana ? 'V' : pierde ? 'D' : empate ? 'E' : m.status === 'forfeit_both' ? '–' : '')
       const lado = (id, gana, listo, derecha) =>
         id
           ? `<span class="torneo-mesa-lado ${gana ? 'gana' : ''} ${(derecha ? pierdeB : pierdeA) ? 'pierde' : ''} ${derecha ? 'der' : ''}">
               ${caraDe(id)}
               <span class="torneo-mesa-jugador">${escapeHtml(nombreDe(id))}${yo === id ? ' <em>(tú)</em>' : ''}</span>
               ${chapaDe(id)}
-              ${listo ? '<span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''}
+              ${listo && !terminal ? `<span class="torneo-mesa-listo" title="Check-in hecho">${icons.checkCircle?.(14) || ''}</span>` : ''}
+              <span class="torneo-mesa-res" aria-hidden="${casilla(gana, derecha ? pierdeB : pierdeA) ? 'false' : 'true'}">${casilla(gana, derecha ? pierdeB : pierdeA)}</span>
             </span>`
           : '<span class="torneo-mesa-lado der"><span class="torneo-mesa-bye">BYE</span></span>'
       // El organizador (o un juez) puede resolver a mano cualquier mesa
@@ -1847,14 +1886,17 @@ function pintarMesas(ronda) {
               .join('')}</div>`
           : ''
       return `
-      <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'} torneo-mesa-${estadoDeMesa(m)}">
-        <span class="torneo-mesa-num">${m.table_number}</span>
+      <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'} torneo-mesa-${estadoDeMesa(m)}" data-nombres="${escapeHtml([m.player_a_id, m.player_b_id].filter(Boolean).map((id) => nombreDe(id).toLowerCase()).join(' '))}" data-estado="${estadoDeMesa(m)}">
+        <div class="torneo-mesa-top">
+          <span class="torneo-mesa-num" aria-label="Mesa ${m.table_number}">${m.table_number}</span>
+          <span class="torneo-mesa-rotulo">Mesa ${m.table_number}${esMia ? ' · la tuya' : ''}</span>
+          <span class="torneo-mesa-centro">${terminal && res && res.score_a != null && res.score_b != null && m.status !== 'bye' ? `<b class="torneo-mesa-marcador">${res.score_a}–${res.score_b}</b>` : ''}${chapaDeMesa(m)}</span>
+          ${masDeMesa(terminal ? resolver : '', repeticionesDeMesaHtml(m, { enRondas: true }))}
+        </div>
         ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
-        <span class="torneo-mesa-centro">${terminal && res && res.score_a != null && res.score_b != null && m.status !== 'bye' ? `<b class="torneo-mesa-marcador">${res.score_a}–${res.score_b}</b>` : ''}${chapaDeMesa(m)}</span>
         ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
         ${terminal ? '' : resolver}
         ${enfrentados}
-        ${masDeMesa(terminal ? resolver : '', repeticionesDeMesaHtml(m, { enRondas: true }))}
       </div>`
     })
     .join('')
@@ -1865,7 +1907,7 @@ function pintarMesas(ronda) {
   // `data-etiqueta`, porque nunca fue una tabla.
   // El mapa (1392, modo juego): cada mesa con el color de su estado y, arriba,
   // la leyenda con cuántas hay de cada uno.
-  return `${leyendaDeMesasHtml(mesas)}<div class="torneo-mesas torneo-mesas-mapa">${filas}</div>`
+  return `${leyendaDeMesasHtml(mesas)}<div class="torneo-mesas torneo-mesas-mapa torneo-mesas-tarjetas">${filas}<p class="subtext torneo-mesas-nada hidden" id="torneoMesasNada">Ninguna mesa con ese nombre.</p></div>`
 }
 
 // El estado de una mesa en el mapa (1392): jugando (violeta y latiendo),
@@ -2055,76 +2097,10 @@ function pintarRondas() {
       }</button></div></details>`
     }
   }
-  // El reloj protagonista, como la pantalla «ronda actual» del original:
-  // con ronda viva, la cuenta atrás preside la pestaña (en el cut, el
-  // recordatorio de que se juega a acabar). Lo alimenta arrancarReloj.
-  // El reloj GIGANTE de esta pestaña se va (tanda 298). Con la barra
-  // viva pegada arriba, que ya lleva el anillo, aquí había tres relojes
-  // a la vez diciendo lo mismo. El que queda es el de la línea de
-  // tiempo, dentro del paso que se está jugando — que además dice DÓNDE
-  // está ese tiempo, cosa que un número suelto no hacía.
-  //
-  // La LÍNEA DE TIEMPO del torneo (tanda 298): un paso por ronda
-  // prevista, más el top cut si lo hay. De un vistazo se ve por dónde va
-  // todo, no solo el número de la ronda de turno — que es lo único que
-  // decía la línea de texto de antes.
-  // Un paso de la línea. Una ronda viva CON límite enseña su cuenta
-  // atrás; una sin límite (el top cut se juega a acabar) lo dice.
-  const pasoDe = (rotulo, r) => ({
-    rotulo,
-    estado: !r
-      ? 'Por jugar'
-      : r.status === 'active'
-        ? (r.ends_at ? '–:––' : 'Sin límite')
-        : r.status === 'finished'
-          ? (rondaSaltada(r) ? 'No se jugó' : 'Terminada')
-          : 'Pareada',
-    clase: !r ? '' : r.status === 'active' ? 'viva' : r.status === 'finished' ? 'fin' : 'lista',
-    reloj: Boolean(r && r.status === 'active' && r.ends_at),
-  })
-  const previstas = ctx.torneo.swiss_rounds || 0
-  const pasos = []
-  if (esLiga() && rondasPorJornada(ctx.torneo) > 1) {
-    // Un paso por JORNADA (849): treinta pasos para diez jornadas no se
-    // leen. Dentro, la ronda que se juega o cuántas van.
-    const k = rondasPorJornada(ctx.torneo)
-    for (let j = 1; j <= numJornadas(ctx.torneo); j++) {
-      const delJ = rondas.filter((x) => x.phase !== 'top_cut' && jornadaDeRonda(ctx.torneo, x.round_number) === j)
-      const viva = delJ.find((x) => x.status !== 'finished')
-      const todas = delJ.length >= k && delJ.every((x) => x.status === 'finished')
-      if (viva) pasos.push(pasoDe(`Jornada ${j} · R${rondaEnJornada(ctx.torneo, viva.round_number)}`, viva))
-      else if (todas) pasos.push(pasoDe(`Jornada ${j}`, delJ[delJ.length - 1]))
-      else if (delJ.length) pasos.push({ rotulo: `Jornada ${j}`, estado: `${delJ.length} de ${k} rondas`, clase: 'lista' })
-      else pasos.push(pasoDe(`Jornada ${j}`, null))
-    }
-  } else {
-    for (let n = 1; n <= previstas; n++) {
-      pasos.push(pasoDe(`${esLiga() ? 'Jornada' : 'Ronda'} ${n}`, rondas.find((x) => x.phase !== 'top_cut' && x.round_number === n)))
-    }
-  }
-  for (const r of rondas.filter((x) => x.phase === 'top_cut')) pasos.push(pasoDe(`Top cut R${r.round_number}`, r))
-  if (ctx.torneo.top_cut_size && !rondas.some((r) => r.phase === 'top_cut')) {
-    pasos.push({ rotulo: `Top ${ctx.torneo.top_cut_size}`, estado: 'Por jugar', clase: '' })
-  }
-  // En una liga de varias rondas por jornada (1350), la línea de diez cajas con
-  // su barra de desplazamiento se va: la tira de jornadas de las mesas hace
-  // de línea y de selector a la vez.
-  // Hasta la primera ronda no hay mesas ni tira: ahí la línea sigue saliendo.
-  const lineaDeLiga = esLiga() && rondasPorJornada(ctx.torneo) > 1 && rondas.some((r) => r.phase !== 'top_cut')
-  const linea = lineaDeLiga
-    ? '<span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>'
-    : pasos.length
-    ? `<div class="torneo-linea">${pasos
-        .map(
-          (p) =>
-            `<div class="torneo-paso ${p.clase}"><span class="torneo-paso-r">${escapeHtml(p.rotulo)}</span>` +
-            // El paso que se juega lleva el RELOJ dentro: lo rellena el
-            // tictac de arrancarReloj, igual que hacía el reloj gigante.
-            `<span class="torneo-paso-e"${p.reloj ? ' id="cuentaGrande" role="timer" aria-label="Tiempo restante de la ronda"' : ''}>${escapeHtml(p.estado)}</span></div>`
-        )
-        .join('')}</div>
-      <span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>`
-    : ''
+  // 1450: fuera la fila de cajas «Ronda N · Terminada» (PINGU: «visualmente
+  // es horripilante»). Las rondas son las pastillas de encima de las mesas y
+  // el reloj va al lado de su título; aquí solo queda el aviso del check-in.
+  const linea = '<span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>'
   // Esta caja es la cabecera del panel de rondas: el reloj grande, el
   // aviso de check-in y los botones del organizador. Rehacerla en cada
   // refresco movía TODO lo que hay debajo — «Tu partida» incluida — y es
@@ -2246,6 +2222,29 @@ function textoDelMando(actual) {
   return p.todas ? `${nombre}: todas las mesas han terminado` : `${nombre} en juego`
 }
 
+// Las pastillas de las rondas (1450): las jugadas se tocan para ver sus mesas;
+// las que faltan, apagadas, para saber cuántas quedan (lo único que contaba la
+// fila de cajas «Ronda N · Terminada», que se fue). Una saltada lo dice.
+function chipsDeRondasHtml(vista) {
+  const t = ctx.torneo
+  const corto = (n) => (esLiga() ? nombreDeRondaDeLiga(t, n, { corto: true }) : `R${n}`)
+  const suizas = rondas.filter((r) => r.phase !== 'top_cut')
+  const cortes = rondas.filter((r) => r.phase === 'top_cut')
+  const partes = []
+  for (let n = 1; n <= Math.max(t.swiss_rounds || 0, suizas.length); n++) {
+    const r = suizas.find((x) => x.round_number === n)
+    if (!r) {
+      partes.push(`<span class="torneo-ronda-chip futura" title="Por jugar">${escapeHtml(corto(n))}</span>`)
+      continue
+    }
+    const estado = r.status === 'active' ? ' viva' : rondaSaltada(r) ? ' saltada' : ''
+    partes.push(`<button type="button" class="torneo-ronda-chip${estado}${vista?.id === r.id ? ' activa' : ''}" data-ver-ronda="${r.id}"${rondaSaltada(r) ? ' title="No se jugó"' : ''}>${escapeHtml(corto(r.round_number))}</button>`)
+  }
+  for (const r of cortes) partes.push(`<button type="button" class="torneo-ronda-chip${r.status === 'active' ? ' viva' : ''}${vista?.id === r.id ? ' activa' : ''}" data-ver-ronda="${r.id}">Cut R${r.round_number}</button>`)
+  if (t.top_cut_size && !cortes.length) partes.push(`<span class="torneo-ronda-chip futura" title="Por jugar">Top ${t.top_cut_size}</span>`)
+  return partes.length > 1 ? `<div class="torneo-rondas-chips" role="group" aria-label="Rondas">${partes.join('')}</div>` : ''
+}
+
 // Lo que va DEBAJO de la cabecera de rondas. Vive aparte para poder
 // pintarlo aunque la cabecera no haya cambiado (ver pintarRondas).
 function pintarRondasResto(actual) {
@@ -2257,15 +2256,8 @@ function pintarRondasResto(actual) {
   // /ronda/:n del original, aquí como pestañitas). Sin elegir, la viva.
   const elegida = rondas.find((r) => r.id === rondaVista) || null
   const paraMesas = elegida || actual || rondas[rondas.length - 1]
-  const pestanas = selectorDeLigaHtml(paraMesas) ?? (
-    rondas.length > 1
-      ? `<div class="torneo-rondas-chips">${rondas
-          .map(
-            (r) =>
-              `<button class="torneo-ronda-chip ${paraMesas?.id === r.id ? 'activa' : ''}" data-ver-ronda="${r.id}">${r.phase === 'top_cut' ? `Cut R${r.round_number}` : esLiga() ? nombreDeRondaDeLiga(ctx.torneo, r.round_number, { corto: true }) : `R${r.round_number}`}</button>`
-          )
-          .join('')}</div>`
-      : '')
+  const deLiga = selectorDeLigaHtml(paraMesas)
+  const pestanas = deLiga ?? chipsDeRondasHtml(paraMesas)
   // Igual que «Tu partida»: la tabla de mesas se vuelve a montar con cada
   // evento en vivo del torneo, y ahí dentro están los botones del juez.
   // Si sale el mismo HTML, no se toca (y así los escuchas de abajo tampoco
@@ -2275,22 +2267,40 @@ function pintarRondasResto(actual) {
   // si ya puede cerrar.
   const contador =
     paraMesas?.status === 'active' ? contadorDeMesasHtml(progresoDeMesas(partidas.filter((m) => m.round_id === paraMesas.id))) : ''
+  // 1450: el reloj de la ronda va al lado del título (antes vivía en la fila
+  // de cajas «Ronda N · Terminada», que se fue); en una liga lo lleva su tira.
+  const relojMesas = !deLiga && paraMesas?.status === 'active' && paraMesas.ends_at ? '<span class="torneo-mesas-reloj" id="cuentaGrande" role="timer" aria-label="Tiempo restante de la ronda">–:––</span>' : ''
+  const mandos = pestanas || filtroDeMesasHtml(paraMesas || {})
   const htmlMesas = paraMesas
-    ? `${filtroDeMesasHtml(paraMesas)}<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${nombreDeRonda(paraMesas.round_number)}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
+    ? `<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${nombreDeRonda(paraMesas.round_number)}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${relojMesas}${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${mandos ? `<div class="torneo-mesas-mandos${deLiga ? ' con-liga' : ''}">${pestanas}${filtroDeMesasHtml(paraMesas)}</div>` : ''}${pintarMesas(paraMesas)}`
     : ''
   // El reloj se rearma SIEMPRE, antes de la guarda: se apaga y se vuelve
   // a poner en cada pasada, y saltárselo lo dejaría parado.
   arrancarReloj(actual)
   if (yaEstaPintado('mesas', htmlMesas)) return
   $('mesasContenido').innerHTML = htmlMesas
-  $('mesasContenido').dataset.filtro = filtroMesas
+  // Lo escrito en el buscador sobrevive a los repintados en vivo: se pone
+  // DESPUÉS de pintar (dentro del HTML, cada tecla cambiaría el HTML y
+  // repintaría la lista entera).
+  const buscador = $('torneoMesasBuscar')
+  if (buscador) {
+    buscador.value = mesasBusca
+    buscador.addEventListener('input', () => {
+      mesasBusca = buscador.value
+      filtrarMesas()
+    })
+  } else mesasBusca = ''
+  if (!$('mesasContenido').querySelector(`[data-filtro-mesas="${filtroMesas}"]`)) filtroMesas = 'todas'
   $('mesasContenido').querySelectorAll('[data-filtro-mesas]').forEach((b) =>
     b.addEventListener('click', () => {
       filtroMesas = b.dataset.filtroMesas
-      $('mesasContenido').dataset.filtro = filtroMesas
       $('mesasContenido').querySelectorAll('[data-filtro-mesas]').forEach((o) => o.classList.toggle('activa', o === b))
+      filtrarMesas()
     })
   )
+  filtrarMesas()
+  // El reloj de al lado del título nace en «–:––»: se rellena ya.
+  tictacYa?.()
   document.querySelectorAll('[data-ver-ronda]').forEach((b) =>
     b.addEventListener('click', () => {
       rondaVista = b.dataset.verRonda
@@ -3211,6 +3221,12 @@ function caminoHtml(yo) {
 // ronda. Y si el organizador activó «listas a la vista», cada fila lleva
 // un «Ver lista» que abre la decklist del rival — solo con el torneo ya
 // en juego, que las listas se sellan al arrancar la R1.
+// La clasificación corta (1448, «El torneo, de nuevo»; PINGU: «hay que
+// scrollear un montonazo cuando hay muchísimos participantes»): el Top 8 (o el
+// corte, si es mayor) y tu fila; la entera con «Ver los N», con buscador.
+let clasifTodos = false
+let clasifBusca = ''
+const CLASIF_CORTA = 8
 let vistaClasificacion = 'general' // 'general' o el número de una jornada
 let listaRivalAbierta = null // user_id de la lista abierta en su ventana (tanda 394)
 let historialAbierto = null // user_id del historial de partidas desplegado
@@ -3505,6 +3521,21 @@ function pintarComoVas() {
   const caja = $('torneoComoVas')
   if (!caja) return
   const yo = miId()
+  const titulo = caja.querySelector('h3')
+  // Terminado, «Tu puesto» pasa a ser «Tu torneo» (1447): el puesto FINAL (el
+  // del corte manda), tu camino entero y contra quién jugaste.
+  if (ctx.torneo.status === 'finished' && !esLiga()) {
+    const html = tuTorneoHtml(yo)
+    caja.classList.toggle('hidden', !html)
+    if (!html) return olvidarPintado('comoVas')
+    if (titulo) titulo.textContent = 'Tu torneo'
+    caja.classList.add('torneo-tu-torneo')
+    if (yaEstaPintado('comoVas', html)) return
+    $('comoVasContenido').innerHTML = html
+    return
+  }
+  caja.classList.remove('torneo-tu-torneo')
+  if (titulo) titulo.textContent = 'Tu puesto'
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
   const tabla = yo && hayPuntos ? computeStandings(montarSnapshot(rondas.length)) : []
   const i = tabla.findIndex((e) => e.playerId === yo)
@@ -3525,6 +3556,66 @@ function pintarComoVas() {
   $('comoVasContenido').querySelector('[data-ir-pestana]')?.addEventListener('click', () => {
     document.querySelector('#torneoPestanas [data-pestana="clasificacion"]')?.click()
     window.scrollTo({ top: 0, behavior: 'instant' })
+  })
+}
+
+// «Tu torneo» (1447, «El torneo, de nuevo»): con el torneo terminado, lo tuyo
+// en una tarjeta. El puesto es el del ORDEN FINAL (el corte manda, como en la
+// clasificación), las rondas son tu camino y debajo, ronda a ronda, contra quién
+// jugaste y cómo acabó (con su mazo si las listas se ven, regla 230).
+function tuTorneoHtml(yo) {
+  if (!yo) return ''
+  const orden = clasificacionFinal()
+  const i = orden.findIndex((e) => e.playerId === yo)
+  if (i < 0) return ''
+  const e = orden[i]
+  const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`
+  const mias = partidas
+    .filter((m) => (m.player_a_id === yo || m.player_b_id === yo) && TERMINALES.has(m.status))
+    .map((m) => ({ m, r: rondas.find((x) => x.id === m.round_id) }))
+    .filter((x) => x.r)
+    .sort((a, b) => (a.r.phase === 'top_cut') - (b.r.phase === 'top_cut') || a.r.round_number - b.r.round_number)
+  const filas = mias
+    .map(({ m, r }) => {
+      const rival = m.player_a_id === yo ? m.player_b_id : m.player_a_id
+      const t = resultadoParaJugadorEn(m, yo).texto
+      const clase = { V: 'gana', D: 'pierde', E: 'empata' }[t] || 'bye'
+      const ronda = r.phase === 'top_cut' ? 'Top' : `R${r.round_number}`
+      return `<li class="torneo-tt-rival">
+        <span class="torneo-tt-ronda">${ronda}</span>
+        <span class="torneo-tt-res ${clase}">${t === 'Bye' ? 'B' : escapeHtml(t)}</span>
+        <span class="torneo-tt-nombre">${rival ? escapeHtml(nombreDe(rival)) : 'Bye'}</span>
+        ${rival ? chapaDe(rival) || '' : ''}
+      </li>`
+    })
+    .join('')
+  return `<div class="torneo-tt-cabeza">
+      <span class="torneo-tt-puesto">${i + 1}.º</span>
+      <span class="torneo-tt-datos"><b>de ${orden.length}</b><span>${e.wins}-${e.losses}-${e.draws} · ${plural(e.matchPoints, 'punto', 'puntos')}</span></span>
+    </div>
+    ${caminoHtml(yo)}
+    ${filas ? `<ol class="torneo-tt-rivales" aria-label="Contra quién jugaste">${filas}</ol>` : ''}
+    <div class="torneo-tt-botones">
+      <button type="button" class="btn-secondary" data-abrir-lista>Mi lista</button>
+      <button type="button" class="btn-primary" data-compartir-mi-torneo="${i + 1}">${icons.share(16)} Compartir</button>
+    </div>`
+}
+
+// «Compartir» de Tu torneo: la hoja común con tu puesto (como el del podio).
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-compartir-mi-torneo]')
+    if (!b || !ctx?.torneo) return
+    const puesto = Number(b.dataset.compartirMiTorneo)
+    import('../compartir-hoja.js')
+      .then(({ abrirHojaCompartir }) =>
+        abrirHojaCompartir({
+          titulo: `${puesto}.º en ${ctx.torneo.name}`,
+          texto: `Quedé ${puesto}.º en ${ctx.torneo.name} en PokeDoc\npokedoc.es/torneo?slug=${encodeURIComponent(ctx.torneo.slug || '')}`,
+          nombre: `torneo-${String(ctx.torneo.slug || 'pokedoc').replace(/[^a-z0-9-]+/gi, '-')}`,
+        })
+      )
+      .catch(() => {})
   })
 }
 
@@ -3647,11 +3738,21 @@ function pintarClasificacion() {
   // El usuario de TCG Live solo para quien ha entrado. A un visitante
   // sin cuenta la base ni se lo manda (grant por columnas), así que la
   // columna se quita entera en vez de enseñar una fila de guiones.
-  const verTcgLive = Boolean(miId())
+  // Fuera la columna de TCG Live (1448): para quien juega está en su mesa, con
+  // «Copiar», y en la tabla ensanchaba cada fila para nadie.
+  const verTcgLive = false
   const corte = ctx.torneo.top_cut_size || 0
   const antes = general ? puestosAntes() : null
+  const corto = Math.max(CLASIF_CORTA, corte)
+  const recortar = general && !clasifTodos && tabla.length > corto + 2
+  const miPuesto = tabla.findIndex((e) => e.playerId === miId())
+  const columnas = 4 + (verListas ? 1 : 0)
+  const lineaCorte = (n) => `<tr class="torneo-fila-corte" aria-hidden="true"><td colspan="${columnas + 1}"><span>Corte del Top ${n}</span></td></tr>`
   const filas = tabla
     .map((e, i) => {
+      if (recortar && i >= corto && i !== miPuesto) return ''
+      const antesDeEsta = (recortar && i === miPuesto && i >= corto) ? `<tr class="torneo-fila-hueco" aria-hidden="true"><td colspan="${columnas + 1}">···</td></tr>` : ''
+      const trasEsta = general && corte > 0 && i === corte - 1 && (tabla.length > corte) ? lineaCorte(corte) : ''
       const insc = ctx.inscripciones.find((x) => x.user_id === e.playerId)
       const retirado = insc?.status === 'dropped' ? ' <span class="torneo-retirado">(retirado)</span>' : ''
       // Como en el original: mientras hay corte configurado, las plazas
@@ -3670,8 +3771,8 @@ function pintarClasificacion() {
       // Con cara, forma y flecha (1351); los desempates (OWP y OOWP) salen de
       // la tabla y se ven al tocar a cada uno, en su historial (PINGU eligió
       // la recomendada).
-      return `
-      <tr class="${e.playerId === miId() ? 'torneo-fila-yo' : ''}">
+      return `${antesDeEsta}
+      <tr class="${e.playerId === miId() ? 'torneo-fila-yo' : ''}" data-nombre="${escapeHtml(nombreDe(e.playerId).toLowerCase())}">
         <td><span class="torneo-pos${medalla}">${i + 1}</span>${general ? movimientoHtml(antes?.get(e.playerId), i + 1) : ''}</td>
         <td><span class="torneo-clasif-quien">${caraDe(e.playerId)}<span><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
           title="Ver sus partidas y desempates">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</span></span></td>
@@ -3680,9 +3781,15 @@ function pintarClasificacion() {
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
         <td class="col-forma">${formaHtml(formaDe(e.playerId))}</td>
         ${verLista}
-      </tr>`
+      </tr>${trasEsta}`
     })
     .join('')
+  // Debajo: «Ver los N» o, con la entera, el buscador y volver al Top.
+  const pieTabla = !general || tabla.length <= corto + 2
+    ? ''
+    : clasifTodos
+      ? `<div class="torneo-clasif-pie"><label class="torneo-buscar-gente"><span class="sr-only">Busca un jugador</span><input type="search" id="torneoClasifBuscar" placeholder="Busca un jugador" autocomplete="off" enterkeyhint="search" /></label><button type="button" class="btn-secondary" data-clasif-todos="no">Ver solo el Top ${corto}</button></div>`
+      : `<div class="torneo-clasif-pie"><button type="button" class="btn-secondary" data-clasif-todos="si">Ver los ${tabla.length} jugadores</button></div>`
   const campeon = campeonDelTorneo()
   // El podio del final (tanda 217): el campeón grande en el centro y a
   // los lados quienes le acompañaron. Sustituye a la línea de texto de
@@ -3693,18 +3800,18 @@ function pintarClasificacion() {
   const banner = !general
     ? ''
     : podio.length
-    ? `<div class="torneo-podio torneo-podio-de-${podio.length}">
+    ? `<div class="torneo-podio-tira torneo-podio-de-${podio.length}">
         ${podio
           .map(
+            // En una TIRA baja (1448): el podio de peanas ocupaba media
+            // pantalla antes de la primera fila de la tabla.
             (id, i) => `
           <div class="torneo-podio-puesto torneo-podio-${i + 1}">
-            ${caraDe(id, i === 0 ? 'xg' : 'g')}
-            <span class="torneo-podio-icono">${i === 0 ? icons.trophy(26) : icons.medal(20)}</span>
-            <strong>${escapeHtml(nombreDe(id))}</strong>
-            <span class="subtext">${PUESTOS[i]}</span>
+            <span class="torneo-pos torneo-pos-${Math.min(i + 1, 3)}">${i + 1}</span>
+            ${caraDe(id)}
+            <span class="torneo-podio-quien"><strong>${escapeHtml(nombreDe(id))}</strong><span class="subtext">${PUESTOS[i]}</span></span>
             ${chapaDe(id)}
             ${id === miId() ? `<button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${i}">${icons.share(14)} Compartir</button>` : ''}
-            <span class="torneo-peana" aria-hidden="true">${i + 1}</span>
           </div>`
           )
           .join('')}
@@ -3728,6 +3835,7 @@ function pintarClasificacion() {
         <tbody>${filas}</tbody>
       </table>
     </div>
+    ${pieTabla}
     ${general && corte > 0 && !rondas.some((r) => r.phase === 'top_cut') ? `<p class="subtext torneo-nota-corte">Las plazas marcadas con «Top ${corte}» clasifican al corte.</p>` : ''}
     <details class="torneo-desempates">
       <summary>¿Cómo se desempata?</summary>
@@ -3749,6 +3857,11 @@ function pintarClasificacion() {
   // alguien tenía abierta la lista de un rival, se le cerraba sola.
   if (yaEstaPintado('clasificacion', htmlClasif)) return
   $('clasificacionContenido').innerHTML = htmlClasif
+  // El texto buscado se pone después: dentro del HTML, cada letra lo haría
+  // «distinto» y la tabla se repintaría entera.
+  const buscador = $('torneoClasifBuscar')
+  if (buscador) buscador.value = clasifBusca
+  filtrarClasificacion()
   vigilarMiFila(tabla)
   if (general) celebrarMiPodio(podio, tabla)
 
@@ -3795,6 +3908,34 @@ function celebrarMiPodio(podio, tabla) {
 // de la pantalla, una pastilla abajo dice tu puesto y te lleva a ella. En el PC
 // la tabla cabe y no sale (CSS).
 let vigiaMiFila = null
+// El buscador de la clasificación entera: esconde filas, no repinta (así no
+// pierde el foco a cada letra).
+function filtrarClasificacion() {
+  const q = clasifBusca.trim().toLowerCase()
+  document.querySelectorAll('#clasificacionContenido tbody tr').forEach((tr) => {
+    if (!tr.dataset.nombre) {
+      tr.hidden = Boolean(q)
+      return
+    }
+    tr.hidden = Boolean(q) && !tr.dataset.nombre.includes(q)
+  })
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest?.('[data-clasif-todos]')
+    if (!b || !ctx) return
+    clasifTodos = b.dataset.clasifTodos === 'si'
+    if (!clasifTodos) clasifBusca = ''
+    pintarClasificacion()
+    if (clasifTodos) document.getElementById('torneoClasifBuscar')?.focus({ preventScroll: true })
+  })
+  document.addEventListener('input', (e) => {
+    if (e.target?.id !== 'torneoClasifBuscar') return
+    clasifBusca = e.target.value
+    filtrarClasificacion()
+  })
+}
+
 function vigilarMiFila(tabla) {
   vigiaMiFila?.disconnect()
   vigiaMiFila = null

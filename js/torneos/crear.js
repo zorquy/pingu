@@ -20,7 +20,7 @@ import { officialStructure } from './motor.js'
 import { fechaBonita, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { textoDePrecio, precioDelCampo } from './torneo-tienda.js'
-import { PREGUNTAS, TEXTO_MODO_LISTAS, aLocal, diasRapidos, jornadasSemanales, frasesDelFormato } from './crear-puro.js'
+import { PREGUNTAS, TEXTO_MODO_LISTAS, TEXTO_INSCRIPCION, aLocal, diasRapidos, jornadasSemanales, frasesDelFormato } from './crear-puro.js'
 
 const hoja = Promise.all([hojaInyectada('css/torneo-crear.css'), hojaInyectada('css/editor-texto.css')])
 const $ = (id) => document.getElementById(id)
@@ -74,6 +74,22 @@ function htmlDelDialogo(esAdmin) {
 
     ${pregunta('nombre', '¿Cómo se llama tu torneo?', 'Es lo primero que verán los jugadores.', `
       <input type="text" class="tc-grande" id="torneoNombre" maxlength="120" placeholder="Liga PokeDoc — Agosto" autocomplete="off" aria-labelledby="tcTitulo" />`)}
+
+    ${pregunta('donde', '¿Dónde se juega?', '', `
+      <input type="hidden" id="torneoModalidad" value="online" />
+      <div class="tc-opciones tc-dos">
+        ${opcion({ campo: 'torneoModalidad', valor: 'online', icono: icons.globe(26), titulo: 'Online', texto: 'Cada uno desde su casa, en TCG Live' })}
+        ${opcion({ campo: 'torneoModalidad', valor: 'presencial', icono: icons.mapPin(26), titulo: 'En persona', texto: 'En una tienda o un evento, en mesa y con cartas de verdad' })}
+      </div>`)}
+
+    ${pregunta('lugar', '¿Dónde exactamente?', 'Sale en la ficha, con «Cómo llegar».', `
+      <label class="tc-campo">El sitio
+        <input type="text" class="tc-grande" id="torneoLugar" maxlength="80" placeholder="Cartas Bilbao" autocomplete="off" />
+      </label>
+      <label class="tc-campo">La dirección
+        <input type="text" id="torneoDireccion" maxlength="160" placeholder="Calle Ercilla 12, Bilbao" autocomplete="off" />
+      </label>
+      <p class="tc-aviso-persona">${icons.info(16)}<span>En persona no se pide el usuario de TCG Live, y en vez del check-in se da <b>entrada en la puerta</b>.</span></p>`)}
 
     ${pregunta('tipo', '¿Qué tipo de torneo es?', '', `
       <input type="hidden" id="torneoTipo" value="standard" />
@@ -154,7 +170,13 @@ function htmlDelDialogo(esAdmin) {
       </label>`)}
 
     ${pregunta('entrada', '¿Quién puede apuntarse?', '', `
-      <div class="tc-opciones tc-dos">
+      <input type="hidden" id="torneoInscripcion" value="pedir" />
+      <div class="tc-opciones tc-persona" hidden>
+        ${opcion({ campo: 'torneoInscripcion', valor: 'pedir', icono: icons.users(22), titulo: 'Piden plaza y les das entrada <span class="tc-reco">Recomendada</span>', texto: 'Se apuntan desde casa y en la puerta les das entrada. Juega quien ha entrado.' })}
+        ${opcion({ campo: 'torneoInscripcion', valor: 'organizador', icono: icons.edit(22), titulo: 'Solo tú los apuntas', texto: 'Nadie se apunta solo: los metes tú cuando llegan' })}
+        ${opcion({ campo: 'torneoInscripcion', valor: 'libre', icono: icons.checkCircle(22), titulo: 'Se apuntan solos', texto: 'Como uno online, sin pasar por la puerta' })}
+      </div>
+      <div class="tc-opciones tc-dos tc-online">
         ${opcion({ campo: 'torneoPrivado', valor: 'no', icono: icons.globe(24), titulo: 'Cualquiera', texto: 'Quien tenga cuenta en PokeDoc' })}
         ${opcion({ campo: 'torneoPrivado', valor: 'si', icono: icons.lock(24), titulo: 'Solo con código', texto: 'Se ve como los demás, pero hace falta el código', avanza: false })}
       </div>
@@ -244,7 +266,8 @@ let contexto = { session: null, perfil: null, alCrear: () => {} }
 const esLiga = () => $('torneoTipo').value === 'league'
 const sinLimite = () => $('torneoSinLimite').checked
 const rondasPorJornadaElegidas = () => Math.max(1, Number($('torneoRondasJornada')?.value) || 1)
-const aplica = (id) => id !== 'jornadas' || esLiga()
+const enPersona = () => $('torneoModalidad')?.value === 'presencial'
+const aplica = (id) => (id !== 'jornadas' || esLiga()) && (id !== 'lugar' || enPersona())
 const preguntasQueTocan = () => PREGUNTAS.filter(aplica)
 
 function nombreCorto() {
@@ -258,6 +281,8 @@ function titulos() {
   const t = {
     cuando: n ? `¿Cuándo empieza «${n}»?` : '¿Cuándo empieza?',
     plazas: n ? `¿Cuánta gente cabe en «${n}»?` : '¿Cuánta gente puede jugar?',
+    donde: n ? `¿Dónde se juega «${n}»?` : '¿Dónde se juega?',
+    entrada: enPersona() ? '¿Cómo se apunta la gente?' : '¿Quién puede apuntarse?',
   }
   for (const [id, texto] of Object.entries(t)) {
     const h = document.querySelector(`[data-titulo="${id}"]`)
@@ -287,7 +312,13 @@ function marcarOpciones() {
   })
   $('tcPlazasOtra').hidden = sinLimite() || plazasRapida
   $('tcMinutosOtro').hidden = minutosRapido
-  $('torneoCodigoCampo').hidden = !$('torneoPrivado').checked
+  $('torneoCodigoCampo').hidden = enPersona() || !$('torneoPrivado').checked
+  // En persona (1452): las tres maneras de apuntarse y sin check-in (lo hace
+  // la puerta); online, lo de siempre.
+  document.querySelector('#torneoCrear .tc-persona').hidden = !enPersona()
+  document.querySelector('#torneoCrear .tc-online').hidden = enPersona()
+  const checkin = document.querySelector('#torneoCrear [data-extra="checkin"]')
+  if (checkin) checkin.hidden = enPersona()
   pintarChipsDeFecha()
 }
 
@@ -418,6 +449,7 @@ function pintarExtras() {
 // Devuelve el aviso, o '' si vale. Lo usan «Siguiente» y, al crear, todas.
 function fallo(id) {
   if (id === 'nombre') return $('torneoNombre').value.trim() ? '' : 'Ponle un nombre al torneo.'
+  if (id === 'lugar') return $('torneoLugar').value.trim() ? '' : 'Dinos en qué sitio se juega.'
   if (id === 'cuando') {
     const v = $('torneoFecha').value
     if (!v) return 'Elige el día y la hora.'
@@ -535,13 +567,14 @@ function pintarResumen() {
   })
   const filas = [
     ['nombre', 'Nombre', $('torneoNombre').value.trim()],
+    ['donde', 'Dónde', enPersona() ? `En persona · ${[$('torneoLugar').value.trim(), $('torneoDireccion').value.trim()].filter(Boolean).join(', ')}` : 'Online'],
     ['tipo', 'Tipo', liga ? 'Liga por jornadas' : 'De un día'],
     ['cuando', 'Empieza', $('torneoFecha').value ? fechaBonita($('torneoFecha').value) : '—'],
     ...(liga ? [['jornadas', 'Jornadas', fechasDeJornadas().map((f, i) => `J${i + 1} ${f ? fechaBonita(f) : '—'}`).join(' · ')]] : []),
     ['plazas', 'Plazas', sinLimite() ? 'Sin límite' : $('torneoPlazas').value],
     ['formato', 'Se juega', `${suizas} · ${corte}`],
     ['reloj', 'Cada ronda', `${$('torneoMinutos').value} min`],
-    ['entrada', 'Se apunta', $('torneoPrivado').checked ? `Con el código «${$('torneoCodigoNuevo').value.trim()}»` : 'Cualquiera'],
+    ['entrada', 'Se apunta', enPersona() ? TEXTO_INSCRIPCION[$('torneoInscripcion').value] : $('torneoPrivado').checked ? `Con el código «${$('torneoCodigoNuevo').value.trim()}»` : 'Cualquiera'],
     ['listas', 'Listas', TEXTO_MODO_LISTAS[$('torneoListasModo').value] || '—'],
     ['extras', 'Extras', [premios.length ? `${premios.length} premio${premios.length === 1 ? '' : 's'}` : '', textoDePrecio(precio) || '', imagenElegida || bannerElegido ? 'imagen' : '', $('torneoOficial')?.checked ? 'oficial' : ''].filter(Boolean).join(' · ') || 'Nada más'],
   ]
@@ -554,7 +587,7 @@ function pintarResumen() {
     )
     .join('')
   const banner = bannerElegido ? URL.createObjectURL(bannerElegido) : null
-  const chapas = [liga ? 'Liga' : 'De un día', sinLimite() ? 'Sin límite' : `${$('torneoPlazas').value} plazas`, corte === 'Sin top cut' ? null : corte.split(' al ')[0], $('torneoPrivado').checked ? 'Con código' : null].filter(Boolean)
+  const chapas = [enPersona() ? 'En persona' : 'Online', liga ? 'Liga' : 'De un día', sinLimite() ? 'Sin límite' : `${$('torneoPlazas').value} plazas`, corte === 'Sin top cut' ? null : corte.split(' al ')[0], $('torneoPrivado').checked ? 'Con código' : null].filter(Boolean)
   $('tcCartel').innerHTML = `
     <div class="tc-cartel-arte${banner ? ' con-banner' : ''}"${banner ? ` style="background-image:url('${banner}')"` : ''}>
       ${imagenElegida ? `<img class="tc-cartel-icono" src="${URL.createObjectURL(imagenElegida)}" alt="" width="56" height="56" />` : `<span class="tc-cartel-icono tc-cartel-trofeo" aria-hidden="true">${icons.trophy(28)}</span>`}
@@ -761,7 +794,7 @@ async function crearTorneo() {
   const { session } = contexto
   const nombre = $('torneoNombre').value.trim()
   const liga = esLiga()
-  const codigoNuevo = $('torneoPrivado').checked ? $('torneoCodigoNuevo').value.trim() : ''
+  const codigoNuevo = !enPersona() && $('torneoPrivado').checked ? $('torneoCodigoNuevo').value.trim() : ''
   // Primero las imágenes: si una subida falla, el torneo NO se crea a medias.
   let imageUrl = null
   let bannerUrl = null
@@ -802,10 +835,24 @@ async function crearTorneo() {
     // Se manda siempre: si quien crea no es admin, el disparador de la base lo
     // pone a false pase lo que pase aquí.
     is_official: Boolean($('torneoOficial')?.checked),
-    is_private: $('torneoPrivado').checked,
+    is_private: !enPersona() && $('torneoPrivado').checked,
+  }
+  if (enPersona()) {
+    Object.assign(fila, {
+      modalidad: 'presencial',
+      lugar: $('torneoLugar').value.trim(),
+      direccion: $('torneoDireccion').value.trim() || null,
+      inscripcion: $('torneoInscripcion').value || 'pedir',
+      // La puerta hace de check-in: el reloj de cada ronda empieza sin él.
+      checkin_minutes: 0,
+    })
   }
   if (liga && rondasPorJornadaElegidas() > 1) fila.rounds_per_matchday = rondasPorJornadaElegidas()
   let { error } = await supabase.from('tournaments').insert(fila)
+  // En persona sin la migración 1446 no se crea «online sin decirlo».
+  if (error && fila.modalidad && /modalidad|lugar|direccion|inscripcion/.test(error.message || '')) {
+    return { error: 'Los torneos en persona aún no están listos: falta ejecutar la migración 1446 en Supabase.' }
+  }
   // Sin una columna nueva en la base, se reintenta sin ella (del modo de
   // listas queda el booleano viejo, que dice lo mismo salvo el «nunca»).
   for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes', 'precio_entrada']) {
@@ -875,6 +922,14 @@ function cargarPlantilla(viejo) {
   $('torneoCorteBo').value = String(viejo.top_cut_bo ?? 3)
   if (viejo.round_time_minutes) $('torneoMinutos').value = viejo.round_time_minutes
   if (viejo.checkin_minutes != null) $('torneoCheckin').value = viejo.checkin_minutes
+  // En persona (1452): el sitio y la manera de apuntarse se copian; la puerta
+  // es la misma tienda la mayoría de las veces.
+  if (viejo.modalidad === 'presencial') {
+    $('torneoModalidad').value = 'presencial'
+    $('torneoLugar').value = viejo.lugar || ''
+    $('torneoDireccion').value = viejo.direccion || ''
+    $('torneoInscripcion').value = viejo.inscripcion || 'pedir'
+  }
   if (viejo.precio_entrada != null) $('torneoPrecio').value = String(viejo.precio_entrada).replace('.', ',')
   if (Array.isArray(viejo.prizes) && viejo.prizes.length) pintarPremiosNuevo(viejo.prizes)
   descripcionHtml = viejo.description || ''

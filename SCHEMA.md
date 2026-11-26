@@ -55231,6 +55231,80 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1452 — Torneos en persona: creador, lista y ficha
+
+`crear-puro.js`: `PREGUNTAS` con `donde` y `lugar` tras `nombre`;
+`TEXTO_INSCRIPCION`. `crear.js`: `#torneoModalidad` (online / presencial),
+`#torneoLugar`, `#torneoDireccion`, `#torneoInscripcion` (pedir / organizador
+/ libre, `.tc-persona` frente a `.tc-online`); `lugar` solo aplica en persona.
+En persona la fila lleva `modalidad`, `lugar`, `direccion`, `inscripcion`,
+`checkin_minutes: 0` e `is_private: false`; online no manda esas columnas.
+`torneos.js`: chapa `.torneo-en-persona`. `torneo.js`: `enPersona()`,
+`pintarSitio()` → `#torneoSitio.torneo-sitio` (con «Cómo llegar»),
+`tuEntradaHtml()` → `.torneo-billete` con `svgQR('pokedoc-entrada:<torneo>:<usuario>')`
+o `.torneo-entrada-dentro` si hay `entrada_at`. `sala.js`: `misionesHtml({
+enPersona })`.
+
+## Tanda 1451 — Modo juez en consola y tickets que se cierran solos
+
+Migración `supabase-migration-1451-tickets-que-se-cierran.sql` (dos veces sin
+problema): `torneos_cerrar_tickets_de_mesa()` (disparador
+`tickets_al_cerrar_mesa`, after update of status on `tournament_matches`) y
+`torneos_cerrar_tickets_del_torneo()` (`tickets_al_acabar_torneo` en
+`tournaments`, al pasar a `finished` o `cancelled`): `judge_calls` open /
+in_progress → resolved con `resolved_at` y `nota` («Se cerró solo: …» si no
+había). La web: el panel `jueces` lleva `#torneoJuezVistas`
+(`[data-juez-vista]`) y `#torneoJuezConsola[data-vista]` con
+`.torneo-juez-col[data-col=tickets|mesas|listas|chat]`; `.con-chat` cuando hay
+mesa abierta (en el móvil, hoja fija). Listas: resumen en
+`#listasJuezResumen` (`[data-abrir-listas]`) y la lista en el `<dialog
+id="torneoListasJuez">` con `#listasJuezBuscar`; cada una
+`.torneo-decklist-item[data-nombre]`. `pestanas.js`: hay Modo juez si
+`#torneoJuezCifras` o una `.torneo-juez-col > .simple-card` (sin el chat) está
+a la vista.
+
+## Tanda 1448–1450 — Clasificación, Mazos y Mesas
+
+**1448** (`ronda.js`): `clasifTodos`, `clasifBusca`, `CLASIF_CORTA = 8`. La
+general recorta a `max(8, corte)` filas si hay más de dos de sobra; tu fila
+sale siempre (`.torneo-fila-hueco` antes); `.torneo-fila-corte` tras el
+puesto del corte; cada fila con `data-nombre`. Pie `.torneo-clasif-pie` con
+`[data-clasif-todos="si"|"no"]` y `#torneoClasifBuscar` (el valor se pone
+tras pintar; filtra con `filtrarClasificacion()`). Podio:
+`.torneo-podio-tira` > `.torneo-podio-puesto.torneo-podio-N`. Sin columna de
+TCG Live (`verTcgLive = false`). `torneo.js`: `pintarCarasInscritos()` →
+`#torneoInscritosCaja.torneo-inscritos-plegable(.abierta)` y `#inscritosCaras`
+(`.torneo-caras-fila`, `.torneo-caras-mas`, `[data-inscritos-todos]`).
+
+**1449** (`meta-torneo.js`): con más de tres mazos, los seis primeros en
+`.torneo-meta-mosaico` como `button.torneo-meta-tesela.tesela-N
+[data-meta-arquetipo]`; el resto en `ul.torneo-meta-lista-resto`.
+
+**1450** (`ronda.js`): `.torneo-mesas-tarjetas` > `.torneo-mesa[data-estado]
+[data-nombres]` con `.torneo-mesa-top` (`.torneo-mesa-num`,
+`.torneo-mesa-rotulo`, `.torneo-mesa-centro`, `.torneo-mesa-mas`) y dos
+`.torneo-mesa-lado` con `.torneo-mesa-res`. `filtroMesas` ∈ todas · jugando ·
+disputa · cerradas y `mesasBusca`, aplicados por `filtrarMesas()` (clase
+`hidden`, `#torneoMesasNada`). `.torneo-mesas-mandos` lleva
+`chipsDeRondasHtml()` (`.torneo-ronda-chip` + `.viva` / `.futura` /
+`.saltada`), el filtro y `#torneoMesasBuscar`. El reloj de la ronda:
+`#cuentaGrande.torneo-mesas-reloj` en `.torneo-mesas-cabecera`. Fuera
+`.torneo-linea` / `.torneo-paso`.
+
+## Tanda 1447 — Pestañas fijas, Mazos y Modo juez
+
+`js/torneos/pestanas.js`: `PESTANAS[id] = [nombre, icono, corto]`; `ORDEN =
+['jugar','clasificacion','rondas','meta','torneo','jugadores']` para las tres
+fases (`jugadores` solo antes de empezar). El botón lleva
+`.torneo-tab-largo` y `.torneo-tab-corto` (el corto, en el móvil).
+`pintarBotonJuez(hayJueces, pendientes)` pone `#btnModoJuez.torneo-modo-juez`
+(`data-pestana="jueces"`) en `#torneoCabecera .torneo-ficha-cabecera`; dentro
+del modo la fila se esconde y `[data-salir-juez]` vuelve (`?ver` fuera).
+`torneo.html`: `<section data-panel="meta">` con `#torneoMetaCaja`, y el panel
+`jueces` empieza por `#torneoJuezBar`. `ronda.js`: `tuTorneoHtml(yo)` (torneo
+terminado y no liga) con `.torneo-tt-puesto`, `.torneo-tt-datos`,
+`.torneo-tt-rival` y `[data-compartir-mi-torneo]`.
+
 ## Tanda 1446 — Torneos en persona: la base
 
 Migración `supabase-migration-1446-torneos-en-persona.sql` (dos veces sin

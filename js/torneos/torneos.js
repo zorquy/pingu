@@ -191,6 +191,7 @@ function tarjetaHtml(t, datos) {
                     ? '<span class="torneo-mio-arte">Inscrito</span>'
                     : ''
             }
+            ${t.modalidad === 'presencial' ? `<span class="torneo-oficial torneo-en-persona" title="Se juega en persona${t.lugar ? `: ${escapeHtml(t.lugar)}` : ''}">${icons.mapPin(11)} En persona</span>` : ''}
             ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
             ${deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Torneo de tienda</span>` : ''}

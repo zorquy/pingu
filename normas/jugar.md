@@ -250,11 +250,11 @@ una fila de botones. Lo pegado arriba (`#torneoPegado`: pestañas, pastilla y la
 línea del tablón) es de UNA línea cada cosa: lo que no quepa en una línea va en
 su pestaña. Las pestañas (cuáles hay en cada momento, su orden y la de entrada)
 viven en `js/torneos/pestanas.js` desde la 1352; los ids no cambian
-(`?ver=jugar` sigue abriendo Hoy). Y van SIEMPRE arriba, grandes y con icono
+(`?ver=jugar` abre Tu mesa, que se llamó «Mi mesa» y «Hoy»). Y van SIEMPRE arriba, grandes y con icono
 (1375, PINGU: «el menú lateral es demasiado pequeño y poco visible»): ni columna
 en el PC ni barra abajo en el móvil.
 
-**Hoy es UNA tarjeta con UN botón** (1376, la versión 2 de «El torneo,
+**Tu mesa (antes «Hoy») es UNA tarjeta con UN botón** (1376, la versión 2 de «El torneo,
 renovado»): lo que te toca y cómo hacerlo; al lado, tu puesto y tu mazo en
 pequeño. Lo que se escribe (la lista) va en su ventana (`#torneoListaVentana`,
 un `<dialog>` fuera de los paneles), no en la página. Lo que se sabe de TI sale
@@ -269,11 +269,44 @@ cerrada van en un `<details>` o en su «⋯». Una pieza nueva para quien lleva 
 torneo entra ahí, no como otro párrafo debajo. Y lo que va plegado se busca en
 las pruebas abriendo antes el `<details>`: cerrado no se puede pulsar.
 
-**Una pestaña nueva en la ficha del torneo es la última opción** (1378): Meta
-pasó a ser un apartado de Tabla para que un jugador vea cuatro (Hoy, Mesas,
-Tabla, Info). Lo nuevo va como apartado de la pestaña a la que pertenece; si un
-enlace viejo nombra una pestaña que ya no existe, `pintarPestanas` lo traduce
-(`?ver=meta` → Tabla).
+**Las pestañas de la ficha van en UN orden fijo** (1447, «El torneo, de
+nuevo»; antes de la 1447 el orden cambiaba con el momento y, al terminar, «Hoy»
+acababa la cuarta): Tu mesa · Clasificación · Mesas · Mazos · Info (y Jugadores
+antes de empezar). Lo que cambia con el momento es la que se ABRE
+(`pestanaDeEntrada`), nunca dónde está cada una; la que no tiene nada no sale.
+En el móvil cada una tiene su nombre corto (el tercero de `PESTANAS`: «Clasif.»)
+y las cinco caben sin «Más». Una pestaña nueva sigue siendo la última opción: lo
+nuevo va como apartado de la pestaña a la que pertenece. Si un enlace viejo
+nombra una que ya no existe, `pintarPestanas` lo traduce (`?ver=meta` sin listas
+a la vista → Clasificación). Para leer el nombre de una pestaña en una prueba,
+`.torneo-tab-largo` (el `textContent` del botón lleva los dos nombres).
+
+**Los jueces no son una pestaña: son el «Modo juez»** (1447). Quien lleva o
+arbitra tiene un botón en la cabecera (`#btnModoJuez`, con los tickets que
+esperan) que cambia la ficha entera a la consola (panel `jueces`, `?ver=jueces`)
+sin la fila de pestañas; su barra ámbar (`#torneoJuezBar`) lleva «Volver al
+torneo». Una herramienta nueva del juez va en esa consola, no en Mesas. La
+consola (1451) son columnas (`.torneo-juez-col[data-col]`: tickets, mesas,
+listas, chat); una caja nueva va en la columna a la que pertenece, y lo largo
+(las listas de todos) va en una ventana con buscador, no en la página. Un
+ticket se cierra solo cuando su mesa termina o el torneo acaba (disparadores
+de la migración 1451): no hace falta que la web lo cierre.
+
+**Un torneo en persona es otro torneo, no un online con dirección** (1452):
+sin TCG Live (la base guarda ''), sin check-in (lo hace la puerta: entrada por
+QR) y con tres maneras de apuntarse (`inscripcion`). Lo que dice «usuario de
+TCG Live», «búscale en TCG Live» o el check-in mira antes `enPersona()`. Y las
+columnas de la 1446 solo se mandan al crear uno en persona: uno online se
+sigue creando aunque la migración no esté.
+
+**Una lista larga de la ficha se ve corta y se busca** (1448–1450, PINGU: «hay
+que scrollear un montonazo»): la clasificación enseña el Top 8 (o el corte) y
+tu fila, con «Ver los N» y buscador; Info, diez caras; los mazos, un mosaico de
+seis; las mesas, filtros y buscador. Lo que se filtra mientras se escribe se
+filtra SIN repintar (clase `hidden` sobre lo ya pintado) y el valor del buscador
+se pone DESPUÉS de pintar: dentro del HTML, cada tecla cambiaría el HTML, se
+repintaría la lista y se perdería el foco. Y una mesa es un jugador por línea:
+en una sola fila los nombres largos salían cortados.
 
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus

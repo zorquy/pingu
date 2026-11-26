@@ -1,14 +1,21 @@
 // Lo puro del creador de torneos (1434): sin navegador ni base, para que
 // test-tanda-1434-pantalla.mjs lo pruebe en Node.
 
-// El orden de las preguntas. «jornadas» solo en una liga; «resumen» es la
+// El orden de las preguntas. «lugar» solo en persona (1452) y «jornadas» solo en una liga; «resumen» es la
 // última y no cuenta como pregunta en «3 de 9».
-export const PREGUNTAS = ['nombre', 'tipo', 'cuando', 'jornadas', 'plazas', 'formato', 'reloj', 'entrada', 'listas', 'extras', 'resumen']
+export const PREGUNTAS = ['nombre', 'donde', 'lugar', 'tipo', 'cuando', 'jornadas', 'plazas', 'formato', 'reloj', 'entrada', 'listas', 'extras', 'resumen']
 
 export const TEXTO_MODO_LISTAS = {
   al_terminar: 'Al terminar el torneo',
   en_juego: 'Desde la ronda 1',
   nunca: 'Nunca',
+}
+
+// Cómo se apunta la gente a uno en persona (1452), como lo dice el resumen.
+export const TEXTO_INSCRIPCION = {
+  pedir: 'Piden plaza · entrada en la puerta',
+  organizador: 'Solo tú los apuntas',
+  libre: 'Se apuntan solos',
 }
 
 // «2026-11-29T17:00» en la hora de quien crea: lo que lleva un datetime-local.

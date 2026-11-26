@@ -311,49 +311,110 @@ function pintarDecklistsJuez() {
   }
   caja.classList.remove('hidden')
 
+  // 1451: en la consola solo el resumen («Listas · 58/60 selladas», quién
+  // falta) y un botón; las sesenta, en la ventana con buscador. Antes iban
+  // todas debajo de las mesas y el juez tenía que bajar sin fin (PINGU).
+  const conLista = new Set(decklistsTorneo.map((d) => d.user_id))
+  const faltan = activos.filter((i) => !conLista.has(i.user_id))
+  const selladas = decklistsTorneo.filter((d) => d.locked_at).length
+  pintarSiCambia(
+    $('listasJuezResumen'),
+    `<p class="torneo-listas-cifra"><b>${decklistsTorneo.length}</b>/${activos.length} entregadas · ${selladas} selladas</p>
+    ${faltan.length ? `<p class="torneo-decklists-faltan">Sin entregar: ${faltan.map((i) => escapeHtml(i.perfil?.username || 'Alguien')).join(', ')} — pierden las rondas que empiecen sin lista.</p>` : ''}
+    ${decklistsTorneo.length ? '<button type="button" class="btn-secondary" data-abrir-listas>Ver las listas</button>' : '<p class="subtext">Nadie ha entregado lista todavía.</p>'}`
+  )
+
   const entregadas = decklistsTorneo
+    .slice()
+    .sort((a, b) => nombreDe(a.user_id).localeCompare(nombreDe(b.user_id), 'es'))
     .map((d) => {
       const p = d.parsed_cards || {}
-      const detalle = `
+      return `
+      <div class="torneo-decklist-item" data-nombre="${escapeHtml(nombreDe(d.user_id).toLowerCase())}">
+        <div class="torneo-decklist-fila">
+          <span><strong>${escapeHtml(nombreDe(d.user_id))}</strong> — ${p.total ?? '?'} cartas${d.locked_at ? ' · sellada' : ''}</span>
+          <button class="btn-secondary" data-ver-decklist="${escapeHtml(d.user_id)}">Ver</button>
+        </div>
         <div class="torneo-decklist-detalle hidden" data-decklist-detalle="${escapeHtml(d.user_id)}">
           <p class="subtext">${p.pokemon?.length ?? 0} líneas de Pokémon · ${p.trainer?.length ?? 0} de Trainer · ${p.energy?.length ?? 0} de Energía — ${p.total ?? '?'} cartas</p>
           ${botonesExportarHtml()}
           <div class="torneo-decklist-visual" data-decklist-cartas="${escapeHtml(d.user_id)}"></div>
           <pre class="torneo-decklist-cruda">${escapeHtml(d.raw_text || '')}</pre>
-        </div>`
-      return `
-      <div class="torneo-decklist-fila">
-        <span><strong>${escapeHtml(nombreDe(d.user_id))}</strong> — ${p.total ?? '?'} cartas${d.locked_at ? ' · sellada' : ''}</span>
-        <button class="btn-secondary" data-ver-decklist="${escapeHtml(d.user_id)}">Ver</button>
-      </div>${detalle}`
+        </div>
+      </div>`
     })
     .join('')
+  // Solo si cambia: rehacerla en cada refresco cerraba la lista que el juez
+  // tenía abierta.
+  if (pintarSiCambia($('decklistsJuezContenido'), (entregadas || '<p class="subtext">Nadie ha entregado lista todavía.</p>') + '<p class="subtext torneo-listas-nadie hidden">Nadie se llama así.</p>')) filtrarListas()
+}
 
-  const conLista = new Set(decklistsTorneo.map((d) => d.user_id))
-  const faltan = activos.filter((i) => !conLista.has(i.user_id))
-  const sinEntregar = faltan.length
-    ? `<p class="torneo-decklists-faltan">Sin entregar: ${faltan.map((i) => escapeHtml(i.perfil?.username || 'Alguien')).join(', ')} — pierden las rondas que empiecen sin lista.</p>`
-    : ''
+function filtrarListas() {
+  const q = ($('listasJuezBuscar')?.value || '').trim().toLowerCase()
+  let vistas = 0
+  for (const el of document.querySelectorAll('#decklistsJuezContenido [data-nombre]')) {
+    const pasa = !q || el.dataset.nombre.includes(q)
+    el.classList.toggle('hidden', !pasa)
+    if (pasa) vistas++
+  }
+  document.querySelector('#decklistsJuezContenido .torneo-listas-nadie')?.classList.toggle('hidden', vistas > 0 || !q)
+}
 
-  $('decklistsJuezContenido').innerHTML =
-    (entregadas || '<p class="subtext">Nadie ha entregado lista todavía.</p>') + sinEntregar
+function verDecklist(b) {
+  const detalle = document.querySelector(`[data-decklist-detalle="${b.dataset.verDecklist}"]`)
+  if (!detalle) return
+  detalle.classList.toggle('hidden')
+  b.textContent = detalle.classList.contains('hidden') ? 'Ver' : 'Cerrar'
+  // Las cartas se buscan la primera vez que se abre, no antes. Los botones de
+  // exportar (tanda 219) se enganchan en esa misma pasada.
+  const cartas = detalle.querySelector('[data-decklist-cartas]')
+  if (!detalle.classList.contains('hidden') && cartas && !cartas.dataset.pintada) {
+    cartas.dataset.pintada = '1'
+    const lista = decklistsTorneo.find((d) => d.user_id === b.dataset.verDecklist)
+    if (lista?.parsed_cards) pintarDecklistVisual(cartas, lista.parsed_cards)
+    if (lista) engancharExportar(detalle, { nombre: nombreDe(lista.user_id), rawText: lista.raw_text, parsed: lista.parsed_cards })
+  }
+}
 
-  document.querySelectorAll('[data-ver-decklist]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const detalle = document.querySelector(`[data-decklist-detalle="${b.dataset.verDecklist}"]`)
-      detalle.classList.toggle('hidden')
-      b.textContent = detalle.classList.contains('hidden') ? 'Ver' : 'Cerrar'
-      // Las cartas se buscan la primera vez que se abre, no antes. Los
-      // botones de exportar (tanda 219) se enganchan en esa misma pasada.
-      const cartas = detalle.querySelector('[data-decklist-cartas]')
-      if (!detalle.classList.contains('hidden') && cartas && !cartas.dataset.pintada) {
-        cartas.dataset.pintada = '1'
-        const lista = decklistsTorneo.find((d) => d.user_id === b.dataset.verDecklist)
-        if (lista?.parsed_cards) pintarDecklistVisual(cartas, lista.parsed_cards)
-        if (lista) engancharExportar(detalle, { nombre: nombreDe(lista.user_id), rawText: lista.raw_text, parsed: lista.parsed_cards })
-      }
-    })
-  )
+// La fila de vistas del móvil (1451): Tickets · Mesas · Listas, con su cifra.
+function pintarVistasJuez() {
+  const fila = $('torneoJuezVistas')
+  const consola = $('torneoJuezConsola')
+  if (!fila || !consola) return
+  const vista = consola.dataset.vista || 'tickets'
+  const tickets = llamadas.filter((c) => c.status !== 'resolved').length + disputadas.length + faltanCheckin.length
+  const mesas = rondaViva ? Object.values(mesasPorId).filter((m) => m.round_id === rondaViva.id).length : 0
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active').length
+  const boton = (id, texto, cifra) => `<button type="button" class="seg-btn${vista === id ? ' activa' : ''}" data-juez-vista="${id}" aria-pressed="${vista === id}">${texto}${cifra !== '' ? ` · ${cifra}` : ''}</button>`
+  pintarSiCambia(fila, boton('tickets', 'Tickets', tickets) + boton('mesas', 'Mesas', mesas || '') + boton('listas', 'Listas', `${decklistsTorneo.length}/${activos}`))
+}
+
+// Lo que se pulsa en la consola, una vez para siempre: los botones se repintan
+// y así no hay que volver a engancharlos.
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const vista = e.target.closest?.('[data-juez-vista]')
+    if (vista) {
+      $('torneoJuezConsola').dataset.vista = vista.dataset.juezVista
+      pintarVistasJuez()
+      return
+    }
+    if (e.target.closest?.('[data-abrir-listas]')) {
+      const d = $('torneoListasJuez')
+      if (d && !d.open) d.showModal()
+      $('listasJuezBuscar')?.focus()
+      return
+    }
+    if (e.target.closest?.('[data-cerrar-listas]')) {
+      $('torneoListasJuez')?.close()
+      return
+    }
+    const ver = e.target.closest?.('[data-ver-decklist]')
+    if (ver) verDecklist(ver)
+  })
+  document.addEventListener('input', (e) => {
+    if (e.target?.id === 'listasJuezBuscar') filtrarListas()
+  })
 }
 
 // ── El chat, común a mesas y llamadas ──
@@ -663,6 +724,8 @@ function pedirMotivo() {
 function pintarCola() {
   const caja = $('torneoColaCaja')
   const soyJuez = mando() || ctx.esJuez
+  const nada = !llamadas.some((c) => c.status !== 'resolved') && !disputadas.length && !faltanCheckin.length
+  $('torneoJuezNada')?.classList.toggle('hidden', !soyJuez || !nada)
   if (!soyJuez || (!llamadas.length && !disputadas.length)) {
     caja.classList.add('hidden')
     pintarMesasJuez()
@@ -758,6 +821,7 @@ function pintarMesasJuez() {
   if (!caja) return
   const soyJuez = mando() || ctx.esJuez
   const mesas = rondaViva ? Object.values(mesasPorId).filter((m) => m.round_id === rondaViva.id).sort((a, b) => a.table_number - b.table_number) : []
+  $('torneoJuezSinMesas')?.classList.toggle('hidden', !soyJuez || mesas.length > 0)
   if (!soyJuez || !mesas.length) {
     caja.classList.add('hidden')
     return
@@ -783,11 +847,14 @@ function pintarMesasJuez() {
 function abrirMesaJuez(id) {
   const caja = $('mesaJuezAbierta')
   if (!caja) return
-  // Desde un ticket o una disputa en otra pestaña: se va a la de jueces.
-  if (id && !caja.closest('.torneo-panel')?.classList.contains('activa')) document.querySelector('#torneoPestanas [data-pestana="jueces"]')?.click()
+  // Desde un ticket o una disputa fuera del Modo juez (1447): se entra en él.
+  if (id && caja.closest('.torneo-panel')?.classList.contains('hidden')) $('btnModoJuez')?.click()
   mesaJuezAbierta = id || null
   const m = mesaJuezAbierta ? mesasPorId[mesaJuezAbierta] : null
   for (const b of document.querySelectorAll('.torneo-juez-mesa')) b.classList.toggle('abierta', b.dataset.verMesa === mesaJuezAbierta)
+  // 1451: el chat vive en su columna; en el móvil, la consola lo saca en una hoja.
+  $('torneoJuezConsola')?.classList.toggle('con-chat', Boolean(m))
+  document.querySelector('#torneoJuezChatCaja .torneo-juez-chat-vacio')?.classList.toggle('hidden', Boolean(m))
   if (!m) {
     caja.classList.add('hidden')
     caja.innerHTML = ''
@@ -804,7 +871,7 @@ function abrirMesaJuez(id) {
   caja.querySelector('[data-cerrar-mesa]').addEventListener('click', () => abrirMesaJuez(null))
   caja.querySelector('[data-ir-mesas]').addEventListener('click', () => document.querySelector('#torneoPestanas [data-pestana="rondas"]')?.click())
   montarChat($('chatMesaJuez'), { tabla: 'match_messages', columna: 'match_id', id: m.id, titulo: 'Chat de la mesa (escribes como juez)', cerrado: false, abierto: true })
-  caja.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  if (!window.matchMedia?.('(max-width: 900px)').matches) caja.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }
 
 // Atender bajo candado (SPEC §10.2): el filtro por estado hace que si
@@ -969,6 +1036,7 @@ function pintarJueces() {
   pintarSolicitudes()
   pintarCola()
   pintarDecklistsJuez()
+  pintarVistasJuez()
   pintarMiPartidaExtra()
   ctx.alRepintar?.()
 }

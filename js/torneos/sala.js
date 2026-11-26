@@ -113,7 +113,7 @@ export function montarSala(caja, t, gente) {
 // verde, la que toca brillando y la que aún no se puede con candado. El botón
 // de confirmar conserva su id (`btnConfirmarParticipacion`): el manejador de
 // torneo.js es el mismo. Puro.
-export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false }) {
+export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false, enPersona = false }) {
   const hechas = 1 + (listaHecha ? 1 : 0) + (confirmado ? 1 : 0)
   const mision = (estado, icono, titulo, sub, extra = '') => `
     <li class="sala-mision ${estado}">
@@ -128,7 +128,7 @@ export function misionesHtml({ tcg = '', listaHecha = false, confirmado = false 
       <span><small class="sala-ceja">TUS MISIONES</small><strong>${listo ? '¡Todo listo!' : `Te ${3 - hechas === 1 ? 'falta 1' : `faltan ${3 - hechas}`}`}</strong></span>
     </div>
     <ol class="sala-misiones">
-      ${mision('hecha', icons.checkCircle(20), 'Inscrito', `como ${escapeHtml(tcg || '—')} <button type="button" class="link-btn sala-cambiar" id="btnEditarTcg">Cambiar</button>`)}
+      ${mision('hecha', icons.checkCircle(20), 'Inscrito', enPersona ? 'tienes plaza (en persona no hace falta TCG Live)' : `como ${escapeHtml(tcg || '—')} <button type="button" class="link-btn sala-cambiar" id="btnEditarTcg">Cambiar</button>`)}
       ${listaHecha
         ? mision('hecha', icons.checkCircle(20), 'Lista entregada', 'puedes cambiarla hasta la ronda 1', '<button type="button" class="link-btn" data-abrir-lista>Ver</button>')
         : mision('toca', icons.layers(20), 'Manda tu lista', 'sin ella no juegas', '<button type="button" class="btn-primary sala-mision-boton" data-abrir-lista>Elegir mazo</button>')}

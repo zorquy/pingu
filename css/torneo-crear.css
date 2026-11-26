@@ -182,3 +182,9 @@ html:has(.tc-dialogo[open]) { overflow: hidden; }
   .tc-opcion,
   .tc-extra-flecha { transition: none; }
 }
+
+/* ── 1452: En persona (SCHEMA 1452) ── */
+.tc-aviso-persona { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 12px 16px; border-radius: var(--radius-lg); background: var(--ice); color: var(--text-mid); font-size: var(--t-sm); }
+.tc-aviso-persona svg { flex: none; margin-top: 2px; color: var(--acento); }
+.tc-persona[hidden], .tc-online[hidden], .tc-extra[hidden] { display: none; }
+.tc-reco { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-size: var(--t-2xs); font-weight: 700; vertical-align: middle; }

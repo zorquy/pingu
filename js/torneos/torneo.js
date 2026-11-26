@@ -10,6 +10,7 @@ import { avisarExito } from '../exito.js'
 import { escapeHtml, getSession, getProfile, burstConfetti, avatarStyle, getInitial } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
+import { svgQR } from '../qr.js'
 import { parseDecklist, validateDecklist, canEditDecklist, decklistUnparsed, officialStructure } from './motor.js'
 import {
   ESTADOS,
@@ -82,6 +83,11 @@ const mando = () => puedeLlevar(perfil, torneo, session?.user?.id, esJuez)
 // esto: aquí solo se evita pedir lo que se sabe que no toca y pintar
 // cajas que estarían vacías.
 let soloMirando = false
+// Torneos en persona (1452): se juegan en un sitio, sin TCG Live, y en vez del
+// check-in se da entrada en la puerta. Sin la migración 1446 las columnas no
+// existen y todo torneo es online.
+const enPersona = () => torneo?.modalidad === 'presencial'
+const inscripcionPersona = () => torneo?.inscripcion || 'pedir'
 
 const $ = (id) => document.getElementById(id)
 
@@ -357,6 +363,7 @@ function pintarFicha() {
   // La sala de espera (1397, «PokeDoc en modo app»): antes de empezar, el
   // cartel, la cuenta atrás, quién está dentro y el formato en losas.
   montarSala($('torneoInfoCaja'), torneo, inscripciones.filter((i) => i.status === 'active'))
+  pintarSitio()
 
   // El cuadro de cierre con rondas (tanda 228) sobrevive a los
   // repintados del sondeo mientras las inscripciones sigan abiertas —
@@ -1003,6 +1010,29 @@ function engancharJornadas() {
   })
 }
 
+// Dónde se juega (1452): el sitio, la dirección y «Cómo llegar», arriba de Info.
+function pintarSitio() {
+  const caja = $('torneoInfoCaja')
+  if (!caja) return
+  let linea = $('torneoSitio')
+  if (!enPersona() || !torneo.lugar) {
+    linea?.remove()
+    return
+  }
+  if (!linea) {
+    linea = document.createElement('p')
+    linea.id = 'torneoSitio'
+    linea.className = 'torneo-sitio'
+    caja.prepend(linea)
+  }
+  const destino = [torneo.lugar, torneo.direccion].filter(Boolean).join(', ')
+  pintarSiCambia(
+    linea,
+    `${icons.mapPin(18)}<span class="torneo-sitio-texto"><b>${escapeHtml(torneo.lugar)}</b>${torneo.direccion ? `<small>${escapeHtml(torneo.direccion)}</small>` : ''}</span>
+    <a class="btn-secondary torneo-sitio-llegar" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar</a>`
+  )
+}
+
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
   pintarMiPlazaDentro(caja)
@@ -1039,7 +1069,7 @@ function pintarMiPlazaDentro(caja) {
               : `: quedan ${Math.max(0, torneo.max_players - activos())} plazas`
           }.</p>
            <a class="btn-primary" href="/auth.html?registro=1&volver=${vuelta}">Crea tu cuenta para inscribirte</a>
-           <p class="subtext">Es gratis y se juega en Pokémon TCG Live. ¿Ya tienes cuenta? <a href="/auth.html?volver=${vuelta}">Entra</a>.</p>`
+           <p class="subtext">Es gratis${enPersona() ? '' : ' y se juega en Pokémon TCG Live'}. ¿Ya tienes cuenta? <a href="/auth.html?volver=${vuelta}">Entra</a>.</p>`
         : `<p class="subtext">Estás viendo este torneo sin haber entrado.</p>
            <a class="btn-secondary" href="/auth.html?volver=${vuelta}">Entrar en PokeDoc</a>`
     )
@@ -1050,7 +1080,8 @@ function pintarMiPlazaDentro(caja) {
   // son tres misiones y el «¡ESTOY!» grande, en vez de las frases.
   if (miInscripcion?.status === 'active' && checklistDosPasos()) {
     if (!pintarSiCambia(caja, `
-      ${misionesHtml({ tcg: miInscripcion.tcg_live_username, listaHecha: !!miDecklist, confirmado: !!miInscripcion.participation_confirmed_at })}
+      ${enPersona() ? tuEntradaHtml() : ''}
+      ${misionesHtml({ tcg: miInscripcion.tcg_live_username, listaHecha: !!miDecklist, confirmado: !!miInscripcion.participation_confirmed_at, enPersona: enPersona() })}
       <div id="cajaEditarTcg"></div>
       <button type="button" class="link-btn sala-baja" id="btnBaja">Darme de baja</button>`)) return
     engancharConfirmarParticipacion()
@@ -1061,9 +1092,11 @@ function pintarMiPlazaDentro(caja) {
   if (miInscripcion?.status === 'active') {
     if (!pintarSiCambia(caja, `
       <p class="torneo-entrada-ok">${icons.checkCircle(18)} Estás dentro${torneo.max_players != null ? ` · ${activos()} de ${torneo.max_players} plazas` : ''}</p>
-      <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> (tu usuario de TCG Live).
+      ${enPersona()
+        ? tuEntradaHtml()
+        : `<p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> (tu usuario de TCG Live).
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
-      <div id="cajaEditarTcg"></div>
+      <div id="cajaEditarTcg"></div>`}
       ${checklistDosPasos()}
       ${misJornadasHtml(misJornadas(torneo, ['finished', 'cancelled'].includes(torneo.status) ? null : jornadas, session.user.id), fechaBonita)}
       <button class="btn-secondary" id="btnBaja">Darme de baja</button>`)) return
@@ -1084,9 +1117,9 @@ function pintarMiPlazaDentro(caja) {
   if (miInscripcion?.status === 'waitlisted') {
     if (!pintarSiCambia(caja, `
       <p>Estás en la <strong>lista de espera</strong>, en el puesto ${miPuestoEnCola()}.</p>
-      <p>Apuntado como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> en TCG Live.
+      ${enPersona() ? '' : `<p>Apuntado como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> en TCG Live.
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
-      <div id="cajaEditarTcg"></div>
+      <div id="cajaEditarTcg"></div>`}
       <p class="subtext">Si alguien deja su plaza, la primera de la cola entra sola y te avisamos.</p>
       <button class="btn-secondary" id="btnSalirCola">Salir de la lista</button>`)) return
     engancharEditarTcgLive()
@@ -1100,6 +1133,11 @@ function pintarMiPlazaDentro(caja) {
     esUnaLiga() && ['registration_closed', 'in_progress'].includes(torneo.status) ? primeraAbierta(torneo, jornadas) : null
   if (torneo.status !== 'registration_open' && !ligaAbierta) {
     pintarSiCambia(caja, `<p class="subtext">${torneo.status === 'draft' ? 'Las inscripciones aún no se han abierto.' : 'Las inscripciones no están abiertas.'}</p>`)
+    return
+  }
+  if (enPersona() && inscripcionPersona() === 'organizador') {
+    pintarSiCambia(caja, `<p>${icons.mapPin(16)} En este torneo te apunta quien lo organiza, cuando llegas a <strong>${escapeHtml(torneo.lugar || 'el sitio')}</strong>.</p>
+      <p class="subtext">Si no tienes cuenta, te la haces allí mismo en un minuto.</p>`)
     return
   }
   // Sin límite (max_players NULL) nunca hay lleno ni lista de espera.
@@ -1117,21 +1155,47 @@ function pintarMiPlazaDentro(caja) {
              </label>`
           : ''
       }
-      <label>Tu usuario de Pokémon TCG Live
+      ${enPersona() ? '' : `<label>Tu usuario de Pokémon TCG Live
         <input type="text" id="inscripcionTcgLive" maxlength="60" placeholder="AshKetchum99" />
-      </label>
-      <button type="submit" class="btn-primary" id="btnInscribirme">${lleno ? 'Apuntarme a la lista de espera' : 'Inscribirme'}</button>
+      </label>`}
+      <button type="submit" class="btn-primary" id="btnInscribirme">${lleno ? 'Apuntarme a la lista de espera' : enPersona() && inscripcionPersona() === 'pedir' ? 'Pedir plaza' : 'Inscribirme'}</button>
     </form>
     <p class="subtext">${
       torneo.is_private
         ? 'Este torneo se juega con código: pídeselo a quien lo organiza. '
         : ''
-    }Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.</p>${
+    }${enPersona()
+      ? inscripcionPersona() === 'pedir'
+        ? 'Se juega en persona: al llegar, enseña tu entrada en la puerta y te dejan pasar. Juega quien ha entrado.'
+        : 'Se juega en persona, en mesa y con tus cartas.'
+      : 'Las partidas se juegan en TCG Live: tu rival te buscará por ese usuario.'}</p>${
       ligaAbierta
         ? `<p class="subtext torneo-liga-tarde">La liga ya ha empezado: entras con 0 puntos y juegas desde la jornada ${ligaAbierta} si envías tu lista antes de que se cierre.</p>`
         : ''
     }`)) return
   engancharInscripcion(lleno)
+}
+
+// Tu entrada (1452): con «piden plaza», un billete con un QR que quien lleva el
+// torneo escanea en la puerta (la puerta es la 1453). El QR solo dice qué
+// torneo y quién: dar la entrada lo decide la base (`torneos_dar_entrada`).
+function tuEntradaHtml() {
+  const plazas = torneo.max_players != null ? ` · ${activos()} de ${torneo.max_players} plazas` : ''
+  if (inscripcionPersona() !== 'pedir') {
+    return `<p>Tienes plaza${plazas}. Se juega en <strong>${escapeHtml(torneo.lugar || 'persona')}</strong>.</p>`
+  }
+  if (miInscripcion.entrada_at) {
+    return `<p class="torneo-entrada-dentro">${icons.checkCircle(18)} <strong>Ya has entrado.</strong> ¡A jugar!</p>`
+  }
+  const codigo = `pokedoc-entrada:${torneo.id}:${session.user.id}`
+  return `<div class="torneo-billete">
+      <div class="torneo-billete-qr" aria-hidden="true">${svgQR(codigo, { tam: 168 })}</div>
+      <div class="torneo-billete-texto">
+        <small class="torneo-billete-ceja">TU ENTRADA</small>
+        <strong>${escapeHtml(perfil?.username || 'Tú')}</strong>
+        <span>Enséñala en la puerta de ${escapeHtml(torneo.lugar || 'el sitio')}${plazas}.</span>
+      </div>
+    </div>`
 }
 
 // Los que esperan, por orden de llegada (el mismo que sigue el barredor
@@ -1167,8 +1231,9 @@ function engancharInscripcion(aLaCola = false) {
   $('formInscripcion').addEventListener('submit', async (e) => {
     e.preventDefault()
     if (enviando) return
-    const tcgLive = $('inscripcionTcgLive').value.trim()
-    if (!tcgLive) {
+    // En persona no hay usuario de TCG Live (la base guarda '').
+    const tcgLive = enPersona() ? '' : $('inscripcionTcgLive').value.trim()
+    if (!tcgLive && !enPersona()) {
       showToast('Di tu usuario de TCG Live: sin él, tu rival no puede encontrarte.')
       return
     }
@@ -1654,6 +1719,42 @@ function caraDe(perfil, nombre) {
   }</span>`
 }
 
+// Info sin la lista de 60 debajo (1448, «El torneo, de nuevo»): empezado el
+// torneo, los inscritos son una fila de caras con «Ver todos», que despliega
+// la lista de siempre con su buscador. Antes de empezar, la sala sigue igual.
+let inscritosAbiertos = false
+function pintarCarasInscritos() {
+  const caja = $('torneoInscritosCaja')
+  if (!caja) return
+  const plegable = !['draft', 'registration_open', 'registration_closed'].includes(torneo.status) && inscripciones.length > 10
+  caja.classList.toggle('torneo-inscritos-plegable', plegable)
+  caja.classList.toggle('abierta', plegable && inscritosAbiertos)
+  let fila = $('inscritosCaras')
+  if (!plegable) {
+    fila?.remove()
+    return
+  }
+  if (!fila) {
+    fila = document.createElement('div')
+    fila.id = 'inscritosCaras'
+    fila.className = 'torneo-inscritos-caras'
+    caja.querySelector('h3')?.after(fila)
+    fila.addEventListener('click', (e) => {
+      if (!e.target.closest('[data-inscritos-todos]')) return
+      inscritosAbiertos = !inscritosAbiertos
+      pintarCarasInscritos()
+    })
+  }
+  const jugando = inscripciones.filter((i) => i.status !== 'waitlisted')
+  const caras = jugando.slice(0, 10).map((i) => caraDe(i.perfil, i.perfil?.username || 'Alguien')).join('')
+  const resto = jugando.length - 10
+  pintarSiCambia(
+    fila,
+    `<span class="torneo-caras-fila">${caras}${resto > 0 ? `<span class="torneo-caras-mas">+${resto}</span>` : ''}</span>
+     <button type="button" class="link-btn" data-inscritos-todos aria-expanded="${inscritosAbiertos}">${inscritosAbiertos ? 'Ocultar' : `Ver los ${jugando.length}`}</button>`
+  )
+}
+
 function pintarInscritos() {
   textoSiCambia($('inscritosNumero'), String(activos()))
   $('inscritosVacio').classList.toggle('hidden', inscripciones.length > 0)
@@ -1724,6 +1825,7 @@ function pintarInscritos() {
     ? Array.from({ length: Math.min(libres, 7) }, () => '<div class="torneo-inscrito sala-libre" aria-hidden="true"><span class="torneo-inscrito-nombre"><span class="sala-libre-cara">+</span>libre</span></div>').join('') +
       (libres > 7 ? `<div class="torneo-inscrito sala-libre" aria-hidden="true"><span class="torneo-inscrito-nombre"><span class="sala-libre-cara">+${libres - 7}</span>libres</span></div>` : '')
     : ''
+  pintarCarasInscritos()
   if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlLibres + htmlCola)) return
   filtrarGente()
   document.querySelectorAll('[data-expulsar]').forEach((b) =>

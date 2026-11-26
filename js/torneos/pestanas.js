@@ -10,22 +10,26 @@
 import { icons } from '../icons.js'
 
 // Los ids no cambian desde la 413 (`?ver=jugar` sigue valiendo); los nombres
-// sí: «Mi mesa» es «Hoy», «Rondas» son «Mesas» y «Clasificación» es «Tabla».
+// sí. Desde la 1447 («El torneo, de nuevo», PINGU: «¿por qué la pestaña Hoy se
+// llama Hoy y tiene una casa y está ahí?»): «Hoy» es «Tu mesa», «Tabla» es
+// «Clasificación» y los mazos vuelven a tener pestaña («Mazos», id `meta`).
+// El tercero de cada una es el nombre corto del móvil.
 export const PESTANAS = {
-  torneo: ['Info', 'info'],
-  jugadores: ['Jugadores', 'users'],
-  jugar: ['Hoy', 'home'],
-  rondas: ['Mesas', 'layoutGrid'],
-  clasificacion: ['Tabla', 'trophy'],
-  meta: ['Meta', 'barChart'],
-  jueces: ['Jueces', 'shield'],
+  torneo: ['Info', 'info', 'Info'],
+  jugadores: ['Jugadores', 'users', 'Jugadores'],
+  jugar: ['Tu mesa', 'gamepad', 'Tu mesa'],
+  rondas: ['Mesas', 'layoutGrid', 'Mesas'],
+  clasificacion: ['Clasificación', 'trophy', 'Clasif.'],
+  meta: ['Mazos', 'cards', 'Mazos'],
+  jueces: ['Jueces', 'shield', 'Jueces'],
 }
-// Sin «Meta» desde la 1378: es un apartado de Tabla.
-const ORDEN_DE_PESTANAS = {
-  antes: ['torneo', 'jugadores', 'jugar', 'rondas', 'clasificacion', 'jueces'],
-  juego: ['jugar', 'rondas', 'clasificacion', 'torneo', 'jueces'],
-  fin: ['clasificacion', 'rondas', 'torneo', 'jugar', 'jueces'],
-}
+// UN orden para siempre (1447): antes cambiaba con el momento del torneo y, al
+// terminar, «Hoy» acababa la cuarta. Lo que cambia es la que se ABRE
+// (`pestanaDeEntrada`), no dónde está cada una. Las que no tienen nada no
+// salen: antes de empezar quedan Info y Jugadores. Jueces no va en la fila:
+// es el «Modo juez» de la cabecera (`pintarBotonJuez`).
+const ORDEN = ['jugar', 'clasificacion', 'rondas', 'meta', 'torneo', 'jugadores']
+const ORDEN_DE_PESTANAS = { antes: ORDEN, juego: ORDEN, fin: ORDEN }
 // En la fila del móvil caben cinco; con más, las últimas van en «Más».
 const CABEN_ABAJO = 5
 const MOVIL = '(max-width: 900px)'
@@ -59,6 +63,10 @@ const enMovil = () => window.matchMedia?.(MOVIL).matches
 // html) y alAbrirInfo() (el «Leer más» de la descripción, que se mide).
 export function montarPestanas(funciones) {
   f = funciones
+  // «Volver al torneo» de la barra del modo juez (1447).
+  document.addEventListener('click', (e) => {
+    if (e.target.closest?.('[data-salir-juez]')) irAPestanaConUrl(null)
+  })
   window.matchMedia?.(MOVIL).addEventListener?.('change', () => pintarPestanas(true))
   // Lo pegado cambia de alto (la pastilla del reloj sale y entra): lo que se
   // pega debajo lo lee de aquí.
@@ -88,8 +96,47 @@ function colocar(nav) {
 }
 
 function botonHtml(p, cuenta) {
-  const [texto, icono] = PESTANAS[p.id]
-  return `<button type="button" class="seg-btn${p.id === pestanaActiva ? ' activa' : ''}" data-pestana="${p.id}"${p.id === pestanaActiva ? ' aria-current="page"' : ''}><span class="torneo-tab-ic" aria-hidden="true">${icons[icono]?.(20) || ''}</span><span class="torneo-tab-txt">${texto}</span>${cuenta(p.id)}</button>`
+  const [texto, icono, corto] = PESTANAS[p.id]
+  return `<button type="button" class="seg-btn${p.id === pestanaActiva ? ' activa' : ''}" data-pestana="${p.id}"${p.id === pestanaActiva ? ' aria-current="page"' : ''}><span class="torneo-tab-ic" aria-hidden="true">${icons[icono]?.(20) || ''}</span><span class="torneo-tab-txt"><span class="torneo-tab-largo">${texto}</span><span class="torneo-tab-corto" aria-hidden="true">${corto}</span></span>${cuenta(p.id)}</button>`
+}
+
+// «Modo juez» (1447): para quien lleva o arbitra, un botón en la cabecera que
+// cambia la ficha a la consola de jueces (el panel `jueces`), con los tickets
+// que esperan. Dentro, la barra ámbar con «Volver al torneo».
+function pintarBotonJuez(hayJueces, pendientes) {
+  const sitio = document.querySelector('#torneoCabecera .torneo-ficha-cabecera')
+  let b = $('btnModoJuez')
+  if (!hayJueces) {
+    b?.remove()
+    return
+  }
+  if (!b && sitio) {
+    b = document.createElement('button')
+    b.type = 'button'
+    b.id = 'btnModoJuez'
+    b.className = 'torneo-modo-juez'
+    b.dataset.pestana = 'jueces'
+    b.addEventListener('click', () => irAPestanaConUrl(pestanaActiva === 'jueces' ? null : 'jueces'))
+    sitio.prepend(b)
+  }
+  if (!b) return
+  const dentro = pestanaActiva === 'jueces'
+  const html = `${icons.shield(16)}<span class="torneo-modo-juez-txt">${dentro ? 'Salir del modo juez' : 'Modo juez'}</span>${pendientes && !dentro ? `<span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>` : ''}`
+  f.pintarSiCambia(b, html)
+  b.classList.toggle('activa', dentro)
+  b.setAttribute('aria-pressed', String(dentro))
+}
+
+// Ir a una pestaña (o, con null, a la de entrada) dejándolo en la dirección.
+function irAPestanaConUrl(id) {
+  pestanaActiva = id
+  elegidaAMano = Boolean(id)
+  const url = new URL(location.href)
+  if (id) url.searchParams.set('ver', id)
+  else url.searchParams.delete('ver')
+  history.replaceState(null, '', url)
+  pintarPestanas()
+  window.scrollTo({ top: 0 })
 }
 
 // `forzar`: el ancho ha cambiado y la barra se rehace aunque nada más cambie.
@@ -102,29 +149,39 @@ export function pintarPestanas(forzar = false) {
   const suSitio = document.querySelector(`[data-panel="${fase === 'antes' ? 'jugadores' : 'torneo'}"]`)
   if (inscritos && suSitio && inscritos.parentNode !== suSitio) suSitio.appendChild(inscritos)
   const visibles = ORDEN_DE_PESTANAS[fase]
+    .filter((id) => id !== 'jugadores' || fase === 'antes')
     .map((id) => ({ id }))
     .filter((p) => {
       const panel = document.querySelector(`[data-panel="${p.id}"]`)
       return panel && [...panel.children].some((caja) => !caja.classList.contains('hidden'))
     })
-  // `?ver=meta` (enlaces de antes de la 1378) abre Tabla, que es donde vive el meta.
+  // `?ver=meta` abre Mazos (1447); sin listas a la vista aún no hay Mazos, y
+  // abre Clasificación, que es lo más cerca (como entre la 1378 y la 1447).
   const pedidaTal = new URLSearchParams(location.search).get('ver')
-  const pedida = pedidaTal === 'meta' ? 'clasificacion' : pedidaTal
-  if (!pestanaActiva) pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : pestanaDeEntrada(fase, visibles)
-  if (!elegidaAMano && pedida && pestanaActiva !== pedida && visibles.some((p) => p.id === pedida)) pestanaActiva = pedida
-  if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
+  const pedida = pedidaTal === 'meta' && !visibles.some((p) => p.id === 'meta') ? 'clasificacion' : pedidaTal
+  // Jueces no está en la fila, pero se puede estar en él (el «Modo juez»).
+  const panelJueces = document.querySelector('[data-panel="jueces"]')
+  // Hay Modo juez si alguna caja del juez tiene algo (1451: la consola y su fila
+  // de vistas están siempre; lo que cuenta son las cajas de dentro).
+  const hayJueces = Boolean(panelJueces && [...panelJueces.querySelectorAll('#torneoJuezCifras, .torneo-juez-col > .simple-card:not(.torneo-juez-chat)')].some((caja) => !caja.classList.contains('hidden')))
+  const sePuede = (id) => visibles.some((p) => p.id === id) || (id === 'jueces' && hayJueces)
+  if (!pestanaActiva) pestanaActiva = sePuede(pedida) ? pedida : pestanaDeEntrada(fase, visibles)
+  if (!elegidaAMano && pedida && pestanaActiva !== pedida && sePuede(pedida)) pestanaActiva = pedida
+  if (!sePuede(pestanaActiva)) pestanaActiva = visibles.length ? pestanaDeEntrada(fase, visibles) : 'torneo'
   // La pestaña abierta, en la raíz: la pastilla del reloj no sale en Hoy, que
   // ya lleva el reloj grande (1343).
   document.documentElement.dataset.torneoPestana = pestanaActiva
 
   const nav = $('torneoPestanas')
   // Una barra con UNA sola pestaña no es una barra (tanda 310): se esconde.
-  const visible = visibles.length >= 2
+  // En el modo juez tampoco: la consola tiene su barra (1447).
+  const visible = visibles.length >= 2 && pestanaActiva !== 'jueces'
   nav.classList.toggle('hidden', !visible)
   colocar(nav)
   // La de jueces lleva cuántas cosas esperan (394); la de jugadores, cuántos hay.
   const pendientes = f.pendientesDeJuez()
   const activos = f.activos()
+  pintarBotonJuez(hayJueces, pendientes)
   const cuenta = (id) =>
     id === 'jueces' && pendientes
       ? ` <span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>`

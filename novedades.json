@@ -33,6 +33,10 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Ya se pueden crear torneos en persona: en una tienda o un evento, con la dirección y «Cómo llegar», sin usuario de TCG Live y con tu entrada en el móvil para enseñarla en la puerta.", "enlace": "/torneos" },
+    { "fecha": "2026-11-26", "tipo": "mejora", "texto": "El Modo juez de los torneos es una consola: los tickets, el mapa de mesas y el chat de la mesa que abras, todo a la vista (en el móvil, en tres pestañas). Las listas se buscan en una ventana y los tickets se cierran solos cuando su mesa termina.", "enlace": "/torneos" },
+    { "fecha": "2026-11-26", "tipo": "mejora", "texto": "En los torneos ya no hay que bajar sin fin: la clasificación enseña el podio, el Top 8 y tu puesto (y un buscador para el resto), los mazos van en un mosaico y cada mesa es una tarjeta con un jugador por línea, quién ganó, filtros y un buscador para encontrar dónde juega alguien.", "enlace": "/torneos" },
+    { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La ficha del torneo tiene sus pestañas siempre en el mismo orden: Tu mesa, Clasificación, Mesas, Mazos e Info. Los mazos tienen su pestaña, quien arbitra entra en el «Modo juez» desde arriba y, al acabar, Tu mesa te cuenta tu torneo: puesto, rivales y para compartir.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "En los torneos ya no hace falta recargar: si tu rival no hace check-in, la victoria llega sola en cuanto acaba el plazo, y cuando el torneo termina lo ves al momento.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "nuevo", "texto": "En el meta de un torneo, cada mazo tiene sus cifras: cuánto se jugó, su % de victorias, cuántos entraron al corte, dónde acabaron y cómo le fue contra cada rival. El organizador puede bajarlo en imagen para redes.", "enlace": "/torneos" },
     { "fecha": "2026-11-25", "tipo": "arreglo", "texto": "La imagen del meta de un torneo pone como Top 4 a los del podio, y los mazos de muchos básicos sueltos se llaman «Basic Box», como en Limitless.", "enlace": "/torneos" },
