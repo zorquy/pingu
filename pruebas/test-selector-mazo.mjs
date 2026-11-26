@@ -1,4 +1,4 @@
-import { buscarOpciones } from '/home/user/pingu/js/torneos/selector-mazo.js'
+import { buscarOpciones, opcionDeArquetipo } from '/home/user/pingu/js/torneos/selector-mazo.js'
 
 // Tanda 233: el buscador de mazos, como el de trainingcourt. Escribir el
 // nombre a pelo partía el histórico en dos («Dragapult» y «dragapul» son
@@ -38,25 +38,48 @@ console.log('\n── 2. El orden ──')
     dr.indexOf('Dragapult') < dr.indexOf('Drampa'), JSON.stringify(dr.slice(0, 6)))
 }
 
-console.log('\n── 3. Los arquetipos catalogados NO salen (tanda 238) ──')
+console.log('\n── 3. Los arquetipos del catálogo SÍ salen (tanda 1461) ──')
 {
-  // Lo pidió Ibai: los arquetipos ya hechos salían sin sprite y no
-  // aportaban nada que elegir los Pokémon no diera. El parámetro sigue
-  // en la firma para no romper a quien llama, pero se ignora, y la
-  // agrupación la hace claveCanonicaDeMazo al leer.
-  const cat = [{ id: 'martillos', nombre: 'Martillos' }, { id: 'pult-noir', nombre: 'Dragapult Dusknoir' }]
-  check('el catálogo no cuela nada en la lista',
-    !buscarOpciones('dragapult', cat).some((o) => o.tipo === 'arquetipo'),
-    JSON.stringify(buscarOpciones('dragapult', cat).slice(0, 2).map((o) => o.nombre)))
-  check('y pasarlo no cambia el resultado',
-    JSON.stringify(nombres('dragapult', cat)) === JSON.stringify(nombres('dragapult')),
-    JSON.stringify(nombres('dragapult', cat)))
-  // Lo que SÍ sale sin ser un Pokémon es el martillo: es un objeto con
-  // sprite propio (OBJETOS_TCG), y sale del código, no del catálogo.
+  // Se quitaron en la 238 (Ibai: salían sin sprite y no aportaban nada que
+  // elegir los Pokémon no diera) y vuelven en la 1461, con el catálogo de
+  // Limitless de la 1460 y los sprites de sus iconos (Ibai: «adelante»).
+  const cat = [
+    { id: 'martillos', nombre: 'Martillos', iconos: [] },
+    { id: 'dragapult-dusknoir', nombre: 'Dragapult Dusknoir', iconos: [{ set: 'TWM', numero: '130', nombre: 'Dragapult ex' }, { set: 'PRE', numero: '37', nombre: 'Dusknoir' }] },
+    { id: 'dragapult', nombre: 'Dragapult', iconos: [{ set: 'TWM', numero: '130', nombre: 'Dragapult ex' }] },
+    { id: 'apagado', nombre: 'Dragapult Viejo', iconos: [], activo: false },
+  ]
+  const ops = buscarOpciones('dragapult', cat)
+  const pareja = ops.find((o) => o.valor === 'a:dragapult-dusknoir')
+  check('el arquetipo sale, como arquetipo y con su id', pareja?.tipo === 'arquetipo' && pareja.nombre === 'Dragapult Dusknoir', JSON.stringify(ops.slice(0, 3)))
+  check('  …con los sprites de sus DOS iconos, por nombre de Pokémon',
+    pareja?.sprites?.length === 2 && /dragapult\.png$/.test(pareja.sprites[0]) && /dusknoir\.png$/.test(pareja.sprites[1]) && pareja.sprite === pareja.sprites[0],
+    JSON.stringify(pareja?.sprites))
+  check('el que se llama como la especie OCUPA su sitio: no hay dos «Dragapult»',
+    ops.filter((o) => o.nombre === 'Dragapult').length === 1 && ops.find((o) => o.nombre === 'Dragapult')?.valor === 'a:dragapult',
+    JSON.stringify(ops.slice(0, 4).map((o) => o.valor)))
+  // Con «drag» empiezan todos (Dragalge, Dragonite…): los mazos, delante.
+  const drag = buscarOpciones('drag', cat)
+  const ultimoMazo = drag.map((o) => o.tipo).lastIndexOf('arquetipo')
+  const primeraEspecie = drag.findIndex((o) => o.tipo !== 'arquetipo')
+  check('a igualdad, el mazo antes que la especie suelta',
+    ultimoMazo === 1 && primeraEspecie === 2 && drag[2].nombre === 'Dragalge',
+    JSON.stringify(drag.slice(0, 4).map((o) => o.nombre)))
+  check('el desactivado no sale', !ops.some((o) => o.valor === 'a:apagado'))
+  check('sin catálogo, la lista es la de siempre', nombres('dragap')[0] === 'Dragapult' && !buscarOpciones('dragap').some((o) => o.tipo === 'arquetipo'))
+  // Un arquetipo sin iconos (o que se nombra por un objeto) sale sin sprite,
+  // con el hueco que alinea los nombres.
+  const mart = buscarOpciones('martillos', cat).find((o) => o.valor === 'a:martillos')
+  check('el de sin iconos sale igual, sin sprite', mart && !mart.sprite && mart.sprites.length === 0, JSON.stringify(mart || null))
+  // Lo que SÍ sale sin ser un Pokémon ni un arquetipo es el martillo: es un
+  // objeto con sprite propio (OBJETOS_TCG), y sale del código.
   const martillo = buscarOpciones('martil')[0]
   check('el martillo sale igual, y con su sprite',
     martillo?.nombre === 'Crushing Hammer' && martillo?.sprite === '/assets/sprites/crushing-hammer.png',
     JSON.stringify(martillo || null))
+  const deUno = opcionDeArquetipo(cat[1])
+  check('opcionDeArquetipo da lo mismo que la lista (lo usa Mis partidas al editar)',
+    deUno.valor === pareja.valor && JSON.stringify(deUno.sprites) === JSON.stringify(pareja.sprites))
 }
 
 console.log('\n── 4. Lo que se guarda ──')
@@ -69,14 +92,10 @@ console.log('\n── 4. Lo que se guarda ──')
   // La CDN cambió en la tanda 236 (PokeAPI → Limitless) y la URL pasó a
   // montarse por nombre en vez de por número de Pokédex.
   check('y trae su sprite', /r2\.limitlesstcg\.net\/pokemon\/gen9\/gardevoir\.png$/.test(uno.sprite || ''), uno.sprite)
-
-  // Desde la tanda 238 no hay opciones de catálogo, así que tampoco hay
-  // valores `a:<id>`: TODO lo que se elige aquí se guarda como mazo
-  // deducido, y agrupar con el catálogo es cosa de claveCanonicaDeMazo.
-  const cat = [{ id: 'martillos', nombre: 'Martillos' }]
-  check('ya no se guarda nada por id de catálogo',
-    !buscarOpciones('martillos', cat).some((o) => String(o.valor).startsWith('a:')),
-    JSON.stringify(buscarOpciones('martillos', cat).map((o) => o.valor)))
+  // Un arquetipo se guarda por su id (`a:<id>`), la clave con la que
+  // agrupan los de los torneos (claveCanonicaDeMazo la deja como está).
+  const cat = [{ id: 'gardevoir', nombre: 'Gardevoir', iconos: [{ nombre: 'Gardevoir ex' }] }]
+  check('el arquetipo se guarda por su id', buscarOpciones('gardevoir', cat)[0]?.valor === 'a:gardevoir', String(buscarOpciones('gardevoir', cat)[0]?.valor))
   check('el martillo se guarda como mazo deducido',
     buscarOpciones('crushing')[0]?.valor === 'd:crushing hammer',
     String(buscarOpciones('crushing')[0]?.valor))
