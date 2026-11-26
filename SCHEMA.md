@@ -55231,6 +55231,20 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1469 — El día del torneo, en «modo Hoy»
+
+Sin cambios de esquema. `js/torneos/cabecera.js`: `esDiaDelTorneo(t, ahora)`
+(sin empezar, `start_at` hoy en la hora local y aún por llegar),
+`cuentaConSegundos(ms)` («2 h 14 min 07 s»); `cuentaDeCabecera` ese día
+devuelve `{ rotulo: 'Hoy · HH:MM', valor, hoy: true }` y `pintarCabecera` pone
+`.hoy` en `#torneoCuenta`. `sala.js`: `salaHtml(t, gente, ahora)` marca
+`.sala-dia.hoy` con «Hoy». `torneo.js`: `vigilarDiaDelTorneo()` (tras pintar la
+cabecera) pone `data-torneo-hoy` en la raíz y un `setInterval` de 1 s; 
+`pintarBarraHoy()` crea `#torneoHoyBarra.torneo-hoy-barra` en `body` con la
+misión que toca (`.sala-mision.toca .sala-mision-boton` o
+`#btnConfirmarParticipacion`) y la quita si no hay. CSS: la barra solo en
+≤ 599 px, fija a `72px + --seguro-abajo` como `.torneo-tu-flota`.
+
 ## Tanda 1468 — Tu temporada, el hueco que invita y Campeones sin repetir
 
 Sin cambios de esquema. `js/torneos/temporada.js`: `desenlace(mesa, result,

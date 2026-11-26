@@ -47,12 +47,14 @@ const DIA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
 // la sala y cuatro losas: nueve bloques uno debajo de otro. Ahora es una
 // FILA de tres —el día, el sitio y quién hay— y el formato en una tira.
 // `gente`: los inscritos activos, cada uno `{ perfil }`.
-export function salaHtml(t, gente = []) {
+export function salaHtml(t, gente = [], ahora = Date.now()) {
   const ms = Date.parse(t.start_at || '')
   const f = Number.isFinite(ms) ? new Date(ms) : null
   const tipo = t.format === 'league' ? 'liga' : t.modalidad === 'presencial' ? 'persona' : 'online'
+  // El día del torneo (1469) la losa dice «Hoy» y lleva el color de lo vivo.
+  const hoy = f && f.toDateString() === new Date(ahora).toDateString() && ms > ahora
   const dia = f
-    ? `<div class="sala-dia" data-tipo-torneo="${tipo}"><small>${DIA[f.getDay()]}</small><b>${f.getDate()}</b><span>${escapeHtml(f.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''))} · ${escapeHtml(f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}</span></div>`
+    ? `<div class="sala-dia${hoy ? ' hoy' : ''}" data-tipo-torneo="${tipo}"><small>${hoy ? 'Hoy' : DIA[f.getDay()]}</small><b>${f.getDate()}</b><span>${escapeHtml(f.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''))} · ${escapeHtml(f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}</span></div>`
     : `<div class="sala-dia" data-tipo-torneo="${tipo}"><small>Fecha</small><b>—</b><span>por decidir</span></div>`
   // Dónde: en persona, el sitio con «Cómo llegar»; online, TCG Live.
   const destino = [t.lugar, t.direccion].filter(Boolean).join(', ')

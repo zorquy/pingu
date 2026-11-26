@@ -581,3 +581,12 @@ cuenta, como en Mis partidas). Si cambias una, cambias la otra. Los
 próximo» un hueco nunca es un recuadro vacío: es una tarjeta del tamaño de un
 cartel que invita a algo (`invitaHtml`, `metaInvitaHtml`); solo con un filtro
 puesto el hueco dice «Quitar los filtros».
+
+**El día del torneo, lo que te falta va a mano** (tanda 1469). `esDiaDelTorneo`
+(cabecera.js) es LA forma de saber si hoy es el día: sin empezar, `start_at`
+hoy en la hora local y aún por llegar. Ese día la cuenta lleva segundos y
+corre con un reloj propio de 1 s que se para solo; nada más corre cada
+segundo en la ficha. La barra fija del móvil (`#torneoHoyBarra`) no tiene
+manejador propio: pulsa el botón de verdad de «Tu plaza». Si una misión nueva
+tiene botón, que lleve `.sala-mision-boton` dentro de `.sala-mision.toca` y la
+barra la encuentra sola.

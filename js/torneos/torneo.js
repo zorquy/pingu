@@ -43,7 +43,7 @@ import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
 import { montarPestanas, pintarPestanas, irAPestana } from './pestanas.js'
-import { pintarCabecera } from './cabecera.js'
+import { pintarCabecera, esDiaDelTorneo } from './cabecera.js'
 import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo, engancharAbrirLista } from './hoy-tarjetas.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { montarSala, misionesHtml } from './sala.js'
@@ -277,6 +277,7 @@ function pintarFicha() {
   pill.className = `torneo-estado ${estado.clase}`
   // El reloj y las rayitas de la cabecera (1375).
   pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda?.rondaDeAhora?.() || null }, pintarSiCambia)
+  vigilarDiaDelTorneo()
   // El sello de OFICIAL, al lado del estado. Se pinta aquí y no en el
   // HTML porque depende del torneo.
   document.getElementById('torneoChapaOficial')?.remove()
@@ -1119,6 +1120,7 @@ function pintarMiPlaza() {
   // el «Crea tu cuenta»).
   $('torneoMiPlaza')?.classList.toggle('torneo-entrada', miInscripcion?.status === 'active')
   pintarApuntarse(ficha)
+  pintarBarraHoy()
 }
 
 
@@ -1977,6 +1979,60 @@ const unaVez = (fn) => {
 const cicloPronto = unaVez(() => ronda?.recargarYPintar?.())
 const tablonPronto = unaVez(() => (ultimoContexto ? montarTablon(ultimoContexto) : null))
 let ultimoContexto = null
+
+// El DÍA del torneo (1469, «modo Hoy»): la cuenta de la cabecera lleva
+// segundos y se mueve cada segundo (el refresco de la ficha es cada 10 s, y
+// una cuenta de segundos que salta de diez en diez parece rota). La raíz lleva
+// `data-torneo-hoy` para el CSS: la sala dice «Hoy» y, en el móvil, lo que te
+// falta va en una barra fija abajo. Al llegar la hora el reloj se para solo.
+let relojHoy = null
+function vigilarDiaDelTorneo() {
+  const hoy = esDiaDelTorneo(torneo)
+  document.documentElement.toggleAttribute('data-torneo-hoy', hoy)
+  if (hoy && !relojHoy) {
+    relojHoy = setInterval(() => {
+      pintarCabecera(torneo, { rondas: jornadas?.rondas || null, ronda: ronda?.rondaDeAhora?.() || null }, pintarSiCambia)
+      if (!esDiaDelTorneo(torneo)) vigilarDiaDelTorneo()
+    }, 1000)
+  } else if (!hoy && relojHoy) {
+    clearInterval(relojHoy)
+    relojHoy = null
+  }
+  pintarBarraHoy()
+}
+
+// Lo que te falta, a mano (1469): el día del torneo, en el móvil, la misión
+// que toca («Elegir mazo», «¡Estoy!») va también en una barra fija abajo, para
+// tenerla en la tienda sin buscarla. El botón de la barra pulsa el de verdad
+// (el de «Tu plaza»): un solo manejador, el de siempre.
+function pintarBarraHoy() {
+  let barra = $('torneoHoyBarra')
+  const plaza = $('miPlazaContenido')
+  const real = document.documentElement.hasAttribute('data-torneo-hoy') && plaza
+    ? plaza.querySelector('.sala-mision.toca .sala-mision-boton') || plaza.querySelector('#btnConfirmarParticipacion')
+    : null
+  if (!real) {
+    barra?.remove()
+    return
+  }
+  const faltan = plaza.querySelectorAll('.sala-mision.toca, .sala-mision.cerrada').length
+  const texto = real.id === 'btnConfirmarParticipacion' ? '¡Estoy!' : 'Manda tu lista'
+  const html = `<span class="torneo-hoy-barra-texto"><b>Te ${faltan === 1 ? 'falta 1 cosa' : `faltan ${faltan} cosas`}</b><small>antes de la ronda 1</small></span><button type="button" class="btn-primary">${texto}</button>`
+  if (!barra) {
+    barra = document.createElement('div')
+    barra.id = 'torneoHoyBarra'
+    barra.className = 'torneo-hoy-barra'
+    barra.setAttribute('role', 'region')
+    barra.setAttribute('aria-label', 'Lo que te falta hoy')
+    barra.addEventListener('click', (e) => {
+      if (!e.target.closest('button')) return
+      const boton = $('miPlazaContenido')?.querySelector('.sala-mision.toca .sala-mision-boton') || $('btnConfirmarParticipacion')
+      boton?.click()
+    })
+    document.body.append(barra)
+  }
+  pintarSiCambia(barra, html)
+}
 
 function repintarCabecera() {
   if (!ronda) return

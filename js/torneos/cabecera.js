@@ -27,11 +27,39 @@ export function cuentaAtras(ms) {
 
 const SIN_EMPEZAR = ['draft', 'registration_open', 'registration_closed']
 
+// El DÍA del torneo (1469, «modo Hoy»): sin empezar, la fecha es hoy (en la
+// hora de quien mira) y aún no ha llegado la hora. Ese día la ficha cambia de
+// tono: la cuenta con segundos, «Hoy · 19:00», la entrada abierta y, en el
+// móvil, lo que te falta en una barra fija abajo.
+export function esDiaDelTorneo(t, ahora = Date.now()) {
+  if (!t || !SIN_EMPEZAR.includes(t.status)) return false
+  const ms = Date.parse(t.start_at || '')
+  if (!Number.isFinite(ms) || ms <= ahora) return false
+  return new Date(ms).toDateString() === new Date(ahora).toDateString()
+}
+
+// «2 h 14 min 07 s», «14 min 07 s», «07 s»: con segundos, que el día del
+// torneo una cuenta que no se mueve parece rota.
+export function cuentaConSegundos(ms) {
+  if (!Number.isFinite(ms) || ms <= 0) return ''
+  const s = Math.floor(ms / 1000)
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const ss = String(s % 60).padStart(2, '0')
+  if (h) return `${h} h ${m} min ${ss} s`
+  if (m) return `${m} min ${ss} s`
+  return `${ss} s`
+}
+
 // Lo que dice la pastilla, o null si no hay nada que contar (terminado,
 // cancelado, sin fecha). `rondas`: las de la liga (jornadas.rondas); `ronda`:
 // la viva o la última de un torneo de un día.
 export function cuentaDeCabecera(t, { rondas = null, ronda = null, ahora = Date.now() } = {}) {
   if (!t || ['finished', 'cancelled'].includes(t.status)) return null
+  if (esDiaDelTorneo(t, ahora)) {
+    const hora = new Date(Date.parse(t.start_at)).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    return { rotulo: `Hoy · ${hora}`, valor: cuentaConSegundos(Date.parse(t.start_at) - ahora), hoy: true }
+  }
   if (SIN_EMPEZAR.includes(t.status)) {
     // Con los minutos (1465): es la ÚNICA cuenta atrás de la ficha desde
     // que la sala dejó sus tres losas, y «22 d 21 h» parecía parada.
@@ -77,6 +105,7 @@ export function pintarCabecera(t, datos, pintarSiCambia) {
   const caja = document.getElementById('torneoCuenta')
   if (caja) {
     caja.classList.toggle('hidden', !cuenta)
+    caja.classList.toggle('hoy', Boolean(cuenta?.hoy))
     if (cuenta) pintarSiCambia(caja, `<small>${escapeHtml(cuenta.rotulo)}</small><b>${escapeHtml(cuenta.valor)}</b>`)
   }
   const rayas = rayitasDeTorneo(t, datos)

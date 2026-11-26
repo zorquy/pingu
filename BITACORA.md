@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (708) — PINGU-Claude (1469 — el día del torneo, en «modo Hoy»)
+
+**Hecho** (propuesta «Arena: siguientes mejoras», idea 5; PINGU: «adelante
+con todo lo recomendado y sube»):
+- **La cabecera** de la ficha, el día del torneo y antes de empezar, dice
+  «Hoy · 19:00» y la cuenta corre con segundos («2 h 14 min 07 s»), en verde.
+  Un reloj de un segundo (solo ese día; se para solo al llegar la hora) la
+  repinta; el refresco de la ficha va cada 10 s y no llegaba.
+- **La sala**: la losa del día dice «Hoy» y se marca. La entrada (QR) ya venía
+  abierta ese día (1465).
+- **En el móvil**, lo que te falta («Manda tu lista» o «¡Estoy!») va en una
+  barra fija abajo, encima de la barra de la web: «Te falta 1 cosa · antes de
+  la ronda 1». Su botón pulsa el de verdad de «Tu plaza» (un solo manejador).
+  Sin nada pendiente, no hay barra.
+- La raíz lleva `data-torneo-hoy` ese día.
+
+**Ficheros**: `js/torneos/cabecera.js` (`esDiaDelTorneo`, `cuentaConSegundos`),
+`js/torneos/sala.js`, `js/torneos/torneo.js` (`vigilarDiaDelTorneo`,
+`pintarBarraHoy`), `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1469-pantalla.mjs` (lo puro, la
+ficha en PC con la cuenta que corre y en el móvil con la barra; la parte de
+pantalla se salta pasadas las 22:00, que entonces no hay «hoy» en dos horas).
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (707) — PINGU-Claude (1468 — Tu temporada en la banda, el hueco que invita y Campeones sin repetir)
 
 **Hecho** (propuesta «Arena: siguientes mejoras», ideas 1, 2 y 3; PINGU:
