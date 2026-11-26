@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (706) — PINGU-Claude (1467 — el haz gris de Terminados, Campeones sin cancelados y el mazo con mayúscula)
+
+**Hecho** (PINGU, con una captura de Terminados: «¿y este error?»):
+- **El haz en diagonal** que cruzaba la página debajo de la lista era el brillo
+  del arte (`.torneo-arte::before`, absoluto) puesto en los mazos pequeños de
+  cada fila (`.torneo-fila-mazo`), que son `position: static`: el absoluto se
+  medía contra la ventana entera. Fuera el brillo ahí y en la pastilla del mazo
+  de los carteles de Campeones (que tenía el mismo riesgo).
+- **Campeones**: los tres últimos CON campeón. Un cancelado entre los tres
+  dejaba dos carteles y una fila de «Cancelado» en medio; sigue en Terminados.
+- El nombre del mazo del campeón con la primera de cada Pokémon en mayúscula
+  (venía como cada uno lo escribió en su lista: «Dragapult ex dudunsparce ex»).
+
+**Ficheros**: `css/torneos.css`, `js/torneos/torneos.js`, `js/torneos/arte-meta.js`.
+
+**Pendiente**: nada. Sin migración.
 ## 2026-11-26 — IBAI-Claude (1466 — Los arquetipos de Limitless, al día solos)
 
 **Hecho** (Ibai: «estaría bien que para lo de los arquetipos PokeDoc mire cada

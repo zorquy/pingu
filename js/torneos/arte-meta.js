@@ -56,7 +56,9 @@ export function urlsDelCampeon(parsed) {
 export function nombreDelMazo(parsed) {
   if (!parsed) return ''
   if (esBasicBox(parsed)) return 'Basic Box'
-  return deducirIconos(parsed).map((i) => i.nombre).filter(Boolean).join(' ')
+  // Con la primera en mayúscula: el nombre llega como lo escribió cada uno en
+  // su lista («dudunsparce ex»).
+  return deducirIconos(parsed).map((i) => i.nombre).filter(Boolean).map((n) => n.charAt(0).toUpperCase() + n.slice(1)).join(' ')
 }
 export async function ponerArteDeCampeones(raiz = document, torneos = []) {
   const terminados = torneos.filter((t) => t.status === 'finished' && t.champion_id)

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "En los torneos terminados ya no sale una franja gris cruzando la pantalla, los campeones son siempre los tres últimos que tienen ganador y el nombre de su mazo sale bien escrito.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Los mazos se mantienen al día con Limitless solos: cada día entran los arquetipos nuevos que se juegan allí y se retiran los que llevan dos meses sin jugarse.", "enlace": "/meta" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Los campeones de los últimos torneos salen en grande, con su mazo y el podio, y la ficha de un torneo antes de empezar se lee de un vistazo: el día, el sitio y quién va en una fila, los premios en podio y tu plaza a mano.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Torneos más visual: los próximos salen en grande, cada tipo tiene su color (online, en persona, liga, oficial), los filtros son solo cuatro y la liga en marcha cuenta como torneo por jugar.", "enlace": "/torneos" },

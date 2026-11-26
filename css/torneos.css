@@ -6105,3 +6105,9 @@ button.torneo-tj { cursor: pointer; }
   .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .sala-mision.hecha:not(:has(button)) { display: none; }
   .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .torneo-billete { padding: var(--e-sm) var(--e-md); }
 }
+/* El brillo del arte (`.torneo-arte::before`, el haz en diagonal de los
+   carteles) NO va en los mazos pequeños: esos son `position: static`, así
+   que el absoluto se medía contra la ventana y cruzaba la página entera en
+   diagonal (PINGU, 2026-11-26, en Terminados). */
+.torneo-fila-mazo.torneo-arte::before, .torneo-fila-mazo.torneo-arte::after,
+.t-campeon-mazo.torneo-arte::before, .t-campeon-mazo.torneo-arte::after { content: none; display: none; }

@@ -55231,6 +55231,14 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1467 — Arreglos de Campeones
+
+`torneos.css` → `.torneo-fila-mazo.torneo-arte::before/::after` y
+`.t-campeon-mazo.torneo-arte::before/::after` sin contenido (el brillo del arte
+es solo de las cajas con posición). `torneos.js` → Campeones recorre los
+terminados hasta juntar tres con `agenda.campeon(t)`; si no hay ninguno, los
+tres últimos en filas como antes. `arte-meta.js` → `nombreDelMazo` pone en
+mayúscula la primera letra de cada Pokémon.
 ## Tanda 1466 — Los arquetipos de Limitless, al día solos
 
 Sin migración. `netlify/functions/arquetipos-limitless.mjs`, programada

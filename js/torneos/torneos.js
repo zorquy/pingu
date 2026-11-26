@@ -537,9 +537,15 @@ function cuerpoProximosHtml() {
   if (ultimos.length) {
     // Campeones (1464): los últimos, en carteles dorados; el que no tiene
     // campeón que enseñar, en su fila de siempre.
-    const ultimosTres = ultimos.slice(0, ULTIMOS_RESULTADOS)
-    const carteles = ultimosTres.map((t) => agenda.campeon?.(t) || null)
-    partes.push(campeonesHtml(carteles.filter(Boolean), ultimosTres.filter((_, i) => !carteles[i]).map((t) => fila(t, null)).join('')) +
+    // Los tres últimos CON campeón: un cancelado no es un campeón y se
+    // quedaba en medio como fila (PINGU, 2026-11-26); sigue en Terminados.
+    const carteles = []
+    for (const t of ultimos) {
+      if (carteles.length >= ULTIMOS_RESULTADOS) break
+      const c = agenda.campeon?.(t)
+      if (c) carteles.push(c)
+    }
+    partes.push(campeonesHtml(carteles, carteles.length ? '' : ultimos.slice(0, ULTIMOS_RESULTADOS).map((t) => fila(t, null)).join('')) +
       `<button type="button" class="btn-secondary torneos-ver-hechos" data-ver-hechos>Ver ${ultimos.length === 1 ? 'el terminado' : `los ${ultimos.length} terminados`}</button>`)
   }
   return partes.join('')
