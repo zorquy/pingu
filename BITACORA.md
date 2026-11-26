@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (693) — PINGU-Claude (1446 — Torneos en persona: la base)
+
+**Hecho** (la propuesta «Torneos en persona»; PINGU: las tres maneras de
+apuntarse a elegir, quien llega sin cuenta se la hace en la puerta, los
+resultados los apuntan los dos jugadores y los crea todo el mundo):
+- Migración `supabase-migration-1446-torneos-en-persona.sql` (una para las tres
+  tandas): `tournaments.modalidad` (online / presencial), `lugar`,
+  `direccion`, `inscripcion` (pedir / organizador / libre);
+  `tournament_registrations.entrada_at` y `entrada_por`.
+- `torneos_inscribirse`: en persona no pide TCG Live; con «organizador» nadie
+  se apunta solo.
+- La puerta: `torneos_dar_entrada` (al apuntado, al de la cola si hay sitio, al
+  que llega sin plaza si hay sitio; solo quien lleva el torneo),
+  `torneos_quitar_entrada` (antes de empezar) y `torneos_cerrar_puerta` (al
+  empezar, fuera quien no entró; con «libre», nada).
+- `torneo_difundir` cuenta si alguien ha entrado (`entro`, sin la hora).
+- schema-check avisa si falta.
+
+**Ficheros**: la migración, `js/schema-check.js`. Prueba:
+`test-tanda-1446.mjs` (PostgreSQL).
+
+**Pendiente**: 1447 (el creador y la ficha) y 1448 (la puerta). La web aún no
+usa nada de esto: se puede subir antes que la migración.
+
 ## 2026-11-26 (692) — PINGU-Claude (1445 — Sin recargar: la victoria sin check-in y el final del torneo)
 
 **Hecho** (PINGU: «pasados los 5 minutos de check-in se daba la victoria, pero

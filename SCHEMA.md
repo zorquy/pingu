@@ -55231,6 +55231,22 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1446 — Torneos en persona: la base
+
+Migración `supabase-migration-1446-torneos-en-persona.sql` (dos veces sin
+problema). `tournaments`: `modalidad text not null default 'online'`
+(`online`, `presencial`), `lugar text` (≤ 80), `direccion text` (≤ 160),
+`inscripcion text not null default 'libre'` (`pedir`, `organizador`,
+`libre`; solo cuenta en persona). `tournament_registrations`: `entrada_at
+timestamptz`, `entrada_por uuid`. Funciones (authenticated):
+`torneos_inscribirse` (en persona guarda `tcg_live_username = ''`; con
+`organizador`, error), `torneos_dar_entrada(torneo, usuario) → 'entrada' |
+'ya_estaba' | 'nuevo'`, `torneos_quitar_entrada(torneo, usuario) → boolean`
+(antes de la primera ronda), `torneos_cerrar_puerta(torneo) → integer` (pasa a
+`dropped` las inscripciones sin entrada en persona con puerta). Las tres de la
+puerta, solo con `torneos_mando`. `torneo_difundir`: las inscripciones llevan
+`entro` (boolean).
+
 ## Tanda 1445 — Sin recargar
 
 `supabase-migration-1438-torneos-sin-atascos.sql` (sin ejecutar aún):

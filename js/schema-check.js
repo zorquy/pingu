@@ -134,6 +134,9 @@ export const REQUISITOS = [
   // escribe a mano y sin puesto, y no hay mazo predeterminado.
   { tabla: 'match_log_torneos', columna: 'puesto', fichero: 'supabase-migration-1070-torneos-mazo-y-puesto.sql', rompe: 'Un torneo apuntado no se puede hacer con un mazo guardado ni guardar tu puesto (la imagen sale sin él).' },
   { tabla: 'match_log_ajustes', columna: 'user_deck_id', fichero: 'supabase-migration-1070-torneos-mazo-y-puesto.sql', rompe: 'No se puede elegir un mazo predeterminado en Mis partidas ni en Mis mazos.' },
+  // Tanda 1446: torneos en persona.
+  { tabla: 'tournaments', columna: 'modalidad', fichero: 'supabase-migration-1446-torneos-en-persona.sql', rompe: 'No se pueden crear torneos en persona (los online funcionan igual).' },
+  { tabla: 'tournament_registrations', columna: 'entrada_at', fichero: 'supabase-migration-1446-torneos-en-persona.sql', rompe: 'La puerta de un torneo en persona no puede dar entrada.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que
