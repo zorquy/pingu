@@ -563,3 +563,29 @@
   que dependa del catálogo, repíntalo en `cambiarVista` **antes** del
   atajo de español↔inglés, que es el cambio más común y el que se sale
   por un `return` sin tocar la memoria.
+- **Importar de otra app: el fichero dice ADÓNDE va cada carta, y lo que no lo
+  dice no se adivina** (tanda 1459, Ibai: un usuario venía de TheHobbyClub con
+  3.226 cartas y PokeDoc le encontraba cero). El CSV de TheHobbyClub dice por
+  fila si la TIENES (`have`) o te FALTA (`missing`): lo que falta va a «La
+  quiero», nunca a tu colección, elija lo que elija en «Adónde van» —meterla
+  sería decir que la tienes—, y una fila sin ninguna de las dos sale en «Sin
+  encontrar» con su porqué. La llave que más casa es el **id de producto de
+  Cardmarket** (`cartasPorCardmarket`): con él no hace falta expansión ni
+  número, y TheHobbyClub y el export de Cardmarket lo traen. Sin número, el
+  nombre solo elige cuando en ese set hay UNA carta que se llama así, o cuando
+  los ataques del nombre de Cardmarket («Lucario [Vacuum Wave | Fight
+  Alone]», en inglés: `ataquesDe` pide los ingleses, no los de la ficha en
+  español) dejan una; un sello sobre un Entrenador va a la de número más bajo
+  (la normal), pero dos Pokémon con el mismo nombre NUNCA se eligen a ciegas.
+  Y la versión que el catálogo no separa (un sello, «solo Cardmarket») entra
+  como la normal con la versión en la NOTA de la copia, no inventada.
+- **Para Cardmarket, un Pokémon va con su nombre Y sus ataques EN INGLÉS o no
+  va** (tanda 1459): sus Wants aceptan pegar una lista («2x Umbreon EX Moon
+  Mirage Onyx», help.cardmarket.com), pero un Pokémon con solo el nombre lo
+  rechaza o lo casa con otro. Lo que no tenga sus ataques en inglés (lo de
+  TCGGO, lo recién salido) se enseña aparte con su enlace a Cardmarket, nunca
+  como una línea a medias. Los ingleses salen de lo guardado si
+  `detalle_lang = 'en'` y si no de TCGdex en UNA consulta GraphQL con un
+  alias por carta, de 40 en 40: nada de una petición por carta. Y «lo que te
+  falta de tus colecciones» son las expansiones que TÚ marcas (Ibai: «todas
+  las empezadas no creo que sea lo correcto»), nunca todas por defecto.

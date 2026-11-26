@@ -5988,6 +5988,8 @@ const ctxExtras = {
   get cartas() { return cartas },
   get resumenHero() { return resumenHero },
   cargarColeccion, repintar, pTodo, masValiosas, nombreDe, cargarSets, tengoDe,
+  // Importar a «La quiero» (1459): la lista en memoria se vuelve a pedir.
+  olvidarDeseos() { deseos = null },
 }
 let extrasMod = null
 const extrasModulo = () => extrasMod ? Promise.resolve(extrasMod) : import('./mi-coleccion/extras.js').then((m) => { m.montar(ctxExtras); extrasMod = m; return m })

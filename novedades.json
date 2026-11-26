@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Tu colección de TheHobbyClub, a PokeDoc: al importar su CSV, lo que tienes va a tu colección y lo que te falta a «La quiero», y si quieres en una lista por cada colección. Y al importar puedes elegir adónde van: a tu colección, para cambio o a «La quiero».", "enlace": "/mi-coleccion" },
+    { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Para Cardmarket, desde el ⋯ de «La quiero»: lo que buscas, y lo que te falta de las expansiones que elijas, como lista para pegar en tus Wants. Y desde el ⋯ de «Las que doy», un CSV con lo que das y su número de Cardmarket.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Torneos que se repiten: al crear uno puedes decir que es cada semana o cada dos, y al acabar se abre solo el siguiente con todo igual.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Torneos en persona con puerta: quien organiza da entrada a cada jugador escaneando su QR o buscando su usuario, y al empezar juega solo quien ha entrado.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "La ventana para escribir el código de la verificación en dos pasos ya sale en el centro de la pantalla, no arriba en una esquina.", "enlace": "/ajustes" },

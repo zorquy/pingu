@@ -397,7 +397,7 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
   const suben = []
   for (const linea of porMeter) {
     const ya = porClave.get(claveDeLinea(linea))
-    if (ya) suben.push(ya)
+    if (ya) suben.push({ ya, linea })
     else nuevas.push({ market: mercado, ...linea })
   }
   const puestas = []
@@ -412,8 +412,14 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
     if (!creadas?.length) throw new Error('No se ha podido guardar: revisa que has iniciado sesión.')
     puestas.push(...creadas)
   }
-  for (const l of suben) {
-    puestas.push(await actualizar(l.id, { cantidad: Math.min(999, (Number(l.cantidad) || 0) + 1) }))
+  // La que ya estaba sube LAS copias que traía la línea (1459: importar «3x»
+  // de una carta que ya tenías sumaba una sola) y, si venía para cambio, las
+  // que se dan también; marcar desde la página trae una, como siempre.
+  for (const { ya: l, linea } of suben) {
+    const cantidad = Math.min(999, (Number(l.cantidad) || 0) + Math.max(1, Number(linea.cantidad) || 1))
+    const cambios = { cantidad }
+    if (Number(linea.cambio) > 0) cambios.cambio = Math.min(cantidad, (Number(l.cambio) || 0) + Number(linea.cambio))
+    puestas.push(await actualizar(l.id, cambios))
   }
   await tacharDeseos(userId, puestas, puestas)
   return puestas
@@ -464,6 +470,40 @@ export async function cartasPorIds(ids, mercado = 'WEST') {
     const { data, error } = await supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', mercado).in('id', unicos.slice(i, i + 150))
     if (error) throw traducir(error)
     for (const c of data || []) mapa.set(c.id, c)
+  }
+  return mapa
+}
+
+// Por id de PRODUCTO de Cardmarket (1459, importar lo de Cardmarket y lo de
+// TheHobbyClub): el de la carta (`cm_id_product_propio`) y el de cada versión
+// (`tcg_card_versions.cm_id_product`, el de un patrón o un sello que Cardmarket
+// vende aparte). Devuelve `Map(idProducto → [{ carta, variante }])`, con
+// `variante` null cuando el id es el de la carta entera.
+export async function cartasPorCardmarket(ids, mercado = 'WEST') {
+  const unicos = [...new Set((ids || []).map(Number).filter((n) => n > 0))]
+  const mapa = new Map()
+  const poner = (cm, carta, variante) => {
+    if (!mapa.has(cm)) mapa.set(cm, [])
+    const lista = mapa.get(cm)
+    if (!lista.some((x) => x.carta.id === carta.id && x.variante === variante)) lista.push({ carta, variante })
+  }
+  const deVersion = []
+  for (let i = 0; i < unicos.length; i += 150) {
+    const trozo = unicos.slice(i, i + 150)
+    const [a, b] = await Promise.all([
+      supabase.from('tcg_cards').select(COLUMNAS_CARTA).eq('market', mercado).in('cm_id_product_propio', trozo),
+      supabase.from('tcg_card_versions').select('card_id,cm_id_product,etiqueta').eq('market', mercado).in('cm_id_product', trozo),
+    ])
+    if (a.error) throw traducir(a.error)
+    for (const c of a.data || []) poner(Number(c.cm_id_product_propio), c, null)
+    // Sin la tabla de versiones (una base vieja) se sigue con las cartas.
+    if (!b.error) deVersion.push(...(b.data || []))
+  }
+  const faltan = deVersion.map((v) => v.card_id)
+  const cartas = faltan.length ? await cartasPorIds(faltan, mercado) : new Map()
+  for (const v of deVersion) {
+    const c = cartas.get(v.card_id)
+    if (c) poner(Number(v.cm_id_product), c, varianteDeEtiqueta(v.etiqueta))
   }
   return mapa
 }

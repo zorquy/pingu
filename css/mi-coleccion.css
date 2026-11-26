@@ -15995,6 +15995,15 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-imp-apps-fila { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: var(--e-xs) 0; }
 .mc-imp-perdidas-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); }
 .mc-imp-buscar { font-size: var(--t-sm); white-space: nowrap; }
+/* Lo que te falta en listas de «La quiero» (1459): una casilla con su texto. */
+.mc-imp-listas { margin: var(--e-sm) 0; }
+.mc-imp-check { display: flex; align-items: flex-start; gap: var(--e-sm); font-size: var(--t-sm); line-height: 1.4; cursor: pointer; }
+.mc-imp-check input { flex: none; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--acento); }
+/* Para Cardmarket (1459): la lista para pegar y lo que no se ha podido preparar. */
+.mc-cm-texto { width: 100%; min-height: 160px; font-family: var(--font-mono, monospace); font-size: var(--t-xs); }
+.mc-cm-sets { display: grid; gap: var(--e-xs); max-height: 240px; margin: var(--e-xs) 0; padding: 0; overflow-y: auto; list-style: none; }
+.mc-cm-faltan { display: grid; gap: var(--e-xs); max-height: 200px; margin: var(--e-xs) 0 0; padding: 0; overflow-y: auto; list-style: none; font-size: var(--t-sm); }
+.mc-cm-faltan li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-xs) var(--e-sm); }
 
 /* LAS PESTAÑAS DE CARTAS (1366, «Colección en cuatro»; SCHEMA 1366): una
    fila que js/mi-coleccion.js muda a la pantalla abierta. En Expansiones va

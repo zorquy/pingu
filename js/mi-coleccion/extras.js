@@ -32,7 +32,8 @@ async function importarOExportar(boton) {
     abrirImportar({
       sesion: ctx.sesion,
       mercado: ctx.mercado,
-      alTerminar: async () => {
+      alTerminar: async ({ deseos = 0 } = {}) => {
+        if (deseos) ctx.olvidarDeseos?.()
         await ctx.cargarColeccion(ctx.dueno.id)
         ctx.repintar()
       },

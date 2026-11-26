@@ -92,8 +92,12 @@ export function leerCsv(texto, sep = separadorDe(texto)) {
 // nombres de columna casan con el mismo campo se queda el primero que
 // aparezca en el fichero.
 const SINONIMOS = {
-  // `idproduct`/`cardmarketid` (Cardmarket) no es nuestro id: va aparte y no se usa para casar.
   id: ['tcgdex_id', 'tcgdex id', 'card_id', 'card id', 'id', 'id carta', 'identificador'],
+  // El id de PRODUCTO de Cardmarket (1459). No es nuestro id, pero lo
+  // tenemos al lado de cada carta (`cm_id_product_propio`, y por versión en
+  // `tcg_card_versions.cm_id_product`), así que casa sin set ni número: es
+  // lo que traen el export de Cardmarket y el de TheHobbyClub.
+  cardmarket: ['cardmarket_id', 'cardmarket id', 'cardmarketid', 'idproduct', 'id product', 'cm_id', 'cm id', 'id de cardmarket'],
   nombre: ['name', 'card name', 'card_name', 'card', 'carta', 'nombre', 'pokemon', 'pokémon'],
   set: ['set', 'set name', 'set_name', 'expansion', 'expansión', 'expansion name', 'coleccion', 'colección', 'edition'],
   codigo: ['set code', 'set_code', 'set id', 'set_id', 'code', 'codigo', 'código', 'ptcgo code', 'ptcgl code', 'abbreviation', 'abbr', 'set abbreviation', 'expansion code'],
@@ -118,11 +122,46 @@ const SINONIMOS = {
 
 const plegar = (t) => normalizeSearch(t).replace(/\s+/g, ' ').trim()
 
+// ── TheHobbyClub (tanda 1459) ──
+//
+// Su export no se deja leer con los sinónimos: «estado» es si la TIENES
+// (`have`) o te FALTA (`missing`) en una de sus colecciones, el estado de la
+// carta va en «estado_carta», el nombre de la colección va antes que el del
+// set y «numero» es SU id («me55c_es-203», o el de Cardmarket en lo que solo
+// vende Cardmarket). Así que cuando la cabecera es la suya, cada columna se
+// coge por su nombre exacto. Un usuario llegó con 3.226 filas y no casaba
+// ninguna («no conozco la expansión «30 aniversario Classic»», que era el
+// nombre de SU colección).
+const COLUMNAS_THC = {
+  coleccion: 'coleccion',
+  tiene: 'estado',
+  nombre: 'carta',
+  set: 'set',
+  numero: 'numero',
+  variante: 'variante',
+  idioma: 'idioma',
+  estado: 'estado_carta',
+  casa: 'empresa_gradeo',
+  gradeo: 'nota_gradeo',
+  precioCompra: 'precio_compra',
+  notas: 'notas',
+  cardmarket: 'cardmarket_id',
+}
+export const esDeTheHobbyClub = (plegadas) => ['coleccion', 'carta', 'estado_carta', 'cardmarket_id'].every((c) => plegadas.includes(c))
+
 // De una cabecera a {campo: índice}. Devuelve también qué app parece
 // —solo para decirlo en pantalla— y qué columnas se quedan sin usar.
 export function reconocerColumnas(cabecera) {
   const columnas = {}
   const plegadas = cabecera.map(plegar)
+  if (esDeTheHobbyClub(plegadas)) {
+    for (const [campo, nombre] of Object.entries(COLUMNAS_THC)) {
+      const i = plegadas.indexOf(nombre)
+      if (i >= 0) columnas[campo] = i
+    }
+    const sinUsar = cabecera.filter((_, i) => !Object.values(columnas).includes(i))
+    return { columnas, origen: 'TheHobbyClub', sinUsar }
+  }
   for (const [campo, nombres] of Object.entries(SINONIMOS)) {
     const i = plegadas.findIndex((c, idx) => nombres.includes(c) && !Object.values(columnas).includes(idx))
     if (i >= 0) columnas[campo] = i
@@ -145,10 +184,10 @@ export function reconocerColumnas(cabecera) {
   return { columnas, origen, sinUsar }
 }
 
-// Lo mínimo para encontrar una carta: el id, o la expansión (de cualquier
-// manera) con el número.
+// Lo mínimo para encontrar una carta: el id (el nuestro o el de Cardmarket),
+// o la expansión (de cualquier manera) con el número.
 export function faltanColumnas({ columnas }) {
-  if (columnas.id !== undefined) return []
+  if (columnas.id !== undefined || columnas.cardmarket !== undefined) return []
   const faltan = []
   if (columnas.set === undefined && columnas.codigo === undefined) faltan.push('la expansión (nombre o código)')
   if (columnas.numero === undefined) faltan.push('el número de la carta')
@@ -185,6 +224,10 @@ const IDIOMAS = [
   [/^(it|ita|italian|italiano)$/, 'it'],
   [/^(pt|por|portuguese|portugues|portugués|br|pt-br)$/, 'pt'],
   [/^(ja|jp|jpn|japanese|japones|japonés)$/, 'ja'],
+  // TheHobbyClub dice «KO» y «ZH» (1459): sin ellas, una coreana entraba
+  // con el idioma por defecto, es decir, como española.
+  [/^(ko|kor|korean|coreano)$/, 'ko'],
+  [/^(zh|chi|chinese|chino|zh-tw|zh-cn)$/, 'zh'],
 ]
 export function idiomaDe(texto, porDefecto = 'es') {
   const t = plegar(texto)
@@ -203,6 +246,54 @@ export function varianteDe(texto) {
   if (/holo|foil/.test(t)) return 'holo'
   return 'normal'
 }
+
+// Las versiones de TheHobbyClub van en camelCase («reverseHolofoil»,
+// «firstEditionHolofoil», «cardmarket_only_rh»). Se parten en palabras y se
+// llevan a las cuatro de siempre; lo que es un SELLO o una versión que
+// nuestro catálogo no separa («leagueStamp», «cardmarket_only») va como la
+// normal o la reverse, y lo dice `selloDeTheHobbyClub` para apuntarlo en la
+// nota de la copia, que no se pierda.
+const palabrasThc = (t) => String(t || '').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').toLowerCase().trim()
+export function varianteDeTheHobbyClub(texto) {
+  const t = palabrasThc(texto)
+  if (/\brh\b|reverse/.test(t)) return 'reverse'
+  if (/first edition/.test(t)) return 'primera'
+  if (/holofoil|\bholo\b/.test(t)) return 'holo'
+  return 'normal'
+}
+const SELLOS_THC = {
+  'league stamp': 'Sello de Liga',
+  'winner stamp': 'Sello «Winner»',
+  'world championships stamp': 'Sello del Mundial',
+  'anniversary stamp': 'Sello de aniversario',
+  'play pokemon stamp holofoil': 'Sello Play! Pokémon',
+  'cardmarket only': 'Versión que solo vende Cardmarket',
+  'cardmarket only rh': 'Versión que solo vende Cardmarket',
+  'rocket reverse holofoil': 'Reverse del Team Rocket',
+  'poke ball reverse holofoil': 'Reverse Poké Ball',
+  'cosmos holofoil': 'Holo cósmico',
+  'peelable ditto': 'Ditto despegable',
+}
+export function selloDeTheHobbyClub(texto) {
+  const t = palabrasThc(texto)
+  if (!t || ['normal', 'holofoil', 'reverse holofoil', 'first edition', 'first edition holofoil', 'unlimited holofoil'].includes(t)) return null
+  return SELLOS_THC[t] || `Versión de TheHobbyClub: ${String(texto).trim()}`
+}
+
+// SU número: «me55c_es-203» (su set, guion, el número), «xyp-XY209», o el id
+// de Cardmarket a secas en lo que solo vende Cardmarket — eso no es un
+// número de carta y se deja vacío.
+export function numeroDeTheHobbyClub(texto, cardmarket = null) {
+  const t = String(texto || '').trim()
+  if (!t || (cardmarket && t === String(cardmarket)) || /^\d{5,}$/.test(t)) return ''
+  const i = t.lastIndexOf('-')
+  return numeroDe(i > 0 ? t.slice(i + 1) : t)
+}
+
+// El nombre como lo escribe Cardmarket (y TheHobbyClub, que lo copia):
+// «Arceus VSTAR [Trinity Nova | Starbirth]». Lo de los corchetes son sus
+// ataques: para comparar con nuestro nombre, fuera.
+export const nombreSinCorchetes = (n) => String(n || '').replace(/\s*\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim()
 
 // «PSA 10», «CGC 9.5», o la casa y la nota por separado. Lo que no es una
 // casa que conozcamos se guarda tal cual, recortado: es texto libre.
@@ -245,26 +336,47 @@ export function numeroComparable(n) {
 // lo que se elige en pantalla cuando el fichero no trae idioma: un CSV
 // de Collectr no lo dice, y suponer «es» o «en» a ciegas apuntaría mal
 // una colección entera.
-export function entradasDe(filas, columnas, { idiomaSiFalta = 'es' } = {}) {
+// `destino` (1459) es adónde va cada fila cuando el FICHERO lo dice: la de
+// TheHobbyClub dice si la tienes (a tu colección) o te falta (a «La quiero»);
+// sin decirlo, `null`, y manda lo elegido en pantalla. `'nada'` es una fila
+// que no dice ni lo uno ni lo otro: no se adivina.
+export function entradasDe(filas, columnas, { idiomaSiFalta = 'es', origen = null } = {}) {
   const celda = (fila, campo) => (columnas[campo] === undefined ? '' : fila[columnas[campo]] || '')
+  const thc = origen === 'TheHobbyClub'
   return filas.map((fila, i) => {
     const cantidad = Math.max(1, Math.min(999, Math.round(Number(celda(fila, 'cantidad')) || 1)))
+    const cardmarket = Number(String(celda(fila, 'cardmarket')).replace(/\D/g, '')) || null
+    const tiene = plegar(celda(fila, 'tiene'))
+    const casaThc = thc && celda(fila, 'casa').trim()
+    // TCGplayer pega el número al nombre («Pikachu ex - 063/191»).
+    const nombreCrudo = celda(fila, 'nombre').trim().replace(/\s+-\s+[\w-]+\/[\w-]+$/, '')
     return {
       fila: i + 2, // la línea del fichero, con la cabecera en la 1
       id: celda(fila, 'id').trim() || null,
-      // TCGplayer pega el número al nombre («Pikachu ex - 063/191»).
-      nombre: celda(fila, 'nombre').trim().replace(/\s+-\s+[\w-]+\/[\w-]+$/, ''),
+      cardmarket,
+      nombre: nombreSinCorchetes(nombreCrudo),
+      // El de la fila tal cual, para enseñar lo que no casa como lo escribió.
+      nombreOriginal: nombreCrudo,
       set: celda(fila, 'set').trim(),
       codigo: celda(fila, 'codigo').trim(),
-      numero: numeroDe(celda(fila, 'numero')),
+      numero: thc ? numeroDeTheHobbyClub(celda(fila, 'numero'), cardmarket) : numeroDe(celda(fila, 'numero')),
       cantidad,
       estado: estadoDe(celda(fila, 'estado')),
       idioma: columnas.idioma === undefined ? idiomaSiFalta : idiomaDe(celda(fila, 'idioma'), idiomaSiFalta),
-      variante: columnas.variante === undefined && /^(1|true|yes|si|sí|x)$/i.test(celda(fila, 'foil').trim()) ? 'reverse' : varianteDe(celda(fila, 'variante')),
-      gradeo: gradeoDe(celda(fila, 'casa'), celda(fila, 'gradeo')),
+      variante: thc
+        ? varianteDeTheHobbyClub(celda(fila, 'variante'))
+        : columnas.variante === undefined && /^(1|true|yes|si|sí|x)$/i.test(celda(fila, 'foil').trim()) ? 'reverse' : varianteDe(celda(fila, 'variante')),
+      // Si el fichero NO dice la versión, «normal» es lo que se supone para
+      // una copia; un deseo sin versión es «cualquiera» (1047).
+      varianteDada: thc || columnas.variante !== undefined || columnas.foil !== undefined,
+      sello: thc ? selloDeTheHobbyClub(celda(fila, 'variante')) : null,
+      // TheHobbyClub pone la nota sin casa cuando no está gradeada: sin casa, nada.
+      gradeo: thc && !casaThc ? null : gradeoDe(celda(fila, 'casa'), celda(fila, 'gradeo')),
       precio_compra: dineroDe(celda(fila, 'precioCompra')),
       valor_manual: dineroDe(celda(fila, 'valor')),
       notas: celda(fila, 'notas').trim().slice(0, 280) || null,
+      destino: columnas.tiene === undefined ? null : tiene === 'have' ? 'coleccion' : tiene === 'missing' ? 'deseo' : 'nada',
+      coleccion: celda(fila, 'coleccion').trim() || null,
     }
   })
 }
@@ -319,62 +431,218 @@ export function setDeEntrada(entrada, indice) {
     const s = indice.porCodigo.get(entrada.set.toUpperCase()) || indice.porId.get(entrada.set.toLowerCase())
     if (s) return s
   }
+  // Cardmarket cuelga de cada expansión otra con lo que vende aparte
+  // («Ascended Heroes: Additionals», 1459): son cartas de ESA expansión.
+  const sinAdicionales = String(entrada.set || '').replace(/\s*:?\s*additionals?\s*$/i, '')
+  if (sinAdicionales && sinAdicionales !== entrada.set) return setDeEntrada({ ...entrada, set: sinAdicionales, codigo: '' }, indice)
   return null
 }
 
+// El nombre de una carta en cualquiera de sus idiomas, plegado y sin los
+// corchetes de Cardmarket.
+// Las formas de un nombre para comparar: sin los ataques entre corchetes, sin
+// el nivel de las de Diamante y Perla («Luxray Lv.48»), y con la marca corta
+// que Cardmarket pone entre corchetes («Empoleon [FB]» → «empoleon fb»,
+// «Unown [A]» → «unown a»), que en nuestro catálogo va pegada al nombre.
+export function clavesDeNombre(nombre) {
+  const t = String(nombre || '')
+  const base = plegar(nombreSinCorchetes(t).replace(/\s+lv\.?\s*\d+\b/gi, ''))
+  if (!base) return []
+  // Con marca, SOLO con ella: «Empoleon [FB]» no es el Empoleon a secas.
+  const marcas = [...t.matchAll(/\[([^\]|]{1,4})\]/g)].map((m) => plegar(m[1]))
+  return marcas.length ? [...new Set(marcas.map((x) => `${base} ${x}`))] : [base]
+}
+const casaNombre = (carta, nombre) => {
+  const quiero = clavesDeNombre(nombre)
+  if (!quiero.length) return false
+  return [carta?.name, carta?.name_es, carta?.name_en].some((n) => n && clavesDeNombre(n).some((k) => quiero.includes(k)))
+}
+// Los ataques y habilidades entre corchetes («Lucario [Vacuum Wave | Fight
+// Alone]»), plegados: desempatan dos cartas que se llaman igual en un set.
+export const ataquesDelNombre = (nombre) => [...String(nombre || '').matchAll(/\[([^\]]*\|[^\]]*|[^\]]{5,})\]/g)]
+  .flatMap((m) => m[1].split('|'))
+  .map((x) => plegar(x))
+  .filter(Boolean)
+
 // Empareja cada entrada con una carta. `cartasDeSet(setId)` trae las de
 // un set (se pide una vez por set); `cartaPorId(id)` resuelve un id de
-// TCGdex. Devuelve las líneas listas para `anadirVarias` y las perdidas
-// con su motivo, para enseñarlas antes de guardar.
-export async function emparejar(entradas, { sets, cartasDeSet, cartaPorId = async () => null, mercado = 'WEST' }) {
+// TCGdex; `cartasPorCardmarket(ids)` (1459) da, por id de producto de
+// Cardmarket, las cartas que lo llevan: `[{ carta, variante }]`, con
+// `variante` cuando el id es el de UNA versión (`tcg_card_versions`) y null
+// cuando es el de la carta. Devuelve las líneas listas para `anadirVarias`
+// y las perdidas con su motivo, para enseñarlas antes de guardar.
+//
+// Por orden: el id de Cardmarket, nuestro id, la expansión y el número, y
+// —solo si la fila NO trae número— la expansión y un nombre que en ese set
+// lleva UNA sola carta (lo que solo vende Cardmarket, sellos de liga: no
+// tienen número propio). Un nombre repetido en el set no se elige.
+export async function emparejar(entradas, { sets, cartasDeSet, cartaPorId = async () => null, cartasPorCardmarket = async () => new Map(), ataquesDe = async () => new Map(), mercado = 'WEST' }) {
   const indice = indiceDeSets(sets)
   const cache = new Map()
   const cartasDe = async (setId) => {
     if (!cache.has(setId)) cache.set(setId, await cartasDeSet(setId).catch(() => []))
     return cache.get(setId)
   }
+  const idsCm = [...new Set(entradas.map((e) => e.cardmarket).filter(Boolean))]
+  const porCm = idsCm.length ? await cartasPorCardmarket(idsCm).catch(() => new Map()) : new Map()
   const listas = []
   const perdidas = []
   for (const e of entradas) {
+    if (e.destino === 'nada') {
+      perdidas.push({ entrada: e, motivo: 'el fichero no dice si la tienes o te falta' })
+      continue
+    }
     let carta = null
+    let variante = e.variante
+    let via = ''
     let motivo = ''
-    if (e.id) carta = await cartaPorId(e.id).catch(() => null)
+    const set = setDeEntrada(e, indice)
+    const delCm = e.cardmarket ? porCm.get(e.cardmarket) || [] : []
+    if (delCm.length) {
+      // Dos filas del catálogo con el mismo producto (la de TCGdex y su
+      // gemela de TCGGO): la del set de la fila, luego la del nombre.
+      const ids = [...new Set(delCm.map((x) => x.carta.id))]
+      const puntua = (id) => {
+        const c = delCm.find((x) => x.carta.id === id).carta
+        return (set && c.set_id === set.id ? 4 : 0) + (casaNombre(c, e.nombreOriginal || e.nombre) ? 2 : 0) + (/^(tcggo|mano)-/.test(id) ? 0 : 1)
+      }
+      const elegido = ids.sort((a, b) => puntua(b) - puntua(a) || a.localeCompare(b))[0]
+      const suyas = delCm.filter((x) => x.carta.id === elegido)
+      carta = suyas[0].carta
+      // Un id de VERSIÓN dice la versión; si es el de varias (la Normal y la
+      // Reverse de un set viejo comparten producto), manda la de la fila.
+      const versiones = suyas.map((x) => x.variante).filter(Boolean)
+      if (versiones.length && !versiones.includes(e.variante) && !suyas.some((x) => !x.variante)) variante = versiones[0]
+      via = 'cardmarket'
+    }
+    if (!carta && e.id) {
+      carta = await cartaPorId(e.id).catch(() => null)
+      if (carta) via = 'id'
+    }
     if (!carta) {
-      const set = setDeEntrada(e, indice)
       if (!set) motivo = e.set || e.codigo ? `no conozco la expansión «${e.set || e.codigo}»` : 'sin expansión'
-      else if (!e.numero) motivo = 'sin número'
-      else {
+      else if (!e.numero) {
+        const delSet = e.nombre ? await cartasDe(set.id) : []
+        let suyas = delSet.filter((c) => casaNombre(c, e.nombreOriginal || e.nombre))
+        // «Boss's Orders - Giovanni»: Cardmarket le pone al Entrenador el
+        // personaje detrás de un guion, y nuestro catálogo no. Solo si con el
+        // nombre entero no hay ninguna.
+        const corto = String(e.nombreOriginal || e.nombre || '').split(' - ')[0]
+        if (!suyas.length && corto !== (e.nombreOriginal || e.nombre)) suyas = delSet.filter((c) => casaNombre(c, corto))
+        // La misma impresión dos veces (la fila de TCGdex y su gemela de
+        // TCGGO, con el mismo número): es una carta, la de TCGdex.
+        if (suyas.length > 1 && new Set(suyas.map((c) => numeroComparable(c.local_id))).size === 1) {
+          suyas = [suyas.find((c) => !/^(tcggo|mano)-/.test(c.id)) || suyas[0]]
+        }
+        // Y dos cartas distintas con el mismo nombre se desempatan por sus
+        // ataques, si la fila los trae (el nombre de Cardmarket los lleva).
+        const ataques = ataquesDelNombre(e.nombreOriginal)
+        if (suyas.length > 1 && ataques.length) {
+          const suyos = await ataquesDe(suyas.map((c) => c.id)).catch(() => new Map())
+          const casan = suyas.filter((c) => {
+            const de = (suyos.get(c.id) || []).map((x) => plegar(x))
+            return de.length && ataques.every((a) => de.includes(a))
+          })
+          if (casan.length === 1) suyas = casan
+        }
+        // Un sello (de liga, de Prize Pack, lo que solo vende Cardmarket) se
+        // pone sobre la impresión NORMAL de un Entrenador o una Energía, no
+        // sobre su arte completo ni su dorada: el mismo nombre en un set es el
+        // mismo texto, así que es la de número más bajo. En un Pokémon no:
+        // dos con el mismo nombre son dos cartas distintas.
+        if (suyas.length > 1 && e.sello && suyas.every((c) => c.category && !['Pokemon', 'Pokémon'].includes(c.category))) {
+          const n = (c) => {
+            const x = parseInt(String(c.local_id || '').replace(/^\D+/, ''), 10)
+            return Number.isFinite(x) ? x : Infinity
+          }
+          suyas = [[...suyas].sort((a, b) => n(a) - n(b))[0]]
+        }
+        if (suyas.length === 1) {
+          carta = suyas[0]
+          via = 'nombre'
+        } else motivo = suyas.length ? `en ${set.name || set.id} hay ${suyas.length} cartas que se llaman así y no trae número` : 'sin número'
+      } else {
         const quiero = numeroComparable(e.numero)
         const suyas = await cartasDe(set.id)
         carta = suyas.find((c) => numeroComparable(c.local_id) === quiero) || null
-        if (!carta) motivo = `en ${set.name || set.id} no hay ninguna carta con el número ${e.numero}`
+        if (carta) via = 'numero'
+        else motivo = `en ${set.name || set.id} no hay ninguna carta con el número ${e.numero}`
       }
     }
     if (!carta) {
+      // Una japonesa en el catálogo occidental (1459): el catálogo se elige
+      // arriba de la pantalla y el fichero hay que pasarlo otra vez allí.
+      if (e.idioma === 'ja' && mercado !== 'JP') motivo = 'es japonesa: elige el catálogo Japonés y vuelve a importar el fichero'
       perdidas.push({ entrada: e, motivo })
       continue
     }
     // El nombre, si viene, solo AVISA: puede ser el mismo en otro idioma.
-    const nombreCasa = !e.nombre || [carta.name, carta.name_es, carta.name_en].some((n) => n && plegar(n) === plegar(e.nombre))
+    const nombreCasa = !e.nombre || casaNombre(carta, e.nombreOriginal || e.nombre)
+    // La versión que solo existía allí (un sello de liga) va en la nota de
+    // la copia, salvo que el id de Cardmarket ya haya dicho cuál es.
+    const notas = e.notas || (e.sello && via !== 'cardmarket' ? e.sello : null)
     listas.push({
       entrada: e,
       carta,
       nombreCasa,
+      via,
+      destino: e.destino || null,
       linea: {
         card_id: carta.id,
         market: carta.market || mercado,
         idioma: e.idioma,
         estado: e.estado,
-        variante: e.variante,
+        variante,
         cantidad: e.cantidad,
         gradeo: e.gradeo,
         valor_manual: e.valor_manual,
         precio_compra: e.precio_compra,
-        notas: e.notas,
+        notas,
       },
     })
   }
   return { listas, perdidas }
+}
+
+// Dos filas que son LA MISMA copia (misma carta, idioma, estado, versión y
+// gradeo) se juntan sumando copias (1459): TheHobbyClub pone una fila por
+// hueco de cada colección, y la misma carta en dos colecciones entraba como
+// dos líneas gemelas que la lista enseñaría dos veces.
+export function juntarLineas(lineas) {
+  const porClave = new Map()
+  for (const l of lineas || []) {
+    const k = [l.card_id, l.market, l.idioma, l.estado, l.variante, l.gradeo || ''].join('|')
+    const ya = porClave.get(k)
+    if (ya) ya.cantidad = Math.min(999, (Number(ya.cantidad) || 1) + (Number(l.cantidad) || 1))
+    else porClave.set(k, { ...l })
+  }
+  return [...porClave.values()]
+}
+
+// Adónde va cada carta encontrada (1459): lo elegido en pantalla
+// (`coleccion`, `cambio` —a la colección y para cambio, «Las que doy»— o
+// `deseo`), salvo que el fichero diga que te FALTA: eso va a «La quiero»
+// siempre, que meterla en la colección sería decir que la tienes.
+export function destinoDe(item, elegido = 'coleccion') {
+  if (elegido === 'deseo' || item?.destino === 'deseo') return 'deseo'
+  return elegido === 'cambio' ? 'cambio' : 'coleccion'
+}
+
+// Lo que va a «La quiero» (1459): un deseo por carta, idioma y versión, sin
+// repetir los que ya tienes apuntados (`ya`, las filas de `user_wants`).
+// `items` son los de `emparejar` ({ linea, entrada }): sin versión en el
+// fichero, el deseo es de cualquiera.
+export function deseosDeImportar(items, ya = []) {
+  const clave = (d) => [d.card_id, d.idioma || '', d.variante || ''].join('|')
+  const vistos = new Set((ya || []).map(clave))
+  const out = []
+  for (const { linea: l, entrada: e } of items || []) {
+    const d = { card_id: l.card_id, idioma: l.idioma || null, variante: e?.varianteDada === false ? null : l.variante || null }
+    if (vistos.has(clave(d))) continue
+    vistos.add(clave(d))
+    out.push(d)
+  }
+  return out
 }
 
 // ── 5. Y al revés: exportar ──

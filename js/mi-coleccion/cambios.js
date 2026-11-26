@@ -68,6 +68,49 @@ export async function anadirDeseo(deseo) {
   return data
 }
 
+// Muchos de golpe (1459, importar lo que te falta de TheHobbyClub o una
+// lista de Cardmarket): se lee una vez lo que ya tienes de esas cartas y se
+// meten los que faltan de doscientos en doscientos. `deseos` son
+// `{ card_id, idioma, variante }`; los que ya estaban no se repiten.
+// Devuelve las filas creadas.
+export async function anadirDeseos(userId, deseos) {
+  const clave = (d) => [d.card_id, d.idioma || '', d.variante || ''].join('|')
+  const ids = [...new Set((deseos || []).map((d) => d.card_id).filter(Boolean))]
+  if (!userId || !ids.length) return []
+  const ya = new Set()
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase.from('user_wants').select(cols).eq('user_id', userId).in('card_id', ids.slice(i, i + 150)))
+    if (error) throw traducir(error)
+    for (const d of data || []) ya.add(clave(d))
+  }
+  const nuevos = []
+  for (const d of deseos) {
+    if (!d?.card_id || ya.has(clave(d))) continue
+    ya.add(clave(d))
+    nuevos.push(sinVersionSiNoHay({ user_id: userId, card_id: d.card_id, idioma: d.idioma || null, ...(d.variante ? { variante: d.variante } : {}) }))
+  }
+  const hechos = []
+  for (let i = 0; i < nuevos.length; i += 200) {
+    const trozo = nuevos.slice(i, i + 200)
+    const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase.from('user_wants').insert(trozo).select(cols))
+    if (error && error.code === '23505') {
+      // Alguno entró entre medias (desde el móvil): de uno en uno, y el
+      // repetido se salta.
+      for (const d of trozo) {
+        try {
+          hechos.push(await anadirDeseo(d))
+        } catch (err) {
+          if (!err.yaEstaba) throw err
+        }
+      }
+      continue
+    }
+    if (error) throw traducir(error)
+    hechos.push(...(data || []))
+  }
+  return hechos
+}
+
 // Cambiar lo que pediste (1047, la C1 de la propuesta): el idioma, la
 // versión o las dos. Con `select`: un update que la política rechaza vuelve
 // vacío y sin error.

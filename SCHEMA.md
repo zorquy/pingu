@@ -55231,6 +55231,65 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1459 — TheHobbyClub a PokeDoc, y lo tuyo para Cardmarket
+
+Sin migración (usa `tcg_cards.cm_id_product_propio`, `tcg_card_versions.cm_id_product`,
+`user_wants` y, si están, las listas de la 1057).
+
+**Importar** (`js/mi-coleccion/importar-csv.js`, puro): `reconocerColumnas`
+reconoce la cabecera de TheHobbyClub (`coleccion, estado, carta, estado_carta,
+cardmarket_id…`, `esDeTheHobbyClub`) y devuelve `origen: 'TheHobbyClub'` con
+`COLUMNAS_THC`; el sinónimo `cardmarket` (`idProduct`, `cardmarket_id`…) vale
+para cualquier fichero, y con él `faltanColumnas` no pide expansión ni número.
+`entradasDe(filas, columnas, { idiomaSiFalta, origen })` añade a cada entrada
+`cardmarket` (id de producto), `nombreOriginal` (con los ataques entre
+corchetes), `varianteDada`, `sello` (`selloDeTheHobbyClub`: la versión que el
+catálogo no separa, en español, para la nota de la copia), `destino`
+(`'coleccion'` si THC dice `have`, `'deseo'` si `missing`, `'nada'` si ninguna,
+`null` si el fichero no lo dice) y `coleccion` (la de THC).
+`numeroDeTheHobbyClub` (lo de detrás del último guion; vacío si es el id de
+Cardmarket), `varianteDeTheHobbyClub`, `clavesDeNombre` (sin «Lv.NN»; con una
+marca corta entre corchetes, SOLO con ella: «Empoleon [FB]» → `empoleon fb`) y
+`ataquesDelNombre`. `setDeEntrada` prueba también sin «: Additionals».
+`emparejar(entradas, { sets, cartasDeSet, cartaPorId, cartasPorCardmarket,
+ataquesDe, mercado })`, por orden: `destino 'nada'` → perdida; el id de
+Cardmarket (`cartasPorCardmarket(ids)` → `Map(id → [{ carta, variante }])`;
+de varias, la del set de la fila +4, la del nombre +2, la que no es de TCGGO
++1; un id de VERSIÓN pone la versión); nuestro id; expansión y número; y, sin
+número, expansión y nombre: la misma impresión dos veces (TCGdex y TCGGO) es
+la de TCGdex, dos Pokémon que se llaman igual se desempatan con
+`ataquesDe(ids)` (nombres EN INGLÉS) contra los del nombre, con «Nombre -
+Personaje» sin hallar se prueba sin el personaje, y con `sello` sobre
+Entrenadores/Energías se toma la de número más bajo (la normal). Una
+japonesa en el catálogo occidental dice que se elija el japonés. Cada ítem
+lleva `via` (`cardmarket`/`id`/`numero`/`nombre`) y `destino`; `linea.notas`
+= las notas o el sello (si no lo dijo el id de Cardmarket).
+`juntarLineas` suma copias de líneas idénticas; `destinoDe(item, elegido)`
+(lo que te falta va siempre a «La quiero»); `deseosDeImportar(items, ya)`.
+`js/mi-coleccion/datos.js`: `cartasPorCardmarket(ids, mercado)` (de 150 en
+150, cartas y versiones), y `anadirVarias` sube a una línea que ya estaba las
+copias de la línea que llega (`cantidad`, por defecto 1) y, con `cambio`,
+también las que se dan (topadas a la cantidad). `js/mi-coleccion/cambios.js`: `anadirDeseos(userId,
+deseos)` (de 200 en 200; con 23505, uno a uno). `js/mi-coleccion/importar.js`:
+`#mcImpDestino` (colección / cambio / deseo), `ataquesEnIngles` (lo guardado
+con `detalle_lang = 'en'` o TCGdex GraphQL), la casilla `#mcImpListasSi` (una
+lista de «La quiero» por colección de THC, `meterEnListas`) y
+`alTerminar({ deseos })` → `ctx.olvidarDeseos()`. `importar-apps.js`: la app
+`thehobbyclub` y la columna «Id de Cardmarket» en el CSV de las perdidas.
+
+**Para Cardmarket**: `js/mi-coleccion/cardmarket-wants.js` (puro):
+`lineaParaCardmarket` («2x Umbreon EX Moon Mirage Onyx»; un Pokémon sin
+ataques → `null`), `textoDeWants(filas)` → `{ texto, lineas, sinDatos }` (una
+línea por texto, copias sumadas), `datosEnIngles(carta, ingles)`,
+`idDeTcgdex`, `faltaPreguntar`, `consultaDeTcgdex(ids)` (GraphQL con un alias
+por carta) y `csvDeLoQueDoy(filas)` (`idProduct, Count, Name, Expansion,
+Number, Language, Condition, isFoil, Comments`).
+`js/mi-coleccion/para-cardmarket.js`: `abrirLaQuiero(ctx, { lista,
+cartasDeLista })` (hoja `#mcCmHoja`: «La quiero» o la lista abierta y las
+expansiones empezadas, sin marcar; lo que falta con `datos.cartasDeSet`;
+TCGdex de 40 en 40) y `descargarLoQueDoy(ctx)`. Entran por el ⋯ de «La
+quiero» (`menuDeLaQuiero`, acción `cardmarket`) y el de «Las que doy».
+
 ## Tanda 1454–1456 — /torneos como agenda
 
 `js/torneos/agenda-puro.js` (puro, lo prueba node): `ciudadDe(t)` (el último

@@ -9,8 +9,9 @@ import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import * as datos from './datos.js'
 import { nombreDeCarta } from '../catalogo-series.js'
-import { leerCsv, reconocerColumnas, faltanColumnas, entradasDe, emparejar, exportarCsv } from './importar-csv.js'
+import { leerCsv, reconocerColumnas, faltanColumnas, entradasDe, emparejar, exportarCsv, juntarLineas, deseosDeImportar, destinoDe } from './importar-csv.js'
 import { APPS, pasosDe, perdidasHtml, csvDePerdidas } from './importar-apps.js'
+import { consultaDeTcgdex, idDeTcgdex } from './cardmarket-wants.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -26,7 +27,38 @@ async function setsConCodigo(mercado) {
   return data || []
 }
 
+// Los ataques y habilidades EN INGLÉS de unas cartas (1459): desempatan dos
+// cartas de un set que se llaman igual cuando la fila no trae número (el
+// nombre de Cardmarket los lleva entre corchetes). Lo guardado si la ficha
+// está en inglés; si no, TCGdex en inglés, todas en UNA consulta GraphQL.
+// Solo se pide para los empates, que son pocos.
+async function ataquesEnIngles(ids, mercado) {
+  const out = new Map()
+  const nombres = (l) => (Array.isArray(l) ? l.map((x) => x?.name).filter(Boolean) : [])
+  const { data } = await supabase.from('tcg_cards').select('id,attacks,abilities,detalle_lang').eq('market', mercado).in('id', ids)
+  const preguntar = []
+  for (const c of data || []) {
+    if (c.detalle_lang === 'en' && nombres(c.attacks).length) out.set(c.id, [...nombres(c.abilities), ...nombres(c.attacks)])
+    else if (idDeTcgdex(c.id)) preguntar.push(c.id)
+  }
+  if (preguntar.length) {
+    try {
+      const r = await fetch('https://api.tcgdex.net/v2/graphql', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: consultaDeTcgdex(preguntar.slice(0, 40)) }) })
+      const j = r.ok ? await r.json() : null
+      preguntar.slice(0, 40).forEach((id, k) => {
+        const c = j?.data?.[`c${k}`]
+        if (c) out.set(id, [...nombres(c.abilities), ...nombres(c.attacks)])
+      })
+    } catch {
+      // Sin TCGdex no hay desempate: la fila sale en «no encontradas».
+    }
+  }
+  return out
+}
+
 let emparejado = null // lo que se enseña en la vista previa
+// Las cartas de un set (`cartasDeSet`) no traen el nombre del set: va aparte.
+let nombreDeSet = new Map()
 
 function pintarPaso(n) {
   for (const i of [1, 2]) $(`mcImpPaso${i}`)?.classList.toggle('hidden', i !== n)
@@ -56,38 +88,99 @@ async function analizar({ mercado }) {
     estado.textContent = `En la cabecera no encuentro ${faltan.join(' ni ')}. Las columnas que veo: ${filas[0].join(', ')}.`
     return
   }
-  const entradas = entradasDe(filas.slice(1), columnas, { idiomaSiFalta: $('mcImpIdioma').value })
+  const entradas = entradasDe(filas.slice(1), columnas, { idiomaSiFalta: $('mcImpIdioma').value, origen })
   estado.textContent = `Buscando ${entradas.length} cartas en el catálogo…`
   const sets = await setsConCodigo(mercado)
+  nombreDeSet = new Map(sets.map((s) => [s.id, s.name || s.name_en]))
   emparejado = await emparejar(entradas, {
     sets,
     cartasDeSet: (setId) => datos.cartasDeSet(setId, mercado),
     cartaPorId: async (id) => (await datos.cartasPorIds([id], mercado)).get(id) || null,
+    // El id de producto de Cardmarket (1459): el de su export y el de TheHobbyClub.
+    cartasPorCardmarket: (ids) => datos.cartasPorCardmarket(ids, mercado),
+    ataquesDe: (ids) => ataquesEnIngles(ids, mercado),
     mercado,
   })
+  emparejado.origen = origen
   estado.textContent = ''
+  pintarResumen({ columnas, origen, sinUsar })
+  // Las listas de «La quiero» (1459): lo que te falta de cada colección de
+  // TheHobbyClub puede ir a una lista con su nombre. Solo si la base las
+  // tiene (migración 1057) y hay algo que falte.
+  listasDeseo = null
+  const faltanEnColecciones = origen === 'TheHobbyClub' && emparejado.listas.some((l) => l.destino === 'deseo' && l.entrada.coleccion)
+  if (faltanEnColecciones && sesionAbierta) {
+    try {
+      listasDeseo = await import('./listas-deseo.js')
+      if (!(await listasDeseo.cargarListas(sesionAbierta.user.id))) listasDeseo = null
+    } catch {
+      listasDeseo = null
+    }
+  }
+  pintarCajaDeListas()
+  pintarPaso(2)
+}
+
+let listasDeseo = null // el módulo de listas, si la base las tiene
+let sesionAbierta = null
+
+// El resumen y la lista de lo que se va a hacer. Se repinta al cambiar
+// «Adónde van» sin volver a leer el fichero.
+function pintarResumen({ columnas, origen, sinUsar }) {
   const { listas, perdidas } = emparejado
-  const copias = listas.reduce((n, l) => n + l.linea.cantidad, 0)
+  const elegido = $('mcImpDestino')?.value || 'coleccion'
+  const cuantas = { coleccion: 0, cambio: 0, deseo: 0 }
+  for (const l of listas) cuantas[destinoDe(l, elegido)]++
+  const copias = listas.filter((l) => destinoDe(l, elegido) !== 'deseo').reduce((n, l) => n + l.linea.cantidad, 0)
   const nombresRaros = listas.filter((l) => !l.nombreCasa).length
+  const porNombre = listas.filter((l) => l.via === 'nombre').length
+  const conSello = listas.filter((l) => l.entrada.sello && l.via !== 'cardmarket' && destinoDe(l, elegido) !== 'deseo').length
+  const reparto = [
+    cuantas.coleccion ? `<strong>${cuantas.coleccion}</strong> a tu colección (${copias} ${copias === 1 ? 'copia' : 'copias'})` : '',
+    cuantas.cambio ? `<strong>${cuantas.cambio}</strong> a tu colección y para cambio, en «Las que doy» (${copias} ${copias === 1 ? 'copia' : 'copias'})` : '',
+    cuantas.deseo ? `<strong>${cuantas.deseo}</strong> a «La quiero»` : '',
+  ].filter(Boolean).join(' · ')
   $('mcImpResumen').innerHTML = `
-    <p><strong>${listas.length}</strong> ${listas.length === 1 ? 'carta encontrada' : 'cartas encontradas'} (${copias} ${copias === 1 ? 'copia' : 'copias'})${
+    <p><strong>${listas.length}</strong> ${listas.length === 1 ? 'carta encontrada' : 'cartas encontradas'}${
       perdidas.length ? ` · <strong>${perdidas.length}</strong> sin encontrar` : ''
     }${origen ? ` · formato de ${escapeHtml(origen)}` : ''}</p>
+    ${reparto ? `<p>${reparto}.</p>` : ''}
+    ${origen === 'TheHobbyClub' && cuantas.deseo && elegido !== 'deseo' ? '<p class="subtext">Las que TheHobbyClub marca como que te faltan van a «La quiero», no a tu colección.</p>' : ''}
     ${columnas.idioma === undefined && listas.length ? `<p class="subtext">El fichero no dice el idioma: se guardan todas en ${escapeHtml($('mcImpIdioma').selectedOptions[0]?.textContent || '')}.</p>` : ''}
     ${nombresRaros ? `<p class="subtext">${nombresRaros} ${nombresRaros === 1 ? 'nombre no coincide' : 'nombres no coinciden'} con el de nuestro catálogo (suele ser el mismo en otro idioma): se importan igual por expansión y número.</p>` : ''}
+    ${porNombre ? `<p class="subtext">${porNombre} sin número (lo que solo vende Cardmarket, sellos de liga…) ${porNombre === 1 ? 'se ha encontrado' : 'se han encontrado'} por su nombre: en su expansión no hay otra que se llame igual.</p>` : ''}
+    ${conSello ? `<p class="subtext">${conSello} ${conSello === 1 ? 'es una versión' : 'son versiones'} que el catálogo no separa (un sello, lo que solo vende Cardmarket): ${conSello === 1 ? 'entra' : 'entran'} como la normal o la reverse y la versión queda en la nota de la copia.</p>` : ''}
     ${sinUsar.length ? `<p class="subtext">Columnas que no se usan: ${escapeHtml(sinUsar.join(', '))}.</p>` : ''}`
   // Lo que no casa (1329, G5): cada una con «Buscarla» y todas en un CSV.
   $('mcImpPerdidas').innerHTML = perdidasHtml(perdidas)
+  const destinoCorto = { coleccion: '', cambio: ' · para cambio', deseo: ' · La quiero' }
   $('mcImpLista').innerHTML = listas.length
-    ? `<p class="mc-imp-titulo">Se van a añadir:</p><ul class="mc-imp-lista">${listas
+    ? `<p class="mc-imp-titulo">Lo que se va a hacer:</p><ul class="mc-imp-lista">${listas
         .slice(0, 60)
-        .map((l) => `<li><span>${escapeHtml(nombreDeCarta(l.carta))} <small>${escapeHtml(l.carta.tcg_sets?.name || l.carta.set_id)} · ${escapeHtml(l.carta.local_id || '')}</small></span> <span class="subtext">×${l.linea.cantidad} · ${escapeHtml(l.linea.idioma)} · ${escapeHtml(l.linea.estado)}${l.linea.variante !== 'normal' ? ` · ${escapeHtml(l.linea.variante)}` : ''}${l.linea.gradeo ? ` · ${escapeHtml(l.linea.gradeo)}` : ''}</span></li>`)
+        .map((l) => `<li><span>${escapeHtml(nombreDeCarta(l.carta))} <small>${escapeHtml(l.carta.tcg_sets?.name || nombreDeSet.get(l.carta.set_id) || l.carta.set_id)} · ${escapeHtml(l.carta.local_id || '')}</small></span> <span class="subtext">${destinoDe(l, elegido) === 'deseo' ? '' : `×${l.linea.cantidad} · `}${escapeHtml(l.linea.idioma)}${destinoDe(l, elegido) === 'deseo' ? '' : ` · ${escapeHtml(l.linea.estado)}`}${l.linea.variante !== 'normal' ? ` · ${escapeHtml(l.linea.variante)}` : ''}${l.linea.gradeo ? ` · ${escapeHtml(l.linea.gradeo)}` : ''}${destinoCorto[destinoDe(l, elegido)]}</span></li>`)
         .join('')}${listas.length > 60 ? `<li class="subtext">…y ${listas.length - 60} más</li>` : ''}</ul>`
     : ''
   const boton = $('mcImpConfirmar')
   boton.disabled = !listas.length
-  boton.textContent = listas.length ? `Añadir ${listas.length} ${listas.length === 1 ? 'carta' : 'cartas'} a mi colección` : 'Nada que añadir'
-  pintarPaso(2)
+  boton.textContent = !listas.length
+    ? 'Nada que añadir'
+    : cuantas.deseo && !cuantas.coleccion && !cuantas.cambio
+      ? `Apuntar ${cuantas.deseo} en «La quiero»`
+      : cuantas.deseo
+        ? `Importar ${listas.length} ${listas.length === 1 ? 'carta' : 'cartas'}`
+        : `Añadir ${listas.length} ${listas.length === 1 ? 'carta' : 'cartas'} a mi colección`
+}
+
+// La casilla de las listas (1459), con cuántas colecciones son.
+function pintarCajaDeListas() {
+  const caja = $('mcImpListas')
+  if (!caja) return
+  const elegido = $('mcImpDestino')?.value || 'coleccion'
+  const nombres = new Set((emparejado?.listas || []).filter((l) => destinoDe(l, elegido) === 'deseo' && l.entrada.coleccion).map((l) => l.entrada.coleccion))
+  const hay = Boolean(listasDeseo) && nombres.size > 0
+  caja.hidden = !hay
+  if (!hay) return
+  caja.innerHTML = `<label class="mc-imp-check"><input type="checkbox" id="mcImpListasSi" checked /> Y guarda lo que te falta en listas de «La quiero», una por cada colección de TheHobbyClub (${nombres.size})</label>`
 }
 
 async function confirmar({ sesion, mercado, alTerminar }) {
@@ -96,9 +189,13 @@ async function confirmar({ sesion, mercado, alTerminar }) {
   boton.disabled = true
   boton.textContent = 'Guardando…'
   try {
+    const elegido = $('mcImpDestino')?.value || 'coleccion'
+    const aLaColeccion = emparejado.listas.filter((l) => destinoDe(l, elegido) !== 'deseo')
+    const aLaQuiero = emparejado.listas.filter((l) => destinoDe(l, elegido) === 'deseo')
+    // La misma copia en dos filas, una línea (1459); «para cambio» es darlas todas.
+    const lineas = juntarLineas(aLaColeccion.map((l) => l.linea)).map((l) => (elegido === 'cambio' ? { ...l, cambio: l.cantidad } : l))
     // En tandas de 200: una sola sentencia con dos mil filas es un cuerpo
     // enorme y, si una falla, fallan todas.
-    const lineas = emparejado.listas.map((l) => l.linea)
     let puestas = 0
     let tachados = 0
     for (let i = 0; i < lineas.length; i += 200) {
@@ -108,15 +205,51 @@ async function confirmar({ sesion, mercado, alTerminar }) {
       tachados += new Set(datos.deseosTachadosPor(hechas).map((f) => f.card_id)).size
       boton.textContent = `Guardando… ${Math.min(i + 200, lineas.length)} de ${lineas.length}`
     }
+    // Lo que te falta, a «La quiero» (1459), y si se pidió, en su lista.
+    let deseos = 0
+    let enListas = 0
+    if (aLaQuiero.length) {
+      boton.textContent = 'Apuntando lo que te falta…'
+      const cambios = await import('./cambios.js')
+      deseos = (await cambios.anadirDeseos(sesion.user.id, deseosDeImportar(aLaQuiero))).length
+      if (listasDeseo && $('mcImpListasSi')?.checked) enListas = await meterEnListas(aLaQuiero)
+    }
     // Lo importado que tenías en «La quiero» sale de la lista (1063).
-    showToast(`${puestas} ${puestas === 1 ? 'carta importada' : 'cartas importadas'}${tachados ? ` · ${tachados === 1 ? 'una sale' : `${tachados} salen`} de «La quiero»` : ''}.`, 'success')
+    const partes = [
+      puestas ? `${puestas} ${puestas === 1 ? 'carta importada' : 'cartas importadas'}` : '',
+      tachados ? `${tachados === 1 ? 'una sale' : `${tachados} salen`} de «La quiero»` : '',
+      deseos ? `${deseos} ${deseos === 1 ? 'nueva' : 'nuevas'} en «La quiero»${enListas ? ` (en ${enListas} ${enListas === 1 ? 'lista' : 'listas'})` : ''}` : '',
+    ].filter(Boolean)
+    showToast(`${partes.join(' · ') || 'Nada nuevo: ya lo tenías todo apuntado'}.`, 'success')
     $('mcImportarDialogo').close()
-    await alTerminar?.()
+    await alTerminar?.({ deseos })
   } catch (err) {
     showToast(err.message, 'error')
     boton.disabled = false
     boton.textContent = 'Volver a intentarlo'
   }
+}
+
+// Una lista de «La quiero» por colección de TheHobbyClub, con su nombre; si
+// ya hay una que se llama igual, se usa esa. Devuelve en cuántas listas.
+async function meterEnListas(items) {
+  const porColeccion = new Map()
+  for (const l of items) {
+    const n = (l.entrada.coleccion || '').trim().slice(0, 60)
+    if (!n) continue
+    if (!porColeccion.has(n)) porColeccion.set(n, new Map())
+    porColeccion.get(n).set(`${l.linea.card_id}|${l.linea.market}`, { card_id: l.linea.card_id, market: l.linea.market })
+  }
+  const pleg = (t) => String(t || '').trim().toLowerCase()
+  let i = 0
+  let hechas = 0
+  for (const [nombre, cartas] of porColeccion) {
+    const ya = listasDeseo.lasListas().find((x) => pleg(x.nombre) === pleg(nombre))
+    const lista = ya || (await listasDeseo.crearLista({ nombre, color: listasDeseo.COLORES_LISTA[i++ % listasDeseo.COLORES_LISTA.length] }))
+    await listasDeseo.meterEnLista(lista.id, [...cartas.values()])
+    hechas++
+  }
+  return hechas
 }
 
 let enganchado = false
@@ -151,6 +284,7 @@ export function abrirImportar({ sesion, mercado = 'WEST', alTerminar } = {}) {
   const d = $('mcImportarDialogo')
   if (!d) return
   emparejado = null
+  sesionAbierta = sesion || null
   montarApps()
   $('mcImpTexto').value = ''
   $('mcImpEstado').textContent = ''
@@ -169,6 +303,13 @@ export function abrirImportar({ sesion, mercado = 'WEST', alTerminar } = {}) {
     })
     $('mcImpAnalizar')?.addEventListener('click', () => analizar({ mercado }).catch((err) => { $('mcImpEstado').textContent = err.message }))
     $('mcImpVolver')?.addEventListener('click', () => pintarPaso(1))
+    // Cambiar «Adónde van» con el resumen delante lo repinta sin releer.
+    $('mcImpDestino')?.addEventListener('change', () => {
+      if (!emparejado) return
+      const filas = leerCsv($('mcImpTexto').value)
+      if (filas.length) pintarResumen(reconocerColumnas(filas[0]))
+      pintarCajaDeListas()
+    })
     $('mcImpConfirmar')?.addEventListener('click', () => confirmar({ sesion, mercado, alTerminar }))
     $('mcImportarCerrar')?.addEventListener('click', () => d.close())
     $('mcImpPerdidas')?.addEventListener('click', (e) => {

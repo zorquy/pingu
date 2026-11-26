@@ -228,6 +228,8 @@ export function menuDeLaQuiero({ lista = null } = {}) {
     titulo: lista ? lista.nombre : 'Todas las que quieres',
     opciones: [
       ['compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo'],
+      // 1459: la lista para pegar en tus Wants, y lo que te falta de tus expansiones.
+      ['cardmarket', 'Para Cardmarket', 'para pegarla en tus Wants, con lo que te falta de tus expansiones'],
       ['imagen', 'Hacer una imagen'],
       ['album', 'Hacer un álbum con ellas'],
       ['evento', 'Modo evento', lista ? 'con esta lista' : 'tu QR para una feria'],

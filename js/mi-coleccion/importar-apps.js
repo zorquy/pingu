@@ -13,7 +13,10 @@ export const APPS = [
   { id: 'dex', nombre: 'Dex', lee: 'expansión, número, versión, estado, idioma y lo que pagaste' },
   { id: 'collectr', nombre: 'Collectr', lee: 'expansión, número, versión, estado, gradeo y lo que pagaste' },
   { id: 'tcgplayer', nombre: 'TCGplayer', lee: 'expansión (nombre o código), número, versión (Printing), estado e idioma' },
-  { id: 'cardmarket', nombre: 'Cardmarket', lee: 'expansión, número, estado, idioma y si es foil' },
+  { id: 'cardmarket', nombre: 'Cardmarket', lee: 'el id de producto de cada carta (o la expansión y el número), estado, idioma y si es foil' },
+  // 1459: un usuario venía de TheHobbyClub con 3.226 cartas y no casaba
+  // ninguna. Su fichero dice además qué te FALTA de cada colección.
+  { id: 'thehobbyclub', nombre: 'TheHobbyClub', lee: 'el id de Cardmarket de cada carta, la expansión, la versión, el idioma y si la tienes o te falta (lo que te falta va a «La quiero»)' },
   { id: 'pokellector', nombre: 'Pokellector', lee: 'expansión y número (si tu lista los trae)' },
   { id: 'otra', nombre: 'Excel u otra', lee: 'cualquier columna con la expansión (nombre o código) y el número' },
 ]
@@ -35,6 +38,7 @@ export function pasosDe(id) {
 export function appDeCabecera(plegadas = []) {
   const tiene = (c) => plegadas.includes(c)
   if (tiene('simple name') || (tiene('product id') && tiene('printing'))) return 'tcgplayer'
+  if (tiene('coleccion') && tiene('estado_carta') && tiene('cardmarket_id')) return 'thehobbyclub'
   if (tiene('idproduct') || tiene('cardmarketid') || tiene('isfoil')) return 'cardmarket'
   return null
 }
@@ -53,7 +57,8 @@ export function perdidasHtml(perdidas, { tope = 60 } = {}) {
   const filas = perdidas.slice(0, tope).map((p) => {
     const e = p.entrada || {}
     const href = busquedaDePerdida(p)
-    const quien = [e.nombre, [e.set || e.codigo, e.numero].filter(Boolean).join(' · ')].filter(Boolean).join(' — ')
+    // Como lo escribió el fichero (con los ataques entre corchetes de Cardmarket).
+    const quien = [e.nombreOriginal || e.nombre, [e.set || e.codigo, e.numero].filter(Boolean).join(' · ')].filter(Boolean).join(' — ')
     return `<li><span>Línea ${e.fila}${quien ? ` · ${escapeHtml(quien)}` : ''}</span> <span class="subtext">${escapeHtml(p.motivo)}</span>${href ? ` <a class="mc-imp-buscar" href="${escapeHtml(href)}" target="_blank" rel="noopener">Buscarla</a>` : ''}</li>`
   }).join('')
   return `<div class="mc-imp-perdidas-cab"><p class="mc-imp-titulo">Sin encontrar (${perdidas.length}): búscalas y añádelas a mano</p><button type="button" class="btn-secondary" data-imp-descargar-perdidas>Descargar las que faltan</button></div>
@@ -65,7 +70,7 @@ const celda = (v) => {
   return /[",;\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
 }
 export function csvDePerdidas(perdidas) {
-  const cab = ['Línea', 'Carta', 'Expansión', 'Código', 'Número', 'Cantidad', 'Idioma', 'Estado', 'Por qué no entró']
-  const filas = (perdidas || []).map(({ entrada: e = {}, motivo }) => [e.fila, e.nombre, e.set, e.codigo, e.numero, e.cantidad, e.idioma, e.estado, motivo].map(celda).join(','))
+  const cab = ['Línea', 'Carta', 'Expansión', 'Código', 'Número', 'Cantidad', 'Idioma', 'Estado', 'Id de Cardmarket', 'Por qué no entró']
+  const filas = (perdidas || []).map(({ entrada: e = {}, motivo }) => [e.fila, e.nombreOriginal || e.nombre, e.set, e.codigo, e.numero, e.cantidad, e.idioma, e.estado, e.cardmarket || '', motivo].map(celda).join(','))
   return [cab.join(','), ...filas].join('\n')
 }

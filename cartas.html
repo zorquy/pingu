@@ -1001,7 +1001,7 @@
           </div>
           <div class="mc-panel-cuerpo mc-importar-cuerpo">
             <div id="mcImpPaso1">
-              <p class="subtext">Vale el CSV que exportan Dex, Collectr, TCG Vault o esta misma página, y cualquier hoja con una columna de expansión (nombre o código) y otra de número. Lo demás —copias, estado, idioma, versión, gradeo— se lee si está.</p>
+              <p class="subtext">Vale el CSV que exportan Dex, Collectr, TCG Vault, Cardmarket, TheHobbyClub o esta misma página, y cualquier hoja con una columna de expansión (nombre o código) y otra de número, o con el id de Cardmarket. Lo demás —copias, estado, idioma, versión, gradeo— se lee si está.</p>
               <label class="mc-imp-campo">Sube el fichero <input type="file" id="mcImpFichero" accept=".csv,.tsv,.txt,text/csv,text/plain" /></label>
               <label class="mc-imp-campo">…o pégalo aquí
                 <textarea id="mcImpTexto" rows="6" placeholder="Set,Name,Card Number,Quantity&#10;Paldea Evolved,Pikachu,025/193,2"></textarea>
@@ -1017,6 +1017,16 @@
                   <option value="ja">Japonés</option>
                 </select>
               </label>
+              <!-- Adónde van (1459): «Las que doy» es lo que vendes en Cardmarket;
+                   «La quiero», tus Wants. Lo que el fichero marca como que te
+                   FALTA (TheHobbyClub) va a «La quiero» siempre. -->
+              <label class="mc-imp-campo">Adónde van
+                <select id="mcImpDestino" class="mc-chapa-select">
+                  <option value="coleccion">A mi colección</option>
+                  <option value="cambio">A mi colección, para cambio («Las que doy»)</option>
+                  <option value="deseo">A «La quiero» (las que buscas)</option>
+                </select>
+              </label>
               <div class="mc-imagen-botones">
                 <button type="button" class="btn-primary" id="mcImpAnalizar">Comprobar</button>
               </div>
@@ -1025,6 +1035,7 @@
             <div id="mcImpPaso2" class="hidden">
               <div id="mcImpResumen"></div>
               <div id="mcImpPerdidas"></div>
+              <div id="mcImpListas" class="mc-imp-listas" hidden></div>
               <div id="mcImpLista"></div>
               <div class="mc-imagen-botones">
                 <button type="button" class="btn-primary" id="mcImpConfirmar">Añadir a mi colección</button>

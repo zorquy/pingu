@@ -1093,6 +1093,10 @@ async function clicEnBarra(e) {
     const lista = listasDeseo.lasListas().find((l) => l.id === listaAbierta) || null
     const accion = await listasDeseo.menuDeLaQuiero({ lista })
     if (accion === 'compartir') compartirMisListas()
+    if (accion === 'cardmarket') {
+      const { abrirLaQuiero } = await import('./para-cardmarket.js')
+      abrirLaQuiero(ctx, { lista, cartasDeLista: lista ? listasDeseo.cartasDe(lista.id) : null })
+    }
     if (accion === 'imagen') compartirLaQuiero()
     // Con una lista abierta, el evento enseña esa (1058).
     if (accion === 'evento') location.href = lista ? `/evento?lista=${encodeURIComponent(lista.id)}` : '/evento'
@@ -1361,8 +1365,10 @@ function engancharDoy() {
       return void pintarDoy()
     }
     if (e.target.closest('#mcDoyMenu')) {
-      const accion = await listasDeseo.menuDe({ titulo: 'Las que doy', opciones: [['compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo'], ['evento', 'Modo evento', 'tu QR para una feria']] })
+      const accion = await listasDeseo.menuDe({ titulo: 'Las que doy', opciones: [['compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo'], ['cardmarket', 'Para Cardmarket', 'un CSV con el id de Cardmarket de cada una'], ['evento', 'Modo evento', 'tu QR para una feria']] })
       if (accion === 'compartir') compartirMisListas()
+      // 1459: lo que das, con el id de producto de Cardmarket de cada carta.
+      if (accion === 'cardmarket') (await import('./para-cardmarket.js')).descargarLoQueDoy(ctx)
       if (accion === 'evento') location.href = '/evento'
     }
   })

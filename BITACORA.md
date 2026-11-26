@@ -4,6 +4,62 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 — IBAI-Claude (1459 — TheHobbyClub a PokeDoc, y lo tuyo para Cardmarket)
+
+**Hecho** (Ibai: «exportar mi Cardmarket para que aparezcan las que cambio y
+las faltantes de mis colecciones (lo que sale como faltante en TheHobbyClub)
+ponerlo como las que busco, y exportar de TheHobbyClub a PokeDoc… que te dé
+la opción, porque justo hay un usuario que tiene este problema» — su CSV de
+3.226 filas daba CERO encontradas, «no conozco la expansión…»):
+- **Importar de TheHobbyClub**: nueva app en «¿De dónde la traes?» y su
+  cabecera se reconoce sola. Lo que tienes va a tu colección; lo que te falta,
+  a «La quiero» (y, con una casilla, a una lista por cada colección de THC).
+  Casa por el id de producto de Cardmarket que trae cada fila, y si no, por
+  expansión y número, o por nombre (con los ataques en inglés para desempatar,
+  y un sello va sobre la normal de un Entrenador). Con una muestra de 400
+  filas del fichero real, en el navegador contra producción: **332
+  encontradas** (antes de la tanda, 0); de las 68 que no, 20 son japonesas
+  (dice que se elija el catálogo Japonés), 22 son de «Promos» genéricas de
+  Cardmarket, 17 no dicen si la tienes o te falta y el resto, sets que no
+  tenemos.
+- **Importar por el id de Cardmarket** (su export o el CSV de «Las que doy») y
+  **«Adónde van»**: a tu colección, a tu colección y para cambio («Las que
+  doy»), o a «La quiero».
+- **Para Cardmarket** en el ⋯ de «La quiero»: lo que buscas (o la lista
+  abierta) y lo que te falta de las expansiones que ELIJAS (sin marcar: Ibai
+  dijo que «todas las empezadas» no es lo correcto), como texto para pegar en
+  una lista de Wants («2x Lucario Aura Sphere»: un Pokémon necesita sus
+  ataques en inglés, que salen de TCGdex en una consulta). Lo que no se puede
+  escribir sale aparte con su enlace. En el ⋯ de «Las que doy», un CSV con el
+  id de producto de Cardmarket de cada una (que el importador vuelve a leer).
+- **Importar una carta que ya tenías suma LAS copias del fichero** (antes,
+  una sola: «3x» de algo que ya estaba subía a 1+1) y, si van para cambio,
+  las da también. Marcar desde la página trae una, como siempre
+  (`anadirVarias`; pasan 324, 692, 1059, 1063, 1097, 712 y 725).
+- Normas nuevas en `normas/coleccion.md` (adónde va cada fila; un Pokémon a
+  Cardmarket con ataques en inglés o no va).
+
+**Ficheros**: `js/mi-coleccion/importar-csv.js`, `importar.js`,
+`importar-apps.js`, `datos.js` (`cartasPorCardmarket`), `cambios.js`
+(`anadirDeseos`), `deseos.js`, `listas-deseo.js`, `extras.js`,
+`js/mi-coleccion.js`, nuevos `cardmarket-wants.js` y `para-cardmarket.js`,
+`mi-coleccion.html` (+ `cartas.html` regenerado), `css/mi-coleccion.css`,
+`novedades.json`, SCHEMA, `normas/coleccion.md`. Sin migración.
+
+**Pruebas** (rama `pruebas`, van en el bundle aparte): `test-tanda-1459.mjs`
+(puro, 53 comprobaciones) y `test-tanda-1459-pantalla.mjs` (27, con el doble:
+importar de THC con su lista, «para cambio» con un CSV de Cardmarket, la hoja
+«Para Cardmarket» y la descarga de «Las que doy»), en verde; la 1329 pasa a
+siete apps. Pasadas también 580, 729, 763, 1058 y 1329; 581, 651, 748, 766 y
+1042 fallan IGUAL sin esta tanda (lo mismo en el árbol de antes). **PINGU: una
+pasada de suite, por favor.**
+
+**Pendiente / límites**: lo de TCGGO no tiene ataques en inglés y sale en «a
+mano»; el formato de importación del stock de Cardmarket no se ha probado con
+un fichero suyo de verdad (se leen `idProduct`, `Count`, `Language`,
+`Condition`, `isFoil`). Si el número 1459 choca con una tanda tuya,
+renúmerala.
+
 ## 2026-11-26 — IBAI-Claude (1281b — en el repo, la 1281 que se ejecutó)
 
 **Hecho**: el commit de la 1281 que subió (e8bced1) llevaba la PRIMERA versión
