@@ -387,8 +387,8 @@ derrota con la mascota triste, empate con un guiño, los puntos y cuánto
 subes. Sale UNA vez por mesa y navegador (`pd-celebrada-<id>`) y solo si se
 acaba de cerrar (menos de tres horas, o el torneo en juego): abrir un torneo
 viejo no celebra nada. Un bye no se celebra.
-La **tabla** es un podio (los tres de arriba sobre peanas, 2-1-3; la del
-primero, dorada y más alta; con su mazo si las listas se ven) y tu fila lleva
+La **tabla** era un podio (los tres de arriba sobre peanas); desde la 1471
+no hay nada encima de la tabla (ver «Sin top 4 encima de la clasificación»), y tu fila lleva
 su borde; en el móvil, con tu fila fuera de la pantalla, la pastilla «Tú · Nº»
 te lleva a ella (solo con ocho o más). Las **mesas** son un mapa: cada una con
 el color de su estado (`estadoDeMesa`: jugando violeta y latiendo, disputa
@@ -456,9 +456,9 @@ quien abre la ficha a media partida va a su mesa, no a un cartel. Antes de
 poner un nombre de clase nuevo en torneos.css, búscalo: `.torneo-entrada` ya
 era «tu plaza» (1342), y la ventana nueva le quitaba el borde verde; por eso
 es `.torneo-ronda-entra`.
-**La tabla arranca** (1403, T5): el podio de «van» (`lideresHtml`) solo sale
-con alguna ronda suiza ya cerrada; antes, `tablaArrancaHtml` dice cuántas
-mesas faltan (un podio con gente a cero puntos se lee como un fallo). Y con
+**La tabla arranca** (1403, T5): con ninguna ronda suiza cerrada,
+`tablaArrancaHtml` dice cuántas mesas faltan (el podio de «van», `lideresHtml`,
+se fue en la 1471) (un podio con gente a cero puntos se lee como un fallo). Y con
 tu mesa terminada (`.torneo-entre`), Hoy no enseña tu mazo: lo que pedía era
 la lista de la jornada que viene, a mitad de la de hoy.
 **Torneos de la casa** (1404): lo de las tandas 1397–1403 que no es el
@@ -603,3 +603,11 @@ CSS esconde Victoria/Derrota, el BO3 y el botón de check-in, y enseña el
 `.torneo-checkin-perdido` que ya venía pintado. Esconder botones no es la regla:
 es la cortesía; la regla la pone la base. En persona (`checkin_minutes: 0`) no
 aplica: la puerta es el check-in.
+
+**Sin top 4 encima de la clasificación** (tanda 1471, Manso y PINGU: «la
+clasificación ya se ve bien y eso quita un montón de espacio. Yo lo quitaría,
+simplemente»). Encima de la tabla no va ni el podio del final ni los «líderes»
+de mientras se juega: la tabla ya marca los tres primeros con su medalla. Solo,
+si TÚ estás en el podio, una línea (`.torneo-podio-tuyo`) con tu puesto y
+«Compartir». No lo vuelvas a meter con otra forma (tira, peanas, tarjetas):
+fueron tres intentos (1345, 1392, 1448) y ninguno gustó.

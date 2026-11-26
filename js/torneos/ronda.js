@@ -3706,26 +3706,6 @@ function pintarProximaJornada() {
   })
 }
 
-// Mientras se juega (1345): los tres de arriba, en tres cajas, con sus puntos.
-// No es el podio del final (ese sale con el torneo cerrado): dice «va». Desde
-// la 1392 (modo juego) es un podio de verdad: cada uno sobre su peana, la del
-// primero más alta y dorada, y su mazo si las listas se ven (`chapaDe`).
-function lideresHtml(tabla) {
-  return `<div class="torneo-lideres" aria-label="Quién va primero">${tabla
-    .slice(0, 3)
-    .map(
-      (e, i) => `<div class="torneo-lider torneo-lider-${i + 1}${e.playerId === miId() ? ' yo' : ''}">
-        ${caraDe(e.playerId, i === 0 ? 'xg' : 'g')}
-        <span class="torneo-lider-pos">${i + 1}.º</span>
-        <strong>${escapeHtml(nombreDe(e.playerId))}</strong>
-        <span class="subtext">${e.matchPoints} pts<span class="torneo-lider-vde"> · ${e.wins}-${e.losses}-${e.draws}</span></span>
-        ${chapaDe(e.playerId)}
-        <span class="torneo-peana" aria-hidden="true">${i + 1}</span>
-      </div>`
-    )
-    .join('')}</div>`
-}
-
 // LA TABLA ARRANCA (1403, «El torneo, más sencillo», T5): con la primera
 // ronda aún en juego, el podio salía con quien hubiera acabado antes, y al
 // lado gente a cero puntos («¿por qué va tercero si no ha jugado?»). Hasta
@@ -3735,7 +3715,7 @@ function tablaArrancaHtml() {
   const actual = rondaActual()
   if (!actual) return ''
   const { terminadas, total } = progresoDeMesas(partidas.filter((m) => m.round_id === actual.id))
-  return `<p class="torneo-tabla-arranca" role="status">${icons.trophy?.(18) || ''}<span>La tabla arranca cuando acabe la <b>${escapeHtml(nombreDeRonda(actual.round_number))}</b>: van <b>${terminadas} de ${total}</b> mesas. El podio sale en cuanto haya algo que contar.</span></p>`
+  return `<p class="torneo-tabla-arranca" role="status">${icons.trophy?.(18) || ''}<span>La tabla arranca cuando acabe la <b>${escapeHtml(nombreDeRonda(actual.round_number))}</b>: van <b>${terminadas} de ${total}</b> mesas.</span></p>`
 }
 
 function pintarClasificacion() {
@@ -3833,31 +3813,23 @@ function pintarClasificacion() {
   // vista de una jornada no pinta nada: esa foto es de la general.
   const podio = podioDelTorneo()
   const PUESTOS = ['Campeón', 'Finalista', 'Semifinalista', 'Semifinalista']
+  // FUERA el top 4 de arriba (1471, Manso y PINGU: «la clasificación no me
+  // gusta con el top 4 ahí arriba… la clasificación ya se ve bien y eso quita
+  // un montón de espacio»). Ni el podio al final ni los «líderes» durante el
+  // torneo: la tabla ya marca los tres primeros con su medalla y tu fila. Solo
+  // queda, si TÚ estás en el podio, una línea con tu puesto y «Compartir».
+  const miPodio = podio.indexOf(miId())
   const banner = !general
     ? ''
     : podio.length
-    ? `<div class="torneo-podio-tira torneo-podio-de-${podio.length}">
-        ${podio
-          .map(
-            // En una TIRA baja (1448): el podio de peanas ocupaba media
-            // pantalla antes de la primera fila de la tabla.
-            (id, i) => `
-          <div class="torneo-podio-puesto torneo-podio-${i + 1}">
-            <span class="torneo-pos torneo-pos-${Math.min(i + 1, 3)}">${i + 1}</span>
-            ${caraDe(id)}
-            <span class="torneo-podio-quien"><strong>${escapeHtml(nombreDe(id))}</strong><span class="subtext">${PUESTOS[i]}</span></span>
-            ${chapaDe(id)}
-            ${id === miId() ? `<button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${i}">${icons.share(14)} Compartir</button>` : ''}
-          </div>`
-          )
-          .join('')}
-      </div>`
+    ? miPodio >= 0
+      ? `<p class="torneo-podio-tuyo">${icons.trophy(16)} <span>Quedaste <b>${PUESTOS[miPodio].toLowerCase()}</b> de este torneo.</span>
+          <button type="button" class="link-btn torneo-podio-compartir" data-podio-compartir="${miPodio}">${icons.share(14)} Compartir</button></p>`
+      : ''
     : campeon
       ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
-      : ctx.torneo.status === 'in_progress' && tabla.length >= 3
-        ? rondas.some((r) => r.status === 'finished' && r.phase !== 'top_cut' && !rondaSaltada(r))
-          ? lideresHtml(tabla)
-          : tablaArrancaHtml()
+      : ctx.torneo.status === 'in_progress' && tabla.length >= 3 && !rondas.some((r) => r.status === 'finished' && r.phase !== 'top_cut' && !rondaSaltada(r))
+        ? tablaArrancaHtml()
         : ''
   const htmlClasif = `
     ${banner}

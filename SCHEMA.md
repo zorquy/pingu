@@ -55231,6 +55231,14 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1471 — La clasificación sin el top 4 de arriba
+
+Sin cambios de esquema. `ronda.js` → `pintarClasificacion`: el `banner` de la
+general es, con podio, `p.torneo-podio-tuyo` (solo si `miId()` está en él, con
+`[data-podio-compartir]`); sin podio, el campeón suelto o `tablaArrancaHtml()`
+(torneo en juego, ≥ 3 en la tabla y ninguna suiza cerrada). Borrada
+`lideresHtml`. CSS `.torneo-podio-tuyo` al final de `torneos.css`.
+
 ## Tanda 1470 — Sin check-in no hay resultado
 
 Migración `supabase-migration-1470-sin-checkin-no-hay-resultado.sql`: `create or

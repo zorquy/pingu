@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La clasificación de un torneo va directa a la tabla, sin las tarjetas del podio encima. Si quedas entre los cuatro primeros, una línea te lo dice y te deja compartirlo.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "En un torneo online, si se acaba el check-in y no lo has hecho, ya no puedes dar victoria ni derrota: la ronda se pierde por no presentarse, y tu mesa te lo dice claro.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "El día de un torneo, su ficha te lo pone fácil: «Hoy · 19:00» con la cuenta atrás en segundos, tu entrada a la vista y, en el móvil, lo que te falta (mandar tu lista o confirmar que juegas) en un botón fijo abajo.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "En Torneos, si has jugado este año, arriba ves tu temporada: torneos, podios, tu récord y tus últimas partidas. Cuando hay pocos torneos, en vez de un hueco vacío te propone organizar el tuyo o ver qué se juega, y los campeones te dicen cómo quedaste o te llevan a sus mazos.", "enlace": "/torneos" },

@@ -6212,3 +6212,9 @@ a.t-campeon-tu:hover { color: var(--acento); }
 .checkin-vencido .torneo-bo3-cab,
 .checkin-vencido #btnCheckin,
 .checkin-vencido #avisoCheckin { display: none; }
+
+/* ══ 1471 — La clasificación sin el top 4 de arriba (SCHEMA 1471): solo,
+   si estás en el podio, una línea con tu puesto y «Compartir». ══ */
+.torneo-podio-tuyo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--tipo-oficial) 14%, var(--white)); border: 1px solid color-mix(in srgb, var(--tipo-oficial) 45%, var(--border)); font-size: var(--t-sm); }
+.torneo-podio-tuyo > svg { color: var(--tipo-oficial); flex: none; }
+.torneo-podio-tuyo > span { flex: 1; min-width: 0; }

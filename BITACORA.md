@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (710) — PINGU-Claude (1471 — la clasificación sin el top 4 de arriba)
+
+**Hecho** (Manso y PINGU: «la clasificación no me gusta con el top 4 ahí
+arriba… Yo lo quitaría, simplemente»): fuera la tira del podio del torneo
+cerrado y los «líderes» de mientras se juega (`lideresHtml`, borrada). Encima
+de la tabla solo queda, si TÚ estás en el podio, una línea con tu puesto y
+«Compartir» (`.torneo-podio-tuyo`), y antes de cerrar la R1, el aviso de «La
+tabla arranca» (sin la frase del podio).
+
+**Ficheros**: `js/torneos/ronda.js`, `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): adaptadas 1341, 1403, 1448 y 873.
+
+**Pendiente**: el CSS viejo de `.torneo-lider*`, `.torneo-podio-tira`,
+`.torneo-peana` y `.torneo-podio-puesto` queda sin uso en `torneos.css`
+(cinco bloques mezclados con otras piezas); para una limpieza aparte. Sin
+migración.
+
 ## 2026-11-26 (709) — PINGU-Claude (1470 — sin check-in no hay resultado)
 
 **Hecho** (Manso, vía PINGU: «si no haces el check-in y pasan esos 5 minutos…
