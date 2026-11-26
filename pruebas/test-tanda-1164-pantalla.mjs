@@ -43,7 +43,10 @@ console.log('── J1: Torneos, una fila de mandos en el PC ──')
   const r = await p.evaluate(() => {
     const chips = document.querySelector('.torneo-pestanas-chips')
     const conm = document.querySelector('.torneo-vista-conmutador')
-    const filas = new Set([...chips.children].map((x) => Math.round(x.getBoundingClientRect().top)))
+    // Por el centro y no por el borde de arriba (1454): la cápsula, los chips y
+    // el buscador no miden lo mismo de alto, y centrados en la misma fila sus
+    // bordes de arriba no coinciden.
+    const filas = new Set([...chips.children].map((x) => { const r = x.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 8) }))
     return { dentro: conm?.parentElement === chips, primero: chips.firstElementChild === conm, filas: filas.size, semana: getComputedStyle(document.getElementById('torneosSemana')).display, mandos: getComputedStyle(document.querySelector('.torneos-mandos')).display, primerTorneo: Math.round(document.querySelector('#torneosLigas:not([hidden]) .lc-tarjeta, .torneo-card, .torneo-tarjeta, #listaTorneos article')?.getBoundingClientRect().top || 0) }
   })
   check('Lista/Calendario delante de los chips de estado, en una fila', r.dentro && r.primero && r.filas === 1, JSON.stringify(r))

@@ -73,59 +73,38 @@ const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INS
   await page.waitForTimeout(2400)
   return { page, errores }
 }
-const abrirGrupo = async (page, texto) => {
-  const chips = page.locator('.torneo-pestanas-chips .chip-filtro')
-  for (let i = 0; i < (await chips.count()); i++) {
-    if (((await chips.nth(i).textContent()) || '').includes(texto)) {
-      await chips.nth(i).click()
-      await page.waitForTimeout(400)
-      return true
-    }
-  }
-  return false
-}
 const tarjetaDe = (page, nombre) => page.locator('.torneo-tarjeta').filter({ hasText: nombre }).first()
 
-console.log('\n── 1. Una tarjeta por torneo, y UNA acción ──')
+// Desde la 1454 cada torneo es una FILA de la agenda (sin portada ni caras):
+// lo que la 297 prometía —una acción que dice la verdad según el estado, las
+// plazas que avisan, el enlace bien hecho— se sigue probando aquí.
+console.log('\n── 1. Una fila por torneo, y UNA acción ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  check('se abre el grupo de abiertas', await abrirGrupo(page, 'Abiert'))
-  check('hay dos tarjetas', (await page.locator('.torneo-tarjeta').count()) === 2,
+  check('los cuatro torneos, cada uno en su fila', (await page.locator('.torneo-tarjeta.torneo-fila').count()) === 4,
     String(await page.locator('.torneo-tarjeta').count()))
-
   const copa = tarjetaDe(page, 'Copa de Invierno')
-  check('cada tarjeta tiene UNA acción', (await copa.locator('.torneo-pie-accion').count()) === 1)
+  check('cada fila tiene UNA acción', (await copa.locator('.torneo-pie-accion').count()) === 1)
   // user-1 está inscrito en la Copa: no se le ofrece apuntarse otra vez.
-  check('inscrito → «Ver el torneo»', (await copa.locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el torneo')
-  check('  …y se le marca que está dentro', (await copa.locator('.torneo-mio-arte').count()) === 1)
-  // Y el enlace de la tarjeta y el del botón van al MISMO sitio: si se
-  // separan, pulsar el botón te lleva a otro torneo.
+  check('inscrito → «Inscrito», que lleva a ver el torneo', (await copa.locator('.torneo-pie-accion').evaluate(accionDe)) === 'Estás inscrito')
+  check('  …y se le marca que está dentro', await copa.evaluate((f) => f.classList.contains('torneo-tarjeta-mia')))
   const hrefTarjeta = await copa.locator('.torneo-tarjeta-enlace').getAttribute('href')
   const hrefBoton = await copa.locator('.torneo-pie-accion').getAttribute('href')
-  check('el botón lleva al mismo torneo que la tarjeta', hrefTarjeta === hrefBoton && /slug=copa-invierno/.test(hrefTarjeta), `${hrefTarjeta} / ${hrefBoton}`)
+  check('el botón lleva al mismo torneo que la fila', hrefTarjeta === hrefBoton && /slug=copa-invierno/.test(hrefTarjeta), `${hrefTarjeta} / ${hrefBoton}`)
   await page.close()
 }
 
 console.log('\n── 2. La acción dice la verdad según el estado ──')
 {
   const { page } = await abrir({ sesion: 'user-2' })
-  // Misty no está en «Casi llena», sí en la Copa: las dos tarjetas, una
-  // al lado de la otra, tienen que decir cosas distintas.
-  await abrirGrupo(page, 'Abiert')
   check('no inscrito y abierto → «Apuntarme»',
     (await tarjetaDe(page, 'Casi llena').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Apuntarme')
-  // «Apuntarme» va en verde: es la única acción de la sección que suma
-  // gente y tiene que distinguirse de «ver» a un metro.
   check('  …y va en verde', await tarjetaDe(page, 'Casi llena').locator('.torneo-btn-apuntarse').count() === 1)
   check('  …y el de al lado, donde SÍ está, no lo ofrece',
-    (await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el torneo')
-  check('en juego → «Ver el directo»', await abrirGrupo(page, 'En juego') &&
-    (await tarjetaDe(page, 'Pachanga').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el directo')
-  check('terminado → «Resultados y mazos»', await abrirGrupo(page, 'Terminad') &&
-    (await tarjetaDe(page, 'Inaugural').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver resultados y mazos')
-  // En un torneo terminado la ocupación no dice nada: lo que se quiere
-  // saber es quién ganó.
+    (await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Estás inscrito')
+  check('en juego → «Ver el directo»', (await tarjetaDe(page, 'Pachanga').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el directo')
+  check('terminado → «Resultados y mazos»', (await tarjetaDe(page, 'Inaugural').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver resultados y mazos')
   const fin = tarjetaDe(page, 'Inaugural')
   check('y en vez de las plazas, el campeón', (await fin.locator('.torneo-campeon').textContent())?.includes('Ash'),
     await fin.locator('.torneo-campeon').textContent())
@@ -133,50 +112,16 @@ console.log('\n── 2. La acción dice la verdad según el estado ──')
   await page.close()
 }
 
-console.log('\n── 3. Quién va apuntado ──')
+console.log('\n── 3. Las plazas ──')
 {
   const { page } = await abrir()
-  await abrirGrupo(page, 'Abiert')
   const copa = tarjetaDe(page, 'Copa de Invierno')
-  // Cinco inscritos, cuatro caras y un «+1»: pedir el perfil de los 32
-  // de cada torneo por enseñar cuatro sería tirar la consulta.
-  check('como mucho cuatro caras', (await copa.locator('.torneo-caras > .torneo-cara:not(.torneo-cara-mas)').count()) === 4,
-    String(await copa.locator('.torneo-cara').count()))
-  check('  …y el resto se cuenta en el «+N»', (await copa.locator('.torneo-cara-mas').textContent()) === '+1')
-  // La barra naranja es lo que convierte «7/8» en «corre, que se llena».
   const casi = tarjetaDe(page, 'Casi llena')
   check('la barra se pone apurada al 80%', (await casi.locator('.torneo-ocupacion-barra.apurada').count()) === 1)
   check('  …y la de la Copa (5/32) no', (await copa.locator('.torneo-ocupacion-barra.apurada').count()) === 0)
   check('la cifra dice cuántos de cuántos', (await casi.locator('.torneo-ocupacion-cifra').textContent()) === '4/5',
     await casi.locator('.torneo-ocupacion-cifra').textContent())
   await page.close()
-}
-
-console.log('\n── 4. La portada no cambia de color en cada recarga ──')
-{
-  // Se elige por el slug y no al azar. Si fuera aleatorio, la lista
-  // parpadearía de colores en cada refresco del sondeo.
-  // Se comparan TODAS las tarjetas de dos cargas, no una. Con una sola,
-  // un arte echado a suertes acierta una de cada seis veces y la prueba
-  // pasaría a ratos — que es peor que no tenerla.
-  const artes = async () => {
-    const { page } = await abrir()
-    await abrirGrupo(page, 'Abiert')
-    const cs = await page.locator('.torneo-arte').evaluateAll((ns) =>
-      ns.map((n) => (n.className.match(/torneo-arte-\d/) || [''])[0]))
-    await page.close()
-    return cs
-  }
-  const a = await artes()
-  const b = await artes()
-  check('hay tarjetas que comparar', a.length >= 2, a.join(', '))
-  check('los mismos torneos, el mismo arte en dos cargas', a.join('|') === b.join('|'), `${a.join(',')} / ${b.join(',')}`)
-  check('  …y todos son uno de los seis', a.every((c) => /^torneo-arte-[1-6]$/.test(c)), a.join(', '))
-  // Y que salga del SLUG y no de la suerte, dicho en el código: es lo
-  // único que lo deja demostrado en vez de probable.
-  const fn = JS_LISTA.match(/function arteDe\(t\) \{[\s\S]*?\n\}/)?.[0] || ''
-  check('  …porque se calcula del slug, no al azar',
-    /t\.slug/.test(fn) && !/Math\.random/.test(fn), fn.slice(0, 120))
 }
 
 console.log('\n── 5. La barra del torneo que estás jugando ──')
@@ -188,7 +133,7 @@ console.log('\n── 5. La barra del torneo que estás jugando ──')
   check('  …y por qué ronda va', (await vivo.textContent())?.includes('Ronda 2 de 3'), await vivo.textContent())
   check('  …con el reloj corriendo', /^\d+:\d{2}$/.test((await page.locator('#torneoVivoReloj').textContent()) || ''),
     await page.locator('#torneoVivoReloj').textContent())
-  check('  …y el enlace a TU torneo', /slug=pachanga/.test((await vivo.locator('a').getAttribute('href')) || ''))
+  check('  …y el enlace a TU torneo', /slug=pachanga/.test((await vivo.locator('.torneo-vivo-der a').getAttribute('href')) || ''))
   await page.close()
 
   // Y quien no juega nada no la ve: una barra vacía ocupando el sitio
@@ -207,45 +152,26 @@ console.log('\n── 6. Sin cuenta ──')
   check('la lista se ve sin cuenta', (await page.locator('.torneo-tarjeta').count()) > 0)
   check('  …sin errores', errores.length === 0, errores.join(' | '))
   check('  …y no hay barra de «estás jugando»', !(await page.locator('#torneoVivo').isVisible()))
-  await abrirGrupo(page, 'Abiert')
   check('  …y «Apuntarme» sigue saliendo', (await page.locator('.torneo-btn-apuntarse').count()) > 0)
   await page.close()
 }
 
 console.log('\n── 7. Lo que el rediseño ARREGLA del HTML ──')
 {
-  // Hasta la 297 los botones de duplicar y borrar vivían DENTRO del <a>
-  // de la tarjeta, que no es HTML válido, y se apañaba con
-  // preventDefault. Ahora el enlace cubre portada y cuerpo, y el pie
-  // queda fuera.
+  // Ningún botón dentro del <a> de la fila (no es HTML válido): el «⋯» y la
+  // acción van fuera, a la derecha.
   const { page } = await abrir()
-  await abrirGrupo(page, 'Terminad')
   const dentro = await page.evaluate(() =>
     document.querySelectorAll('.torneo-tarjeta-enlace button, .torneo-tarjeta-enlace a').length)
-  check('ningún botón ni enlace dentro del enlace de la tarjeta', dentro === 0, String(dentro))
-  check('y «Duplicar» sigue estando, en el pie',
-    (await page.locator('.torneo-pie .torneo-duplicar').count()) === 1)
+  check('ningún botón ni enlace dentro del enlace de la fila', dentro === 0, String(dentro))
+  check('y «Duplicar» sigue estando, en el «⋯» del terminado',
+    (await tarjetaDe(page, 'Inaugural').locator('.torneo-fila-der .torneo-duplicar').count()) === 1)
   await page.close()
 }
 
-console.log('\n── 8. La rejilla y las chips ──')
+console.log('\n── 8. Los filtros son chips; Lista/Calendario, la cápsula ──')
 {
-  // Desde la tanda 316 las TARJETAS tienen su propia caja: antes las
-  // pestañas vivían en la misma rejilla y la cruzaban con
-  // `grid-column: 1 / -1`, y eso impedía que `auto-fit` plegara las
-  // pistas vacías —una pista que alguien cruza no está vacía—. Lo que
-  // esta prueba defiende sigue igual: que la lista sea una rejilla con
-  // un mínimo por tarjeta y que las pestañas no se coloquen como una
-  // tarjeta más.
-  check('la lista de tarjetas es una rejilla', /\.torneos-rejilla \{[^}]*display: grid/.test(CSS))
-  check('  …con un mínimo por tarjeta', /minmax\(330px, 1fr\)/.test(CSS))
-  check('  …y las pestañas no están dentro de ella',
-    /\.torneos-lista \{[^}]*display: flex/.test(CSS) && !/\.torneos-rejilla > \.torneo-pestanas/.test(CSS))
-  // Desde la 678 los grupos de la lista son el chip compartido de la casa
-  // (`.chip-filtro`, en components.css) y Lista/Calendario es la cápsula
-  // (`.seg`): un filtro se pulsa y se queda pulsado; un conmutador elige
-  // una de dos. Ninguno lleva ya el subrayado de pestaña.
-  check('las chips son de la lista, no de la ficha', /\.torneo-pestanas-chips \{/.test(CSS) && JS_LISTA.includes('class="torneo-pestanas-chips"') && JS_LISTA.includes('class="chip-filtro'))
+  check('los filtros son chips de la casa', JS_LISTA.includes('class="torneo-pestanas-chips torneos-filtros"') && JS_LISTA.includes('class="chip-filtro'))
   check('  …y el subrayado de pestaña se fue de torneos.css', !/\n\.torneo-pestanas \{/.test(CSS) && !/\n\.torneo-pestana \{/.test(CSS))
   const { page } = await abrir()
   const subrayados = await page.evaluate(() => ({
@@ -254,22 +180,17 @@ console.log('\n── 8. La rejilla y las chips ──')
     conmutador: document.querySelector('.torneo-vista-conmutador')?.classList.contains('seg'),
     conmutadorBoton: document.querySelector('.torneo-vista-conmutador .seg-btn.activa')?.textContent.trim(),
   }))
-  check('  …así que los filtros no llevan subrayado debajo', subrayados.filtros === 0, JSON.stringify(subrayados))
-  check('  …y son chips redondos', /px/.test(subrayados.chip || '') && parseFloat(subrayados.chip) >= 16, JSON.stringify(subrayados))
+  check('  …sin subrayado debajo', subrayados.filtros === 0, JSON.stringify(subrayados))
+  check('  …y redondos', /px/.test(subrayados.chip || '') && parseFloat(subrayados.chip) >= 16, JSON.stringify(subrayados))
   check('  …y el conmutador Lista/Calendario es la cápsula compartida', subrayados.conmutador === true && subrayados.conmutadorBoton === 'Lista', JSON.stringify(subrayados))
-  const cuantas = await page.evaluate(() => getComputedStyle(document.querySelector('.torneos-rejilla')).gridTemplateColumns.split(' ').length)
-  check('a 1280 px caben tres columnas', cuantas === 3, String(cuantas))
-  // En un móvil estrecho lo que importa no es cuántas columnas hay —una,
-  // seguro— sino que la tarjeta NO se salga: con `minmax(330px, 1fr)` y
-  // un contenedor de 290 px, la rejilla mantiene la pista en 330 y la
-  // página se va de lado. Por eso la media query fija `1fr`, y por eso
-  // se mide el desbordamiento y no el número de columnas.
   const estrecho = await abrir({ ancho: 320 })
   const desborde = await estrecho.page.evaluate(() => {
-    const l = document.querySelector('.torneos-lista')
+    // La fila de filtros sangra a propósito hasta el borde (se desliza de
+    // lado); lo que no puede salirse es la agenda ni la página.
+    const l = document.querySelector('#torneosAgenda')
     return { lista: l.scrollWidth - l.clientWidth, pagina: document.documentElement.scrollWidth - document.documentElement.clientWidth }
   })
-  check('a 320 px la rejilla no se sale', desborde.lista <= 1, JSON.stringify(desborde))
+  check('a 320 px la agenda no se sale', desborde.lista <= 1, JSON.stringify(desborde))
   check('  …ni la página entera', desborde.pagina <= 1, JSON.stringify(desborde))
   await page.close()
   await estrecho.page.close()

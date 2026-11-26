@@ -30,13 +30,10 @@ const abrir = async (ruta, semillas = {}) => {
   await page.waitForTimeout(2400)
   return { page, errores }
 }
-const verGrupo = async (page, id) => {
-  await page.locator(`[data-grupo="${id}"]`).click()
-  await page.waitForTimeout(300)
-}
-const pestanas = (page) =>
-  page.locator('[data-grupo]').evaluateAll((n) => n.map((b) => b.dataset.grupo))
-
+// Desde la 1454 no hay pestañas de estado: la agenda va por días y cada fila
+// lleva su chapa. Lo que esta prueba vigila sigue igual: un torneo con las
+// inscripciones cerradas NO se dice «en juego» en ningún sitio.
+const fila = (page, slug) => page.locator(`.torneo-fila[data-torneo-id="${slug}"]`)
 // Los cuatro estados que importan, cada uno en su torneo.
 const TORNEOS = [
   { id: 'torneo-1', slug: 'inaugural', name: 'Copa Inaugural', status: 'registration_closed', start_at: '2026-09-04T17:00:00Z', swiss_rounds: 3 },
@@ -46,57 +43,19 @@ const TORNEOS = [
 ]
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 1. La lista tiene su pestaña «Por empezar» ──')
+console.log('\n── 1–4. En la agenda, cerrado no es «en juego» (1454) ──')
 {
   const { page, errores } = await abrir('/torneos', { __FAKE_TORNEOS__: TORNEOS })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  const ids = await pestanas(page)
-  check('hay pestaña «Por empezar»', ids.includes('porempezar'), ids.join('|'))
-  check('y sigue habiendo «En juego»', ids.includes('enjuego'), ids.join('|'))
-  check('va entre «Abiertas» y «En juego»',
-    ids.indexOf('abiertas') < ids.indexOf('porempezar') && ids.indexOf('porempezar') < ids.indexOf('enjuego'),
-    ids.join('|'))
-  await page.close()
-}
-
-console.log('\n── 2. El torneo con inscripciones cerradas NO está «En juego» ──')
-{
-  const { page } = await abrir('/torneos', { __FAKE_TORNEOS__: TORNEOS })
-  await verGrupo(page, 'enjuego')
-  const enJuego = await page.locator('#listaTorneos').innerText()
-  check('«En juego» NO trae la Copa Inaugural', !enJuego.includes('Copa Inaugural'), enJuego.slice(0, 120))
-  check('pero sí la que se está jugando', enJuego.includes('Copa Viva'), enJuego.slice(0, 120))
-
-  await verGrupo(page, 'porempezar')
-  const porEmpezar = await page.locator('#listaTorneos').innerText()
-  check('«Por empezar» trae la Copa Inaugural', porEmpezar.includes('Copa Inaugural'), porEmpezar.slice(0, 120))
-  check('y NO la que se está jugando', !porEmpezar.includes('Copa Viva'), porEmpezar.slice(0, 120))
-  check('ni la que sigue abierta', !porEmpezar.includes('Copa Abierta'), porEmpezar.slice(0, 120))
-  await page.close()
-}
-
-console.log('\n── 3. La pestaña ya no contradice a la chapa ──')
-{
-  const { page } = await abrir('/torneos', { __FAKE_TORNEOS__: TORNEOS })
-  await verGrupo(page, 'porempezar')
-  const texto = await page.locator('#listaTorneos').innerText()
-  check('la chapa sigue diciendo «Inscripciones cerradas»', /Inscripciones cerradas/.test(texto), texto.slice(0, 160))
-  // Lo que se rompió: la chapa decía una cosa y la pestaña de encima la
-  // contraria. Aquí la pestaña activa NO puede ser «En juego».
-  const activa = await page.locator('[data-grupo].activa').innerText()
-  check('y la pestaña activa no dice «En juego»', !/En juego/.test(activa), activa)
-  await page.close()
-}
-
-console.log('\n── 4. Las pestañas vacías siguen sin aparecer ──')
-{
-  const { page } = await abrir('/torneos', {
-    __FAKE_TORNEOS__: [TORNEOS[1]], // solo una con inscripciones abiertas
-  })
-  const ids = await pestanas(page)
-  check('sin nada por empezar, no hay pestaña', !ids.includes('porempezar'), ids.join('|'))
-  check('ni «En juego»', !ids.includes('enjuego'), ids.join('|'))
-  check('pero sí «Abiertas»', ids.includes('abiertas'), ids.join('|'))
+  check('ni una pestaña de estado', (await page.locator('[data-grupo]').count()) === 0)
+  const cerrada = await fila(page, 'torneo-1').innerText()
+  check('la Copa Inaugural dice «Inscripciones cerradas»', /Inscripciones cerradas/.test(cerrada), cerrada.slice(0, 160))
+  check('y no «En juego» ni «ahora»', !/En juego|ahora/i.test(cerrada), cerrada.slice(0, 160))
+  check('su fila no va marcada como viva', !(await fila(page, 'torneo-1').evaluate((f) => f.classList.contains('torneo-fila-viva'))))
+  const viva = await fila(page, 'torneo-3').innerText()
+  check('la que se juega sí dice «En juego»', /En juego/.test(viva) && (await fila(page, 'torneo-3').evaluate((f) => f.classList.contains('torneo-fila-viva'))), viva.slice(0, 160))
+  const orden = await page.locator('#torneosAgenda .torneo-fila').evaluateAll((fs) => fs.map((f) => f.dataset.torneoId))
+  check('la que se juega va delante; la terminada, abajo en «Últimos resultados»', orden[0] === 'torneo-3' && orden[orden.length - 1] === 'torneo-4', orden.join('|'))
   await page.close()
 }
 

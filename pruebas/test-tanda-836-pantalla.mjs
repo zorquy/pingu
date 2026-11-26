@@ -144,7 +144,10 @@ console.log('── 5. Torneos y títulos ──')
   const { page, errores, ctx } = await abrir('/torneos', { sem: { __FAKE_TORNEOS__: T } })
   check('arriba solo «Crear torneo» (Mis partidas y el constructor están en Jugar)', (await page.locator('.torneos-heroe-acciones > *').count()) === 1)
   const t = page.locator('.torneo-tarjeta').first()
-  check('una tarjeta sin imagen lleva la franja corta', /torneo-tarjeta-sin-imagen/.test(await t.getAttribute('class')) && (await t.locator('.torneo-arte').evaluate((n) => n.getBoundingClientRect().height)) <= 64)
+  // Desde la 1454 cada torneo es una fila de la agenda, sin portada: lo que
+  // esto guardaba (que un torneo sin imagen no se coma media pantalla) se
+  // mide ahora en la altura de la fila.
+  check('un torneo ocupa una fila baja, sin portada', (await t.evaluate((n) => n.getBoundingClientRect().height)) <= 90 && (await t.locator('.torneo-arte').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
