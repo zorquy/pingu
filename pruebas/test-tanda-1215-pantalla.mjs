@@ -19,25 +19,21 @@ const abrir = async (ruta, { movil = false, antes = null } = {}) => {
   return { ctx, p, errores }
 }
 
-console.log('── 1. Torneos: tu próximo torneo en la banda ──')
+console.log('── 1. Torneos: tu próximo torneo, el destacado (desde la 1472) ──')
 for (const movil of [false, true]) {
   const { ctx, p, errores } = await abrir('/torneos', { movil })
   const r = await p.evaluate(() => {
-    const t = document.getElementById('torneosProximo')
+    const t = document.querySelector('.tdest')
     const caja = t?.getBoundingClientRect()
     return {
-      visible: Boolean(t && !t.hidden && caja.height > 0),
-      ceja: t?.querySelector('.t-proximo-ceja')?.textContent || '',
-      // Desde la 1398 los días van en su losa grande.
-      dias: t?.querySelector('.t-proximo-dias')?.textContent || '',
-      nombre: t?.querySelector('.t-proximo-nombre')?.textContent || '',
-      botones: [...(t?.querySelectorAll('.t-proximo-botones a') || [])].map((a) => [a.textContent.trim(), a.getAttribute('href')]),
-      lemaEscondido: getComputedStyle(document.querySelector('.torneos-heroe .banda-s-lema') || document.body).display === 'none' || !document.querySelector('.torneos-heroe .banda-s-lema'),
+      visible: Boolean(t && caja.height > 0),
+      motivo: t?.querySelector('.tdest-motivo')?.textContent || '',
+      nombre: t?.querySelector('.tdest-nombre')?.textContent.trim() || '',
+      botones: [...(t?.querySelectorAll('.tdest-accion a') || [])].filter((a) => a.getClientRects().length).map((a) => [a.textContent.trim(), a.getAttribute('href')]),
     }
   })
-  check(`${movil ? 'móvil' : 'PC'}: la banda dice «Tu próximo torneo · en N días» y su nombre`, r.visible && /Tu próximo torneo · en \d+ días?/.test(r.ceja) && /^\d+DÍAS?$|^HOY/.test(r.dias) && r.nombre.length > 2, JSON.stringify(r))
-  check('  …con «Tu lista» (a jugar) y «Ver el torneo»', r.botones.length === 2 && /ver=jugar/.test(r.botones[0][1]) && /^\/torneo\?slug=/.test(r.botones[1][1]), JSON.stringify(r.botones))
-  if (!movil) check('  …y el lema deja su sitio', r.lemaEscondido, JSON.stringify(r))
+  check(`${movil ? 'móvil' : 'PC'}: el destacado dice «Tu próximo torneo» y su nombre`, r.visible && r.motivo === 'Tu próximo torneo' && r.nombre.length > 2, JSON.stringify(r))
+  check('  …con «Tu lista» (a jugar) y «Estás dentro» (al torneo)', r.botones.length === 2 && r.botones[0][0] === 'Tu lista' && /ver=jugar/.test(r.botones[0][1]) && /^\/torneo\?slug=/.test(r.botones[1][1]), JSON.stringify(r.botones))
   check('  …sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

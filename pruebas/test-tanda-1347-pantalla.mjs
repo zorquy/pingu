@@ -99,7 +99,8 @@ try {
     check('columna «Últimos» y sin OWP/OOWP', /Últimos/.test(cabecera) && !/OWP/.test(cabecera), cabecera)
     check('forma en cada fila', (await tabla.locator('tbody .col-forma .torneo-forma').count()) === 8)
     check('alguien con flecha de subida o bajada', (await tabla.locator('.torneo-mov.sube, .torneo-mov.baja').count()) > 0)
-    check('líderes con cara', (await page.locator('.torneo-lider .torneo-jcara').count()) === 3)
+    // 1471: fuera los tres de arriba (Manso y PINGU): la tabla ya los marca.
+    check('sin los tres líderes de arriba (1471)', (await page.locator('.torneo-lider').count()) === 0)
     await page.locator('[data-historial="p6"]').first().click()
     await page.waitForTimeout(500)
     const des = page.locator('.torneo-historial-desempates')
@@ -126,11 +127,11 @@ try {
     await ctx.close()
   }
 
-  console.log('/torneos (1348)')
+  // /torneos (1348): la liga en curso decía tu puesto en su cartel. Desde la
+  // 1472 es una fila más (una fila por torneo) y el puesto vive en la ficha.
   {
     const { page, ctx } = await abrir('/torneos')
-    const tu = page.locator('[data-lc-tu]')
-    check('la liga en curso dice tu puesto', (await tu.count()) >= 1 && /Vas\s*\d+\.º\s*de 8/.test((await tu.first().textContent()) || ''), await tu.first().textContent().catch(() => ''))
+    check('la liga en curso sale en la lista, en su fila', (await page.locator('.tf[data-tipo-torneo]').count()) >= 1)
     await ctx.close()
   }
 } finally {

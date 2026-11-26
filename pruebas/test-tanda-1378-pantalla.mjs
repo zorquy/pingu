@@ -65,8 +65,9 @@ try {
       const { page, ctx, errores } = await abrir(movil, 'meta')
       check(`${quien}: sin errores de página`, errores.length === 0, errores.join(' | '))
       const p = await page.evaluate(() => ({ ids: [...document.querySelectorAll('#torneoPestanas [data-pestana]')].map((b) => b.dataset.pestana), activa: document.querySelector('#torneoPestanas .activa')?.dataset.pestana, metaEnTabla: Boolean(document.querySelector('[data-panel="clasificacion"] #torneoMetaCaja')), panelMeta: Boolean(document.querySelector('[data-panel="meta"]')) }))
-      check(`${quien}: los mazos en su panel y no dentro de la clasificación (1447); sin listas a la vista no hay pestaña Mazos`, !p.ids.includes('meta') && !p.metaEnTabla && p.panelMeta, JSON.stringify(p))
-      check(`${quien}: ?ver=meta sin listas a la vista abre Clasificación`, p.activa === 'clasificacion', JSON.stringify(p))
+      // Arena limpia (1473): la pestaña Mazos se queda aunque no haya listas a la vista; dice cuándo se llena.
+      check(`${quien}: los mazos en su panel y no dentro de la clasificación (1447); sin listas a la vista, Mazos sigue (1473)`, p.ids.includes('meta') && !p.metaEnTabla && p.panelMeta, JSON.stringify(p))
+      check(`${quien}: ?ver=meta sin listas a la vista abre Mazos, con su «cuándo se llena» (1473)`, p.activa === 'meta', JSON.stringify(p))
       await ctx.close()
     }
     {

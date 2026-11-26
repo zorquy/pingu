@@ -14,6 +14,8 @@
 //      (chip, botón o #terminados) por meses, con quién ganó y tu puesto.
 //   5. Borradores: los tuyos arriba; los de otra persona no salen ni a un admin.
 //   6. Móvil: sin desbordar y con la fila de filtros deslizándose.
+// Desde la 1472 (Arena limpia), sobre la lista nueva: pestañas, filas `.tf`
+// por meses y el destacado.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -70,36 +72,41 @@ async function abrir({ hash = '', torneos = TORNEOS, movil = false, ciudad = nul
   await page.waitForTimeout(2600)
   return { page, errores }
 }
-// Desde la 1463 los tres primeros son carteles (`.t-cartel`) y el resto filas:
-// en el orden de la página, los dos cuentan.
-const filas = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .torneo-fila, #torneosAgenda .t-cartel, #torneosAgenda .t-campeon')].map((f) => f.dataset.torneoId))
+// Desde la 1472 (Arena limpia) cada torneo es una fila `.tf`, y arriba de
+// Próximos va el destacado (`.tdest`). Lo que se juega va en su pestaña (En
+// juego) y los terminados en la suya (Terminados).
+const filas = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .tf, #torneosAgenda .tdest')].map((f) => f.dataset.torneoId))
 const tramos = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .torneos-tramo-cab')].map((h) => h.firstChild.textContent.trim()))
+const MES = /^[A-ZÁÉÍÓÚ][a-záéíóú]+( \d{4})?$/
 
-console.log('── 1. La agenda por días ──')
+console.log('── 1. La agenda (Próximos) ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', !errores.length, errores.join(' | '))
-  check('los tramos: tus borradores, lo próximo (1463), esta semana, más adelante y los campeones (1464)', (await tramos(page)).join('|') === 'Tus borradores|Lo próximo|Esta semana|Más adelante|Campeones', (await tramos(page)).join('|'))
+  const tr = await tramos(page)
+  check('los tramos: tus borradores y luego por meses (1472)', tr[0] === 'Tus borradores' && tr.slice(1).length >= 1 && tr.slice(1).every((m) => MES.test(m)), tr.join('|'))
   const f = await filas(page)
-  check('por fecha, con lo que se juega delante y los terminados al final', f.join() === 'borr-mio,vivo,noche,bilbao,liga,madrid,otono,expanded,halloween', f.join())
-  check('ni una pestaña de estado (Abiertas, En juego…)', !(await page.$('[data-grupo]')))
-  // bilbao, noche y vivo son carteles desde la 1463.
-  const bilbao = await page.$eval('[data-torneo-id="bilbao"]', (a) => ({ der: a.querySelector('.t-cartel-boton').textContent.trim(), donde: a.querySelector('.t-cartel-sub').textContent.trim() }))
-  check('lo tuyo dice «Inscrito»', bilbao.der.includes('Inscrito'), JSON.stringify(bilbao))
-  check('en persona dice el sitio y la ciudad', /Bilbao/.test(bilbao.donde), bilbao.donde)
+  check('por fecha: tu borrador, tu próximo (destacado) y lo que viene; ni lo que se juega ni lo terminado', f.join() === 'borr-mio,bilbao,noche,liga,madrid', f.join())
+  check('ni una pestaña de estado vieja (Abiertas…): tres pestañas, Próximos · En juego · Terminados', !(await page.$('[data-grupo]')) && (await page.$$('.tseg-btn')).length === 3)
+  const bilbao = await page.$eval('.tdest[data-torneo-id="bilbao"]', (a) => ({ motivo: a.querySelector('.tdest-motivo')?.textContent.trim(), der: a.querySelector('.torneo-pie-accion').textContent.trim(), donde: a.querySelector('.tdest-quien').textContent.trim() }))
+  check('tu próximo va destacado arriba y dice que estás dentro', bilbao.motivo === 'Tu próximo torneo' && /Estás dentro/.test(bilbao.der), JSON.stringify(bilbao))
+  check('en persona dice el sitio y la ciudad', /Cartas Bilbao/.test(bilbao.donde) && /Bilbao/.test(bilbao.donde), bilbao.donde)
   check('en persona con plaza a pedir: «Pedir plaza»', (await page.$eval('[data-torneo-id="madrid"] .torneo-pie-accion', (a) => a.textContent.trim())) === 'Pedir plaza')
-  check('online abierto: «Apuntarme»', (await page.$eval('[data-torneo-id="noche"] .t-cartel-boton', (a) => a.textContent.trim())) === 'Apuntarme')
-  check('el que juegas: «Ir a tu mesa» y la chapa roja de en juego', (await page.$eval('[data-torneo-id="vivo"]', (a) => a.querySelector('.t-cartel-boton').textContent.trim() + '|' + (a.querySelector('.chapa-tipo[data-tipo-torneo="vivo"]') ? 'vivo' : ''))) === 'Ir a tu mesa|vivo')
-  check('el cartel enseña quién organiza', /pokedoc/.test(await page.$eval('[data-torneo-id="noche"] .t-cartel-organiza', (a) => a.textContent.trim())))
+  check('online abierto: «Apuntarme»', (await page.$eval('[data-torneo-id="noche"] .torneo-pie-accion', (a) => a.textContent.trim())) === 'Apuntarme')
+  check('la fila enseña quién organiza', /Organiza PokeDoc|Organiza pokedoc/.test(await page.$eval('[data-torneo-id="noche"] .tf-sub', (a) => a.textContent)))
 
   console.log('── 2. Lo tuyo en una pieza ──')
   const vivo = await page.$eval('#torneoVivo', (v) => v.textContent.replace(/\s+/g, ' '))
   check('el combate lleva tu mesa y contra quién', /Mesa 7 · contra rubengp/.test(vivo), vivo)
   check('y el siguiente en la línea «Después», con la puerta', /Después: Copa Cartas Bilbao/.test(vivo) && /entrada en la puerta/.test(vivo) && /Tu entrada/.test(vivo), vivo)
-  check('jugando, el cartel del próximo no sale aparte', await page.$eval('#torneosProximo', (c) => c.hidden))
+  await page.click('[data-vista-lista="vivo"]')
+  await page.waitForTimeout(300)
+  const v = await page.$eval('[data-torneo-id="vivo"]', (a) => a.querySelector('.torneo-pie-accion').textContent.trim() + '|' + (a.querySelector('.chapa-tipo[data-tipo-torneo="vivo"]') ? 'vivo' : ''))
+  check('En juego: el que juegas, con «Ir a mi mesa» y la chapa roja', v === 'Ir a mi mesa|vivo', v)
+  await page.click('[data-vista-lista="proximos"]')
+  await page.waitForTimeout(300)
 
   console.log('── 3. Filtros ──')
-  // «Los míos» y «Oficiales» salieron de la fila en la 1462 (#mios sigue valiendo).
   check('ni «Los míos» ni «Oficiales» en la fila', !(await page.$('[data-filtro-lista="mios"]')) && !(await page.$('[data-filtro-lista="oficiales"]')))
   await page.click('[data-filtro-lista="online"]')
   check('Online: sin los de en persona', !(await filas(page)).some((id) => ['bilbao', 'madrid'].includes(id)))
@@ -109,31 +116,30 @@ console.log('── 1. La agenda por días ──')
   check('«En persona ▾» abre las ciudades con su cuenta', menu.join('|') === 'Todas las ciudades 2|Bilbao 1|Madrid 1', menu.join('|'))
   await page.click('#torneosCiudadMenu [data-ciudad="Madrid"]')
   await page.waitForTimeout(200)
-  check('elegida una ciudad, solo sus torneos (y los terminados de allí)', (await filas(page)).join() === 'madrid', (await filas(page)).join())
+  check('elegida una ciudad, solo sus torneos (sin destacado con un filtro puesto)', (await filas(page)).join() === 'madrid', (await filas(page)).join())
   check('el chip dice la ciudad', /En persona · Madrid/.test(await page.$eval('details.torneos-ciudad > summary', (s) => s.textContent)))
   check('la ciudad se recuerda', (await page.evaluate(() => localStorage.getItem('pokedoc-torneos-ciudad'))) === 'Madrid')
   check('el menú se cierra al elegir', !(await page.$('#torneosCiudadMenu')))
   await page.click('[data-filtro-lista="todos"]')
-  await page.fill('#torneosBuscar', 'otono')
+  await page.fill('#torneosBuscar', 'dragon')
   await page.waitForTimeout(150)
-  check('el buscador, sin tildes, y sin perder el foco', (await filas(page)).join() === 'otono' && (await page.evaluate(() => document.activeElement?.id)) === 'torneosBuscar', (await filas(page)).join())
+  check('el buscador, sin tildes (busca también el sitio), y sin perder el foco', (await filas(page)).join() === 'madrid' && (await page.evaluate(() => document.activeElement?.id)) === 'torneosBuscar', (await filas(page)).join())
   await page.fill('#torneosBuscar', 'zzzz')
   await page.waitForTimeout(150)
   check('sin nada: lo dice y ofrece quitar los filtros', Boolean(await page.$('#torneosAgenda [data-quitar-filtros]')))
   await page.click('#torneosAgenda [data-quitar-filtros]')
-  check('«Quitar los filtros» vuelve a todo', (await filas(page)).length === 9 && (await page.$eval('#torneosBuscar', (i) => i.value)) === '')
+  check('«Quitar los filtros» vuelve a todo', (await filas(page)).length === 5 && (await page.$eval('#torneosBuscar', (i) => i.value)) === '')
 
   console.log('── 4. Terminados ──')
-  check('abajo, solo los tres últimos', (await page.$$eval('.torneos-ultimos .torneo-fila, .torneos-ultimos .t-campeon', (fs) => fs.map((f) => f.dataset.torneoId))).join() === 'otono,expanded,halloween')
-  await page.click('.torneos-ver-hechos')
+  await page.click('[data-vista-lista="hechos"]')
   await page.waitForTimeout(200)
-  check('«Ver los 4 terminados» abre su vista', (await page.evaluate(() => location.hash)) === '#terminados' && Boolean(await page.$('.torneos-hechos-cab')))
+  check('su pestaña: #terminados', (await page.evaluate(() => location.hash)) === '#terminados')
   check('por meses, del último al primero', (await tramos(page)).length === 2 && (await filas(page)).join() === 'otono,expanded,halloween,octubre', (await tramos(page)).join('|') + ' ' + (await filas(page)).join())
   const otono = await page.$eval('[data-torneo-id="otono"]', (f) => f.textContent.replace(/\s+/g, ' '))
-  check('cada uno dice quién ganó y tu puesto', /ikergbt/.test(otono) && /Tú: 3\.º/.test(otono), otono)
-  check('el que ganaste dice «Campeón»', /Campeón/.test(await page.$eval('[data-torneo-id="expanded"]', (f) => f.textContent)))
+  check('cada uno dice quién ganó y tu puesto', /ikergbt/.test(otono) && /Quedaste 3\.º/.test(otono), otono)
+  check('el que ganaste dice «Campeón»', /Campeón/.test(await page.$eval('[data-torneo-id="expanded"] .tf-chapa.oro', (f) => f.textContent)))
   check('en Terminados no hay nada de lo que viene', !(await filas(page)).includes('noche'))
-  await page.click('[data-volver-proximos]')
+  await page.click('[data-vista-lista="proximos"]')
   check('«Próximos» vuelve', (await page.evaluate(() => location.hash)) === '' && (await filas(page)).includes('noche'))
   await page.close()
 }
@@ -152,13 +158,12 @@ console.log('── 5. Borradores ──')
   await page.close()
 }
 
-console.log('── 2b. Sin jugar: el cartel del próximo ──')
+console.log('── 2b. Sin jugar: tu próximo, destacado ──')
 {
   const { page } = await abrir({ torneos: TORNEOS.filter((t) => t.id !== 'vivo') })
-  const cartel = await page.$eval('#torneosProximo', (c) => ({ hidden: c.hidden, t: c.textContent.replace(/\s+/g, ' ') }))
-  check('sale el cartel del próximo', !cartel.hidden && /Copa Cartas Bilbao/.test(cartel.t), cartel.t)
-  check('en persona dice «entrada en la puerta», no «check-in desde»', /entrada en la puerta/.test(cartel.t) && !/check-in/.test(cartel.t), cartel.t)
-  check('y su botón lleva a tu entrada', /Tu entrada/.test(cartel.t) && Boolean(await page.$('#torneosProximo a[href*="ver=torneo"]')))
+  const d = await page.$eval('.tdest', (c) => c.textContent.replace(/\s+/g, ' '))
+  check('arriba, tu próximo torneo', /Tu próximo torneo/.test(d) && /Copa Cartas Bilbao/.test(d), d)
+  check('sin la barra del combate', await page.$eval('#torneoVivo', (v) => v.classList.contains('hidden')))
   await page.close()
 }
 
@@ -177,7 +182,7 @@ console.log('── 6. Móvil ──')
   check('sin errores', !errores.length, errores.join(' | '))
   check('sin desbordar de lado', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
   check('la fila de filtros se desliza (no salta de línea)', await page.$eval('.torneos-filtros', (n) => getComputedStyle(n).flexWrap === 'nowrap' && n.scrollWidth > n.clientWidth))
-  check('las plazas no ocupan la fila', await page.$eval('[data-torneo-id="madrid"] .torneo-fila-plazas', (p) => getComputedStyle(p).display === 'none'))
+  check('la fecha no ocupa la fila: va en la línea de abajo', await page.$eval('[data-torneo-id="madrid"] .tf-fecha', (p) => getComputedStyle(p).display === 'none'))
   const alto = await page.$eval('[data-torneo-id="madrid"]', (f) => f.getBoundingClientRect().height)
   check('una fila mide menos de 80 px', alto < 80, alto)
   await page.click('details.torneos-ciudad > summary')

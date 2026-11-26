@@ -58,46 +58,40 @@ console.log('── 1462: la fila de mandos y los colores (PC) ──')
   })
   check('tres filtros: Todos, Online y En persona', fila.filtros.join() === 'todos,online,persona', fila.filtros.join())
   check('Online y En persona llevan su color (y son distintos)', fila.tipos.join() === 'online,persona' && fila.colorOnline !== fila.colorPersona, `${fila.colorOnline} / ${fila.colorPersona}`)
-  check('sin «Terminados» en la fila (su botón sigue abajo)', !fila.hechos && Boolean(await page.$('.torneos-ver-hechos')))
+  // 1472: Terminados es una de las tres pestañas de arriba.
+  check('sin «Terminados» en la fila de filtros: es una pestaña (1472)', !fila.hechos && Boolean(await page.$('.tseg [data-vista-lista="hechos"]')))
   check('la lupa en la fila y el calendario, un botón al final', fila.lupa && fila.ultimo === 'torneosVistaIcono', fila.ultimo)
   check('el conmutador Lista/Calendario de dos ya no se ve', fila.conmutador === 'none', fila.conmutador)
-  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila .chapa-tipo, .t-campeon .chapa-tipo')].map((c) => c.dataset.tipoTorneo))
-  check('las filas llevan sus chapas de tipo (online, persona, oficial…)', chapas.includes('online') && chapas.includes('persona') && chapas.includes('oficial'), chapas.join())
+  // 1472: el tipo va en la línea de cada fila (`.tf-tipo`) y en el destacado.
+  const chapas = await page.evaluate(() => [...document.querySelectorAll('.tf .tf-tipo, .tf .chapa-tipo, .tdest .chapa-tipo')].map((c) => c.dataset.tipoTorneo))
+  check('las filas llevan su tipo (online, persona, oficial…)', chapas.includes('online') && chapas.includes('persona') && chapas.includes('oficial'), chapas.join())
   const losa = await page.evaluate(() => {
-    const f = document.querySelector('.torneo-fila[data-tipo-torneo="persona"] .torneo-fila-fecha small')
-    const g = document.querySelector('.torneo-fila[data-tipo-torneo="online"] .torneo-fila-fecha small')
+    const f = document.querySelector('.tf[data-tipo-torneo="persona"] .tf-fecha small')
+    const g = document.querySelector('.tf[data-tipo-torneo="online"] .tf-fecha small')
     return [f && getComputedStyle(f).color, g && getComputedStyle(g).color]
   })
   check('la fecha de la fila va del color de su tipo', losa[0] && losa[1] && losa[0] !== losa[1], losa.join(' / '))
   await page.click('[data-filtro-lista="online"]')
   await page.waitForTimeout(300)
-  const tras = await page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .t-cartel, #torneosAgenda .torneo-fila:not(.torneo-fila-hecha)')].map((x) => x.dataset.tipoTorneo))
+  const tras = await page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .tdest, #torneosAgenda .tf:not(.tf-hecha)')].map((x) => x.dataset.tipoTorneo))
   check('«Online» deja solo los online (la liga también lo es)', tras.length >= 1 && tras.every((t) => t === 'online' || t === 'liga'), tras.join())
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
 
-console.log('── 1463: Lo próximo en carteles y la liga que cuenta (PC) ──')
+console.log('── 1472: sin carteles; la liga en curso es una fila más ──')
 {
   const { ctx, page, errores } = await abrir()
   const r = await page.evaluate(() => ({
-    titulo: document.querySelector('.t-carteles-tramo .torneos-tramo-cab')?.textContent,
-    carteles: [...document.querySelectorAll('.t-carteles > .t-cartel')].map((c) => c.dataset.tipoTorneo),
-    liga: document.querySelector('.t-cartel-liga')?.textContent.replace(/\s+/g, ' ') || '',
-    boton: document.querySelector('.t-cartel-liga [data-lc-boton]')?.textContent.trim(),
+    carteles: document.querySelectorAll('.t-cartel, .t-carteles').length,
+    liga: document.querySelector('.tf[data-torneo-id="liga-1"]')?.textContent.replace(/\s+/g, ' ') || '',
     franja: !document.getElementById('torneosLigas') || document.getElementById('torneosLigas').hidden,
-    cifra: document.getElementById('tNEnJuegoTexto')?.textContent,
-    nEnJuego: document.getElementById('tNEnJuego')?.textContent,
-    filas: document.querySelectorAll('#torneosAgenda .torneo-fila:not(.torneo-fila-hecha)').length,
-    lado: (() => { const c = [...document.querySelectorAll('.t-carteles-tramo .t-carteles > *')].map((x) => Math.round(x.getBoundingClientRect().top)); return new Set(c).size })(),
+    filas: document.querySelectorAll('#torneosAgenda .tf:not(.tf-hecha)').length,
   }))
-  check('«Lo próximo» con tres carteles en una fila', r.titulo === 'Lo próximo' && r.carteles.length === 3 && r.lado === 1, `${r.titulo} ${r.carteles.join()} filas:${r.lado}`)
-  check('la liga es uno de ellos, con su jornada y la tira', r.carteles.includes('liga') && /Jornada 6 · mañana/.test(r.liga) && /Jornada 6 de 10/.test(r.liga), r.liga.slice(0, 160))
-  check('con tu puesto y los tres primeros', /Vas/.test(r.liga) && /enege/.test(r.liga), r.liga.slice(0, 220))
-  check('y el botón que toca («Manda tu lista»)', r.boton === 'Manda tu lista', r.boton)
+  check('ni carteles ni carrusel: una fila por torneo (1472)', r.carteles === 0)
+  check('la liga, en su fila con la jornada que viene', /Jornada 6 de 10/.test(r.liga), r.liga.slice(0, 160))
   check('sin la franja de ligas aparte', r.franja)
-  check('la cifra dice «en juego» y cuenta la liga', r.cifra === 'en juego' && r.nEnJuego === '1', `${r.nEnJuego} ${r.cifra}`)
-  check('lo de más adelante sigue en filas', r.filas === 2, r.filas)
+  check('lo de más adelante, también en filas', r.filas >= 3, r.filas)
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
@@ -107,31 +101,24 @@ console.log('── 1463: hoy, solo la liga ──')
   const { ctx, page, errores } = await abrir({ datos: { abiertos: false } })
   const r = await page.evaluate(() => ({
     texto: document.getElementById('torneosAgenda')?.textContent.replace(/\s+/g, ' ') || '',
-    carteles: document.querySelectorAll('.t-carteles > .t-cartel:not(.t-invita)').length,
-    // 1468: el hueco ya no es un recuadro punteado, son tarjetas que invitan.
-    hueco: document.querySelector('.t-invita[data-invita="crear"]')?.textContent.replace(/\s+/g, ' ').trim(),
-    meta: document.querySelector('.t-invita[data-invita="meta"] a[href="/meta"]') ? 'sí' : 'no',
-    crear: Boolean(document.querySelector('.t-invita [data-crear-torneo]')),
-    viejo: Boolean(document.querySelector('.t-cartel-hueco')),
+    liga: Boolean(document.querySelector('.tf[data-torneo-id="liga-1"]')),
   }))
-  check('nunca «No hay ningún torneo por jugar» con la liga en marcha', !/No hay ningún torneo por jugar/.test(r.texto))
-  check('la liga en grande y, al lado, «Organiza el tuyo» y el meta (1468)', r.carteles === 1 && /Organiza el tuyo/.test(r.hueco || '') && r.crear && r.meta === 'sí' && !r.viejo, JSON.stringify(r))
-  await page.click('.t-invita [data-crear-torneo]')
+  check('nunca «No hay ningún torneo por jugar» con la liga en marcha', !/No hay ningún torneo por jugar/.test(r.texto) && r.liga, r.texto.slice(0, 120))
+  await page.click('#btnNuevoTorneo')
   await page.waitForTimeout(800)
-  check('«Crea uno» abre el creador', Boolean(await page.$('#torneoCrear[open]')))
+  check('«Crear un torneo» abre el creador', Boolean(await page.$('#torneoCrear[open]')))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
 
-console.log('── El móvil: carrusel, lupa y nada que ensanche ──')
+console.log('── El móvil: lupa y nada que ensanche ──')
 for (const tema of ['dark', 'light']) {
   const { ctx, page, errores } = await abrir({ movil: true, tema })
   const r = await page.evaluate(() => {
-    const fila = document.querySelector('.t-carteles-tramo .t-carteles')
-    return { ancho: innerWidth, doc: document.documentElement.scrollWidth, desliza: fila && getComputedStyle(fila).overflowX === 'auto' && fila.scrollWidth > fila.clientWidth, puntos: document.querySelectorAll('.t-carteles-tramo .t-carteles-puntos i').length }
+    return { ancho: innerWidth, doc: document.documentElement.scrollWidth, filas: document.querySelectorAll('#torneosAgenda .tf').length }
   })
   check(`${tema}: la página mide lo que el móvil (390), sin ensancharse`, r.ancho === 390 && r.doc <= 391, JSON.stringify(r))
-  check(`${tema}: los carteles se deslizan de lado, con sus puntos`, r.desliza && r.puntos === 3, JSON.stringify(r))
+  check(`${tema}: en filas (sin carrusel desde la 1472)`, r.filas >= 3, JSON.stringify(r))
   if (tema === 'dark') {
     const lupa = await page.$('.torneos-buscar')
     const antes = await lupa.evaluate((l) => Math.round(l.getBoundingClientRect().width))

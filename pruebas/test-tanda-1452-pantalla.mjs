@@ -95,9 +95,11 @@ console.log('\n── 2. La lista ──')
   // cada fila (la ciudad en persona, «Online» si no).
   // Desde la 1463 los primeros van en cartel: ahí lo dice su color de tipo y
   // la línea de debajo del nombre («Cartas Bilbao · Bilbao»).
-  const chapas = await page.evaluate(() => [...document.querySelectorAll('.torneo-fila, .t-cartel')].map((t) => t.classList.contains('t-cartel')
-    ? `${t.dataset.torneoId}:${t.dataset.tipoTorneo === 'persona' ? (/Bilbao/.test(t.querySelector('.t-cartel-sub')?.textContent || '') ? 'Bilbao' : '?') : 'Online'}`
-    : `${t.dataset.torneoId}:${t.querySelector('.torneo-fila-donde')?.classList.contains('persona') ? t.querySelector('.torneo-fila-donde').textContent.trim() : 'Online'}`))
+  // Desde la 1472 (Arena limpia): una fila por torneo (`.tf`, «dónde» en su
+  // `.tf-tipo`) y, arriba, el destacado (`.tdest`, «dónde» en `.tdest-quien`).
+  const chapas = await page.evaluate(() => [...document.querySelectorAll('.tf, .tdest')].map((t) => t.classList.contains('tdest')
+    ? `${t.dataset.torneoId}:${t.dataset.tipoTorneo === 'persona' ? (/Bilbao/.test(t.querySelector('.tdest-quien')?.textContent || '') ? 'Bilbao' : '?') : 'Online'}`
+    : `${t.dataset.torneoId}:${t.dataset.tipoTorneo === 'persona' ? t.querySelector('.tf-tipo').textContent.trim() : 'Online'}`))
   check('en persona dice la ciudad; online, «Online»', chapas.sort().join() === 'torneo-1:Bilbao,torneo-2:Online', chapas.join())
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()

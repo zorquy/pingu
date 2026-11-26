@@ -126,17 +126,20 @@ console.log('── 2. La lista de /torneos ──')
     await page.waitForTimeout(300)
     return ((await page.locator('.torneo-tarjeta', { hasText: nombre }).first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ')
   }
-  // Desde la 1463 la liga en curso es un cartel más de «Lo próximo» (ya no
-  // hay franja ni grupos): con la jornada que viene y su botón, que nunca es
-  // «Ver el directo» entre jornadas. El que se juega lleva su chapa roja.
+  // Desde la 1472 (Arena limpia) la liga entre jornadas es una fila de
+  // «Próximos», con la jornada que viene y un botón que nunca es «Ver el
+  // directo»; el que se juega va en «En juego» con su chapa roja.
   await page.waitForTimeout(600)
-  const liga = ((await page.locator('.t-cartel-liga', { hasText: 'Liga FDN' }).first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ')
-  check('la liga entre jornadas va en su cartel, con la jornada que viene', /Jornada 2/i.test(liga), liga.slice(0, 200))
-  const accion = (await page.locator('.t-cartel-liga [data-lc-boton]').first().innerText().catch(() => '')) || ''
-  check('  …con «Ver la liga» (o «Manda tu lista») y no «Ver el directo»', /^(Ver la liga|Manda tu lista)$/.test(accion.trim()) && !/directo/.test(liga + accion), accion)
-  const otro = page.locator('.t-cartel, .torneo-fila').filter({ hasText: 'Torneo del sábado' }).first()
-  check('el torneo que se juega lleva su chapa roja «en juego»', (await otro.locator('.chapa-tipo[data-tipo-torneo="vivo"]').count()) >= 1, ((await otro.innerText().catch(() => '')) || '').replace(/\s+/g, ' ').slice(0, 160))
-  check('  …y la liga no está ahí', !/Liga FDN/.test(await texto(page, '.torneos-rejilla')))
+  const fila = page.locator('.tf', { hasText: 'Liga FDN' }).first()
+  const liga = ((await fila.innerText().catch(() => '')) || '').replace(/\s+/g, ' ')
+  check('la liga entre jornadas va en su fila de Próximos, con la jornada que viene', /Jornada 2/i.test(liga), liga.slice(0, 200))
+  const accion = (await fila.locator('.tf-der .torneo-pie-accion').first().innerText().catch(() => '')) || ''
+  check('  …y su botón no es «Ver el directo»', accion.trim() && !/directo/i.test(liga + accion), accion)
+  await page.click('[data-vista-lista="vivo"]')
+  await page.waitForTimeout(500)
+  const otro = page.locator('.tf').filter({ hasText: 'Torneo del sábado' }).first()
+  check('el torneo que se juega, en «En juego» con su chapa roja', (await otro.locator('.chapa-tipo[data-tipo-torneo="vivo"]').count()) >= 1, ((await otro.innerText().catch(() => '')) || '').replace(/\s+/g, ' ').slice(0, 160))
+  check('  …y la liga no está ahí', !/Liga FDN/.test(await texto(page, '#torneosAgenda')))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

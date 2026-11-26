@@ -140,10 +140,12 @@ console.log('── 4. Mis partidas ──')
 
 console.log('── 5. Torneos y títulos ──')
 {
-  const T = [{ id: 't-1', slug: 'p', name: 'Pachanga', status: 'registration_open', start_at: new Date(Date.now() + 2 * 86400e3).toISOString(), max_players: 32, swiss_rounds: 4, admin_id: 'admin-1' }]
+  // Dos: el de admin-1 sale de destacado (es de la casa, 1472) y el otro, en su fila.
+  const T = [{ id: 't-1', slug: 'p', name: 'Pachanga', status: 'registration_open', start_at: new Date(Date.now() + 2 * 86400e3).toISOString(), max_players: 32, swiss_rounds: 4, admin_id: 'admin-1' },
+    { id: 't-2', slug: 'q', name: 'Quedada', status: 'registration_open', start_at: new Date(Date.now() + 3 * 86400e3).toISOString(), max_players: 32, swiss_rounds: 4, admin_id: 'user-3' }]
   const { page, errores, ctx } = await abrir('/torneos', { sem: { __FAKE_TORNEOS__: T } })
   check('arriba solo «Crear torneo» (Mis partidas y el constructor están en Jugar)', (await page.locator('.torneos-heroe-acciones > *').count()) === 1)
-  const t = page.locator('.torneo-tarjeta').first()
+  const t = page.locator('.tf.torneo-tarjeta').first()
   // Desde la 1454 cada torneo es una fila de la agenda, sin portada: lo que
   // esto guardaba (que un torneo sin imagen no se coma media pantalla) se
   // mide ahora en la altura de la fila.

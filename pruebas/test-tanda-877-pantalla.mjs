@@ -76,7 +76,7 @@ console.log('\n── 1. Jugando: qué mesa falta, con su número ──')
   const { page, ctx, errores } = await abrir({ rondas: [R1, R2], mesas, resultados: [...RESULTADOS, { id: 'r1', match_id: 'mesa-2', result: 'a_wins', winner_id: 'user-3', score_a: 2, score_b: 1 }] })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await barra(page)
-  check('sigue diciendo tu partida y la ronda', /Tu partida contra Misty/.test(b.titular) && /Ronda suiza 2 de 3/.test(b.rotulo), JSON.stringify(b))
+  check('sigue diciendo tu mesa y la ronda (desde la 1473, «Tu mesa N · contra X»)', /Tu mesa 1 · contra Misty/.test(b.titular) && /Ronda suiza 2 de 3/.test(b.rotulo), JSON.stringify(b))
   check('y qué falta, con el número: «Falta 1 mesa por reportar · mesa 1»', !b.estadoOculto && /Falta 1 mesa por reportar · mesa 1/.test(b.estado), b.estado)
   await ctx.close()
 }

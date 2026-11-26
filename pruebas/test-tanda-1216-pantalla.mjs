@@ -64,7 +64,8 @@ console.log('── 3. Guardados: solo guías y noticias (1230: los temas del fo
 
 console.log('── 4. Torneos: el mazo del campeón ──')
 {
-  const { ctx, p, errores } = await abrir('/torneos')
+  // Desde la 1472 el mazo del campeón va en la fila de cada terminado.
+  const { ctx, p, errores } = await abrir('/torneos#terminados')
   const r = await p.evaluate(async () => {
     const { urlsDelCampeon } = await import('/js/torneos/arte-meta.js')
     const parsed = { pokemon: [{ name: 'Charizard ex', set: 'OBF', number: '125', count: 3 }, { name: 'Charmander', set: 'OBF', number: '26', count: 4 }, { name: 'Pidgeot ex', set: 'OBF', number: '164', count: 2 }, { name: 'Pidgey', set: 'OBF', number: '162', count: 2 }], trainer: [] }

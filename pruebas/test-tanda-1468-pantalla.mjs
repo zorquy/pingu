@@ -45,44 +45,28 @@ async function abrir({ movil = false, quien = 'user-1', datos = { abiertos: fals
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   await page.goto(`${BASE}/torneos`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.t-campeon', { timeout: 15000 }).catch(() => {})
+  await page.waitForSelector('.tf', { timeout: 15000 }).catch(() => {})
   await page.waitForTimeout(1500)
   await page.evaluate(() => document.querySelectorAll('dialog[open]').forEach((d) => d.close()))
   return { ctx, page, errores }
 }
 
+// Desde la 1472 (Arena limpia), «Tu temporada» sale de /torneos (vive en la
+// pestaña Torneos del perfil, con las mismas cuentas: lo puro de arriba
+// sigue valiendo) y Campeones son filas en Terminados.
 console.log('── PC ──')
 {
   const { ctx, page, errores } = await abrir()
-  const r = await page.evaluate(() => {
-    const caja = document.getElementById('torneosTemporada')
-    const cifras = document.querySelector('.torneos-heroe .banda-s-cifra b')
-    const tiles = [...document.querySelectorAll('.t-carteles-tramo .t-carteles > *')].map((n) => Math.round(n.getBoundingClientRect().width))
-    const campeones = [...document.querySelectorAll('.t-campeon')].map((c) => ({
-      torneo: c.querySelector('.t-campeon-torneo')?.textContent.replace(/\s+/g, ' ').trim(),
-      pie: c.querySelector('.t-campeon-pie')?.textContent.replace(/\s+/g, ' ').trim(),
-      mazos: c.querySelector('a.t-campeon-tu')?.getAttribute('href') || '',
-    }))
-    return {
-      visible: Boolean(caja && !caja.hidden && caja.getBoundingClientRect().height > 30),
-      texto: caja?.textContent.replace(/\s+/g, ' ').trim(),
-      racha: [...document.querySelectorAll('.t-temp-racha i')].map((i) => i.textContent).join(''),
-      cifraPequena: cifras ? parseFloat(getComputedStyle(cifras).fontSize) : 0,
-      tiles,
-      invitas: [...document.querySelectorAll('.t-invita')].map((n) => n.dataset.invita),
-      campeones,
-    }
-  })
-  check('la banda dice tu temporada: 1 torneo, 1 podio, 3-1-1, 3.º', r.visible && /Tu temporada \d{4}/.test(r.texto) && /1 ?torneo/.test(r.texto) && /1 ?podio/.test(r.texto) && /3-1-1/.test(r.texto) && /3\.º/.test(r.texto), r.texto)
-  check('las cinco últimas, de la más vieja a la última: D V V E V', r.racha === 'DVVEV', r.racha)
-  check('las cifras de la arena pasan a ser pequeñas', r.cifraPequena > 0 && r.cifraPequena <= 14, r.cifraPequena)
-  check('al lado de la liga, «Organiza el tuyo» y el meta', r.invitas.join(',') === 'crear,meta', r.invitas.join(','))
-  check('…del mismo ancho que un cartel', r.tiles.length === 3 && Math.max(...r.tiles) - Math.min(...r.tiles) <= 2, r.tiles.join(','))
-  const tardeo = r.campeones.find((c) => /Tardeo/.test(c.torneo || ''))
-  check('el Tardeo cuenta 6 jugadores (5 + el que se retiró jugando; no el que se borró antes)', /6 jugadores/.test(tardeo?.torneo || ''), tardeo?.torneo)
-  check('…y en su pie, «Quedaste 3.º», sin repetir los jugadores', /Quedaste 3\.º/.test(tardeo?.pie || '') && !/jugador/.test(tardeo?.pie || ''), tardeo?.pie)
-  const otro = r.campeones.find((c) => /RyuCards/.test(c.torneo || ''))
-  check('donde no jugaste: «Ver sus mazos» a la pestaña Mazos', /Ver sus mazos/.test(otro?.pie || '') && /ver=meta/.test(otro?.mazos || ''), JSON.stringify(otro))
+  const r = await page.evaluate(() => ({
+    temporada: Boolean(document.getElementById('torneosTemporada')),
+    invitas: document.querySelectorAll('.t-invita').length,
+  }))
+  check('la lista ya no lleva «Tu temporada» ni las tarjetas que invitan (1472)', !r.temporada && r.invitas === 0, JSON.stringify(r))
+  await page.click('[data-vista-lista="hechos"]')
+  await page.waitForTimeout(500)
+  const tardeo = await page.$eval('.tf[data-torneo-id="t-tardeo"]', (f) => f.textContent.replace(/\s+/g, ' '))
+  check('el Tardeo cuenta 6 jugadores (5 + el que se retiró jugando; no el que se borró antes)', /6 jugadores/.test(tardeo), tardeo)
+  check('…y dice «Quedaste 3.º»', /Quedaste 3\.º/.test(tardeo), tardeo)
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
@@ -90,12 +74,7 @@ console.log('── PC ──')
 console.log('── Sin sesión ──')
 {
   const { ctx, page, errores } = await abrir({ quien: 'none' })
-  const r = await page.evaluate(() => ({
-    temporada: !document.getElementById('torneosTemporada')?.hidden,
-    entrar: document.querySelector('.t-invita[data-invita="crear"] a[href="/auth"]')?.textContent.trim(),
-  }))
-  check('sin cuenta no hay temporada', !r.temporada)
-  check('…y la tarjeta invita a entrar para crear', r.entrar === 'Entra para crear uno', r.entrar)
+  check('sin cuenta, nada tuyo', !(await page.$('#torneosTemporada')) && !(await page.$('.tf-mia')))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
@@ -103,26 +82,12 @@ console.log('── Sin sesión ──')
 console.log('── Móvil ──')
 {
   const { ctx, page, errores } = await abrir({ movil: true })
-  const r = await page.evaluate(() => {
-    const caja = document.getElementById('torneosTemporada')
-    const rc = caja?.getBoundingClientRect()
-    const fila = document.querySelector('.t-temp-fila')?.getBoundingClientRect()
-    const primer = document.querySelector('.t-carteles > .t-cartel')?.getBoundingClientRect()
-    const record = [...document.querySelectorAll('.t-temp-cifra b')].find((b) => /-/.test(b.textContent))
-    return {
-      alto: Math.round(rc?.height || 0),
-      fila: Math.round(fila?.height || 0),
-      ancho: Math.round(rc?.width || 0),
-      vw: innerWidth,
-      primer: Math.round(primer?.top || 0),
-      recordAlto: Math.round(record?.getBoundingClientRect().height || 0),
-      scroll: document.documentElement.scrollWidth - innerWidth,
-    }
-  })
-  check('tu temporada se ve, en una fila baja', r.alto > 20 && r.alto <= 60, JSON.stringify(r))
-  check('el récord en una línea', r.recordAlto > 0 && r.recordAlto <= 30, r.recordAlto)
+  const r = await page.evaluate(() => ({
+    scroll: document.documentElement.scrollWidth - innerWidth,
+    primer: Math.round(document.querySelector('#torneosAgenda .tf, #torneosAgenda .tdest')?.getBoundingClientRect().top || 0),
+  }))
   check('no ensancha la página', r.scroll <= 0, r.scroll)
-  check('el primer cartel sigue arriba (antes de 300 px)', r.primer > 0 && r.primer < 300, r.primer)
+  check('la primera fila sale arriba (antes de 400 px)', r.primer > 0 && r.primer < 400, r.primer)
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }

@@ -76,6 +76,9 @@ const abrir = async ({ sesion = 'user-1', ancho = 1280, tablon = TABLON, jueces 
 const irA = async (page, ruta) => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
+  // La entrada a la ronda (1402) y las celebraciones (1399) salen en ventana
+  // al abrir y tapan las pestañas.
+  await page.evaluate(() => document.querySelectorAll('dialog[open]').forEach((d) => d.close()))
 }
 
 console.log('── 1341. La estructura ──')
@@ -84,7 +87,7 @@ for (const ancho of [390, 1280]) {
   await irA(page, '/torneo?slug=pachanga')
   const datos = await page.evaluate(() => ({
     pestanas: [...document.querySelectorAll('#torneoPestanas [data-pestana]')].map((b) => (b.querySelector('.torneo-tab-largo') || b).textContent.replace(/\d+/g, '').trim()),
-    activa: document.querySelector('#torneoPestanas .activa')?.dataset.pestana,
+    activa: document.querySelector('#torneoPestanas .activa')?.dataset.pestana || (document.querySelector('[data-panel="jugar"]')?.classList.contains('hidden') === false ? 'jugar' : ''),
     cabecera: Math.round(document.getElementById('torneoCabecera').getBoundingClientRect().height),
     formatoEnInfo: Boolean(document.querySelector('[data-panel="torneo"] #torneoFormato')),
     pegado: getComputedStyle(document.getElementById('torneoPegado')).position,
@@ -92,10 +95,13 @@ for (const ancho of [390, 1280]) {
     linea: document.getElementById('torneoTablonLinea')?.textContent || '',
     scroll: document.documentElement.scrollWidth - innerWidth,
   }))
-  check(`${ancho}: en juego, las pestañas empiezan por Tu mesa (1447)`, datos.pestanas[0] === 'Tu mesa' && datos.activa === 'jugar', datos.pestanas.join(','))
-  check(`${ancho}: «Info» en vez de «Torneo»`, datos.pestanas.includes('Info') && !datos.pestanas.includes('Torneo'))
+  check(`${ancho}: en juego, se abre tu mesa (1447) y las pestañas empiezan por Resumen (1473)`, datos.pestanas[0] === 'Resumen' && datos.activa === 'jugar', datos.pestanas.join(','))
+  check(`${ancho}: «Resumen» (1473) en vez de «Info» o «Torneo»`, datos.pestanas.includes('Resumen') && !datos.pestanas.includes('Torneo') && !datos.pestanas.includes('Info'))
   // 1375: la cabecera lleva además el reloj y las rayitas de las rondas (≤ 170).
-  check(`${ancho}: la cabecera mide poco (≤ 170 px)`, datos.cabecera <= 170, datos.cabecera)
+  // 1473: ahora lleva el banner, la imagen y los cuatro datos (PINGU dio el sí a
+  // la maqueta); el tope es que las pestañas sigan en la primera pantalla.
+  const tope = ancho < 900 ? 300 : 360
+  check(`${ancho}: la cabecera no se come la pantalla (≤ ${tope} px)`, datos.cabecera <= tope, datos.cabecera)
   check(`${ancho}: el formato vive en Info`, datos.formatoEnInfo)
   check(`${ancho}: lo de arriba va pegado (sticky)`, datos.pegado === 'sticky')
   check(`${ancho}: en Mi mesa no sale la pastilla`, datos.pastillaEnMesa === 'none', datos.pastillaEnMesa)
@@ -108,7 +114,7 @@ for (const ancho of [390, 1280]) {
   check(`${ancho}: en Rondas sí sale la pastilla`, pastilla !== 'none', pastilla)
   await page.click('#torneoBarraViva a[href="#torneoMiPartida"]')
   await page.waitForTimeout(400)
-  check(`${ancho}: «Ir a tu mesa» lleva a Mi mesa`, (await page.evaluate(() => document.querySelector('#torneoPestanas .activa')?.dataset.pestana)) === 'jugar')
+  check(`${ancho}: «Ir a tu mesa» lleva a Mi mesa`, (await page.evaluate(() => document.querySelector('[data-panel="jugar"]')?.classList.contains('hidden') === false)))
   if (ancho === 390) {
     await page.click('#torneoTablonLinea')
     await page.waitForTimeout(400)
@@ -162,11 +168,13 @@ console.log('── 1342. Antes de empezar ──')
       apuntarse: !document.getElementById('torneoApuntarse').classList.contains('hidden'),
       entrada: document.getElementById('torneoMiPlaza').classList.contains('torneo-entrada'),
       leerMas: (() => { const b = document.getElementById('torneoDescMas'); return b && !b.hidden ? b.textContent : '' })(),
+      descAparte: document.getElementById('torneoDescripcion')?.parentElement?.id === 'torneoInfoMas',
     }))
     check(`${quien}: antes de empezar, Info y Jugadores primero`, d.pestanas[0] === 'torneo' && d.pestanas[1] === 'jugadores', d.pestanas.join(','))
     check(`${quien}: el día en grande en Info`, /\d/.test(d.dia || ''), d.dia)
     check(`${quien}: «Añadir al calendario» junto al día`, d.calendario)
-    check(`${quien}: la descripción larga, plegada con «Leer más»`, d.leerMas === 'Leer más', d.leerMas)
+    // Desde la 1465, antes de empezar va entera en su tarjeta, tras «Tu plaza».
+    check(`${quien}: la descripción, en su tarjeta después de «Tu plaza» (1465)`, d.descAparte, JSON.stringify(d))
     if (quien === 'fuera') {
       check('fuera: sale «Inscribirme» arriba', d.apuntarse)
       // Con «Tu plaza» en pantalla la línea se aparta; se pulsa por código.
@@ -237,7 +245,8 @@ console.log('── 1345. Clasificación y Jueces ──')
   const { page, ctx, errores } = await abrir({ sesion: 'user-3', ancho: 1280 })
   await irA(page, '/torneo?slug=pachanga&ver=jueces')
   const j = await page.evaluate(() => ({
-    activa: document.querySelector('#torneoPestanas .activa')?.dataset.pestana,
+    // Desde la 1447 Jueces no es pestaña: es el «Modo juez» de la cabecera.
+    activa: document.querySelector('[data-panel="jueces"]')?.classList.contains('hidden') === false ? 'jueces' : document.querySelector('#torneoPestanas .activa')?.dataset.pestana,
     cifras: [...document.querySelectorAll('#torneoJuezCifras .torneo-juez-cifra')].map((a) => a.textContent.replace(/\s+/g, ' ').trim()),
   }))
   check('?ver=jueces abre Jueces aunque llegue después', j.activa === 'jueces', j.activa)
@@ -269,8 +278,15 @@ console.log('── 1346. /torneos con una cabecera ──')
     }))
     if (t === LIGA) {
       check('liga: no sale el aviso «Ronda N de 30» de arriba', !v.aviso, v.aviso)
-      check('liga: su tarjeta va en vivo con jornada, ronda y reloj', /Jornada 4 · ronda 1 de 3/.test(v.liga) && /\d+:\d{2}/.test(v.liga), v.liga)
-      check('liga: inscrito, «Ir a tu mesa»', v.boton === 'Ir a tu mesa', v.boton)
+      // 1472: la liga en juego es una fila de «En juego», con su jornada.
+      await page.click('[data-vista-lista="vivo"]')
+      await page.waitForTimeout(600)
+      const f = await page.evaluate(() => {
+        const fila = document.querySelector('.tf[data-torneo-id="liga-1"]')
+        return { texto: fila?.innerText.replace(/\s+/g, ' ') || '', boton: fila?.querySelector('.tf-der .torneo-pie-accion')?.textContent.trim() || '' }
+      })
+      check('liga: su fila en «En juego» dice la jornada', /Jornada 4 de 10/.test(f.texto), f.texto)
+      check('liga: inscrito, «Ir a mi mesa»', f.boton === 'Ir a mi mesa', f.boton)
     } else {
       check('copa: el aviso cuenta sus rondas y el top', /Ronda 2 de 4 · luego, top 4/.test(v.aviso), v.aviso)
     }

@@ -95,7 +95,7 @@ try {
     }))
     check(`${quien}: la pastilla dice «Jornada 7 en …»`, cab.visible && /^Jornada 7 en\s*\d/.test(cab.cuenta), JSON.stringify(cab))
     check(`${quien}: diez rayitas, seis hechas y la 7 la de ahora`, cab.rayas === 'h,h,h,h,h,h,a,,,' && cab.etiqueta === 'Jornada 7 de 10', JSON.stringify(cab))
-    check(`${quien}: Tu mesa, Clasificación, Mesas e Info (1447), con icono`, (await nombres(page)).join() === 'Tu mesa,Clasificación,Mesas,Info' && (await page.locator('#torneoPestanas .torneo-tab-ic svg').count()) === 4, (await nombres(page)).join())
+    check(`${quien}: Resumen, Clasificación, Rondas y Mazos (1473), con icono`, ['Resumen,Clasificación,Rondas,Mazos', 'Resumen,Tabla,Rondas,Mazos'].includes((await nombres(page)).join()) && (await page.locator('#torneoPestanas .torneo-tab-ic svg').count()) === 4, (await nombres(page)).join())
     const pos = await page.evaluate(() => {
       const nav = document.getElementById('torneoPestanas')
       const r = nav.getBoundingClientRect()

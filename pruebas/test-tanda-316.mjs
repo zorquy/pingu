@@ -187,31 +187,22 @@ console.log('\n── 5. Con pocos torneos la rejilla no guarda sitio vacío ─
     id: `t${i}`, slug: `t${i}`, name: `Torneo ${i}`, status: 'in_progress', format: 'standard',
     starts_at: new Date(ahora + i * 3600e3).toISOString(), max_players: 32, created_by: 'admin-1', ...extra,
   })
-  // Desde la 1463 lo próximo va en carteles (`.t-carteles`, tres por fila):
-  // con menos de tres, el hueco «Crea uno» ocupa lo que falta y la fila no
-  // guarda sitio vacío; con cuatro, tres carteles y el cuarto en su fila.
+  // Desde la 1472 (Arena limpia) cada torneo es UNA fila a todo lo ancho:
+  // con uno o con cuatro, ninguna guarda sitio vacío al lado.
   const medir = async (cuantos) => {
-    const { page } = await abrir('/torneos', 1280, { __FAKE_TORNEOS__: Array.from({ length: cuantos }, (_, i) => torneo(i + 1)) })
+    const { page } = await abrir('/torneos#en-juego', 1280, { __FAKE_TORNEOS__: Array.from({ length: cuantos }, (_, i) => torneo(i + 1)) })
     const r = await page.evaluate(() => {
-      const g = document.querySelector('.t-carteles-tramo .t-carteles')
-      if (!g) return null
-      const hijos = [...g.children]
-      const ancho = Math.round(g.getBoundingClientRect().width)
-      const ocupado = Math.round(hijos.reduce((s, n) => s + n.getBoundingClientRect().width, 0) + parseFloat(getComputedStyle(g).columnGap || 0) * (hijos.length - 1))
-      return { fila: ancho, ocupado, carteles: g.querySelectorAll('.t-cartel:not(.t-invita)').length, hueco: Boolean(g.querySelector('.t-invita, .t-cartel-hueco')) }
+      const filas = [...document.querySelectorAll('#torneosAgenda .tf')]
+      if (!filas.length) return null
+      const caja = Math.round(document.getElementById('torneosAgenda').getBoundingClientRect().width)
+      return { caja, filas: filas.map((f) => Math.round(f.getBoundingClientRect().width)) }
     })
     await page.close()
     return r
   }
   const uno = await medir(1)
-  const dos = await medir(2)
   const cuatro = await medir(4)
-  check('los carteles tienen su propia caja', !!uno && !!dos && !!cuatro, JSON.stringify({ uno, dos, cuatro }))
-  if (uno && dos && cuatro) {
-    check('  …con UNO, el hueco completa la fila (sin sitio vacío)', uno.carteles === 1 && uno.hueco && Math.abs(uno.ocupado - uno.fila) <= 4, JSON.stringify(uno))
-    check('  …con DOS, también', dos.carteles === 2 && dos.hueco && Math.abs(dos.ocupado - dos.fila) <= 4, JSON.stringify(dos))
-    check('  …y con CUATRO, tres carteles y sin hueco', cuatro.carteles === 3 && !cuatro.hueco, JSON.stringify(cuatro))
-  }
+  check('cada torneo, una fila a todo lo ancho (con uno y con cuatro)', !!uno && !!cuatro && uno.filas.length === 1 && cuatro.filas.length === 4 && [...uno.filas, ...cuatro.filas].every((w) => Math.abs(w - uno.caja) <= 4), JSON.stringify({ uno, cuatro }))
 }
 
 // ═════════════════════════════════════════════════════════════════════

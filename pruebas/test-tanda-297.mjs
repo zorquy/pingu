@@ -86,9 +86,11 @@ console.log('\n── 1. Una fila por torneo, y UNA acción ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  // Desde la 1464 el terminado va en Campeones (`.t-campeon`); su fila, en Terminados.
-  check('los cuatro torneos: tres carteles y el terminado en Campeones', (await page.locator('.t-cartel').count()) === 3 && (await page.locator('.t-campeon').count()) === 1,
-    String(await page.locator(TARJETA).count()))
+  // Desde la 1472 (Arena limpia) cada pestaña lleva lo suyo: en Próximos, los
+  // dos abiertos (uno de ellos, además, de destacado); el que se juega, en
+  // «En juego»; el terminado, en Terminados.
+  const nombres = await page.locator('.tf .torneo-nombre, .tdest .torneo-nombre').allTextContents()
+  check('en Próximos, los dos abiertos (el tuyo más cercano, de destacado)', nombres.includes('Copa de Invierno') && nombres.includes('Casi llena') && !nombres.includes('La Pachanga de Otoño') && !nombres.includes('Copa Inaugural'), nombres.join(','))
   const copa = tarjetaDe(page, 'Copa de Invierno')
   check('cada uno tiene UNA acción', (await copa.locator(ACCION).count()) === 1)
   // user-1 está inscrito en la Copa: no se le ofrece apuntarse otra vez.
@@ -108,24 +110,27 @@ console.log('\n── 2. La acción dice la verdad según el estado ──')
   check('  …y va en verde', await tarjetaDe(page, 'Casi llena').locator('.torneo-btn-apuntarse').count() === 1)
   check('  …y el de al lado, donde SÍ está, no lo ofrece',
     (await tarjetaDe(page, 'Copa de Invierno').locator(ACCION).evaluate(accionDe)) === 'Estás inscrito')
-  check('en juego → «Ver el directo»', (await tarjetaDe(page, 'Pachanga').locator(ACCION).evaluate(accionDe)) === 'Ver el directo')
   await page.close()
+  const vivo = await abrir({ sesion: 'user-2', hash: '#en-juego' })
+  check('en juego → «Ver el directo»', (await tarjetaDe(vivo.page, 'Pachanga').locator(ACCION).evaluate(accionDe)) === 'Ver el directo')
+  await vivo.page.close()
   // El terminado, en su fila de Terminados (en la lista va en Campeones, 1464).
   const hechos = await abrir({ sesion: 'user-2', hash: '#terminados' })
   const fin = tarjetaDe(hechos.page, 'Inaugural')
-  check('terminado → «Resultados y mazos»', (await fin.locator(ACCION).evaluate(accionDe)) === 'Ver resultados y mazos')
-  check('y en vez de las plazas, el campeón', (await fin.locator('.torneo-campeon').textContent())?.includes('Ash'),
-    await fin.locator('.torneo-campeon').textContent())
+  check('terminado → «Resultados y mazos»', (await fin.locator(ACCION).evaluate(accionDe)) === 'Resultados y mazos')
+  check('y en vez de las plazas, el campeón', (await fin.locator('.tf-campeon').textContent())?.includes('Ash'),
+    await fin.locator('.tf-campeon').textContent())
   check('  …sin barra de ocupación', (await fin.locator('.torneo-ocupacion').count()) === 0)
   await hechos.page.close()
 }
 
 console.log('\n── 3. Las plazas ──')
 {
-  const { page } = await abrir()
+  // Con Misty: Casi llena es una fila (a user-1 le sale de destacado, 1472).
+  const { page } = await abrir({ sesion: 'user-2' })
   const copa = tarjetaDe(page, 'Copa de Invierno')
   const casi = tarjetaDe(page, 'Casi llena')
-  const APURADA = '.torneo-ocupacion-barra.apurada, .t-cartel-plazas.apurada'
+  const APURADA = '.torneo-ocupacion-barra.apurada, .t-cartel-plazas.apurada, .tf-plazas.apurada'
   const CIFRA = '.torneo-ocupacion-cifra, .t-cartel-plazas > span:last-child'
   check('la barra se pone apurada al 80%', (await casi.locator(APURADA).count()) === 1)
   check('  …y la de la Copa (5/32) no', (await copa.locator(APURADA).count()) === 0)
@@ -177,7 +182,7 @@ console.log('\n── 7. Lo que el rediseño ARREGLA del HTML ──')
   await page.close()
   const hechos = await abrir({ hash: '#terminados' })
   check('y «Duplicar» sigue estando, en el «⋯» del terminado (en Terminados)',
-    (await tarjetaDe(hechos.page, 'Inaugural').locator('.torneo-fila-der .torneo-duplicar').count()) === 1)
+    (await tarjetaDe(hechos.page, 'Inaugural').locator('.tf-der .torneo-duplicar, .torneo-fila-der .torneo-duplicar').count()) === 1)
   await hechos.page.close()
 }
 

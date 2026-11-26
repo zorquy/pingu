@@ -45,31 +45,21 @@ async function abrirLista({ movil = false, ruta = '/torneos' } = {}) {
   return { ctx, page, errores }
 }
 
-console.log('── 1464: Campeones (PC) ──')
+// Desde la 1472 (Arena limpia) no hay carteles dorados: el campeón va en la
+// fila de cada terminado, en su pestaña, con su cara, su mazo y tu puesto.
+console.log('── 1472: el campeón, en la fila de cada terminado ──')
 {
-  const { ctx, page, errores } = await abrirLista()
+  const { ctx, page, errores } = await abrirLista({ ruta: '/torneos#terminados' })
   const r = await page.evaluate(() => ({
-    cab: document.querySelector('.t-campeones-tramo .torneos-tramo-cab')?.textContent,
-    viejo: [...document.querySelectorAll('.torneos-tramo-cab')].some((h) => /Últimos resultados/.test(h.textContent)),
-    camp: [...document.querySelectorAll('.t-campeon')].map((c) => ({
-      id: c.dataset.torneoId,
-      nombre: c.querySelector('.t-campeon-nombre')?.textContent.replace('Campeón', '').trim(),
-      mazo: c.querySelector('.t-campeon-mazo-nombre')?.textContent,
-      podio: [...c.querySelectorAll('.t-campeon-podio > span')].map((s) => s.textContent.trim()),
-      tu: c.querySelector('.t-campeon-tu')?.textContent,
-      cara: Math.round(c.querySelector('.t-campeon-cara .torneo-cara')?.getBoundingClientRect().width || 0),
-    })),
-    fila: document.querySelectorAll('.t-campeones .t-campeon').length && new Set([...document.querySelectorAll('.t-campeon')].map((c) => Math.round(c.getBoundingClientRect().top))).size,
-    noSonCarteles: !document.querySelector('.t-carteles-tramo .t-campeon'),
+    dorados: document.querySelectorAll('.t-campeon, .t-campeones').length,
+    t: (() => {
+      const f = document.querySelector('.tf[data-torneo-id="t-tardeo"]')
+      return f && { nombre: f.querySelector('.tf-campeon b')?.textContent.trim(), cara: Boolean(f.querySelector('.tf-campeon-cara .torneo-cara')), tu: f.querySelector('.tf-chapa.tuya')?.textContent.trim() }
+    })(),
   }))
-  check('el tramo se llama «Campeones» (y no «Últimos resultados»)', r.cab === 'Campeones' && !r.viejo, r.cab)
-  check('tres carteles dorados, en una fila', r.camp.length === 3 && r.fila === 1, JSON.stringify(r.camp.map((c) => c.id)))
-  const t = r.camp.find((c) => c.id === 't-tardeo')
-  check('el campeón en grande (cara ≥ 70 px) con su nombre', t?.nombre === 'jesus-bless' && t.cara >= 70, JSON.stringify(t))
-  check('su mazo, sacado de su lista («Dragapult ex Dusknoir»)', t?.mazo === 'Dragapult ex Dusknoir', t?.mazo)
-  check('el 2.º y el 3.º del podio guardado', t?.podio.length === 2 && /2\s*E?\s*enege/.test(t.podio[0]) && /Ash/.test(t.podio[1]), t?.podio.join(' | '))
-  check('y cómo quedaste tú: «Quedaste 3.º»', t?.tu === 'Quedaste 3.º', t?.tu)
-  check('los de «Lo próximo» siguen siendo carteles de su tipo, no dorados', r.noSonCarteles)
+  check('sin carteles dorados (1472)', r.dorados === 0)
+  check('el Tardeo: su campeón con su cara', r.t?.nombre === 'jesus-bless' && r.t.cara, JSON.stringify(r.t))
+  check('y cómo quedaste tú: «Quedaste 3.º»', r.t?.tu === 'Quedaste 3.º', JSON.stringify(r.t))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
@@ -85,12 +75,11 @@ console.log('── 1464: Terminados (las filas) ──')
 
 console.log('── 1464: el móvil ──')
 {
-  const { ctx, page, errores } = await abrirLista({ movil: true })
+  const { ctx, page, errores } = await abrirLista({ movil: true, ruta: '/torneos#terminados' })
   const r = await page.evaluate(() => {
-    const fila = document.querySelector('.t-campeones')
-    return { doc: document.documentElement.scrollWidth, w: innerWidth, desliza: fila && getComputedStyle(fila).overflowX === 'auto' && fila.scrollWidth > fila.clientWidth, puntos: document.querySelectorAll('.t-campeones-tramo .t-carteles-puntos i').length }
+    return { doc: document.documentElement.scrollWidth, w: innerWidth, filas: document.querySelectorAll('.tf').length }
   })
-  check('carrusel con sus puntos, sin ensanchar la página', r.desliza && r.puntos === 3 && r.doc <= r.w + 1, JSON.stringify(r))
+  check('en filas (sin carrusel desde la 1472), sin ensanchar la página', r.filas >= 3 && r.doc <= r.w + 1, JSON.stringify(r))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }

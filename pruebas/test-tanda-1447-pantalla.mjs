@@ -72,7 +72,8 @@ console.log('── 1. En juego, quien juega ──')
 {
   const { page, errores } = await abrir('user-1', semillas({ terminado: false }))
   const p = await pestanas(page)
-  check('Tu mesa · Clasificación · Mesas · Info, sin Mazos (las listas no se ven aún)', p.nombres.join() === 'Tu mesa,Clasificación,Mesas,Info', p.nombres.join())
+  // Arena limpia (1473): las cuatro de siempre; «Tu mesa» no es pestaña (abre sola).
+  check('Resumen · Clasificación · Rondas · Mazos (1473), Mazos aunque no se vean aún las listas', p.nombres.join() === 'Resumen,Clasificación,Rondas,Mazos', p.nombres.join())
   check('abre en Tu mesa', p.activa === 'jugar', p.activa)
   check('un jugador no tiene «Modo juez»', !(await page.$('#btnModoJuez')))
   check('sin errores', !errores.length, errores.join(' | '))
@@ -83,10 +84,11 @@ console.log('\n── 2. Terminado, quien jugó ──')
 {
   const { page, errores } = await abrir('user-1', semillas({ terminado: true }))
   const p = await pestanas(page)
-  check('el MISMO orden, con Mazos', p.nombres.join() === 'Tu mesa,Clasificación,Mesas,Mazos,Info', p.nombres.join())
+  check('el MISMO orden (1473)', p.nombres.join() === 'Resumen,Clasificación,Rondas,Mazos', p.nombres.join())
   check('abre en Clasificación', p.activa === 'clasificacion', p.activa)
   check('los mazos ya no van debajo de la clasificación', !(await page.$('[data-panel="clasificacion"] #torneoMetaCaja')) && Boolean(await page.$('[data-panel="meta"] #torneoMetaCaja')))
-  await page.click('#torneoPestanas [data-pestana="jugar"]')
+  // Terminado, tu panel («Tu torneo») se abre con la línea de debajo de las pestañas (1473).
+  await page.click('#torneoTuLinea')
   await page.waitForTimeout(400)
   const tt = await page.evaluate(() => {
     const c = document.getElementById('torneoComoVas')
@@ -125,7 +127,8 @@ console.log('\n── 4. Móvil ──')
 {
   const { page, errores } = await abrir('user-1', semillas({ terminado: true }), true)
   const p = await pestanas(page)
-  check('nombres cortos y las cinco sin «Más»', p.nombres.join() === 'Tu mesa,Clasif.,Mesas,Mazos,Info' && !p.mas, JSON.stringify(p))
+  // 1473: cuatro iguales, Clasificación se llama «Tabla» en el móvil.
+  check('nombres cortos y las cuatro sin «Más»', p.nombres.join() === 'Resumen,Tabla,Rondas,Mazos' && !p.mas, JSON.stringify(p))
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
   check('nada se sale', ancho)
   check('sin errores', !errores.length, errores.join(' | '))

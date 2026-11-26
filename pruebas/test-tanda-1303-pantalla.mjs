@@ -58,27 +58,25 @@ for (const movil of [false, true]) {
   const err = []
   page.on('pageerror', (e) => err.push(String(e).slice(0, 200)))
   await page.goto(`${BASE}/torneos`, { waitUntil: 'domcontentloaded' })
-  // Desde la 1463 la liga va en su cartel de «Lo próximo» (`.t-cartel-liga`), no en una franja.
-  await page.waitForSelector('.t-cartel-liga', { timeout: 15000 }).catch(() => {})
-  await page.waitForFunction(() => document.querySelector('[data-lc-podio] .lc-p-nombre')?.textContent, null, { timeout: 8000 }).catch(() => {})
+  // Desde la 1472 la liga entre jornadas es una fila de «Próximos» (una fila
+  // por torneo); su clasificación vive en la ficha.
+  await page.waitForSelector('.tf[data-torneo-id="torneo-1"]', { timeout: 15000 }).catch(() => {})
   const r = await page.evaluate(() => {
-    const t = document.querySelector('.t-cartel-liga')
+    const f = document.querySelector('.tf[data-torneo-id="torneo-1"]')
+    const a = f?.querySelector('.tf-der .torneo-pie-accion')
     return {
-      hay: Boolean(t),
-      chapa: t?.querySelector('.t-cartel-cuando')?.textContent,
-      podio: [...(t?.querySelectorAll('.lc-p') || [])].map((x) => { const c = x.cloneNode(true); c.querySelectorAll('.torneo-jcara').forEach((e) => e.remove()); return c }).map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
-      cita: [t?.querySelector('.t-cartel-dia'), t?.querySelector('.lc-listas')].map((x) => x?.textContent.replace(/\s+/g, ' ').trim()).join(' | '),
-      boton: t?.querySelector('.lc-boton')?.textContent,
-      banda: `${document.getElementById('tNEnJuego')?.textContent} ${document.getElementById('tNEnJuegoTexto')?.textContent}`,
-      enLista: [...document.querySelectorAll('#listaTorneos .torneo-nombre')].map((x) => x.textContent),
+      hay: Boolean(f),
+      texto: f?.innerText.replace(/\s+/g, ' ') || '',
+      boton: a?.textContent.trim(),
+      href: a?.getAttribute('href') || '',
+      visible: Boolean(a?.getClientRects().length),
       ancho: document.documentElement.scrollWidth <= innerWidth,
     }
   })
   const q = movil ? 'móvil' : 'PC'
-  check(`${q}: el cartel de la liga con «Jornada 6 · mañana»`, r.hay && r.chapa === 'Jornada 6 · mañana', JSON.stringify(r))
-  check('  …los tres primeros con sus puntos', r.podio[0] === '1Ash6' && r.podio[1] === '2alex3' && r.podio.length === 3 && /jesus|alex/.test(r.podio.join(' ')), JSON.stringify(r.podio))
-  check('  …«3 de 4 ya han mandado lista» y «Manda tu lista» (no la has mandado)', /3 de 4 ya han mandado lista/.test(r.cita || '') && r.boton === 'Manda tu lista', `${r.cita} | ${r.boton}`)
-  check('  …la banda: «1 en juego» (una liga en marcha cuenta, 1463)', r.banda === '1 en juego', r.banda)
+  // En el móvil la línea de abajo va recortada a lo justo (el cuándo y el tipo).
+  check(`${q}: la liga, en su fila de Próximos${movil ? '' : ' con «Jornada 6 de 10»'}`, r.hay && (movil || /Jornada 6 de 10/.test(r.texto)), JSON.stringify(r))
+  check('  …y como juegas, «Tu lista» (a mandar la de la jornada), a la vista', r.boton === 'Tu lista' && r.visible && /ver=jugar/.test(r.href), JSON.stringify(r))
   check('  …sin salirse y sin errores', r.ancho && !err.length, err.join(' | '))
   await page.screenshot({ path: `/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad/ligas-${q}.png`, fullPage: false })
   if (!movil) {

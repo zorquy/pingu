@@ -78,6 +78,13 @@ const abrir = async ({ sesion = 'user-1', ancho = 1280, torneo = TORNEO, rondas 
 }
 const pestana = async (page, cual) => {
   const t = page.locator(`[data-pestana="${cual}"]`)
+  // Desde la 1473 tu mesa no es pestaña: se abre sola si juegas, y desde
+  // otra pestaña se vuelve con «Tu mesa» (#torneoTuLinea).
+  if (cual === 'jugar' && !(await t.count())) {
+    if (await page.locator('#torneoTuLinea').isVisible()) await page.click('#torneoTuLinea')
+    await page.waitForTimeout(600)
+    return page.evaluate(() => document.querySelector('[data-panel="jugar"]')?.classList.contains('hidden') === false)
+  }
   if (!(await t.count())) return false
   await t.click()
   await page.waitForTimeout(600)

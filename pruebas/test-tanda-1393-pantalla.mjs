@@ -36,7 +36,8 @@ for (const movil of [false, true]) {
       window.__FAKE_TORNEOS__ = d.TORNEOS; window.__FAKE_INSCRIPCIONES__ = d.INSC; window.__FAKE_RONDAS__ = d.RONDAS
       try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch {}
     }, { TORNEOS, INSC, RONDAS })
-    await page.goto(BASE + '/torneos', { waitUntil: 'domcontentloaded' })
+    // Desde la 1472 el torneo que juegas va en la pestaña «En juego».
+    await page.goto(BASE + '/torneos#en-juego', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(3000)
     const r = await page.evaluate(() => {
       const vivo = document.querySelector('#torneoVivo:not(.hidden)')
@@ -48,9 +49,11 @@ for (const movil of [false, true]) {
         ancho: document.documentElement.scrollWidth <= innerWidth + 1,
       }
     })
-    check(`${q}: la página se titula «La arena»`, r.h1 === 'La arena', r.h1)
+    // 1472 (Arena limpia): la página vuelve a llamarse «Torneos».
+    check(`${q}: la página se titula «Torneos» (1472)`, r.h1 === 'Torneos', r.h1)
     check(`${q}: …y el menú sigue diciendo «Torneos»`, r.menu)
-    check(`${q}: el torneo que juegas, como «Tu combate» en el panel violeta`, r.vivo?.ceja === 'Tu combate' && /rgb\(43, 31, 99\)/.test(r.vivo.fondo), JSON.stringify(r.vivo))
+    // 1472: «Tu combate» se queda, en una barra baja (sin el panel violeta).
+    check(`${q}: el torneo que juegas, como «Tu combate» arriba`, r.vivo?.ceja === 'Tu combate', JSON.stringify(r.vivo))
     check(`${q}: tu torneo, con su borde en la lista`, r.mia.length === 1 && r.mia[0], JSON.stringify(r.mia))
     check(`${q}: sin desplazamiento de lado y sin errores`, r.ancho && !errores.length, errores.join(' | '))
     if (OUT) await page.screenshot({ path: `${OUT}/1393-arena-${movil ? 'm' : 'pc'}.png`, scale: 'css' })
