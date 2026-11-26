@@ -37,6 +37,9 @@ console.log('\n── 1. Las cuentas ──')
   const cr = Object.fromEntries(c.cruces.map((x) => [x.clave, `${x.v}-${x.d}-${x.e}`]))
   check('cruces: Lucario 1-1, espejo 1-1, Dragapult 1-0, sin lista 0-0-1', cr.luc === '1-1-0' && cr.zoro === '1-1-0' && cr.drag === '1-0-0' && cr['sin-lista'] === '0-0-1', JSON.stringify(cr))
   check('el espejo va marcado', c.cruces.find((x) => x.clave === 'zoro').espejo === true)
+  // 1475: de más a menos % de victorias (a igual %, más partidas primero).
+  const pcts = c.cruces.map((x) => x.porcentaje ?? -1)
+  check('los cruces, de mayor a menor % de victorias', pcts.every((p, i) => i === 0 || pcts[i - 1] >= p) && c.cruces[0].clave === 'drag', JSON.stringify(c.cruces.map((x) => [x.clave, x.porcentaje, x.partidas])))
   const t = Object.fromEntries(c.tramos.map((x) => [x.etiqueta, x.cuantos]))
   check('dónde acabaron: Top 1 uno, Top 4 uno, Top 8 dos', t['Top 1'] === 1 && t['Top 2'] === 0 && t['Top 4'] === 1 && t['Top 8'] === 2, JSON.stringify(t))
   check('tramos para 8 jugadores: 1, 2, 4, 8', tramosDePuestos(8).map((x) => x.hasta).join() === '1,2,4,8')
@@ -92,7 +95,8 @@ for (const movil of [false, true]) {
   await page.goto(`${BASE}/torneo?slug=copa`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   await page.evaluate(() => document.querySelectorAll('dialog[open]').forEach((d) => d.close()))
-  await page.click('[data-pestana="clasificacion"]')
+  // Desde la 1447 los mazos son su propia pestaña («Mazos»).
+  await page.click('[data-pestana="meta"]')
   await page.waitForTimeout(500)
   const filas = await page.$$eval('[data-meta-arquetipo]', (bs) => bs.map((b) => b.dataset.metaArquetipo))
   await page.evaluate(() => document.querySelector('[data-meta-arquetipo]').click())
@@ -112,7 +116,7 @@ for (const movil of [false, true]) {
   check('la casilla del % lleva color', r.color && r.color !== 'rgba(0, 0, 0, 0)', r.color)
   check('nada se sale de la pantalla', r.ancho <= r.ventana, `${r.ancho} > ${r.ventana}`)
   check('quien lleva el torneo tiene «Descargar imagen de este mazo»', r.boton)
-  await page.locator('.torneo-mc').screenshot({ path: join(DIR, `vista-${movil ? 'movil' : 'pc'}.png`) })
+  await page.locator('.torneo-mc').screenshot({ path: join(DIR, `vista-${movil ? 'movil' : 'pc'}.png`), animations: 'disabled' })
   if (!movil) {
     const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[data-meta-imagen-arq]')])
     const ruta = join(DIR, descarga.suggestedFilename())
