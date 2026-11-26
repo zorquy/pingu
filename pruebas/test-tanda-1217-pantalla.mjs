@@ -111,10 +111,13 @@ console.log('── 1221 · Torneos: «Ver» y el día en la chapa ──')
   const { ctx, p, errores } = await abrir('/torneos.html')
   const r = await p.evaluate(() => ({
     recuadro: document.querySelectorAll('.torneo-tarjeta .torneo-fecha-bloque').length,
-    cuando: [...document.querySelectorAll('.torneo-etiqueta-cuando')].map((x) => x.textContent),
+    // Desde la 1454 el día va en la casilla de la izquierda de cada fila de la
+    // agenda (número y día o mes, o la hora si es hoy): sigue sin el recuadro
+    // viejo de la tarjeta.
+    cuando: [...document.querySelectorAll('.torneo-fila-fecha')].map((x) => x.textContent.trim()),
     acciones: [...document.querySelectorAll('.torneo-pie-accion')].map((a) => [a.textContent.trim(), a.getAttribute('aria-label') || '']),
   }))
-  check('sin el recuadro del día; el día va en la chapa de la hora', r.recuadro === 0 && r.cuando.length > 0 && r.cuando.every((x) => /^\d{1,2} \S+ · \d{2}:\d{2}$/.test(x)), JSON.stringify(r.cuando))
+  check('sin el recuadro del día; el día va en la casilla de la fila (1454)', r.recuadro === 0 && r.cuando.length > 0 && r.cuando.every((x) => /^(\d{1,2}\s*\S+|\d{2}:\d{2}\s*\S+)$/.test(x)), JSON.stringify(r.cuando))
   const ver = r.acciones.filter(([t]) => t === 'Ver')
   check('  …«Ver» como botón, con lo largo para el lector y empezando por «Ver»', ver.length > 0 && ver.every(([, a]) => /^Ver /.test(a)), JSON.stringify(r.acciones))
   check('  …sin errores', !errores.length, errores.join(' | '))
