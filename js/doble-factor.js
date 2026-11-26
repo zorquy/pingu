@@ -61,7 +61,9 @@ export function textoDeError(e) {
 }
 
 // Su CSS va aquí: la ventana solo la ve quien tiene el doble factor puesto.
-const CSS = `.df-dialogo{border:0;border-radius:var(--radius-xl);padding:var(--e-xl);max-width:min(380px,calc(100vw - 32px));background:var(--white);color:var(--text);box-shadow:var(--shadow-lg)}
+// Centrada a mano (1458): el reseteo general le quita al <dialog> su
+// `margin: auto` y salía pegada arriba a la izquierda, en el PC y en el móvil.
+const CSS = `.df-dialogo{position:fixed;inset:0;margin:auto;height:fit-content;width:min(380px,calc(100vw - 32px));border:0;border-radius:var(--radius-xl);padding:var(--e-xl);max-width:min(380px,calc(100vw - 32px));background:var(--white);color:var(--text);box-shadow:var(--shadow-lg)}
 .df-dialogo::backdrop{background:rgba(5,10,15,.55)}
 .df-dialogo h2{font-family:var(--font-display);font-size:var(--t-xl);margin:0 0 var(--e-sm)}
 .df-dialogo p{color:var(--text-mid);margin:0 0 var(--e-md)}

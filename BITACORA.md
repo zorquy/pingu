@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (701) — PINGU-Claude (1458 — La ventana del código de dos pasos, en el centro)
+
+**Hecho** (un usuario, con captura: «tanto en PC como en móvil, el campo para
+poner el código sale siempre como arriba en una esquina»): el `* { margin: 0 }`
+de `style.css` le quitaba a toda ventana modal (`<dialog>` con `showModal`) su
+`margin: auto`, y la del código salía pegada arriba a la izquierda. Ahora
+`.df-dialogo` se centra sola (también la de «Tu cuenta se borrará…», que usa
+la misma clase), y `style.css` lleva `:where(dialog:modal) { margin: auto }`,
+con especificidad cero: centra las ventanas que no se colocan solas sin tocar
+las que sí (hojas de abajo, cajones).
+
+**Ficheros**: `js/doble-factor.js`, `css/style.css`. Prueba nueva:
+`test-tanda-1458-pantalla.mjs` (abre la ventana de verdad y mide que quede
+centrada en PC y móvil).
+
+**Pendiente**: nada.
+
 ## 2026-11-26 (700) — PINGU-Claude (1454b — Lo que saltó al sacar las capturas de la versión final)
 
 **Hecho**: al fotografiar todas las pantallas de torneos salieron dos fallos más:

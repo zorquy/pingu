@@ -193,6 +193,8 @@ html[data-seccion='jugar'] { --acento: #5f43d9; }
   margin: 0;
   padding: 0;
 }
+/* 1458: el `margin: 0` de arriba le quitaba a toda ventana modal su centrado. */
+:where(dialog:modal) { margin: auto; }
 
 .hidden {
   display: none !important;

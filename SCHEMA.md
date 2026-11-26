@@ -55275,6 +55275,12 @@ solo pide organizadores y campeones). `accionDe`: borrador con `corto: 'Editar'`
 `min-width: 0` y `overflow-wrap: anywhere`. `[data-cerrar-mesa]` pinta
 `icons.x(16)`.
 
+## Tanda 1458 — Ventanas modales centradas
+
+`style.css`: `:where(dialog:modal) { margin: auto; }` tras el reseteo `*` (especificidad
+cero: cualquier regla de clase manda). `doble-factor.js`: `.df-dialogo` con
+`position: fixed; inset: 0; margin: auto; height: fit-content`.
+
 ## Tanda 1454b — Mesas alineadas y el cartel en persona
 
 `.torneo-mesas-tarjetas .torneo-mesa` con `align-items: stretch`; `.torneo-mesa-rotulo`

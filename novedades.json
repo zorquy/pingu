@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "La ventana para escribir el código de la verificación en dos pasos ya sale en el centro de la pantalla, no arriba en una esquina.", "enlace": "/ajustes" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Los torneos ahora van por días, como una agenda: lo de hoy, esta semana y más adelante, con filtros para ver solo los tuyos, los online o los que se juegan en tu ciudad. Los terminados tienen su sitio aparte, con quién ganó y cómo quedaste tú.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Ya se pueden crear torneos en persona: en una tienda o un evento, con la dirección y «Cómo llegar», sin usuario de TCG Live y con tu entrada en el móvil para enseñarla en la puerta.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "El Modo juez de los torneos es una consola: los tickets, el mapa de mesas y el chat de la mesa que abras, todo a la vista (en el móvil, en tres pestañas). Las listas se buscan en una ventana y los tickets se cierran solos cuando su mesa termina.", "enlace": "/torneos" },
