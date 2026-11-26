@@ -55231,6 +55231,14 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1474 — El banner, entero
+
+Sin cambios de esquema. `destacadoHtml`: `.tdest-arte.con-banner` con
+`style="--banner:url(…)"` (antes `background-image`); `::before` la pinta
+difuminada (cover) y `::after` entera (contain). En la ficha,
+`.tficha-banda.con-banner` recibe `--banner` desde `pintarFicha` y
+`#torneoBanner` va con `object-fit: contain` encima del difuminado.
+
 ## Tanda 1473 — Arena limpia: la ficha y tu mesa
 
 Sin cambios de esquema. `torneo.html`: la cabecera es `.tficha` con

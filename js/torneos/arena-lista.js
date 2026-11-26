@@ -134,7 +134,7 @@ export function destacadoHtml(t, d = {}) {
   const losa = (b, s) => `<span class="tdest-losa"><b>${b}</b><small>${s}</small></span>`
   const sinLimite = t.max_players == null
   return `<article class="tdest torneo-tarjeta" data-torneo-id="${escapeHtml(String(t.id))}" data-tipo-torneo="${tipo}">
-    <a class="tdest-arte${t.banner_url ? '' : ' sin-banner'}" href="${url}" tabindex="-1" aria-hidden="true"${t.banner_url ? ` style="background-image:url('${escapeHtml(t.banner_url)}')"` : ''}>
+    <a class="tdest-arte${t.banner_url ? ' con-banner' : ' sin-banner'}" href="${url}" tabindex="-1" aria-hidden="true"${t.banner_url ? ` style="--banner:url('${escapeHtml(t.banner_url)}')"` : ''}>
       ${t.banner_url ? '' : `<span class="tdest-marca">${icons[MARCA[tipo]]?.(140) || ''}</span>`}
     </a>
     <div class="tdest-cuerpo">

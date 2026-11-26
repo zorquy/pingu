@@ -279,9 +279,15 @@ function pintarFicha() {
   const banner = $('torneoBanner')
   if (banner) {
     banner.classList.toggle('hidden', !torneo.banner_url)
+    // El banner, entero (sea de la proporción que sea) y, detrás, él mismo
+    // difuminado llenando la franja: recortado, un logo apaisado se quedaba
+    // en media palabra (PINGU, 2026-11-26, con el de Tradeitto).
+    const banda = banner.parentElement
+    banda?.classList.toggle('con-banner', Boolean(torneo.banner_url))
     if (torneo.banner_url && banner.src !== torneo.banner_url) {
       banner.src = torneo.banner_url
-      banner.onerror = () => banner.classList.add('hidden')
+      banda?.style.setProperty('--banner', `url("${torneo.banner_url.replace(/"/g, '%22')}")`)
+      banner.onerror = () => { banner.classList.add('hidden'); banda?.classList.remove('con-banner') }
     }
   }
   textoSiCambia($('torneoNombre'), torneo.name)

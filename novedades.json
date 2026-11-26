@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "El banner de un torneo se ve entero, sin recortar, en el destacado de la lista y en su ficha.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La ficha de cada torneo, renovada: su banner arriba, cuatro datos de un vistazo (cuándo, formato, jugadores y cómo va) y cuatro pestañas iguales. Si juegas, tu mesa va siempre a mano en una barra y te dice cómo va tu rival antes de empezar.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La lista de torneos, renovada: tres pestañas (Próximos, En juego y Terminados), cada torneo con su imagen y su banner para reconocerlo de un vistazo, agrupados por mes, y arriba tu próximo torneo en grande.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "La clasificación de un torneo va directa a la tabla, sin las tarjetas del podio encima. Si quedas entre los cuatro primeros, una línea te lo dice y te deja compartirlo.", "enlace": "/torneos" },

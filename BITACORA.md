@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (713) — PINGU-Claude (1474 — el banner, entero)
+
+**Hecho** (PINGU, con la captura de /torneos: «hay errores»):
+- **El banner ya no se recorta**: en el destacado de /torneos y en la cabecera
+  de la ficha se ve ENTERO (`contain`), sea de la proporción que sea, y
+  detrás, la misma imagen difuminada llena la franja. Con `cover` en una
+  franja de 1080×168, un banner tipo logo (el de la Copa Tradeitto 2) se
+  quedaba en media palabra gigante. El formulario de crear no pide ninguna
+  proporción, así que cualquiera puede llegar.
+- Si el banner de la ficha no carga, la franja vuelve al color de su tipo.
+
+**Ficheros**: `js/torneos/arena-lista.js`, `js/torneos/torneo.js`,
+`css/torneos.css`.
+
+**Pruebas**: 1472, 1473 y 1215 en verde; capturas con un banner 3:1 de letras
+grandes en PC y móvil.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (712) — PINGU-Claude (1473 — Arena limpia: la ficha y tu mesa)
 
 **Hecho** (misma propuesta):

@@ -6471,3 +6471,10 @@ a.t-campeon-tu:hover { color: var(--acento); }
 @media (min-width: 901px) { .tdest-accion { grid-auto-flow: column; align-items: center; } .tdest-accion .tf-caras { grid-column: 1 / -1; justify-self: end; } }
 /* Casi lleno (297): lo que queda, en naranja. */
 .tf-plazas.apurada small { color: var(--warning); font-weight: 700; }
+/* El banner, entero y sin recortar (PINGU, 2026-11-26: el de Tradeitto se
+   quedaba en media palabra): encima, la imagen completa (contain); detrás, la
+   misma imagen difuminada llenando la franja. En el destacado y en la ficha. */
+.tdest-arte.con-banner, .tficha-banda.con-banner { overflow: hidden; background: #0b1219; }
+.tdest-arte.con-banner::before, .tficha-banda.con-banner::before { content: ''; position: absolute; inset: -24px; background: var(--banner) center / cover no-repeat; filter: blur(20px) brightness(0.55); }
+.tdest-arte.con-banner::after { content: ''; position: absolute; inset: 0; background: var(--banner) center / contain no-repeat; }
+.tficha .tficha-banda.con-banner .torneo-banner { object-fit: contain; z-index: 1; }
