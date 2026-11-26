@@ -198,7 +198,7 @@ console.log('\n── 5. Con pocos torneos la rejilla no guarda sitio vacío ─
       const hijos = [...g.children]
       const ancho = Math.round(g.getBoundingClientRect().width)
       const ocupado = Math.round(hijos.reduce((s, n) => s + n.getBoundingClientRect().width, 0) + parseFloat(getComputedStyle(g).columnGap || 0) * (hijos.length - 1))
-      return { fila: ancho, ocupado, carteles: g.querySelectorAll('.t-cartel').length, hueco: Boolean(g.querySelector('.t-cartel-hueco')) }
+      return { fila: ancho, ocupado, carteles: g.querySelectorAll('.t-cartel:not(.t-invita)').length, hueco: Boolean(g.querySelector('.t-invita, .t-cartel-hueco')) }
     })
     await page.close()
     return r

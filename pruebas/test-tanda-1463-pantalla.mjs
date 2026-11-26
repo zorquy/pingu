@@ -107,13 +107,16 @@ console.log('── 1463: hoy, solo la liga ──')
   const { ctx, page, errores } = await abrir({ datos: { abiertos: false } })
   const r = await page.evaluate(() => ({
     texto: document.getElementById('torneosAgenda')?.textContent.replace(/\s+/g, ' ') || '',
-    carteles: document.querySelectorAll('.t-carteles > .t-cartel').length,
-    hueco: document.querySelector('.t-cartel-hueco')?.textContent.replace(/\s+/g, ' ').trim(),
-    crear: Boolean(document.querySelector('.t-cartel-hueco [data-crear-torneo]')),
+    carteles: document.querySelectorAll('.t-carteles > .t-cartel:not(.t-invita)').length,
+    // 1468: el hueco ya no es un recuadro punteado, son tarjetas que invitan.
+    hueco: document.querySelector('.t-invita[data-invita="crear"]')?.textContent.replace(/\s+/g, ' ').trim(),
+    meta: document.querySelector('.t-invita[data-invita="meta"] a[href="/meta"]') ? 'sí' : 'no',
+    crear: Boolean(document.querySelector('.t-invita [data-crear-torneo]')),
+    viejo: Boolean(document.querySelector('.t-cartel-hueco')),
   }))
   check('nunca «No hay ningún torneo por jugar» con la liga en marcha', !/No hay ningún torneo por jugar/.test(r.texto))
-  check('la liga en grande y el hueco con «Crea uno»', r.carteles === 1 && /No hay más torneos abiertos/.test(r.hueco || '') && r.crear, r.hueco)
-  await page.click('.t-cartel-hueco [data-crear-torneo]')
+  check('la liga en grande y, al lado, «Organiza el tuyo» y el meta (1468)', r.carteles === 1 && /Organiza el tuyo/.test(r.hueco || '') && r.crear && r.meta === 'sí' && !r.viejo, JSON.stringify(r))
+  await page.click('.t-invita [data-crear-torneo]')
   await page.waitForTimeout(800)
   check('«Crea uno» abre el creador', Boolean(await page.$('#torneoCrear[open]')))
   check('sin errores', !errores.length, errores.join(' | '))

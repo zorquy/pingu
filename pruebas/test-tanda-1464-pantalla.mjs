@@ -28,7 +28,8 @@ console.log('── Lo puro ──')
   const c = cuentaDeCabecera({ status: 'registration_open', start_at: '2026-12-18T09:40:00Z' }, { ahora })
   check('la cuenta de la cabecera lleva minutos: «21 d 23 h 40 min»', c?.valor === '21 d 23 h 40 min', c?.valor)
   const c2 = cuentaDeCabecera({ status: 'registration_open', start_at: '2026-11-26T15:05:00Z' }, { ahora })
-  check('…y con menos de un día, como antes: «5 h 5 min»', c2?.valor === '5 h 5 min', c2?.valor)
+  // El mismo día es «modo Hoy» desde la 1469: «Hoy · HH:MM» y con segundos.
+  check('…y el mismo día, «Hoy» y con segundos: «5 h 5 min 00 s»', c2?.valor === '5 h 5 min 00 s' && /^Hoy · /.test(c2?.rotulo || ''), JSON.stringify(c2))
 }
 
 const b = await chromium.launch()

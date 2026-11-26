@@ -30,14 +30,30 @@ export function datosArena({ conLiga = true, abiertos = true } = {}) {
     ...P.map((u, i) => ({ id: `i${i}`, tournament_id: 'liga-1', user_id: u, status: 'active' })),
     ...Array.from({ length: 10 }, (_, i) => ({ id: `b${i}`, tournament_id: 't-bilbao', user_id: `x${i}`, status: 'active' })),
     ...Array.from({ length: 24 }, (_, i) => ({ id: `c${i}`, tournament_id: 't-copa', user_id: `y${i}`, status: 'active' })),
+    // Los que jugaron el Tardeo (1468): user-1 entre ellos (su temporada) y
+    // uno que se retiró en la ronda 2 (cuenta como jugador) y otro antes de
+    // empezar (no cuenta).
+    ...['user-2', 'p2', 'user-1', 'p3', 'p4'].map((u, i) => ({ id: `td${i}`, tournament_id: 't-tardeo', user_id: u, status: 'active' })),
+    { id: 'td5', tournament_id: 't-tardeo', user_id: 'x9', status: 'dropped', dropped_after_round_id: 'ronda-t2' },
+    { id: 'td6', tournament_id: 't-tardeo', user_id: 'x8', status: 'dropped', dropped_after_round_id: null },
   ]
+  // Con fecha (1468: «Tu temporada» cuenta las de este año). user-1: perdió
+  // la 1 y ganó la 2 de la liga, y en el Tardeo ganó, empató y ganó.
   const MESAS = [
-    { id: 'mesa-1', round_id: 'ronda-1', table_number: 1, player_a_id: 'user-1', player_b_id: 'p2', status: 'finished' },
-    { id: 'mesa-2', round_id: 'ronda-1', table_number: 2, player_a_id: 'p3', player_b_id: 'p4', status: 'finished' },
-    { id: 'mesa-3', round_id: 'ronda-2', table_number: 1, player_a_id: 'p2', player_b_id: 'p3', status: 'finished' },
-    { id: 'mesa-4', round_id: 'ronda-2', table_number: 2, player_a_id: 'user-1', player_b_id: 'p4', status: 'finished' },
+    { id: 'mesa-1', round_id: 'ronda-1', table_number: 1, player_a_id: 'user-1', player_b_id: 'p2', status: 'finished', created_at: en(-30) },
+    { id: 'mesa-2', round_id: 'ronda-1', table_number: 2, player_a_id: 'p3', player_b_id: 'p4', status: 'finished', created_at: en(-30) },
+    { id: 'mesa-3', round_id: 'ronda-2', table_number: 1, player_a_id: 'p2', player_b_id: 'p3', status: 'finished', created_at: en(-23) },
+    { id: 'mesa-4', round_id: 'ronda-2', table_number: 2, player_a_id: 'user-1', player_b_id: 'p4', status: 'finished', created_at: en(-23) },
+    { id: 'mesa-t1', round_id: 'ronda-t1', table_number: 1, player_a_id: 'p3', player_b_id: 'user-1', status: 'finished', created_at: en(-1, 17) },
+    { id: 'mesa-t2', round_id: 'ronda-t2', table_number: 1, player_a_id: 'user-1', player_b_id: 'p2', status: 'finished', created_at: en(-1, 18) },
+    { id: 'mesa-t3', round_id: 'ronda-t3', table_number: 1, player_a_id: 'user-1', player_b_id: 'x9', status: 'finished', created_at: en(-1, 19) },
   ]
-  const RES = [{ match_id: 'mesa-1', result: 'b_wins' }, { match_id: 'mesa-2', result: 'a_wins' }, { match_id: 'mesa-3', result: 'a_wins' }, { match_id: 'mesa-4', result: 'a_wins' }]
+  const RES = [
+    { match_id: 'mesa-1', result: 'b_wins', resolved_at: en(-30, 19) }, { match_id: 'mesa-2', result: 'a_wins', resolved_at: en(-30, 19) },
+    { match_id: 'mesa-3', result: 'a_wins', resolved_at: en(-23, 19) }, { match_id: 'mesa-4', result: 'a_wins', resolved_at: en(-23, 19) },
+    { match_id: 'mesa-t1', result: 'b_wins', resolved_at: en(-1, 17) }, { match_id: 'mesa-t2', result: 'draw', resolved_at: en(-1, 18) },
+    { match_id: 'mesa-t3', result: 'a_wins', resolved_at: en(-1, 19) },
+  ]
   const PERFILES = [{ id: 'p2', username: 'enege' }, { id: 'p3', username: 'srpaquito' }, { id: 'p4', username: 'soyfedeegb' }, { id: 'tienda-1', username: 'cartasbilbao', tipo: 'tienda' }, { id: 'admin-1', username: 'pingu', is_admin: true }, { id: 'user-2', username: 'jesus-bless' }, { id: 'user-3', username: 'ikergbt' }]
   // Las listas de los campeones: su mazo sale en Campeones (1464).
   const lista = (pk) => ({ pokemon: pk.map(([q, name, set, number]) => ({ quantity: q, name, set, number })), trainer: [], energy: [], total: 60 })
