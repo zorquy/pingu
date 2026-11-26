@@ -55231,6 +55231,27 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1468 — Tu temporada, el hueco que invita y Campeones sin repetir
+
+Sin cambios de esquema. `js/torneos/temporada.js`: `desenlace(mesa, result,
+yo)` → 'V' | 'D' | 'E' | null (el bye y las mesas ajenas no cuentan;
+`forfeit_both` es derrota), `temporadaDe({ torneos, mesas, resultados, yo })`
+→ `{ torneos, podios, mejor, victorias, derrotas, empates, partidas, ultimas }`
+(las cinco últimas por `resolved_at`), `temporadaHtml(c, ahora)` y
+`cargarTemporada(supabase, { yo, misIds })`: `tournaments` terminados de
+`misIds` desde el 1 de enero, `tournament_matches` por jugador
+(`or(player_a_id.eq…,player_b_id.eq…)`, `created_at` desde el 1 de enero) y
+`match_results` de esas mesas. La pinta `torneos.js` en `#torneosTemporada`
+(nuevo en `torneos.html`) y pone `.con-temporada` en `.torneos-heroe`.
+
+`carteles.js`: `huecoHtml` con filtro sigue siendo `.t-cartel-hueco`; sin
+filtro devuelve `invitaHtml({ conSesion, n })` (`.t-invita[data-invita=crear]`, que NO es `.t-cartel`: un cartel es un torneo)
+y `cartelesHtml` añade `metaInvitaHtml()` (`[data-invita=meta]`) si faltan dos.
+`campeonHtml`: el pie siempre lleva `.t-campeon-tu` (con «Ver sus mazos» →
+`/torneo?slug=…&ver=meta`); los jugadores arriba solo si hay. `torneos.js`
+pide `dropped_after_round_id` en las inscripciones y cuenta `jugaronDe` para
+los terminados.
+
 ## Tanda 1467 — Arreglos de Campeones
 
 `torneos.css` → `.torneo-fila-mazo.torneo-arte::before/::after` y

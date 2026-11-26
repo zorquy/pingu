@@ -84,25 +84,60 @@ export function cartelHtml(t, d = {}) {
   </article>`
 }
 
-// El hueco que completa la fila cuando hay menos de tres: invita a crear uno
-// (solo con sesión: sin ella el botón de crear no existe, la 510) o, con un
-// filtro puesto, a quitarlo.
+// El hueco que completa la fila cuando hay menos de tres. Con un filtro
+// puesto, sigue siendo un hueco con «Quitar los filtros» (lo que falta es
+// culpa del filtro). Sin filtro, desde la 1468 ya no es un recuadro punteado
+// de media pantalla (PINGU, con la captura delante: «¿guay? o se puede
+// mejorar más»): son tarjetas del MISMO tamaño que un cartel, una por hueco,
+// que invitan a algo (`.t-invita` y no `.t-cartel`: un cartel es un torneo
+// al que apuntarse, como dice la 1464) — organizar el tuyo (con sesión; sin ella, entrar: el
+// botón de crear no existe sin cuenta, la 510) y, si queda otro hueco, ver
+// qué se juega en el meta.
 export function huecoHtml({ conSesion = false, conFiltro = false, n = 0 } = {}) {
-  const texto = conFiltro ? 'No hay más con estos filtros.' : n ? 'No hay más torneos abiertos ahora mismo.' : 'No hay ningún torneo abierto ahora mismo.'
-  const boton = conFiltro
-    ? '<button type="button" class="btn-secondary" data-quitar-filtros>Quitar los filtros</button>'
-    : conSesion
-      ? `<button type="button" class="btn-secondary" data-crear-torneo>${icons.plus?.(16) || '+'} Crea uno</button>`
-      : '<a class="btn-secondary" href="/auth">Entra para crear uno</a>'
-  return `<div class="t-cartel-hueco">${icons.trophy(28)}<p>${escapeHtml(texto)}</p>${boton}</div>`
+  if (conFiltro) {
+    return `<div class="t-cartel-hueco">${icons.trophy(28)}<p>No hay más con estos filtros.</p><button type="button" class="btn-secondary" data-quitar-filtros>Quitar los filtros</button></div>`
+  }
+  return invitaHtml({ conSesion, n })
+}
+
+const MAS = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+export function invitaHtml({ conSesion = false, n = 0 } = {}) {
+  const ceja = n ? '' : '<p class="t-invita-ceja">No hay ningún torneo abierto ahora mismo.</p>'
+  const boton = conSesion
+    ? '<button type="button" class="btn-primary t-cartel-boton" data-crear-torneo>Crear un torneo</button>'
+    : '<a class="btn-primary t-cartel-boton" href="/auth">Entra para crear uno</a>'
+  return `<article class="t-invita" data-invita="crear">
+    <span class="t-invita-arte" aria-hidden="true">${MAS}</span>
+    <div class="t-cartel-cuerpo">
+      ${ceja}<h3 class="t-cartel-nombre">Organiza el tuyo</h3>
+      <p class="t-invita-texto">Suizo, top cut y clasificación en vivo. Se monta en 2 minutos.</p>
+      ${boton}
+    </div>
+  </article>`
+}
+
+export function metaInvitaHtml() {
+  return `<article class="t-invita t-invita-meta" data-invita="meta">
+    <span class="t-invita-arte" aria-hidden="true">${icons.barChart(40)}</span>
+    <div class="t-cartel-cuerpo">
+      <h3 class="t-cartel-nombre">Lo que se juega</h3>
+      <p class="t-invita-texto">Los mazos que más ganan esta semana, para llegar al próximo con el tuyo listo.</p>
+      <a class="btn-secondary t-cartel-boton" href="/meta">Ver el meta</a>
+    </div>
+  </article>`
 }
 
 export function cartelesHtml(carteles, { conSesion = false, conFiltro = false } = {}) {
   const n = carteles.length
-  const hueco = n < CARTELES ? huecoHtml({ conSesion, conFiltro, n }) : ''
-  const puntos = n + (hueco ? 1 : 0) > 1 ? `<div class="t-carteles-puntos" aria-hidden="true">${Array.from({ length: n + (hueco ? 1 : 0) }, (_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''
+  const huecos = []
+  if (n < CARTELES) {
+    huecos.push(huecoHtml({ conSesion, conFiltro, n }))
+    if (!conFiltro && CARTELES - n >= 2) huecos.push(metaInvitaHtml())
+  }
+  const total = n + huecos.length
+  const puntos = total > 1 ? `<div class="t-carteles-puntos" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''
   return `<section class="torneos-tramo t-carteles-tramo"><h2 class="torneos-tramo-cab">Lo próximo</h2>
-    <div class="t-carteles" data-n="${n}">${carteles.join('')}${hueco}</div>${puntos}</section>`
+    <div class="t-carteles" data-n="${n}">${carteles.join('')}${huecos.join('')}</div>${puntos}</section>`
 }
 
 // ── CAMPEONES (1464, propuesta «Campeones y ficha», PINGU: «le podemos dar
@@ -124,7 +159,16 @@ export function campeonHtml(t, d = {}) {
   const id = escapeHtml(String(t.id))
   const chapas = [oficial ? chapaTipoHtml('oficial', { llena: true }) : '', chapaTipoHtml(tipo, { llena: true })].join('')
   const podio = [[2, segundo], [3, tercero]].filter(([, p]) => p).map(([n, p]) => `<span><i class="t-campeon-medalla m${n}" aria-label="${n}.º">${n}</i>${p.cara}<span>${escapeHtml(p.nombre)}</span></span>`).join('')
-  const tuyo = soyCampeon ? '<b class="t-campeon-tu oro">¡Ganaste tú!</b>' : puesto ? `<b class="t-campeon-tu">Quedaste ${puesto}.º</b>` : jugaste ? '<span class="t-campeon-tu suave">Jugaste</span>' : ''
+  // El pie dice SIEMPRE algo tuyo (1468): cómo quedaste o, si no jugaste,
+  // la puerta a sus mazos (`?ver=meta` abre la pestaña Mazos, 1447). Antes,
+  // sin jugar, repetía «N jugadores», que ya va arriba junto al nombre.
+  const tuyo = soyCampeon
+    ? '<b class="t-campeon-tu oro">¡Ganaste tú!</b>'
+    : puesto
+      ? `<b class="t-campeon-tu">Quedaste ${puesto}.º</b>`
+      : jugaste
+        ? '<span class="t-campeon-tu suave">Jugaste</span>'
+        : `<a class="t-campeon-tu suave" href="${url}&amp;ver=meta">Ver sus mazos</a>`
   return `<article class="t-campeon${soyCampeon || puesto || jugaste ? ' t-campeon-mio' : ''}" data-tipo-torneo="${tipo}" data-torneo-id="${id}">
     <a class="t-campeon-arte" href="${url}" tabindex="-1" aria-hidden="true">
       <span class="t-campeon-rayos"></span>
@@ -133,11 +177,11 @@ export function campeonHtml(t, d = {}) {
       <span class="t-campeon-cara">${CORONA}${caraCampeon}</span>
     </a>
     <div class="t-campeon-cuerpo">
-      <span class="t-campeon-torneo"><a href="${url}">${escapeHtml(t.name)}</a> · ${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}</span>
+      <span class="t-campeon-torneo"><a href="${url}">${escapeHtml(t.name)}</a>${ocupadas ? ` · ${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}` : ''}</span>
       <h3 class="t-campeon-nombre"><small>${icons.trophy(11)} Campeón</small>${escapeHtml(campeon?.username || '—')}</h3>
       <span class="t-campeon-mazo torneo-arte con-meta" data-torneo="${id}" data-con-nombre></span>
       ${podio ? `<span class="t-campeon-podio">${podio}</span>` : ''}
-      <span class="t-campeon-pie">${tuyo || `<span>${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}</span>`}<a class="t-campeon-ver" href="${url}" aria-label="Ver resultados: ${escapeHtml(t.name)}">Ver resultados</a></span>
+      <span class="t-campeon-pie">${tuyo}<a class="t-campeon-ver" href="${url}" aria-label="Ver resultados: ${escapeHtml(t.name)}">Ver resultados</a></span>
     </div>
   </article>`
 }

@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (707) — PINGU-Claude (1468 — Tu temporada en la banda, el hueco que invita y Campeones sin repetir)
+
+**Hecho** (propuesta «Arena: siguientes mejoras», ideas 1, 2 y 3; PINGU:
+«adelante con todo lo recomendado y sube»; antes, con /torneos delante: «¿se
+ve guay? o se puede mejorar más»):
+- **Tu temporada** (`js/torneos/temporada.js`, nuevo): con sesión y algo
+  jugado este año, la banda de /torneos dice tus torneos, podios, récord
+  (V-D o V-D-E), mejor puesto y las cinco últimas partidas (V/D/E con letra y
+  color). Las cifras de la arena («0 abiertos · 1 en juego · 3 terminados»)
+  pasan a una línea pequeña. En el móvil, una fila baja (sin el mejor puesto).
+  Tres consultas por persona (terminados tuyos, tus mesas, sus resultados),
+  después de pintar la lista. Podio = salir en el podio guardado, como el
+  perfil (`cifrasDeTorneosHtml`). Cuenta las ligas.
+- **El hueco** de «Lo próximo» ya no es un recuadro punteado de media
+  pantalla: «Organiza el tuyo» (crear, o «Entra para crear uno» sin cuenta) y,
+  si quedan dos huecos, «Lo que se juega» (→ /meta), del tamaño de un cartel.
+  Con un filtro puesto sigue el hueco con «Quitar los filtros». El aviso
+  «Avísame del próximo» NO entra (lleva migración: queda para otra tanda).
+- **Campeones**: el pie dice siempre algo tuyo («¡Ganaste tú!», «Quedaste
+  3.º», «Jugaste» o «Ver sus mazos», que abre la pestaña Mazos con
+  `&ver=meta`); ya no repite «N jugadores». Y los jugadores de un terminado
+  cuentan a quien se retiró jugando (`dropped` con `dropped_after_round_id`);
+  sin ronda, no. Si son 0 (no se ven las inscripciones), no se dice nada.
+
+**Ficheros**: `js/torneos/temporada.js` (nuevo), `js/torneos/carteles.js`,
+`js/torneos/torneos.js`, `torneos.html`, `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1468-pantalla.mjs` (lo puro, PC,
+sin sesión y móvil); `fixture-arena.mjs` con inscripciones, mesas y resultados
+fechados del Tardeo; 1463 y 316 adaptadas al hueco nuevo.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 (706) — PINGU-Claude (1467 — el haz gris de Terminados, Campeones sin cancelados y el mazo con mayúscula)
 
 **Hecho** (PINGU, con una captura de Terminados: «¿y este error?»):

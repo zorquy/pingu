@@ -6111,3 +6111,64 @@ button.torneo-tj { cursor: pointer; }
    diagonal (PINGU, 2026-11-26, en Terminados). */
 .torneo-fila-mazo.torneo-arte::before, .torneo-fila-mazo.torneo-arte::after,
 .t-campeon-mazo.torneo-arte::before, .t-campeon-mazo.torneo-arte::after { content: none; display: none; }
+
+/* ══ 1468 — Tu temporada en la banda, el hueco que invita y Campeones sin
+   repetir (SCHEMA 1468). ══ */
+/* Con tu temporada, las cifras de la arena pasan a una línea pequeña
+   («0 abiertos · 1 en juego · 3 terminados»): ya no es lo primero que se lee. */
+.torneos-heroe.con-temporada .banda-s-cifras { order: 3; gap: 0; margin-top: var(--e-xs); color: var(--text-mid); font-size: var(--t-xs); }
+.torneos-heroe.con-temporada .banda-s-cifra { flex-direction: row; gap: 4px; align-items: baseline; }
+.torneos-heroe.con-temporada .banda-s-cifra + .banda-s-cifra::before { content: '·'; margin: 0 var(--e-xs); color: var(--text-dim); }
+.torneos-heroe.con-temporada .banda-s-cifra b { font-family: inherit; font-size: inherit; font-weight: 700; color: var(--text-mid); }
+.torneos-heroe.con-temporada .banda-s-cifra small { font-size: inherit; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.torneos-heroe.con-temporada .torneos-heroe-texto { display: flex; flex-direction: column; }
+.torneos-heroe.con-temporada .torneos-heroe-texto > .t-temporada { order: 2; }
+.torneos-heroe.con-temporada .torneos-heroe-texto > .t-proximo { order: 4; }
+.t-temporada { display: grid; gap: 4px; margin-top: var(--e-sm); }
+.t-temporada[hidden] { display: none; }
+.t-temp-ceja { color: var(--tipo-liga); font-size: var(--t-2xs); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.t-temp-fila { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--e-sm) var(--e-xl); }
+.t-temp-cifras { display: flex; flex-wrap: wrap; gap: var(--e-sm) var(--e-xl); }
+.t-temp-cifra { display: grid; line-height: 1.05; }
+.t-temp-cifra b { font-family: var(--font-marca); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.t-temp-cifra.oro b { color: var(--tipo-oficial); }
+.t-temp-cifra small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.t-temp-racha { display: inline-flex; gap: 4px; padding-bottom: 2px; }
+.t-temp-racha i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; font-style: normal; font-size: 0.68rem; font-weight: 800; color: var(--tipo-sobre); }
+.t-temp-racha .r-V { background: var(--tipo-persona); }
+.t-temp-racha .r-D { background: var(--tipo-vivo); color: var(--blanco-fijo); }
+.t-temp-racha .r-E { background: var(--text-dim); }
+/* Con «Tu próximo torneo» a la vista, ese manda (como con las cifras). */
+.torneos-heroe.con-proximo .t-temporada { display: none; }
+@media (max-width: 599px) {
+  /* En el teléfono la banda no ocupa sitio (1040) salvo lo tuyo: tu temporada
+     en una línea, sin ceja y con las cifras pequeñas. */
+  .torneos-heroe.con-temporada:not(.con-proximo) .torneos-heroe-texto { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
+  .torneos-heroe.con-temporada:not(.con-proximo) .torneos-heroe-texto > :not(.t-temporada) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .torneos-heroe.con-temporada:not(.con-proximo).torneos-heroe-vacia { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--tipo-liga) 28%, var(--border)); border-radius: var(--radius-lg); }
+  .t-temporada { margin-top: 0; }
+  .t-temp-ceja { display: none; }
+  .t-temp-fila { flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: var(--e-sm); }
+  .t-temp-cifras { flex-wrap: nowrap; gap: var(--e-md); }
+  .t-temp-cifra b { font-size: var(--t-lg); }
+  .t-temp-cifra small { font-size: 0.6rem; letter-spacing: .03em; white-space: nowrap; }
+  /* El mejor puesto ya lo dice el podio en tu perfil; aquí no cabe. */
+  .t-temp-mejor { display: none; }
+  .t-temp-racha i { width: 16px; height: 16px; font-size: 0.6rem; border-radius: 4px; }
+}
+
+/* El hueco que invita (1468): una tarjeta del mismo tamaño que un cartel, con
+   el arte en el color de la liga (crear) o de online (el meta), en vez del
+   recuadro punteado de media pantalla. */
+.t-invita { --c: var(--tipo-liga); position: relative; display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); border: 1px dashed color-mix(in srgb, var(--c) 55%, var(--border)); box-shadow: var(--shadow-sm); }
+.t-invita-meta { --c: var(--tipo-online); border-style: solid; border-color: var(--border); }
+.t-invita-arte { display: grid; place-items: center; aspect-ratio: 16 / 8; max-width: 100%; color: var(--c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 30%, transparent), color-mix(in srgb, var(--c) 6%, transparent)); }
+.t-invita .t-cartel-cuerpo { display: flex; flex-direction: column; gap: var(--e-sm); }
+.t-invita-ceja { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.t-invita-texto { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.t-invita .t-cartel-boton { margin-top: auto; justify-content: center; align-self: stretch; }
+@media (max-width: 899px) { .t-carteles > .t-invita { flex-basis: min(70%, 300px); } }
+
+/* Campeones: el pie con «Ver sus mazos» cuando no jugaste. */
+a.t-campeon-tu { text-decoration: none; }
+a.t-campeon-tu:hover { color: var(--acento); }

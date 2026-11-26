@@ -790,7 +790,7 @@ async function cargarLista(session, perfil = null) {
       .limit(50),
     supabase
       .from('tournament_registrations')
-      .select('tournament_id, user_id, status'),
+      .select('tournament_id, user_id, status, dropped_after_round_id'),
   ])
   const torneos = data || []
   // El calendario pinta sobre esta misma lista: se guarda y, si es la
@@ -798,11 +798,17 @@ async function cargarLista(session, perfil = null) {
   torneosCargados = torneos
   pintarCalendario()
   const ocupadasDe = {}
+  // Los que JUGARON un terminado (1468): los que siguen y los que se
+  // retiraron por el camino. Con solo los «active», un torneo con bajas salía
+  // con menos gente de la que se sentó a jugar.
+  const jugaronDe = {}
   const miEstado = {}
   for (const i of inscripciones || []) {
     if (i.status === 'active') {
       ocupadasDe[i.tournament_id] = (ocupadasDe[i.tournament_id] || 0) + 1
     }
+    // Quien se borró ANTES de empezar no jugó (sin ronda, como en la gloria).
+    if (i.status === 'active' || (i.status === 'dropped' && i.dropped_after_round_id)) jugaronDe[i.tournament_id] = (jugaronDe[i.tournament_id] || 0) + 1
     // `session?.user` y no `session.user`: sin cuenta esto reventaba, y
     // hasta la 252 daba igual porque la página echaba a quien no fuese
     // admin. Ahora entra cualquiera.
@@ -977,7 +983,7 @@ async function cargarLista(session, perfil = null) {
         caraCampeon: caraHtml(c),
         segundo: del(1),
         tercero: del(2),
-        ocupadas: ocupadasDe[t.id] || 0,
+        ocupadas: jugaronDe[t.id] || 0,
         oficial: esOficial(t),
         soyCampeon: Boolean(yo) && t.champion_id === yo,
         puesto: yo && Array.isArray(t.podium) && t.podium.indexOf(yo) > 0 ? t.podium.indexOf(yo) + 1 : null,
@@ -986,9 +992,23 @@ async function cargarLista(session, perfil = null) {
     },
     conSesion: Boolean(session),
   })
+  // Tu temporada (1468): después de pintar, que no retrase la lista.
+  const misIds = Object.keys(miEstado)
+  const temporada = yo && misIds.length
+    ? import('./temporada.js').then(async (m) => {
+        const c = await m.cargarTemporada(supabase, { yo, misIds })
+        const caja = $('torneosTemporada')
+        const html = m.temporadaHtml(c)
+        if (!caja) return
+        caja.innerHTML = html
+        caja.hidden = !html
+        document.querySelector('.torneos-heroe')?.classList.toggle('con-temporada', Boolean(html))
+      }).catch(() => {})
+    : null
   // Lo de ahora, guardado para la próxima vez (894): ya, y otra vez cuando
   // lleguen la barra del torneo en juego y los sprites del meta.
   guardar()
+  if (temporada) temporada.then(guardar)
   Promise.resolve(vivoListo).then(guardar, () => {})
   // Los torneos sin imagen llevan los sprites del meta (796, SI4).
   // Y los terminados, el mazo de su campeón (1216), encima de los del meta.

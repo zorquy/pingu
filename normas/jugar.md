@@ -569,3 +569,15 @@ en la lista de siempre; y premios + descripción se mudan a `#torneoInfoMas`,
 después de «Tu plaza», para que en el móvil lo que tienes que hacer salga antes
 (en el PC «Tu plaza» va a su columna por CSS, `:has(> #torneoInfoCaja.con-sala)`).
 Al empezar el torneo todo vuelve a Info.
+
+**Tu temporada cuenta como el perfil, y un hueco en /torneos siempre invita**
+(tanda 1468, PINGU: «¿se ve guay? o se puede mejorar más»). La banda de
+/torneos dice tu año (`js/torneos/temporada.js`) con las MISMAS cuentas que la
+pestaña Torneos del perfil: un podio es salir en `podium` (el campeón
+incluido), y el récord sale de tus mesas y sus `match_results` (el bye no
+cuenta, como en Mis partidas). Si cambias una, cambias la otra. Los
+«jugadores» de un terminado son los `active` más los `dropped` CON
+`dropped_after_round_id` (quien se borró antes de la R1 no jugó). Y en «Lo
+próximo» un hueco nunca es un recuadro vacío: es una tarjeta del tamaño de un
+cartel que invita a algo (`invitaHtml`, `metaInvitaHtml`); solo con un filtro
+puesto el hueco dice «Quitar los filtros».
