@@ -43,7 +43,8 @@ export function salaHtml(t, gente = [], { ahora = Date.now() } = {}) {
     ? new Date(dia).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '') +
       ' · ' + new Date(dia).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     : 'Fecha por decidir'
-  const ceja = [t.format === 'league' ? 'Liga' : 'Suizo', t.is_private ? 'Con código' : 'Abierto', 'Online'].join(' · ')
+  // Dónde se juega (1454): decía «Online» también en los torneos en persona.
+  const ceja = [t.format === 'league' ? 'Liga' : 'Suizo', t.is_private ? 'Con código' : 'Abierto', t.modalidad === 'presencial' ? 'En persona' : 'Online'].join(' · ')
   const total = t.max_players ?? null
   const caras = gente.slice(0, 5).map((g) => caraHtml(g.perfil, g.perfil?.username)).join('')
   const mas = gente.length > 5 ? `<span class="sala-cara-mas">+${gente.length - 5}</span>` : ''

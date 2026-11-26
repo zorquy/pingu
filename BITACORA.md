@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (700) — PINGU-Claude (1454b — Lo que saltó al sacar las capturas de la versión final)
+
+**Hecho**: al fotografiar todas las pantallas de torneos salieron dos fallos más:
+- Las tarjetas de **Mesas** (1450) salían centradas, y con un nombre largo la
+  cabecera se rompía («M… 1–»): ahora van alineadas a la izquierda y lo que se
+  recorta es el chip «Gana…», nunca «Mesa N» ni el marcador.
+- El **cartel de Info** de un torneo en persona decía «Suizo · Abierto · Online»;
+  ahora dice «En persona».
+
+**Ficheros**: `css/torneos.css`, `js/torneos/sala.js`. Pruebas: 1452 (el cartel y la
+lista en filas) y 1217 (el día en la casilla de la fila).
+
+**Pendiente**: nada; va con 1446–1456 en el próximo push.
+
 ## 2026-11-26 (699) — PINGU-Claude (1451b — La consola del juez no se pisa en el PC con el menú lateral)
 
 **Hecho** (salió al sacar las capturas de la versión final): a 1440 px el menú

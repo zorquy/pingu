@@ -55275,6 +55275,12 @@ solo pide organizadores y campeones). `accionDe`: borrador con `corto: 'Editar'`
 `min-width: 0` y `overflow-wrap: anywhere`. `[data-cerrar-mesa]` pinta
 `icons.x(16)`.
 
+## Tanda 1454b — Mesas alineadas y el cartel en persona
+
+`.torneo-mesas-tarjetas .torneo-mesa` con `align-items: stretch`; `.torneo-mesa-rotulo`
+no encoge y el chip del centro se recorta con elipsis (`.torneo-mesa-marcador` sin
+partir). `sala.js`: la ceja del cartel dice `En persona` si `modalidad = 'presencial'`.
+
 ## Tanda 1452 — Torneos en persona: creador, lista y ficha
 
 `crear-puro.js`: `PREGUNTAS` con `donde` y `lugar` tras `nombre`;

@@ -5549,13 +5549,17 @@ button.torneo-tj { cursor: pointer; }
    Arriba el número, el estado y el «⋯»; debajo los dos jugadores, cada uno
    en su línea con su casilla V/D: los nombres caben enteros. */
 .torneo-mesas-tarjetas .torneo-mesa,
-.torneo-mesas-tarjetas .torneo-mesa:has(> .torneo-mesa-mas) { display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; }
+.torneo-mesas-tarjetas .torneo-mesa:has(> .torneo-mesa-mas) { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden; }
 .torneo-mesas-tarjetas .torneo-mesa.mia { background: var(--white); }
 .torneo-mesa-top { display: flex; align-items: center; gap: var(--e-xs); padding: 6px 10px; border-bottom: 1px solid var(--border); min-width: 0; }
 .torneo-mesa-top .torneo-mesa-num { width: 26px; height: 26px; font-size: var(--t-xs); }
 .torneo-mesa-rotulo { font-size: var(--t-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.torneo-mesas-tarjetas .torneo-mesa-centro { margin-left: auto; display: flex; align-items: center; gap: var(--e-xs); grid-row: auto; grid-column: auto; }
-.torneo-mesas-tarjetas .torneo-mesa-centro > :not(.torneo-mesa-marcador) { max-width: none; white-space: nowrap; }
+.torneo-mesas-tarjetas .torneo-mesa-centro { margin-left: auto; display: flex; align-items: center; gap: var(--e-xs); grid-row: auto; grid-column: auto; min-width: 0; flex: 0 1 auto; }
+/* Lo que se recorta es el chip («Gana cesar-emiliano-…»), nunca «Mesa 1» ni
+   el marcador (1454b: con un nombre largo salía «M…» y «1–» partido). */
+.torneo-mesas-tarjetas .torneo-mesa-rotulo { flex: 0 0 auto; }
+.torneo-mesas-tarjetas .torneo-mesa-centro > :not(.torneo-mesa-marcador) { max-width: none; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.torneo-mesas-tarjetas .torneo-mesa-marcador { white-space: nowrap; flex: 0 0 auto; }
 .torneo-mesas-tarjetas .torneo-mesa-marcador { font-size: var(--t-md); }
 .torneo-mesas-tarjetas .torneo-mesa-mas,
 .torneo-mesas-tarjetas .torneo-mesa-mas:not([open]) { position: static; grid-column: auto; grid-row: auto; }
