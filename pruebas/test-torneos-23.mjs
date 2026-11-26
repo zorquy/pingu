@@ -64,7 +64,7 @@ const abrirClasificacion = async (page) => {
 
 const nombreSeVe = (page) =>
   page.evaluate(() => {
-    const spans = [...document.querySelectorAll('#clasificacionContenido .torneo-arquetipo-nombre')]
+    const spans = [...document.querySelectorAll('#clasificacionContenido tbody .torneo-arquetipo-nombre')]
     return spans.length > 0 && spans.every((s) => getComputedStyle(s).display !== 'none')
   })
 
@@ -109,6 +109,7 @@ const BASE_SEMILLA = {
   resultados: RESULTADOS, decklists: DECKLISTS,
 }
 
+// (1448: el podio en tira lleva también la chapa de cada uno: aquí se cuentan las de la tabla.)
 // ═════════════════════════════════════════════════════════════════════
 console.log('\n── 1. Torneo TERMINADO: las chapas salen ──')
 {
@@ -117,9 +118,9 @@ console.log('\n── 1. Torneo TERMINADO: las chapas salen ──')
     torneos: [{ ...TORNEO, status: 'finished', show_opponent_decklists: false }],
   })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  const chapas = await page.locator('#clasificacionContenido .torneo-arquetipo').count()
+  const chapas = await page.locator('#clasificacionContenido tbody .torneo-arquetipo').count()
   check('hay una chapa por jugador', chapas === 2, String(chapas))
-  const etiquetas = await page.locator('#clasificacionContenido .torneo-arquetipo').evaluateAll((els) =>
+  const etiquetas = await page.locator('#clasificacionContenido tbody .torneo-arquetipo').evaluateAll((els) =>
     els.map((e) => e.getAttribute('aria-label'))
   )
   // Sin catálogo se deduce, y NO puede llamarse por los básicos.
@@ -137,8 +138,9 @@ console.log('\n── 2. EN JUEGO con lista CERRADA: no sale ninguna ──')
   })
   const chapas = await page.locator('.torneo-arquetipo').count()
   check('ni una chapa en toda la página', chapas === 0, String(chapas))
-  const cuerpo = await page.locator('body').innerText()
-  check('ni el nombre de ningún mazo suelto', !/Dragapult|Gardevoir/.test(cuerpo))
+  // Menos «Tu mazo» (1376) y la ventana de tu lista: son TU lista y la tienes que ver.
+  const cuerpo = await page.evaluate(() => { const c = document.body.cloneNode(true); c.querySelector('#torneoMazoCaja')?.remove(); c.querySelector('#torneoListaVentana')?.remove(); return c.innerText })
+  check('ni el nombre de ningún mazo suelto (salvo el tuyo en «Tu mazo»)', !/Dragapult|Gardevoir/.test(cuerpo))
   check('ni el botón de ver la lista del rival', (await page.locator('[data-ver-lista]').count()) === 0)
   await page.close()
 }
@@ -150,7 +152,7 @@ console.log('\n── 3. EN JUEGO con lista ABIERTA: sí salen ──')
     ...BASE_SEMILLA,
     torneos: [{ ...TORNEO, status: 'in_progress', show_opponent_decklists: true }],
   })
-  check('vuelven las chapas', (await page.locator('#clasificacionContenido .torneo-arquetipo').count()) === 2)
+  check('vuelven las chapas', (await page.locator('#clasificacionContenido tbody .torneo-arquetipo').count()) === 2)
   check('y el botón de ver la lista', (await page.locator('[data-ver-lista]').count()) > 0)
   await page.close()
 }
@@ -169,7 +171,7 @@ console.log('\n── 4. Con el catálogo puesto, manda el nombre curado ──'
       },
     ],
   })
-  const etiquetas = await page.locator('#clasificacionContenido .torneo-arquetipo').evaluateAll((els) =>
+  const etiquetas = await page.locator('#clasificacionContenido tbody .torneo-arquetipo').evaluateAll((els) =>
     els.map((e) => e.getAttribute('aria-label'))
   )
   check('sale el nombre del catálogo', etiquetas.includes('Dragapult Dusknoir'), JSON.stringify(etiquetas))
@@ -189,7 +191,7 @@ console.log('\n── 5. Sin cuenta, en un torneo terminado ──')
     torneos: [{ ...TORNEO, status: 'finished', show_opponent_decklists: false }],
   })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  check('el visitante también las ve', (await page.locator('#clasificacionContenido .torneo-arquetipo').count()) === 2)
+  check('el visitante también las ve', (await page.locator('#clasificacionContenido tbody .torneo-arquetipo').count()) === 2)
   await page.close()
 }
 
@@ -258,7 +260,7 @@ console.log('\n── 7. Si la CDN de sprites falla, vuelve el nombre ──')
   const volvioElNombre = await page
     .waitForFunction(
       () => {
-        const spans = [...document.querySelectorAll('#clasificacionContenido .torneo-arquetipo-nombre')]
+        const spans = [...document.querySelectorAll('#clasificacionContenido tbody .torneo-arquetipo-nombre')]
         return spans.length > 0 && spans.every((s) => getComputedStyle(s).display !== 'none')
       },
       { timeout: 8000 }
@@ -266,7 +268,7 @@ console.log('\n── 7. Si la CDN de sprites falla, vuelve el nombre ──')
     .then(() => true)
     .catch(() => false)
   check('con la CDN caída, vuelve a VERSE el nombre', volvioElNombre)
-  const etiquetas = await page.locator('#clasificacionContenido .torneo-arquetipo').evaluateAll((els) =>
+  const etiquetas = await page.locator('#clasificacionContenido tbody .torneo-arquetipo').evaluateAll((els) =>
     els.map((e) => e.innerText.trim())
   )
   check('y vuelve a verse el nombre del mazo',

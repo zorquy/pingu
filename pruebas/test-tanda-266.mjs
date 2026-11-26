@@ -80,6 +80,7 @@ console.log('\n── 3. Lo que se escribe al crear ──')
     await page.locator('#torneoNombre').fill('Copa de prueba')
     await page.keyboard.press('Enter')
     const toca = async (sel) => { await page.waitForTimeout(300); await page.locator(sel).click() }
+    await toca('.tc-opcion[data-campo="torneoModalidad"][data-valor="online"]') // 1452
     await toca('.tc-opcion[data-valor="standard"]')
     await page.waitForTimeout(300)
     const manana = new Date(Date.now() + 86400e3).toISOString().slice(0, 16)

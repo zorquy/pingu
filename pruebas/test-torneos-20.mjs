@@ -185,7 +185,7 @@ console.log('\n── 5b. Y con cuenta, la clasificación SÍ la lleva ──')
     ],
   })
   const cabeceras = await page.locator('#clasificacionContenido th').allInnerTexts()
-  check('con columna de TCG Live', cabeceras.some((c) => /TCG Live/i.test(c)), JSON.stringify(cabeceras))
+  check('sin columna de TCG Live (1448: estorbaba y el rival se ve en la mesa)', !cabeceras.some((c) => /TCG Live/i.test(c)), JSON.stringify(cabeceras))
   await page.close()
 }
 

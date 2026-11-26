@@ -77,7 +77,7 @@ for (const movil of [false, true]) {
   const q = movil ? 'Móvil' : 'PC'
   {
     const { ctx, page, errores } = await abrir({ ...liga(1), VER: 'clasificacion' }, movil)
-    const r = await page.evaluate(() => ({ lideres: document.querySelectorAll('#clasificacionContenido .torneo-lideres').length, aviso: document.querySelector('#clasificacionContenido .torneo-tabla-arranca')?.textContent.replace(/\s+/g, ' ').trim(), filas: document.querySelectorAll('#clasificacionContenido tbody tr').length }))
+    const r = await page.evaluate(() => ({ lideres: document.querySelectorAll('#clasificacionContenido .torneo-lideres').length, aviso: document.querySelector('#clasificacionContenido .torneo-tabla-arranca')?.textContent.replace(/\s+/g, ' ').trim(), filas: document.querySelectorAll('#clasificacionContenido tbody tr[data-nombre]').length /* 1448: sin la fila de la línea del corte */ }))
     check(`${q}: en la ronda 1, sin podio y con el aviso de cuánto falta`, r.lideres === 0 && r.aviso === 'La tabla arranca cuando acabe la ronda 1 de la jornada 1: van 2 de 4 mesas. El podio sale en cuanto haya algo que contar.', JSON.stringify(r))
     check(`${q}: …y la tabla sigue debajo`, r.filas === 8, r.filas)
     if (OUT) await page.screenshot({ path: `${OUT}/1403-tabla-${movil ? 'm' : 'pc'}.png`, scale: 'css' })
