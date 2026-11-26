@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (705) — PINGU-Claude (1464–1465 — los campeones en grande y la ficha de antes de empezar, de un vistazo)
+
+**Hecho** (propuesta «Campeones y ficha», PINGU: «adelante con todo lo
+recomendado y sube»; antes: «le podemos dar más importancia a los ganadores en
+la lista» y, con la Copa Tradeitto delante, «hay demasiado espacio para
+enseñar lo que hay que enseñar… es como demasiado lista»):
+- **1464** «Últimos resultados» pasa a ser **Campeones**: los tres últimos
+  terminados en carteles dorados (`campeonHtml` en `carteles.js`) con la cara
+  del campeón en grande, corona, su mazo (sprites + nombre, de su lista, que
+  `arte-meta.js` ya pedía), el 2.º y 3.º del `podium` y «Quedaste 3.º» /
+  «¡Ganaste tú!» / «Jugaste». En el móvil, el carrusel de «Lo próximo». En las
+  filas de Terminados el campeón lleva aro dorado y «Campeón · su mazo».
+- **1465** La pestaña Info antes de empezar: fuera el cartel con el nombre y la
+  mascota y las tres losas de la cuenta atrás (las dos cosas las dice ya la
+  cabecera, que ahora cuenta con minutos: «21 d 22 h 24 min»). Día · sitio ·
+  sala en una fila de tres, el formato en una tira de pastillas, los premios
+  en podio (oro en medio y más alto, «Resto» en una cinta) cuando son 1.º, 2.º
+  y 3.º, y premios + descripción en su tarjeta DESPUÉS de «Tu plaza». En el PC
+  «Tu plaza» va a su columna, fija al bajar; en el móvil sale en la primera
+  pantalla, sin la misión hecha (lo dice el anillo) y con el QR plegado hasta
+  el día del torneo («Ver mi entrada»).
+
+**Ficheros**: `js/torneos/carteles.js`, `js/torneos/torneos.js`,
+`js/torneos/arte-meta.js`, `js/torneos/sala.js`, `js/torneos/cabecera.js`,
+`js/torneos/comun.js` (`podioDePremios`), `js/torneos/torneo.js`
+(`pintarPremios`, `colocarInfoMas`, `tuEntradaHtml`), `css/torneos.css`,
+`normas/jugar.md`. Pruebas: `test-tanda-1464-pantalla.mjs` (nueva),
+`fixture-arena.mjs` (podios y listas de campeones), y adaptadas 1397, 1452,
+1463, 297 y 1331.
+
+**Numeración**: estas cuatro tandas se hicieron como 1459–1462, pero IBAI
+subió antes las suyas con 1459, 1460 y 1461 (TheHobbyClub, arquetipos de
+Limitless y el buscador de Mis partidas). Para que cada número sea de una sola
+tanda, las mías pasaron a **1462–1465** antes de subir: 1462 colores y filtros,
+1463 carteles y la liga, 1464 campeones, 1465 la ficha.
+
+**Pendiente**: el botón de la misión pegado abajo en el móvil (estaba en la
+propuesta) no entra: con «Tu plaza» en la primera pantalla, el botón ya se ve
+sin bajar. Sin migración.
+
 ## 2026-11-26 (704) — PINGU-Claude (1462–1463 — /torneos más visual: colores por tipo, cuatro filtros, carteles y la liga que cuenta)
 
 **Hecho** (propuesta «Torneos más visuales», PINGU: «adelante con todo lo

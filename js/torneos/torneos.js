@@ -21,7 +21,7 @@ import { jornadasDeLiga } from './liga-en-curso.js'
 import { esTorneoDeTienda, textoDePrecio } from './torneo-tienda.js'
 import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
 import { chapaTipoHtml, tipoPrincipal } from '../chapa-tipo.js'
-import { CARTELES, cartelHtml, cartelesHtml } from './carteles.js'
+import { CARTELES, cartelHtml, cartelesHtml, campeonHtml, campeonesHtml } from './carteles.js'
 import { ciudadDe, ciudadesDe, tramoDe, TRAMOS, ordenarProximos, terminadosPorMes, filtrarTorneos, borradoresDe, textoDeRepite } from './agenda-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -198,7 +198,7 @@ function filaHtml(t, datos) {
   // cara y los Pokémon de su mazo (los pone arte-meta.js en `data-torneo`).
   const quien = hecho
     ? campeonPerfil
-      ? `<span class="torneo-campeon">${icons.trophy(13)}<span class="torneo-fila-mazo torneo-arte con-meta" data-torneo="${escapeHtml(String(t.id))}"></span>${caraHtml(campeonPerfil)}<b>${escapeHtml(campeonPerfil.username)}</b></span>`
+      ? `<span class="torneo-campeon">${icons.trophy(13)}<span class="torneo-fila-mazo torneo-arte con-meta" data-torneo="${escapeHtml(String(t.id))}"></span>${caraHtml(campeonPerfil)}<span class="torneo-campeon-texto"><b>${escapeHtml(campeonPerfil.username)}</b><small data-mazo-de="${escapeHtml(String(t.id))}">Campeón</small></span></span>`
       : ''
     : organiza
       ? `<span class="torneo-fila-organiza">${organizador ? caraHtml(organizador) : ''}<span>${escapeHtml(organiza)}</span></span>`
@@ -279,6 +279,11 @@ function cartelDe(t, { ocupadas = 0, miEstado = null, rondas = null, gente = {} 
     precio: escapeHtml(textoDePrecio(t.precio_entrada, { deTienda: esTorneoDeTienda(t, gente) }) || ''),
     premio: hayPremios(t) ? resumenDePremios(t) : '',
     repite: textoDeRepite(t),
+    // «Con código» también en el cartel: quien lo ve sabe antes de entrar que
+    // hace falta (la 367).
+    privado: t.is_private ? CHAPA_PRIVADO() : '',
+    // Tu torneo lleva su borde también en juego (la 1393), como su fila.
+    mio: miEstado === 'active',
   })
 }
 
@@ -496,7 +501,7 @@ function chipsDeFiltroHtml() {
         ${ciudades.map((c) => `<button type="button" role="menuitem" data-ciudad="${escapeHtml(c.ciudad)}"${ciudadLista === c.ciudad ? ' class="activa"' : ''}>${escapeHtml(c.ciudad)} <small>${c.n}</small></button>`).join('')}
       </div>
     </details>
-    <label class="torneos-buscar${buscaLista ? ' abierta' : ''}"><span class="sr-only">Busca un torneo</span>${icons.search(16)}<input type="search" id="torneosBuscar" placeholder="Busca un torneo o un sitio" autocomplete="off" value="${escapeHtml(buscaLista)}" /></label>`
+    <label class="torneos-buscar${buscaLista ? ' abierta' : ''}">${icons.search(16)}<input type="search" id="torneosBuscar" aria-label="Busca un torneo" placeholder="Busca un torneo o un sitio" autocomplete="off" enterkeyhint="search" value="${escapeHtml(buscaLista)}" /></label>`
 }
 
 function filtrados(lista) {
@@ -530,7 +535,11 @@ function cuerpoProximosHtml() {
   if (!lista.length && conFiltro) partes.push(vacioDeFiltrosHtml('No hay torneos con estos filtros.'))
   const ultimos = filtrados(hechos).sort((a, b) => new Date(b.start_at) - new Date(a.start_at))
   if (ultimos.length) {
-    partes.push(tramoHtml('Últimos resultados', ultimos.slice(0, ULTIMOS_RESULTADOS).map((t) => fila(t, null)), { clase: 'torneos-ultimos' }) +
+    // Campeones (1464): los últimos, en carteles dorados; el que no tiene
+    // campeón que enseñar, en su fila de siempre.
+    const ultimosTres = ultimos.slice(0, ULTIMOS_RESULTADOS)
+    const carteles = ultimosTres.map((t) => agenda.campeon?.(t) || null)
+    partes.push(campeonesHtml(carteles.filter(Boolean), ultimosTres.filter((_, i) => !carteles[i]).map((t) => fila(t, null)).join('')) +
       `<button type="button" class="btn-secondary torneos-ver-hechos" data-ver-hechos>Ver ${ultimos.length === 1 ? 'el terminado' : `los ${ultimos.length} terminados`}</button>`)
   }
   return partes.join('')
@@ -567,7 +576,7 @@ function pintarCuerpoAgenda() {
   const franja = $('torneosLigas')
   if (franja) franja.classList.toggle('hidden', vistaHechos)
   // Los Pokémon del mazo de cada campeón, en las filas que se acaban de pintar.
-  if (caja.querySelector('.torneo-fila-mazo')) import('./arte-meta.js').then((m) => m.ponerArteDeCampeones(caja, agenda.hechos)).catch(() => {})
+  if (caja.querySelector('.torneo-fila-mazo, .t-campeon-mazo')) import('./arte-meta.js').then((m) => m.ponerArteDeCampeones(caja, agenda.hechos)).catch(() => {})
   // Los carteles (1463): los mazos del meta en los que no tienen imagen, lo
   // que le falta a la liga (podio, tu puesto, listas) y su reloj si se juega.
   if (caja.querySelector('.t-cartel-arte')) import('./arte-meta.js').then((m) => m.ponerArteDelMeta(caja)).catch(() => {})
@@ -810,6 +819,8 @@ async function cargarLista(session, perfil = null) {
   for (const t of torneos) {
     if (t.admin_id) quienes.add(t.admin_id)
     if (t.champion_id) quienes.add(t.champion_id)
+    // El 2.º y el 3.º del podio guardado, para los carteles de Campeones (1464).
+    if (t.status === 'finished' && Array.isArray(t.podium)) t.podium.slice(1, 3).forEach((u) => u && quienes.add(u))
   }
   // Las rondas de las ligas y los perfiles salen de lo ya traído y no
   // dependen una de otra: a la vez (894, R3).
@@ -946,6 +957,27 @@ async function cargarLista(session, perfil = null) {
       ? ligaCartelHtml(t, rondasDe[t.id], { inscrito: miEstado[t.id] === 'active' })
       : cartelDe(t, { ocupadas: ocupadasDe[t.id] || 0, miEstado: miEstado[t.id] || null, rondas: rondasDe[t.id] || null, gente })),
     ligas: { porId: new Map(ligasEnCurso.map((t) => [String(t.id), t])), rondasDe, miEstado, ocupadasDe, gente, userId: yo },
+    // El cartel dorado de un terminado (1464); null si no hay campeón que
+    // enseñar (un cancelado, o el perfil no llegó): ese va en fila.
+    campeon: (t) => {
+      const c = t.status === 'finished' ? gente[t.champion_id] : null
+      if (!c) return null
+      const del = (i) => {
+        const p = Array.isArray(t.podium) ? gente[t.podium[i]] : null
+        return p ? { nombre: p.username, cara: caraHtml(p) } : null
+      }
+      return campeonHtml(t, {
+        campeon: c,
+        caraCampeon: caraHtml(c),
+        segundo: del(1),
+        tercero: del(2),
+        ocupadas: ocupadasDe[t.id] || 0,
+        oficial: esOficial(t),
+        soyCampeon: Boolean(yo) && t.champion_id === yo,
+        puesto: yo && Array.isArray(t.podium) && t.podium.indexOf(yo) > 0 ? t.podium.indexOf(yo) + 1 : null,
+        jugaste: Boolean(miEstado[t.id]),
+      })
+    },
     conSesion: Boolean(session),
   })
   // Lo de ahora, guardado para la próxima vez (894): ya, y otra vez cuando

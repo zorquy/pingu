@@ -313,6 +313,13 @@ export function premiosDeTorneo(torneo) {
     .slice(0, PREMIOS_MAXIMO)
 }
 
+// Los tres primeros premios, si son el 1.º, el 2.º y el 3.º (puro).
+export function podioDePremios(premios) {
+  if (!Array.isArray(premios) || premios.length < 3) return null
+  const n = (p) => Number(String(p.puesto).trim().match(/^(\d+)\s*(?:º|°|\.º|o|er|ero|do|ro|.)?$/i)?.[1])
+  return n(premios[0]) === 1 && n(premios[1]) === 2 && n(premios[2]) === 3 ? premios.slice(0, 3) : null
+}
+
 export function hayPremios(torneo) {
   return premiosDeTorneo(torneo).length > 0
 }

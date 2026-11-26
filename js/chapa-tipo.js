@@ -26,7 +26,10 @@ export function chapaTipoHtml(tipo, { texto = null, llena = false, titulo = '' }
   const t = TIPOS_DE_TORNEO[tipo]
   if (!t) return ''
   const ico = tipo === 'vivo' ? '<span class="chapa-tipo-punto" aria-hidden="true"></span>' : icons[t.icono]?.(12) || ''
-  return `<span class="chapa-tipo${llena ? ' llena' : ''}" data-tipo-torneo="${tipo}"${titulo ? ` title="${escapeHtml(titulo)}"` : ''}>${ico}${escapeHtml(texto ?? t.texto)}</span>`
+  // La de «en juego» llena conserva `torneo-estado-jugando` (la 311 mide que
+  // su texto se lea sobre el rojo, en los dos temas).
+  const estado = tipo === 'vivo' && llena ? ' torneo-estado-jugando' : ''
+  return `<span class="chapa-tipo${llena ? ' llena' : ''}${estado}" data-tipo-torneo="${tipo}"${titulo ? ` title="${escapeHtml(titulo)}"` : ''}>${ico}${escapeHtml(texto ?? t.texto)}</span>`
 }
 
 // El tipo que manda en el color de un torneo (el de su fondo y su fecha):

@@ -5877,7 +5877,7 @@ button.torneo-tj { cursor: pointer; }
 .torneos-filtros .chip-filtro .torneo-pestana-cuenta { opacity: .85; }
 /* Lista / Calendario: un botón redondo, también en el PC (el conmutador de dos, fuera). */
 .torneo-vista-conmutador { display: none !important; }
-.torneos-vista-icono { display: inline-grid; place-items: center; width: 40px; min-width: 40px; height: 40px; padding: 0; border-radius: var(--radius-pill); }
+.torneos-vista-icono { display: inline-grid; place-items: center; width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: var(--radius-pill); }
 .torneos-vista-icono[hidden] { display: none; }
 .torneos-filtros > .torneos-vista-icono { flex: 0 0 auto; }
 .torneos-mandos:has(> .torneos-semana.hidden) { display: none; }
@@ -5887,7 +5887,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-fila-donde .chapa-tipo { font-size: 0.72rem; }
 @media (max-width: 599px) {
   /* La lupa del móvil: un círculo que se abre a lo ancho de la fila. */
-  .torneos-filtros .torneos-buscar { flex: 0 0 40px; width: 40px; min-width: 40px; min-height: 40px; padding: 0; justify-content: center; cursor: pointer; }
+  .torneos-filtros .torneos-buscar { flex: 0 0 44px; width: 44px; min-width: 44px; min-height: 44px; padding: 0; justify-content: center; cursor: pointer; }
   .torneos-filtros .torneos-buscar input { width: 0; opacity: 0; }
   .torneos-filtros .torneos-buscar.abierta { position: absolute; inset: 0 var(--e-lg, 16px); width: auto; min-width: 0; z-index: 3; padding: 0 var(--e-md); justify-content: flex-start; }
   .torneos-filtros .torneos-buscar.abierta input { width: 100%; opacity: 1; }
@@ -5968,3 +5968,140 @@ button.torneo-tj { cursor: pointer; }
 /* En el teléfono el carrusel se explica solo: sin el título «Lo próximo», lo
    primero queda arriba (la 1040: antes de 296 px). */
 @media (max-width: 599px) { .t-carteles-tramo > .torneos-tramo-cab { display: none; } }
+
+/* ── 1464 · Campeones: los últimos terminados en carteles DORADOS ──
+   El oro es solo del campeón (`--tipo-oficial`, que ya cambia con el tema):
+   los carteles de «Lo próximo» van del color de su tipo. Cara grande con
+   corona y aro, su mazo debajo y el 2.º y 3.º pequeños. */
+.t-campeon { --oro: var(--tipo-oficial); position: relative; display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); border: 1px solid color-mix(in srgb, var(--oro) 38%, var(--border)); box-shadow: var(--shadow-sm); }
+.t-campeon-arte { position: relative; display: grid; place-items: center; height: 132px; overflow: hidden; text-decoration: none; background: radial-gradient(120% 90% at 50% 112%, color-mix(in srgb, var(--oro) 46%, transparent), transparent 62%), linear-gradient(160deg, color-mix(in srgb, var(--oro) 20%, #15202b), #15202b 72%); }
+.t-campeon-rayos { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 50% 118%, color-mix(in srgb, var(--oro) 14%, transparent) 0 6deg, transparent 6deg 18deg); }
+.t-campeon-arte .t-cartel-dia { --c: var(--oro); }
+.t-campeon-cara { position: relative; margin-top: 22px; }
+.t-campeon-cara .torneo-cara { width: 76px; height: 76px; margin: 0; border: 0; border-radius: 50%; font-size: var(--t-2xl); box-shadow: 0 0 0 3px var(--oro), 0 0 0 7px color-mix(in srgb, var(--oro) 24%, transparent), 0 10px 30px rgba(0, 0, 0, .45); }
+.t-campeon-corona { position: absolute; z-index: 1; top: -19px; left: 50%; transform: translateX(-50%); color: var(--oro); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
+.t-campeon-cuerpo { display: grid; gap: var(--e-sm); align-content: start; padding: var(--e-md) var(--e-lg) var(--e-lg); text-align: center; min-width: 0; }
+.t-campeon-torneo { font-size: var(--t-xs); color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-campeon-torneo a { color: inherit; font-weight: 700; text-decoration: none; }
+.t-campeon-torneo a:hover { color: var(--text); text-decoration: underline; }
+.t-campeon-nombre { margin: 0; font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-campeon-nombre small { display: flex; justify-content: center; align-items: center; gap: 4px; font-family: 'Inter', sans-serif; font-size: var(--t-2xs); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--oro); }
+/* El mazo: los sprites y el nombre en una pastilla (los pone arte-meta.js).
+   Sin lista del campeón a la vista, no sale. */
+.t-campeon-mazo.torneo-arte { position: static; justify-self: center; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; height: auto; min-height: 0; aspect-ratio: auto; padding: 2px 12px 2px 6px; border-radius: var(--radius-pill); background: var(--bg); border: 1px solid var(--border); overflow: hidden; }
+.t-campeon-mazo.torneo-arte:not(.con-campeon) { display: none; }
+.t-campeon-mazo .torneo-arte-meta { position: static; display: inline-flex; transform: none; inset: auto; padding: 0; background: none; }
+.t-campeon-mazo .torneo-arte-sprite { width: 28px; height: 28px; margin: -3px -4px; filter: none; }
+.t-campeon-mazo-nombre { font-size: var(--t-xs); font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-campeon-podio { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px var(--e-md); font-size: var(--t-xs); color: var(--text-mid); }
+.t-campeon-podio > span { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.t-campeon-podio .torneo-cara { width: 20px; height: 20px; margin: 0; border: 0; font-size: var(--t-2xs); }
+.t-campeon-medalla { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-style: normal; font-size: var(--t-2xs); font-weight: 800; color: #0b1219; }
+.t-campeon-medalla.m2 { background: #c9d4dc; }
+.t-campeon-medalla.m3 { background: #d99a62; }
+.t-campeon-pie { display: flex; justify-content: space-between; align-items: center; gap: var(--e-sm); margin-top: 2px; padding-top: var(--e-sm); border-top: 1px solid var(--border); font-size: var(--t-xs); color: var(--text-mid); }
+.t-campeon-tu { color: var(--juego-violeta-claro); }
+.t-campeon-tu.oro { color: var(--oro); }
+.t-campeon-tu.suave { color: var(--text-mid); font-weight: 600; }
+.t-campeon-ver { color: var(--acento); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.t-campeon-ver:hover { text-decoration: underline; }
+.t-campeon-mio { box-shadow: 0 0 0 2px color-mix(in srgb, var(--juego-violeta) 55%, transparent), var(--shadow-sm); }
+@media (hover: hover) {
+  .t-campeon { transition: transform .18s var(--ease), box-shadow .18s var(--ease); }
+  .t-campeon:hover { transform: translateY(-2px); box-shadow: 0 10px 28px color-mix(in srgb, var(--oro) 22%, transparent); }
+}
+/* Con menos de tres, no se estiran a lo ancho. */
+.t-campeones[data-n='1'] { grid-template-columns: minmax(0, 380px); }
+.t-campeones[data-n='2'] { grid-template-columns: repeat(2, minmax(0, 380px)); }
+.t-campeones-tramo .torneos-filas { margin-top: var(--e-md); }
+/* En la fila de un terminado, el campeón deja de ser un nombre suelto: cara
+   con aro de oro y, debajo, «Campeón · su mazo». */
+.torneo-fila .torneo-campeon .torneo-cara { width: 30px; height: 30px; border-color: var(--tipo-oficial); }
+.torneo-campeon-texto { display: grid; min-width: 0; line-height: 1.2; }
+.torneo-campeon-texto small { font-size: var(--t-2xs); font-weight: 700; color: var(--tipo-oficial); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 899px) {
+  .t-campeones[data-n] { grid-template-columns: none; }
+}
+
+/* ── 1465 · La ficha de un vistazo (Info antes de empezar) ──
+   Día · sitio · sala en una fila, el formato en una tira, los premios en
+   podio y «Tu plaza» como una entrada: en el PC a su columna, fija al bajar;
+   en el móvil, justo debajo (antes de los premios). La cuenta atrás es la de
+   la cabecera, con minutos. */
+.torneo-info.con-sala > .torneo-sitio { display: none; }
+.sala-tres { display: grid; grid-template-columns: 118px minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--e-sm); }
+.sala-dia, .sala-sitio, .sala-gente { min-width: 0; padding: var(--e-md); border-radius: var(--radius-lg); background: var(--white); border: 1px solid var(--border); }
+.sala-dia { --c: var(--tipo-persona); display: grid; justify-items: center; align-content: center; text-align: center; border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, var(--white)), var(--white)); }
+.sala-dia[data-tipo-torneo='online'] { --c: var(--tipo-online); }
+.sala-dia[data-tipo-torneo='liga'] { --c: var(--tipo-liga); }
+.sala-dia small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--c); }
+.sala-dia b { font-family: var(--font-display); font-size: 2.5rem; line-height: 1; }
+.sala-dia span { font-size: var(--t-xs); font-weight: 600; color: var(--text-mid); white-space: nowrap; }
+.sala-sitio { display: grid; gap: 2px; align-content: center; }
+.sala-sitio .sala-ceja { display: inline-flex; align-items: center; gap: 4px; color: var(--tipo-persona); }
+.sala-sitio[data-tipo-torneo='online'] .sala-ceja { color: var(--tipo-online); }
+.sala-sitio b { font-family: var(--font-display); font-size: var(--t-lg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sala-sitio span { font-size: var(--t-xs); color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sala-sitio a { margin-top: 2px; font-size: var(--t-xs); font-weight: 700; color: var(--acento); text-decoration: none; }
+.sala-sitio a:hover { text-decoration: underline; }
+.sala-tres .sala-gente { display: grid; align-content: center; gap: 6px; border-radius: var(--radius-lg); padding: var(--e-md); }
+.sala-tres .sala-gente-texto b { font-size: var(--t-lg); }
+.sala-tira { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--e-sm) 0 0; }
+.sala-pastilla { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 7px; border-radius: var(--radius-pill); background: var(--white); border: 1px solid var(--border); font-size: var(--t-sm); white-space: nowrap; }
+.sala-pastilla svg { box-sizing: content-box; padding: 4px; border-radius: 50%; background: color-mix(in srgb, var(--juego-violeta) 18%, transparent); color: var(--juego-violeta-claro); }
+.sala-pastilla b { font-family: var(--font-display); }
+.sala-pastilla small { font-size: var(--t-xs); color: var(--text-mid); }
+/* Los premios en podio: oro en medio y más alto. */
+.torneo-podio-premios { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: var(--e-sm); align-items: end; margin-top: var(--e-sm); }
+.torneo-escalon { display: grid; justify-items: center; align-content: start; gap: 6px; padding: var(--e-md) var(--e-sm); border-radius: var(--radius-lg) var(--radius-lg) 6px 6px; border: 1px solid; text-align: center; min-width: 0; }
+.torneo-escalon b { font-size: var(--t-sm); line-height: 1.3; overflow-wrap: anywhere; }
+.torneo-escalon small { font-size: var(--t-xs); color: var(--text-mid); line-height: 1.3; overflow-wrap: anywhere; }
+.torneo-escalon-medalla { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font-style: normal; font-family: var(--font-display); font-size: var(--t-lg); font-weight: 800; color: #0b1219; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
+.torneo-escalon.e1 { min-height: 168px; border-color: color-mix(in srgb, var(--tipo-oficial) 50%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--tipo-oficial) 24%, var(--white)), var(--white)); }
+.torneo-escalon.e1 .torneo-escalon-medalla { width: 42px; height: 42px; font-size: var(--t-xl); background: #f0c048; }
+.torneo-escalon.e1 b { font-size: var(--t-md); }
+.torneo-escalon.e2 { min-height: 138px; border-color: color-mix(in srgb, #9aa8b3 45%, transparent); background: linear-gradient(180deg, color-mix(in srgb, #9aa8b3 18%, var(--white)), var(--white)); }
+.torneo-escalon.e2 .torneo-escalon-medalla { background: #c9d4dc; }
+.torneo-escalon.e3 { min-height: 122px; border-color: color-mix(in srgb, #d99a62 45%, transparent); background: linear-gradient(180deg, color-mix(in srgb, #d99a62 18%, var(--white)), var(--white)); }
+.torneo-escalon.e3 .torneo-escalon-medalla { background: #d99a62; }
+.torneo-premios-cintas { margin-top: var(--e-sm); }
+.torneo-premios-cintas .torneo-premio { border-style: dashed; }
+/* La tarjeta de premios y descripción, aparte (después de «Tu plaza»). */
+.torneo-info-mas > .torneo-premios { margin-top: 0; }
+/* «Tu plaza» como entrada: verde arriba, como un billete. */
+.torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); background: linear-gradient(180deg, var(--success-bg), var(--white) 160px); }
+.torneo-billete-ver { display: none; }
+@media (min-width: 900px) {
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) { display: grid; grid-template-columns: minmax(0, 1fr) 330px; column-gap: var(--e-lg); align-items: start; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > * { grid-column: 1; min-width: 0; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 140px; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .torneo-billete { flex-direction: row; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .torneo-billete-qr { width: 112px; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .sala-mision { grid-template-columns: 36px minmax(0, 1fr); }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .sala-mision-ico { width: 36px; height: 36px; border-radius: 11px; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .sala-mision > :nth-child(3) { grid-column: 1 / -1; justify-self: stretch; }
+}
+@media (max-width: 899px) {
+  .sala-tres { grid-template-columns: 84px minmax(0, 1fr); }
+  .sala-tres .sala-gente { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-sm) var(--e-md); }
+  .sala-dia b { font-size: 2rem; }
+  .sala-tira { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--e-md)); padding-inline: var(--e-md); }
+  .sala-tira::-webkit-scrollbar { display: none; }
+  .torneo-escalon { padding: var(--e-sm) 6px; }
+  .torneo-escalon small { display: none; }
+  .torneo-escalon.e1 small { display: block; }
+  .torneo-escalon.e1 { min-height: 140px; } .torneo-escalon.e2 { min-height: 118px; } .torneo-escalon.e3 { min-height: 104px; }
+  /* El QR, plegado hasta el día (o hasta tocar «Ver mi entrada»). */
+  .torneo-billete:not(.abierto) .torneo-billete-qr { display: none; }
+  .torneo-billete-ver { display: inline; justify-self: start; min-height: 0; padding: 0; font-size: var(--t-xs); }
+  .torneo-billete.abierto .torneo-billete-ver { display: none; }
+}
+.torneo-info-mas > .torneo-premios { margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+.torneo-premios-cintas .torneo-premio { border: 1px dashed var(--border-strong); background: transparent; }
+.sala-gente-texto small { white-space: nowrap; }
+.torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .torneo-billete-texto span { font-size: var(--t-sm); line-height: 1.35; }
+@media (max-width: 899px) {
+  /* «Tu plaza» encogida: lo hecho ya lo dice el anillo (1/3). */
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .sala-mision.hecha:not(:has(button)) { display: none; }
+  .torneo-panel[data-panel='torneo']:has(> #torneoInfoCaja.con-sala) > #torneoMiPlaza .torneo-billete { padding: var(--e-sm) var(--e-md); }
+}

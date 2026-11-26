@@ -5,7 +5,7 @@
 import { supabase } from '../supabase.js'
 import { urlDeIcono } from '../meta/nucleo.js'
 import { CDN_SPRITES, cadenaDeRespaldos, SALTO_DE_RESPALDO, spriteDeCarta } from './sprites-pokemon.js'
-import { deducirIconos } from './arquetipos.js'
+import { deducirIconos, esBasicBox } from './arquetipos.js'
 
 // Puro: los iconos de los N mazos de más cuota, uno por mazo y sin repetir.
 export function iconosDelMeta(filas, n = 3) {
@@ -50,8 +50,16 @@ export async function ponerArteDelMeta(raiz = document) {
 export function urlsDelCampeon(parsed) {
   return deducirIconos(parsed).map((i) => spriteDeCarta(i.nombre)).filter(Boolean)
 }
+// El nombre del mazo del campeón (1464): los dos Pokémon que dan sus iconos
+// («Dragapult ex Dusknoir»), o «Basic Box». Sin catálogo: es una etiqueta al
+// lado de los sprites, no la ficha del meta.
+export function nombreDelMazo(parsed) {
+  if (!parsed) return ''
+  if (esBasicBox(parsed)) return 'Basic Box'
+  return deducirIconos(parsed).map((i) => i.nombre).filter(Boolean).join(' ')
+}
 export async function ponerArteDeCampeones(raiz = document, torneos = []) {
-  const terminados = torneos.filter((t) => t.status === 'finished' && t.champion_id && !t.image_url)
+  const terminados = torneos.filter((t) => t.status === 'finished' && t.champion_id)
   if (!terminados.length) return 0
   const { data, error } = await supabase.from('tournament_decklists').select('tournament_id, user_id, parsed_cards').in('tournament_id', terminados.map((t) => t.id))
   if (error || !data?.length) return 0
@@ -59,6 +67,11 @@ export async function ponerArteDeCampeones(raiz = document, torneos = []) {
   for (const t of terminados) {
     const lista = data.find((d) => d.tournament_id === t.id && d.user_id === t.champion_id)
     const urls = lista ? urlsDelCampeon(lista.parsed_cards) : []
+    // Campeones (1464): el nombre del mazo debajo del campeón, en la fila
+    // («Campeón · Dragapult ex») y en el cartel dorado (con sus sprites).
+    const nombre = lista ? nombreDelMazo(lista.parsed_cards) : ''
+    const debajo = raiz.querySelector(`[data-mazo-de="${CSS.escape(String(t.id))}"]`)
+    if (debajo && nombre) debajo.textContent = `Campeón · ${nombre}`
     const arte = raiz.querySelector(`.torneo-arte[data-torneo="${CSS.escape(String(t.id))}"]`)
     if (!arte || !urls.length) continue
     arte.querySelector('.torneo-arte-meta')?.remove()
@@ -68,6 +81,7 @@ export async function ponerArteDeCampeones(raiz = document, torneos = []) {
       return `<img class="torneo-arte-sprite" src="${url}" alt="" width="56" height="56" loading="lazy"${cadena.length ? ` data-respaldos="${cadena.join(' ')}"` : ''} onerror="${SALTO_DE_RESPALDO}" />`
     }).join('')
     arte.insertAdjacentHTML('beforeend', `<span class="torneo-arte-meta" aria-hidden="true" title="El mazo del campeón">${imgs}</span>`)
+    if ('conNombre' in arte.dataset && nombre) arte.insertAdjacentHTML('beforeend', `<b class="t-campeon-mazo-nombre">${nombre.replace(/[<>&"]/g, '')}</b>`)
     n++
   }
   return n

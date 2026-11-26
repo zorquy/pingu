@@ -55450,6 +55450,32 @@ de 40 px, `.abierta` a lo ancho (clic / focusout).
 (los mismos huecos `data-lc-*`). `agenda-puro.js` → `ordenarProximos(t, { cuando,
 enJuego })`. La franja `#torneosLigas` se queda vacía y escondida.
 
+## Tanda 1464–1465 — Campeones y la ficha de un vistazo
+
+**Campeones (1464)**: `carteles.js` → `campeonHtml(t, {campeon, caraCampeon,
+segundo, tercero, ocupadas, oficial, soyCampeon, puesto, jugaste})` y
+`campeonesHtml(carteles, filas)` (`.t-campeones-tramo`, reutiliza `.t-carteles`
+para el carrusel y sus puntos). `torneos.js` → `agenda.campeon(t)` (null sin
+campeón: ese va en fila), el 2.º y 3.º del `podium` entran en la consulta de
+perfiles; en la fila de un terminado, `<small data-mazo-de="id">`.
+`arte-meta.js` → `nombreDelMazo(parsed)` («Basic Box» o los dos Pokémon de
+`deducirIconos`) y `ponerArteDeCampeones` rellena el nombre en
+`[data-mazo-de]` y en `.t-campeon-mazo[data-con-nombre]`; ya no se salta los
+torneos con imagen.
+
+**La ficha (1465)**: `sala.js` → `salaHtml(t, gente)` devuelve `.sala-tres`
+(`.sala-dia` con `data-tipo-torneo`, `.sala-sitio` con «Cómo llegar» o TCG
+Live, `.sala-gente` con «quedan N») y `.sala-tira` de `.sala-pastilla`; sin
+cartel, mascota ni reloj propio. `cabecera.js` → antes de empezar, «N d N h N
+min». `comun.js` → `podioDePremios(premios)`. `torneo.js` → `pintarPremios`
+pinta `.torneo-podio-premios` con `.torneo-escalon.e1|e2|e3` y el resto en
+`.torneo-premios-cintas`; `colocarInfoMas()` muda `#torneoPremios` y
+`#torneoDescripcion` a `#torneoInfoMas` (después de `#torneoMiPlaza`) mientras
+`#torneoInfoCaja` tenga `.con-sala`, y los devuelve al empezar;
+`tuEntradaHtml` → `.torneo-billete.abierto` el día del torneo y el botón «Ver
+mi entrada». CSS: `torneos.css`, bloque 1465 (rejilla de dos columnas en el PC
+por `:has(> #torneoInfoCaja.con-sala)`).
+
 ## Tanda 1458 — Ventanas modales centradas
 
 `style.css`: `:where(dialog:modal) { margin: auto; }` tras el reseteo `*` (especificidad

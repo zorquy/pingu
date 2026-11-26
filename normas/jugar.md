@@ -542,3 +542,19 @@ que llega se guarda: los filtros repintan la agenda entera). Ningún vacío dice
 `sr-only` dentro va `position: relative`: en el carrusel del móvil, un
 absoluto sin caja propia se escapaba del deslizable y ensanchaba la página
 entera a 570 px.
+
+**El oro es del campeón, y la ficha de antes de empezar no repite nada**
+(tandas 1464–1465, PINGU: «darle más importancia a los ganadores» y «hay
+demasiado espacio para enseñar lo que hay que enseñar»). En /torneos los
+últimos terminados son carteles DORADOS (`campeonHtml`, `.t-campeon`, que no es
+`.t-cartel`: un cartel es algo a lo que apuntarse); el dorado no se usa para
+nada más. Su mazo lo pone `arte-meta.js` desde la lista del campeón que ya se
+pide (sin consulta nueva), y el 2.º y 3.º salen de `podium`, que guarda como
+mucho cuatro (no hay «Quedaste 7.º»: fuera del podio, «Jugaste»). En la ficha,
+antes de empezar: el nombre y la cuenta atrás los dice SOLO la cabecera; la sala
+es día · sitio · sala en una fila y el formato una tira; los premios van en podio
+solo si los tres primeros puestos son 1.º, 2.º y 3.º (`podioDePremios`), y si no,
+en la lista de siempre; y premios + descripción se mudan a `#torneoInfoMas`,
+después de «Tu plaza», para que en el móvil lo que tienes que hacer salga antes
+(en el PC «Tu plaza» va a su columna por CSS, `:has(> #torneoInfoCaja.con-sala)`).
+Al empezar el torneo todo vuelve a Info.

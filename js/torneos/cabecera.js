@@ -33,8 +33,14 @@ const SIN_EMPEZAR = ['draft', 'registration_open', 'registration_closed']
 export function cuentaDeCabecera(t, { rondas = null, ronda = null, ahora = Date.now() } = {}) {
   if (!t || ['finished', 'cancelled'].includes(t.status)) return null
   if (SIN_EMPEZAR.includes(t.status)) {
-    const falta = cuentaAtras(Date.parse(t.start_at || '') - ahora)
-    return falta ? { rotulo: 'Empieza en', valor: falta } : null
+    // Con los minutos (1465): es la ÚNICA cuenta atrás de la ficha desde
+    // que la sala dejó sus tres losas, y «22 d 21 h» parecía parada.
+    const ms = Date.parse(t.start_at || '') - ahora
+    const falta = cuentaAtras(ms)
+    if (!falta) return null
+    const min = Math.max(1, Math.floor(ms / 60e3))
+    const d = Math.floor(min / 1440)
+    return { rotulo: 'Empieza en', valor: d ? `${d} d ${Math.floor((min % 1440) / 60)} h ${min % 60} min` : falta }
   }
   if (t.format === 'league' && Array.isArray(rondas)) {
     const { siguiente } = jornadasDeLiga(t, rondas)

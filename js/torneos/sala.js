@@ -3,7 +3,9 @@
 // empezar, Info era una ficha: el día en una caja, cuatro chapas de texto y
 // una barra de plazas con su frase. Ahora es la sala de un juego: el cartel
 // con la mascota, la cuenta atrás en tres losas, quién está dentro con sus
-// caras y el formato en cuatro losas de icono y número.
+// caras y el formato en cuatro losas de icono y número. Desde la 1465, de un
+// vistazo: el día, el sitio y la sala en una fila, y el formato en una tira
+// (el nombre y la cuenta atrás ya los dice la cabecera).
 //
 // Puro salvo `montarSala` (lo prueba node con `salaHtml`). Las piezas viejas
 // (#torneoCuando, #torneoFormato, .torneo-plazas) siguen en el HTML: el CSS
@@ -22,57 +24,61 @@ export function cuentaAtras(fecha, ahora = Date.now()) {
   return { d: Math.floor(min / 1440), h: Math.floor((min % 1440) / 60), m: min % 60 }
 }
 
-const dos = (n) => String(n).padStart(2, '0')
-
-function losasDeFormato(t) {
+// El formato, en una TIRA de pastillas (1465): rondas, suizo o corte,
+// minutos, BO y, si hace falta, el código. Antes eran cuatro losas altas.
+function pastillasDeFormato(t) {
   const liga = t.format === 'league'
   const n = Array.isArray(t.matchday_dates) ? t.matchday_dates.length : 0
   return [
-    liga ? [icons.calendar(18), n || '—', n === 1 ? 'jornada' : 'jornadas'] : [icons.layers(18), t.swiss_rounds ?? '—', 'rondas'],
-    t.top_cut_size ? [icons.trophy(18), `Top ${t.top_cut_size}`, 'al final'] : [icons.trophy(18), 'Suizo', 'sin corte'],
-    [icons.clock(18), `${t.round_time_minutes ?? 30}′`, 'por ronda'],
-    [icons.zap ? icons.zap(18) : icons.clock(18), `BO${t.swiss_bo ?? 1}`, 'partidas'],
+    liga ? [icons.calendar(15), n || '—', n === 1 ? 'jornada' : 'jornadas'] : [icons.layers(15), t.swiss_rounds ?? '—', 'rondas'],
+    t.top_cut_size ? [icons.trophy(15), `Top ${t.top_cut_size}`, 'al final'] : [icons.trophy(15), 'Suizo', 'sin corte'],
+    [icons.clock(15), `${t.round_time_minutes ?? 30}′`, 'por ronda'],
+    [icons.zap ? icons.zap(15) : icons.clock(15), `BO${t.swiss_bo ?? 1}`, ''],
+    ...(t.is_private ? [[icons.lock(15), 'Con código', '']] : []),
   ]
 }
 
-// `gente`: los inscritos activos, cada uno `{ perfil }`. `yo`: tu id.
-export function salaHtml(t, gente = [], { ahora = Date.now() } = {}) {
-  const c = cuentaAtras(t.start_at, ahora)
-  const dia = Date.parse(t.start_at || '')
-  const cuando = Number.isFinite(dia)
-    ? new Date(dia).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '') +
-      ' · ' + new Date(dia).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-    : 'Fecha por decidir'
-  // Dónde se juega (1454): decía «Online» también en los torneos en persona.
-  const ceja = [t.format === 'league' ? 'Liga' : 'Suizo', t.is_private ? 'Con código' : 'Abierto', t.modalidad === 'presencial' ? 'En persona' : 'Online'].join(' · ')
+const DIA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+
+// La sala de antes de empezar (1465, propuesta «Campeones y ficha», PINGU:
+// «hay demasiado espacio para enseñar lo que hay que enseñar… es como
+// demasiado lista»). Era un cartel con el nombre (que ya está en la
+// cabecera), la cuenta atrás en tres losas (que ya está en la cabecera),
+// la sala y cuatro losas: nueve bloques uno debajo de otro. Ahora es una
+// FILA de tres —el día, el sitio y quién hay— y el formato en una tira.
+// `gente`: los inscritos activos, cada uno `{ perfil }`.
+export function salaHtml(t, gente = []) {
+  const ms = Date.parse(t.start_at || '')
+  const f = Number.isFinite(ms) ? new Date(ms) : null
+  const tipo = t.format === 'league' ? 'liga' : t.modalidad === 'presencial' ? 'persona' : 'online'
+  const dia = f
+    ? `<div class="sala-dia" data-tipo-torneo="${tipo}"><small>${DIA[f.getDay()]}</small><b>${f.getDate()}</b><span>${escapeHtml(f.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''))} · ${escapeHtml(f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}</span></div>`
+    : `<div class="sala-dia" data-tipo-torneo="${tipo}"><small>Fecha</small><b>—</b><span>por decidir</span></div>`
+  // Dónde: en persona, el sitio con «Cómo llegar»; online, TCG Live.
+  const destino = [t.lugar, t.direccion].filter(Boolean).join(', ')
+  const sitio = t.modalidad === 'presencial'
+    ? `<div class="sala-sitio" data-tipo-torneo="persona"><small class="sala-ceja">${icons.mapPin(13)} En persona</small><b>${escapeHtml(t.lugar || 'Sitio por decidir')}</b>${t.direccion ? `<span>${escapeHtml(t.direccion)}</span>` : ''}${destino ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar →</a>` : ''}</div>`
+    : `<div class="sala-sitio" data-tipo-torneo="online"><small class="sala-ceja">${icons.globe(13)} Online</small><b>TCG Live</b><span>${t.is_private ? 'Se entra con código' : 'Juegas desde casa'}</span></div>`
   const total = t.max_players ?? null
   const caras = gente.slice(0, 5).map((g) => caraHtml(g.perfil, g.perfil?.username)).join('')
   const mas = gente.length > 5 ? `<span class="sala-cara-mas">+${gente.length - 5}</span>` : ''
   const parte = total ? Math.min(100, (gente.length / total) * 100) : 0
+  const quedan = total ? Math.max(0, total - gente.length) : null
   return `
-    <div class="sala-cartel">
-      <span class="sala-brillo" aria-hidden="true"></span>
-      <small class="sala-ceja">${escapeHtml(ceja.toUpperCase())}</small>
-      <strong class="sala-nombre">${escapeHtml(t.name || 'Torneo')}</strong>
-      <span class="sala-cuando">${escapeHtml(cuando)}</span>
-      <span class="sala-mascota mascota-3d" data-mascota="saludar" data-sin-globo aria-hidden="true"></span>
+    <div class="sala-tres">
+      ${dia}
+      ${sitio}
+      <div class="sala-gente">
+        <span class="sala-caras">${caras}${mas}</span>
+        <span class="sala-gente-texto"><b>${total ? `${gente.length}/${total}` : gente.length} en la sala</b><small>${total ? (quedan ? `quedan ${quedan}` : 'completo') : 'sin límite de plazas'}</small>${total ? `<span class="sala-barra" aria-hidden="true"><i style="width:${parte.toFixed(0)}%"></i></span>` : ''}</span>
+      </div>
     </div>
-    ${c ? `<div class="sala-cuenta" role="timer" aria-label="${escapeHtml(`Empieza en ${c.d} días, ${c.h} horas y ${c.m} minutos`)}" data-sala-cuenta>
-      <div><b data-d>${dos(c.d)}</b><small>${c.d === 1 ? 'DÍA' : 'DÍAS'}</small></div>
-      <div><b data-h>${dos(c.h)}</b><small>HORAS</small></div>
-      <div><b data-m>${dos(c.m)}</b><small>MIN</small></div>
-    </div>` : ''}
-    <div class="sala-gente">
-      <span class="sala-caras">${caras}${mas}</span>
-      <span class="sala-gente-texto"><b>${total ? `${gente.length}/${total}` : gente.length} en la sala</b>${total ? `<span class="sala-barra" aria-hidden="true"><i style="width:${parte.toFixed(0)}%"></i></span>` : '<small>sin límite de plazas</small>'}</span>
-    </div>
-    <div class="sala-losas">${losasDeFormato(t)
-      .map(([ico, n, rot]) => `<div class="sala-losa">${ico}<b>${escapeHtml(String(n))}</b><small>${escapeHtml(rot)}</small></div>`)
+    <div class="sala-tira">${pastillasDeFormato(t)
+      .map(([ico, n, rot]) => `<span class="sala-pastilla">${ico}<b>${escapeHtml(String(n))}</b>${rot ? `<small>${escapeHtml(rot)}</small>` : ''}</span>`)
       .join('')}</div>`
 }
 
 // Pinta (o quita) la sala en #torneoInfoCaja y deja la cuenta atrás andando.
-let reloj = null
 export function montarSala(caja, t, gente) {
   if (!caja) return
   let sala = caja.querySelector('.torneo-sala')
@@ -80,8 +86,6 @@ export function montarSala(caja, t, gente) {
   caja.classList.toggle('con-sala', toca)
   if (!toca) {
     sala?.remove()
-    if (reloj) clearInterval(reloj)
-    reloj = null
     return
   }
   if (!sala) {
@@ -90,23 +94,10 @@ export function montarSala(caja, t, gente) {
     caja.prepend(sala)
   }
   const html = salaHtml(t, gente)
-  // Solo se repinta si cambia algo más que los números (la mascota no
-  // se monta dos veces): los números los mueve el reloj.
-  const clave = html.replace(/<b data-[dhm]>\d+<\/b>/g, '')
-  if (sala.dataset.clave !== clave) {
+  if (sala.dataset.clave !== html) {
     sala.innerHTML = html
-    sala.dataset.clave = clave
+    sala.dataset.clave = html
   }
-  if (reloj) clearInterval(reloj)
-  reloj = setInterval(() => {
-    const c = cuentaAtras(t.start_at)
-    const caja = sala.querySelector('[data-sala-cuenta]')
-    if (!c || !caja) return
-    for (const k of ['d', 'h', 'm']) {
-      const b = caja.querySelector(`[data-${k}]`)
-      if (b && b.textContent !== dos(c[k])) b.textContent = dos(c[k])
-    }
-  }, 20000)
 }
 
 // «Tu plaza» como misiones (1397, T2 y T4): inscrito, tu lista y «¡Estoy!»

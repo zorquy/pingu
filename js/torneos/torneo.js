@@ -23,6 +23,7 @@ import {
   puedeLlevar,
   avisoDeMigracion,
   premiosDeTorneo,
+  podioDePremios,
   premiosParaGuardar,
   PREMIOS_MAXIMO,
   PUESTO_MAXIMO,
@@ -365,6 +366,7 @@ function pintarFicha() {
   // La sala de espera (1397, «PokeDoc en modo app»): antes de empezar, el
   // cartel, la cuenta atrás, quién está dentro y el formato en losas.
   montarSala($('torneoInfoCaja'), torneo, inscripciones.filter((i) => i.status === 'active'))
+  colocarInfoMas()
   pintarSitio()
   pintarSerie()
 
@@ -545,20 +547,26 @@ function pintarPremios() {
     caja.innerHTML = ''
     return
   }
+  // En PODIO (1465) cuando los tres primeros puestos son 1.º, 2.º y 3.º: el
+  // oro en medio y más alto, y lo demás («Resto», «4.º–8.º») en cintas
+  // debajo. Lo gordo de cada premio arriba (lo de antes del primer «+») y el
+  // resto pequeño. Si alguien escribió otra cosa («Top 4»), la lista de antes.
+  const podio = podioDePremios(premios)
+  const lista = (ps, desde = 0) => '<ul class="torneo-premios-lista">' + ps.map((p, i) =>
+    `<li class="torneo-premio${i + desde === 0 ? ' torneo-premio-primero' : ''}"><span class="torneo-premio-puesto">${escapeHtml(p.puesto)}</span><span class="torneo-premio-que">${escapeHtml(p.premio)}</span></li>`).join('') + '</ul>'
+  const escalon = (p, n) => {
+    const corte = p.premio.indexOf(' + ')
+    const gordo = corte > 0 ? p.premio.slice(0, corte) : p.premio
+    const resto = corte > 0 ? p.premio.slice(corte + 1) : ''
+    return `<div class="torneo-escalon e${n}"><i class="torneo-escalon-medalla">${n}</i><b>${escapeHtml(gordo)}</b>${resto ? `<small>${escapeHtml(resto)}</small>` : ''}</div>`
+  }
   pintarSiCambia(
     caja,
     `<h2 class="torneo-premios-titulo" id="torneoPremiosTitulo">${icons.trophy(18)} Premios</h2>` +
-      '<ul class="torneo-premios-lista">' +
-      premios
-        .map(
-          (p, i) =>
-            `<li class="torneo-premio${i === 0 ? ' torneo-premio-primero' : ''}">` +
-            `<span class="torneo-premio-puesto">${escapeHtml(p.puesto)}</span>` +
-            `<span class="torneo-premio-que">${escapeHtml(p.premio)}</span>` +
-            '</li>'
-        )
-        .join('') +
-      '</ul>'
+      (podio
+        ? `<div class="torneo-podio-premios">${escalon(podio[1], 2)}${escalon(podio[0], 1)}${escalon(podio[2], 3)}</div>` +
+          (premios.length > 3 ? lista(premios.slice(3), 3).replace('torneo-premios-lista', 'torneo-premios-lista torneo-premios-cintas') : '')
+        : lista(premios))
   )
 }
 
@@ -1029,6 +1037,30 @@ function engancharJornadas() {
   })
 }
 
+// Antes de empezar (1465), los premios y la descripción van en su propia
+// tarjeta DESPUÉS de «Tu plaza»: en el móvil, lo que tienes que hacer sale en
+// la primera pantalla, y en el PC «Tu plaza» va a su columna (torneos.css).
+// Con el torneo en marcha vuelven a Info, donde estaban.
+function colocarInfoMas() {
+  const caja = $('torneoInfoCaja')
+  const plaza = $('torneoMiPlaza')
+  if (!caja || !plaza) return
+  const antes = caja.classList.contains('con-sala')
+  let mas = $('torneoInfoMas')
+  if (antes && !mas) {
+    mas = document.createElement('div')
+    mas.id = 'torneoInfoMas'
+    mas.className = 'simple-card torneo-info-mas'
+    plaza.after(mas)
+  }
+  const destino = antes ? mas : caja
+  for (const id of ['torneoPremios', 'torneoDescripcion']) {
+    const el = $(id)
+    if (el && el.parentElement !== destino) destino.append(el)
+  }
+  if (mas) mas.classList.toggle('hidden', !antes || ![...mas.children].some((h) => !h.classList.contains('hidden')))
+}
+
 // Dónde se juega (1452): el sitio, la dirección y «Cómo llegar», arriba de Info.
 function pintarSitio() {
   const caja = $('torneoInfoCaja')
@@ -1234,12 +1266,17 @@ function tuEntradaHtml() {
     return `<p class="torneo-entrada-dentro">${icons.checkCircle(18)} <strong>Ya has entrado.</strong> ¡A jugar!</p>`
   }
   const codigo = `pokedoc-entrada:${torneo.id}:${session.user.id}`
-  return `<div class="torneo-billete">
+  // En el móvil el QR va plegado hasta el día del torneo (1465): «Tu plaza»
+  // es una barrita con lo que toca y el QR sale con «Ver mi entrada». El día
+  // del torneo, abierto, que es cuando se enseña en la puerta.
+  const hoy = new Date(torneo.start_at || 0).toDateString() === new Date().toDateString()
+  return `<div class="torneo-billete${hoy ? ' abierto' : ''}">
       <div class="torneo-billete-qr" aria-hidden="true">${svgQR(codigo, { tam: 168 })}</div>
       <div class="torneo-billete-texto">
         <small class="torneo-billete-ceja">TU ENTRADA</small>
         <strong>${escapeHtml(perfil?.username || 'Tú')}</strong>
         <span>Enséñala en la puerta de ${escapeHtml(torneo.lugar || 'el sitio')}${plazas}.</span>
+        <button type="button" class="link-btn torneo-billete-ver" onclick="this.closest('.torneo-billete').classList.toggle('abierto')">Ver mi entrada</button>
       </div>
     </div>`
 }

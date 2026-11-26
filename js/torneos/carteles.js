@@ -53,7 +53,7 @@ export function arteHtml(t, { tipo = tipoPrincipal(t), arriba = '', abajo = '' }
 // Un torneo suelto. `d` lo prepara torneos.js con lo mismo que su fila: el
 // botón, quién organiza, las plazas, si es oficial…
 export function cartelHtml(t, d = {}) {
-  const { ocupadas = 0, oficial = false, viva = false, estadoTexto = '', accion = null, inscrito = false, organiza = '', caraOrganiza = '', donde = '', estructura = '', precio = '', premio = '', repite = '', ahora = Date.now() } = d
+  const { ocupadas = 0, oficial = false, viva = false, estadoTexto = '', accion = null, inscrito = false, organiza = '', caraOrganiza = '', donde = '', estructura = '', precio = '', premio = '', repite = '', privado = '', mio = false, ahora = Date.now() } = d
   const tipo = tipoPrincipal(t)
   const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
   const arriba = [viva ? chapaTipoHtml('vivo', { texto: estadoTexto || 'En juego', llena: true }) : '', oficial ? chapaTipoHtml('oficial', { llena: true }) : '', chapaTipoHtml(tipo, { llena: true })].join('')
@@ -62,14 +62,14 @@ export function cartelHtml(t, d = {}) {
   const plazas = sinLimite
     ? `<span class="t-cartel-plazas sin-barra"><span>${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}</span></span>`
     : `<span class="t-cartel-plazas${pct >= 80 ? ' apurada' : ''}"><span class="t-cartel-barra"><i style="width:${pct}%"></i></span><span>${ocupadas}/${t.max_players}</span></span>`
-  const chips = [repite ? chapaTipoHtml('repite', { texto: repite }) : '', premio ? `<span class="t-cartel-premio">${icons.trophy(12)} ${escapeHtml(premio)}</span>` : ''].filter(Boolean).join('')
+  const chips = [privado, repite ? chapaTipoHtml('repite', { texto: repite }) : '', premio ? `<span class="t-cartel-premio">${icons.trophy(12)} ${escapeHtml(premio)}</span>` : ''].filter(Boolean).join('')
   const boton = inscrito
     // Con el nombre en la etiqueta, como en la fila: un lector de pantalla
     // que salta de botón en botón oye «Estás inscrito: ver Copa…», no tres
     // «Inscrito» seguidos sin saber de qué torneo.
     ? `<a class="torneo-fila-inscrito t-cartel-boton" href="${url}" aria-label="Estás inscrito: ver ${escapeHtml(t.name)}">${icons.checkCircle(14)} Inscrito</a>`
     : accion ? `<a class="${accion.clase} t-cartel-boton" href="${url}" aria-label="${escapeHtml(accion.texto)}: ${escapeHtml(t.name)}">${escapeHtml(accion.texto)}</a>` : ''
-  return `<article class="t-cartel${inscrito ? ' t-cartel-mio' : ''}" data-tipo-torneo="${viva ? 'vivo' : tipo}" data-torneo-id="${escapeHtml(String(t.id))}">
+  return `<article class="t-cartel${inscrito || mio ? ' t-cartel-mio torneo-tarjeta-mia' : ''}" data-tipo-torneo="${viva ? 'vivo' : tipo}" data-torneo-id="${escapeHtml(String(t.id))}">
     ${arteHtml(t, { tipo, arriba, abajo: viva ? '' : cuandoCorto(t.start_at, ahora) })}
     <div class="t-cartel-cuerpo">
       <h3 class="t-cartel-nombre"><a href="${url}">${escapeHtml(t.name)}</a></h3>
@@ -103,4 +103,50 @@ export function cartelesHtml(carteles, { conSesion = false, conFiltro = false } 
   const puntos = n + (hueco ? 1 : 0) > 1 ? `<div class="t-carteles-puntos" aria-hidden="true">${Array.from({ length: n + (hueco ? 1 : 0) }, (_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''
   return `<section class="torneos-tramo t-carteles-tramo"><h2 class="torneos-tramo-cab">Lo próximo</h2>
     <div class="t-carteles" data-n="${n}">${carteles.join('')}${hueco}</div>${puntos}</section>`
+}
+
+// ── CAMPEONES (1464, propuesta «Campeones y ficha», PINGU: «le podemos dar
+// más importancia a los ganadores en la lista») ──
+//
+// Los últimos terminados ya no son una fila con una copita y un nombre en
+// medio: son carteles DORADOS con la cara de quien ganó en grande, su mazo
+// (lo pone arte-meta.js en `.t-campeon-mazo`, de la lista del campeón que ya
+// se pide para el arte), el 2.º y el 3.º del podio guardado y, si jugaste,
+// cómo quedaste. El oro es SOLO de esto: los carteles de «Lo próximo» van del
+// color de su tipo, así se distinguen de un vistazo.
+//
+// Es `.t-campeon` y no `.t-cartel`: un cartel es algo a lo que apuntarse.
+const CORONA = '<svg class="t-campeon-corona" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><path fill="currentColor" d="M2 20h26l2-15-8 6-7-10-7 10-8-6z"/></svg>'
+export function campeonHtml(t, d = {}) {
+  const { campeon = null, caraCampeon = '', segundo = null, tercero = null, ocupadas = 0, oficial = false, soyCampeon = false, puesto = null, jugaste = false } = d
+  const tipo = tipoPrincipal(t)
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  const id = escapeHtml(String(t.id))
+  const chapas = [oficial ? chapaTipoHtml('oficial', { llena: true }) : '', chapaTipoHtml(tipo, { llena: true })].join('')
+  const podio = [[2, segundo], [3, tercero]].filter(([, p]) => p).map(([n, p]) => `<span><i class="t-campeon-medalla m${n}" aria-label="${n}.º">${n}</i>${p.cara}<span>${escapeHtml(p.nombre)}</span></span>`).join('')
+  const tuyo = soyCampeon ? '<b class="t-campeon-tu oro">¡Ganaste tú!</b>' : puesto ? `<b class="t-campeon-tu">Quedaste ${puesto}.º</b>` : jugaste ? '<span class="t-campeon-tu suave">Jugaste</span>' : ''
+  return `<article class="t-campeon${soyCampeon || puesto || jugaste ? ' t-campeon-mio' : ''}" data-tipo-torneo="${tipo}" data-torneo-id="${id}">
+    <a class="t-campeon-arte" href="${url}" tabindex="-1" aria-hidden="true">
+      <span class="t-campeon-rayos"></span>
+      ${losaHtml(t.start_at)}
+      <span class="t-cartel-tipos">${chapas}</span>
+      <span class="t-campeon-cara">${CORONA}${caraCampeon}</span>
+    </a>
+    <div class="t-campeon-cuerpo">
+      <span class="t-campeon-torneo"><a href="${url}">${escapeHtml(t.name)}</a> · ${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}</span>
+      <h3 class="t-campeon-nombre"><small>${icons.trophy(11)} Campeón</small>${escapeHtml(campeon?.username || '—')}</h3>
+      <span class="t-campeon-mazo torneo-arte con-meta" data-torneo="${id}" data-con-nombre></span>
+      ${podio ? `<span class="t-campeon-podio">${podio}</span>` : ''}
+      <span class="t-campeon-pie">${tuyo || `<span>${ocupadas} jugador${ocupadas === 1 ? '' : 'es'}</span>`}<a class="t-campeon-ver" href="${url}" aria-label="Ver resultados: ${escapeHtml(t.name)}">Ver resultados</a></span>
+    </div>
+  </article>`
+}
+
+// El tramo: los carteles en una fila (en el móvil, el mismo carrusel que «Lo
+// próximo», con sus puntos) y lo que no tiene campeón (un cancelado), en filas.
+export function campeonesHtml(carteles, filas = '') {
+  const n = carteles.length
+  const puntos = n > 1 ? `<div class="t-carteles-puntos" aria-hidden="true">${carteles.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>` : ''
+  return `<section class="torneos-tramo t-campeones-tramo torneos-ultimos"><h2 class="torneos-tramo-cab">Campeones</h2>
+    ${n ? `<div class="t-carteles t-campeones" data-n="${n}">${carteles.join('')}</div>${puntos}` : ''}${filas ? `<div class="torneos-filas">${filas}</div>` : ''}</section>`
 }
