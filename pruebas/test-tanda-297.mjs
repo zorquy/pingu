@@ -58,7 +58,7 @@ const RONDAS = [
 ]
 
 const browser = await chromium.launch()
-const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INSCRIPCIONES, ancho = 1280 } = {}) => {
+const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INSCRIPCIONES, ancho = 1280, hash = '' } = {}) => {
   const page = await browser.newPage({ viewport: { width: ancho, height: 1100 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 170)))
@@ -69,7 +69,7 @@ const abrir = async ({ sesion = 'user-1', torneos = TORNEOS, inscripciones = INS
     window.__FAKE_INSCRIPCIONES__ = i
     window.__FAKE_RONDAS__ = r
   }, [sesion, torneos, inscripciones, RONDAS])
-  await page.goto(`${BASE}/torneos`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/torneos${hash}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   return { page, errores }
 }
@@ -86,7 +86,8 @@ console.log('\n── 1. Una fila por torneo, y UNA acción ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  check('los cuatro torneos, cada uno en su cartel o su fila', (await page.locator('.t-cartel').count()) === 3 && (await page.locator('.torneo-tarjeta.torneo-fila').count()) === 1,
+  // Desde la 1464 el terminado va en Campeones (`.t-campeon`); su fila, en Terminados.
+  check('los cuatro torneos: tres carteles y el terminado en Campeones', (await page.locator('.t-cartel').count()) === 3 && (await page.locator('.t-campeon').count()) === 1,
     String(await page.locator(TARJETA).count()))
   const copa = tarjetaDe(page, 'Copa de Invierno')
   check('cada uno tiene UNA acción', (await copa.locator(ACCION).count()) === 1)
@@ -108,12 +109,15 @@ console.log('\n── 2. La acción dice la verdad según el estado ──')
   check('  …y el de al lado, donde SÍ está, no lo ofrece',
     (await tarjetaDe(page, 'Copa de Invierno').locator(ACCION).evaluate(accionDe)) === 'Estás inscrito')
   check('en juego → «Ver el directo»', (await tarjetaDe(page, 'Pachanga').locator(ACCION).evaluate(accionDe)) === 'Ver el directo')
-  check('terminado → «Resultados y mazos»', (await tarjetaDe(page, 'Inaugural').locator(ACCION).evaluate(accionDe)) === 'Ver resultados y mazos')
-  const fin = tarjetaDe(page, 'Inaugural')
+  await page.close()
+  // El terminado, en su fila de Terminados (en la lista va en Campeones, 1464).
+  const hechos = await abrir({ sesion: 'user-2', hash: '#terminados' })
+  const fin = tarjetaDe(hechos.page, 'Inaugural')
+  check('terminado → «Resultados y mazos»', (await fin.locator(ACCION).evaluate(accionDe)) === 'Ver resultados y mazos')
   check('y en vez de las plazas, el campeón', (await fin.locator('.torneo-campeon').textContent())?.includes('Ash'),
     await fin.locator('.torneo-campeon').textContent())
   check('  …sin barra de ocupación', (await fin.locator('.torneo-ocupacion').count()) === 0)
-  await page.close()
+  await hechos.page.close()
 }
 
 console.log('\n── 3. Las plazas ──')
@@ -170,9 +174,11 @@ console.log('\n── 7. Lo que el rediseño ARREGLA del HTML ──')
   const dentro = await page.evaluate(() =>
     document.querySelectorAll('.torneo-tarjeta-enlace button, .torneo-tarjeta-enlace a').length)
   check('ningún botón ni enlace dentro del enlace de la fila', dentro === 0, String(dentro))
-  check('y «Duplicar» sigue estando, en el «⋯» del terminado',
-    (await tarjetaDe(page, 'Inaugural').locator('.torneo-fila-der .torneo-duplicar').count()) === 1)
   await page.close()
+  const hechos = await abrir({ hash: '#terminados' })
+  check('y «Duplicar» sigue estando, en el «⋯» del terminado (en Terminados)',
+    (await tarjetaDe(hechos.page, 'Inaugural').locator('.torneo-fila-der .torneo-duplicar').count()) === 1)
+  await hechos.page.close()
 }
 
 console.log('\n── 8. Los filtros son chips; Lista/Calendario, la cápsula ──')

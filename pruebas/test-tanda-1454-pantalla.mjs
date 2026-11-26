@@ -72,14 +72,14 @@ async function abrir({ hash = '', torneos = TORNEOS, movil = false, ciudad = nul
 }
 // Desde la 1463 los tres primeros son carteles (`.t-cartel`) y el resto filas:
 // en el orden de la página, los dos cuentan.
-const filas = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .torneo-fila, #torneosAgenda .t-cartel')].map((f) => f.dataset.torneoId))
+const filas = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .torneo-fila, #torneosAgenda .t-cartel, #torneosAgenda .t-campeon')].map((f) => f.dataset.torneoId))
 const tramos = (page) => page.evaluate(() => [...document.querySelectorAll('#torneosAgenda .torneos-tramo-cab')].map((h) => h.firstChild.textContent.trim()))
 
 console.log('── 1. La agenda por días ──')
 {
   const { page, errores } = await abrir()
   check('sin errores de JavaScript', !errores.length, errores.join(' | '))
-  check('los tramos: tus borradores, lo próximo (1463), esta semana, más adelante y los últimos resultados', (await tramos(page)).join('|') === 'Tus borradores|Lo próximo|Esta semana|Más adelante|Últimos resultados', (await tramos(page)).join('|'))
+  check('los tramos: tus borradores, lo próximo (1463), esta semana, más adelante y los campeones (1464)', (await tramos(page)).join('|') === 'Tus borradores|Lo próximo|Esta semana|Más adelante|Campeones', (await tramos(page)).join('|'))
   const f = await filas(page)
   check('por fecha, con lo que se juega delante y los terminados al final', f.join() === 'borr-mio,vivo,noche,bilbao,liga,madrid,otono,expanded,halloween', f.join())
   check('ni una pestaña de estado (Abiertas, En juego…)', !(await page.$('[data-grupo]')))
@@ -124,7 +124,7 @@ console.log('── 1. La agenda por días ──')
   check('«Quitar los filtros» vuelve a todo', (await filas(page)).length === 9 && (await page.$eval('#torneosBuscar', (i) => i.value)) === '')
 
   console.log('── 4. Terminados ──')
-  check('abajo, solo los tres últimos', (await page.$$eval('.torneos-ultimos .torneo-fila', (fs) => fs.map((f) => f.dataset.torneoId))).join() === 'otono,expanded,halloween')
+  check('abajo, solo los tres últimos', (await page.$$eval('.torneos-ultimos .torneo-fila, .torneos-ultimos .t-campeon', (fs) => fs.map((f) => f.dataset.torneoId))).join() === 'otono,expanded,halloween')
   await page.click('.torneos-ver-hechos')
   await page.waitForTimeout(200)
   check('«Ver los 4 terminados» abre su vista', (await page.evaluate(() => location.hash)) === '#terminados' && Boolean(await page.$('.torneos-hechos-cab')))
