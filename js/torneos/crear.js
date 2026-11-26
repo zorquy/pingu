@@ -227,6 +227,15 @@ function htmlDelDialogo(esAdmin) {
             <div class="rte-toolbar" id="torneoDescBarra"></div>
             <div class="rte-surface" id="torneoDescCuerpo"></div>
           </div>`)}
+        ${extra('repite', icons.refreshCw(20), '¿Se repite?', `
+          <label class="tc-campo">Cada cuánto
+            <select id="torneoRepite">
+              <option value="">Solo esta vez</option>
+              <option value="semanal">Cada semana</option>
+              <option value="quincenal">Cada dos semanas</option>
+            </select>
+            <span class="torneo-campo-pista">Al acabar, se crea solo el siguiente con lo mismo y las inscripciones abiertas. Lo paras cuando quieras desde «⋯».</span>
+          </label>`)}
         ${extra('checkin', icons.checkCircle(20), 'Check-in', `
           <label class="tc-campo">Minutos para confirmar antes de empezar (de 0 a 30)
             <input type="number" inputmode="numeric" id="torneoCheckin" min="0" max="30" value="5" />
@@ -428,6 +437,8 @@ async function montarEditorDescripcion(htmlInicial = '') {
   })
 }
 
+const TEXTO_REPITE = { semanal: 'Cada semana', quincenal: 'Cada dos semanas' }
+
 // Lo que dice cada apartado de «Dale tu toque» cerrado.
 function pintarExtras() {
   const premios = premiosDelFormulario().filter((p) => p.premio.trim())
@@ -438,7 +449,11 @@ function pintarExtras() {
     imagen: [imagenElegida && 'Con imagen', bannerElegido && 'con banner'].filter(Boolean).join(' y ') || 'Sin imagen',
     descripcion: descripcionHtml.replace(/<[^>]+>/g, '').trim() ? 'Escrita' : 'Sin descripción',
     checkin: Number($('torneoCheckin').value) ? `${$('torneoCheckin').value} min antes de empezar` : 'Sin check-in',
+    repite: TEXTO_REPITE[$('torneoRepite').value] || 'Solo esta vez',
   }
+  // Una liga ya tiene sus jornadas: no se repite (la base tampoco lo deja).
+  const repite = document.querySelector('[data-extra="repite"]')
+  if (repite) repite.hidden = esLiga()
   for (const [id, texto] of Object.entries(textos)) {
     const el = document.querySelector(`[data-extra-valor="${id}"]`)
     if (el) el.textContent = texto
@@ -576,7 +591,7 @@ function pintarResumen() {
     ['reloj', 'Cada ronda', `${$('torneoMinutos').value} min`],
     ['entrada', 'Se apunta', enPersona() ? TEXTO_INSCRIPCION[$('torneoInscripcion').value] : $('torneoPrivado').checked ? `Con el código «${$('torneoCodigoNuevo').value.trim()}»` : 'Cualquiera'],
     ['listas', 'Listas', TEXTO_MODO_LISTAS[$('torneoListasModo').value] || '—'],
-    ['extras', 'Extras', [premios.length ? `${premios.length} premio${premios.length === 1 ? '' : 's'}` : '', textoDePrecio(precio) || '', imagenElegida || bannerElegido ? 'imagen' : '', $('torneoOficial')?.checked ? 'oficial' : ''].filter(Boolean).join(' · ') || 'Nada más'],
+    ['extras', 'Extras', [premios.length ? `${premios.length} premio${premios.length === 1 ? '' : 's'}` : '', textoDePrecio(precio) || '', !liga && TEXTO_REPITE[$('torneoRepite').value] ? TEXTO_REPITE[$('torneoRepite').value].toLowerCase() : '', imagenElegida || bannerElegido ? 'imagen' : '', $('torneoOficial')?.checked ? 'oficial' : ''].filter(Boolean).join(' · ') || 'Nada más'],
   ]
   $('wizardResumen').innerHTML = filas
     .map(
@@ -848,7 +863,15 @@ async function crearTorneo() {
     })
   }
   if (liga && rondasPorJornadaElegidas() > 1) fila.rounds_per_matchday = rondasPorJornadaElegidas()
+  // Se repite (1457): solo los de un día.
+  if (!liga && TEXTO_REPITE[$('torneoRepite').value]) fila.repite = $('torneoRepite').value
   let { error } = await supabase.from('tournaments').insert(fila)
+  // Sin la migración 1457 se crea igual, de una vez, y se dice.
+  if (error && fila.repite && /repite/.test(error.message || '')) {
+    delete fila.repite
+    ;({ error } = await supabase.from('tournaments').insert(fila))
+    if (!error) showToast('Creado, pero sin repetirse: falta ejecutar la migración 1457 en Supabase.', 'error')
+  }
   // En persona sin la migración 1446 no se crea «online sin decirlo».
   if (error && fila.modalidad && /modalidad|lugar|direccion|inscripcion/.test(error.message || '')) {
     return { error: 'Los torneos en persona aún no están listos: falta ejecutar la migración 1446 en Supabase.' }
@@ -931,6 +954,9 @@ function cargarPlantilla(viejo) {
     $('torneoInscripcion').value = viejo.inscripcion || 'pedir'
   }
   if (viejo.precio_entrada != null) $('torneoPrecio').value = String(viejo.precio_entrada).replace('.', ',')
+  // Duplicar NO copia «se repite»: la serie ya crea sus torneos sola, y una
+  // copia repitiéndose sería una segunda serie el mismo día.
+  $('torneoRepite').value = ''
   if (Array.isArray(viejo.prizes) && viejo.prizes.length) pintarPremiosNuevo(viejo.prizes)
   descripcionHtml = viejo.description || ''
   if (descripcionHtml) $('torneoDescCuerpo').innerHTML = descripcionHtml

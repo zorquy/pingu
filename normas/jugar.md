@@ -481,3 +481,11 @@ todos los que entraron por no haber pulsado «¡ESTOY!», que con puerta ni sale
 Dar o quitar la entrada lo decide la base (`torneos_dar_entrada`); la web solo
 pinta. En la fila de Jugadores la entrada es UNA celda (chapa + Quitar) con su
 columna fijada: suelta empujaba «Expulsar» a otra línea.
+
+**Una serie de torneos la crea la base, no la web** (1457). El siguiente de un
+torneo que se repite sale del disparador al pasar a `finished`, nunca de un
+botón: así sale aunque el organizador cierre la pestaña. Es idempotente (mira
+si la serie ya tiene uno posterior) y un fallo suyo nunca impide terminar.
+Cancelar no crea el siguiente, y Duplicar no copia `repite` (serían dos series).
+Las fechas van en hora de Madrid: sumar días en UTC movía la hora al cambiar el
+horario.

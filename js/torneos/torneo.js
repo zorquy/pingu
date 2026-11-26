@@ -47,6 +47,7 @@ import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo
 import { textoDePrecio } from './torneo-tienda.js'
 import { montarSala, misionesHtml } from './sala.js'
 import { pintarPuerta, hayPuerta, entradaDeFilaHtml } from './puerta.js'
+import { textoDeRepite, proximasDeSerie } from './agenda-puro.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 import { artePokemonHtml } from '../arte-pokemon.js'
 import { dexesDeNombre } from './arquetipos.js'
@@ -365,6 +366,7 @@ function pintarFicha() {
   // cartel, la cuenta atrás, quién está dentro y el formato en losas.
   montarSala($('torneoInfoCaja'), torneo, inscripciones.filter((i) => i.status === 'active'))
   pintarSitio()
+  pintarSerie()
 
   // El cuadro de cierre con rondas (tanda 228) sobrevive a los
   // repintados del sondeo mientras las inscripciones sigan abiertas —
@@ -411,6 +413,11 @@ function pintarFicha() {
   anadirAccion(mas, mando() && !['finished', 'cancelled'].includes(torneo.status),
     'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
     engancharCancelar)
+  // Dejar de repetir (1457): quita `repite` a ESTE torneo, que es el que
+  // crearía el siguiente al terminar. Los ya creados se quedan como están.
+  anadirAccion(mas, mando() && Boolean(torneo.repite) && !['finished', 'cancelled'].includes(torneo.status),
+    'btnDejarDeRepetir', '<button class="btn-secondary" id="btnDejarDeRepetir">Dejar de repetir</button>',
+    () => $('btnDejarDeRepetir').addEventListener('click', dejarDeRepetir))
   pintarTelegram(mas)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
   // del ciclo del torneo, es el que no tiene vuelta.
@@ -419,6 +426,17 @@ function pintarFicha() {
     engancharBorrar)
   // El «⋯» solo sale si tiene algo dentro.
   $('torneoMas')?.classList.toggle('hidden', !$('torneoMasMenu')?.children.length)
+}
+
+async function dejarDeRepetir() {
+  if (!confirm(`«${torneo.name}» no creará el siguiente al terminar. ¿Seguro?`)) return
+  const { error } = await supabase.from('tournaments').update({ repite: null }).eq('id', torneo.id)
+  if (error) {
+    showToast('No se ha podido: ' + error.message, 'error')
+    return
+  }
+  showToast('Hecho: este es el último de la serie.', 'success')
+  await recargar()
 }
 
 // ── Mandar el torneo al canal de Telegram (tanda 302) ──
@@ -1031,6 +1049,33 @@ function pintarSitio() {
     linea,
     `${icons.mapPin(18)}<span class="torneo-sitio-texto"><b>${escapeHtml(torneo.lugar)}</b>${torneo.direccion ? `<small>${escapeHtml(torneo.direccion)}</small>` : ''}</span>
     <a class="btn-secondary torneo-sitio-llegar" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destino)}" target="_blank" rel="noopener">Cómo llegar</a>`
+  )
+}
+
+// Se repite (1457): cada cuánto y las próximas fechas, debajo del sitio. Las
+// fechas son las que vendrán si nadie para la serie: cada una se abre sola
+// cuando termina la anterior.
+function pintarSerie() {
+  const caja = $('torneoInfoCaja')
+  if (!caja) return
+  let linea = $('torneoSerie')
+  const texto = ['finished', 'cancelled'].includes(torneo.status) ? '' : textoDeRepite(torneo)
+  if (!texto) {
+    linea?.remove()
+    return
+  }
+  if (!linea) {
+    linea = document.createElement('p')
+    linea.id = 'torneoSerie'
+    linea.className = 'torneo-serie'
+    const sitio = $('torneoSitio')
+    if (sitio) sitio.after(linea)
+    else caja.prepend(linea)
+  }
+  const fechas = proximasDeSerie(torneo, 3).map((d) => d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', ''))
+  pintarSiCambia(
+    linea,
+    `${icons.refreshCw(18)}<span class="torneo-serie-texto"><b>${escapeHtml(texto)}</b><small>Próximos: ${fechas.map(escapeHtml).join(' · ')}. Se abren solos al acabar el anterior.</small></span>`
   )
 }
 

@@ -5679,6 +5679,10 @@ button.torneo-tj { cursor: pointer; }
 .torneo-sitio-texto { display: grid; min-width: 0; flex: 1; }
 .torneo-sitio-texto small { color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .torneo-sitio-llegar { flex: none; }
+.torneo-serie { display: flex; align-items: center; gap: var(--e-sm); margin: 0 0 var(--e-sm); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--success) 9%, var(--white)); color: var(--navy); }
+.torneo-serie > svg { flex: none; color: var(--success); }
+.torneo-serie-texto { display: grid; min-width: 0; }
+.torneo-serie-texto small { color: var(--text-mid); }
 @media (max-width: 560px) { .torneo-sitio { flex-wrap: wrap; } .torneo-sitio-llegar { width: 100%; justify-content: center; } }
 .torneo-billete { display: flex; align-items: center; gap: var(--e-md); margin: 0 0 var(--e-sm); padding: var(--e-sm); border: 2px dashed color-mix(in srgb, var(--success) 50%, var(--border)); border-radius: var(--radius-lg); background: var(--white); }
 .torneo-billete-qr { flex: none; width: 168px; max-width: 45%; line-height: 0; }
@@ -5738,6 +5742,8 @@ button.torneo-tj { cursor: pointer; }
 .torneo-fila-titulo .torneo-estado { border-radius: var(--radius-pill); font-weight: 700; display: inline-flex; align-items: center; gap: 5px; background: var(--bg); }
 .torneo-fila-titulo .torneo-estado-vivo, .torneo-fila-titulo .torneo-estado.vivo { color: var(--danger); }
 .torneo-chapa-liga { color: var(--acento); }
+/* Se repite (1457): verde, que es «vuelve», con su flechita. */
+.torneo-chapa-repite { display: inline-flex; align-items: center; gap: 3px; color: var(--success); }
 .torneo-fila-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 0.78rem; color: var(--text-mid); min-width: 0; }
 .torneo-fila-sub > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .torneo-fila-donde.persona { color: var(--text); font-weight: 600; }
@@ -5807,7 +5813,7 @@ button.torneo-tj { cursor: pointer; }
   /* En el móvil el nombre puede ir en dos líneas, y las chapas de estado
      sobran: la losa del día ya dice «ahora», y el botón, lo demás. */
   .torneo-fila .torneo-nombre { font-size: 0.92rem; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; }
-  .torneo-fila-titulo .torneo-oficial:not(.torneo-chapa-liga), .torneo-fila-titulo .torneo-privado, .torneo-fila-titulo .torneo-de-tienda, .torneo-fila-titulo .torneo-estado { display: none; }
+  .torneo-fila-titulo .torneo-oficial:not(.torneo-chapa-liga):not(.torneo-chapa-repite), .torneo-fila-titulo .torneo-privado, .torneo-fila-titulo .torneo-de-tienda, .torneo-fila-titulo .torneo-estado { display: none; }
   .torneo-vivo-despues-puerta { display: none; }
   .torneo-fila-der .torneo-pie-accion { min-height: 34px; padding: 0 11px; font-size: 0.8rem; }
   .torneo-vivo-despues .torneo-vivo-despues-ir { margin-left: 0; }

@@ -102,3 +102,29 @@ export function borradoresDe(torneos, userId) {
   if (!userId) return []
   return (torneos || []).filter((t) => t.status === 'draft' && t.admin_id === userId)
 }
+
+// Torneos que se repiten (1457): «Cada viernes» o «Cada dos viernes», con el
+// día de la semana en hora de Madrid (que es la del torneo, no la de quien lo
+// mira desde Canarias o desde fuera).
+const PASO_DIAS = { semanal: 7, quincenal: 14 }
+export function textoDeRepite(t) {
+  if (!t?.repite || !PASO_DIAS[t.repite] || !t.start_at) return ''
+  const dia = new Date(t.start_at).toLocaleDateString('es-ES', { weekday: 'long', timeZone: 'Europe/Madrid' })
+  return t.repite === 'quincenal' ? `Cada dos ${dia === 'sábado' || dia === 'domingo' ? dia + 's' : dia}` : `Cada ${dia}`
+}
+
+// Las próximas fechas de la serie DESPUÉS de este torneo: las que vendrán si
+// nadie la para. Se suman días en la hora local del navegador, que conserva
+// la hora de reloj al cruzar el cambio de hora (la base hace lo mismo en
+// hora de Madrid).
+export function proximasDeSerie(t, cuantas = 3) {
+  const paso = PASO_DIAS[t?.repite]
+  if (!paso || !t.start_at) return []
+  const fechas = []
+  const d = new Date(t.start_at)
+  for (let i = 0; i < cuantas; i++) {
+    d.setDate(d.getDate() + paso)
+    fechas.push(new Date(d))
+  }
+  return fechas
+}

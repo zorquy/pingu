@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (703) — PINGU-Claude (1457 — Torneos que se repiten, con migración)
+
+**Hecho** (propuesta «Torneos, versión final», lo recomendado tras la puerta):
+al crear un torneo de un día, «Dale tu toque» pregunta **¿Se repite?** (solo
+esta vez · cada semana · cada dos semanas). Cuando uno de la serie TERMINA, la
+base crea el siguiente sola (disparador `trg_torneos_repetir` →
+`torneos_crear_siguiente`): misma configuración y código, a la misma hora de
+Madrid 7 o 14 días después (si ya pasó, la siguiente que venga), con las
+inscripciones abiertas; el barredor lo anuncia como cualquier torneo que abre.
+Cancelar NO crea el siguiente. La agenda pone la chapa «Cada viernes» en la
+fila; la ficha dice cada cuánto y las tres próximas fechas; quien organiza
+tiene «⋯ › Dejar de repetir» (pone `repite` a null). Duplicar no copia la
+repetición.
+
+**Ficheros**: `supabase-migration-1457-torneos-que-se-repiten.sql` (nueva),
+`js/torneos/crear.js`, `js/torneos/torneos.js`, `js/torneos/torneo.js`,
+`js/torneos/agenda-puro.js`, `css/torneos.css`. Pruebas:
+`test-tanda-1457.mjs` (PostgreSQL: siguiente único, hora con cambio de hora,
+cancelado, terminado tarde, dejar de repetir, permisos) y
+`test-tanda-1457-pantalla.mjs`.
+
+**Pendiente**: ejecutar la migración 1457. Sin ella la web funciona igual: el
+creador guarda el torneo sin repetirse y avisa de que falta.
+
 ## 2026-11-26 (702) — PINGU-Claude (1453 — La puerta de un torneo en persona)
 
 **Hecho** (propuesta «Torneos, versión final», PINGU: adelante con lo

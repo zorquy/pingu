@@ -55291,6 +55291,28 @@ con Expulsar). `ronda.js`: en la ronda 1 de un presencial con puerta, confirma,
 llama a `torneos_cerrar_puerta` y marca fuera a quien no entró; `retirarNoConfirmados`
 no hace nada con puerta. `sala.js`: `misionesHtml({…, conPuerta, dentro})`.
 
+## Tanda 1457 — Torneos que se repiten
+
+Migración `supabase-migration-1457-torneos-que-se-repiten.sql`:
+- `tournaments.repite text` (`null` | `semanal` | `quincenal`; check
+  `tournaments_repite_ok`: solo con `format = 'standard'`) y `tournaments.serie_id
+  uuid` (el id del primero de la serie; índice parcial `tournaments_serie`).
+- `torneos_fecha_siguiente(inicio, repite, ahora)`: suma 7/14 días en hora de
+  Europe/Madrid hasta quedar al menos una hora por delante.
+- `torneos_crear_siguiente(torneo)` (security definer, sin permiso para nadie):
+  idempotente (si la serie ya tiene uno posterior no cancelado, lo devuelve);
+  copia la configuración, semilla nueva, slug nuevo, estado `registration_open`,
+  y el código de `tournament_join_codes`.
+- Disparador `trg_torneos_repetir` (after update of status, al pasar a
+  `finished` con `repite`): llama a la anterior; un fallo se queda en warning y
+  nunca impide terminar.
+
+Web: `agenda-puro.js` → `textoDeRepite(t)` («Cada viernes», «Cada dos sábados»;
+día en hora de Madrid) y `proximasDeSerie(t, n)`. Chapa `.torneo-chapa-repite`
+en la fila (también en el móvil). Ficha: `#torneoSerie` bajo el sitio.
+`#btnDejarDeRepetir` en el «⋯» del organizador. Creador: `#torneoRepite` en
+el extra `repite` (oculto en liga); sin la columna, reintenta sin ella y avisa.
+
 ## Tanda 1458 — Ventanas modales centradas
 
 `style.css`: `:where(dialog:modal) { margin: auto; }` tras el reseteo `*` (especificidad

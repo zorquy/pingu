@@ -19,7 +19,7 @@ import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
 import { esTorneoDeTienda, textoDePrecio } from './torneo-tienda.js'
 import { leerAvisosHuerfanos } from './avisos-huerfanos.js'
-import { ciudadDe, ciudadesDe, tramoDe, TRAMOS, ordenarProximos, terminadosPorMes, filtrarTorneos, borradoresDe } from './agenda-puro.js'
+import { ciudadDe, ciudadesDe, tramoDe, TRAMOS, ordenarProximos, terminadosPorMes, filtrarTorneos, borradoresDe, textoDeRepite } from './agenda-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -184,6 +184,8 @@ function filaHtml(t, datos) {
     t.status === 'cancelled' ? `<span class="torneo-estado ${estado.clase}">${escapeHtml(estado.texto)}</span>` : '',
     esOficial(t) ? CHAPA_OFICIAL() : '',
     t.format === 'league' ? '<span class="torneo-oficial torneo-chapa-liga">Liga</span>' : '',
+    // Se repite (1457): la chapa dice cuándo, que es lo que hace volver.
+    !hecho && textoDeRepite(t) ? `<span class="torneo-oficial torneo-chapa-repite">${icons.refreshCw(11)} ${escapeHtml(textoDeRepite(t))}</span>` : '',
     t.is_private ? CHAPA_PRIVADO() : '',
     deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Tienda</span>` : '',
   ].filter(Boolean).join('')

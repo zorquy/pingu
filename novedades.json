@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Torneos que se repiten: al crear uno puedes decir que es cada semana o cada dos, y al acabar se abre solo el siguiente con todo igual.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Torneos en persona con puerta: quien organiza da entrada a cada jugador escaneando su QR o buscando su usuario, y al empezar juega solo quien ha entrado.", "enlace": "/torneos" },
     { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "La ventana para escribir el código de la verificación en dos pasos ya sale en el centro de la pantalla, no arriba en una esquina.", "enlace": "/ajustes" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Los torneos ahora van por días, como una agenda: lo de hoy, esta semana y más adelante, con filtros para ver solo los tuyos, los online o los que se juegan en tu ciudad. Los terminados tienen su sitio aparte, con quién ganó y cómo quedaste tú.", "enlace": "/torneos" },
