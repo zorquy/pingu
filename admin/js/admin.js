@@ -1863,18 +1863,21 @@ let arquetipoEditando = null
 // Una línea de requisito: «Dragapult ex | TWM | 130» o «Boss's Orders /
 // Órdenes del jefe». El nombre puede llevar variantes separadas por
 // barra porque el export de TCG Live viene en el idioma del jugador.
+// «2x Dusknoir / Dusknoir» (1460): cuántas copias, delante. Sin «Nx», una.
 function parsearRequisito(linea) {
   const trozos = String(linea).split('|').map((t) => t.trim())
-  const nombres = trozos[0].split('/').map((n) => n.trim()).filter(Boolean)
+  const copias = /^(\d+)\s*[x×]\s+/i.exec(trozos[0])
+  const nombres = trozos[0].replace(/^(\d+)\s*[x×]\s+/i, '').split('/').map((n) => n.trim()).filter(Boolean)
   if (!nombres.length) return null
   const req = { nombres }
+  if (copias && Number(copias[1]) > 1) req.minimo = Number(copias[1])
   if (trozos[1]) req.set = trozos[1].toUpperCase()
   if (trozos[2]) req.numero = trozos[2]
   return req
 }
 
 function requisitoATexto(req) {
-  const nombres = (req.nombres || []).join(' / ')
+  const nombres = (Number(req.minimo) > 1 ? `${req.minimo}x ` : '') + (req.nombres || []).join(' / ')
   return [nombres, req.set, req.numero].filter(Boolean).join(' | ')
 }
 
@@ -1979,10 +1982,16 @@ async function guardarArquetipo() {
     return
   }
 
+  // El nombre de la carta de cada icono (1460: los de Limitless lo traen y
+  // con él sale el sprite sin consultar nada) se conserva si el icono no cambia.
+  const antes = arquetipoEditando ? arquetiposCache.find((x) => x.id === arquetipoEditando)?.iconos || [] : []
+  const conNombre = (i, k) => (antes[k]?.nombre && antes[k].set === i.set && String(antes[k].numero) === i.numero ? { ...i, nombre: antes[k].nombre } : i)
   const iconos = [
     { set: document.getElementById('arqIcono1Set').value.trim().toUpperCase(), numero: document.getElementById('arqIcono1Num').value.trim() },
     { set: document.getElementById('arqIcono2Set').value.trim().toUpperCase(), numero: document.getElementById('arqIcono2Num').value.trim() },
-  ].filter((i) => i.set && i.numero)
+  ]
+    .map(conNombre)
+    .filter((i) => i.set && i.numero)
 
   const fila = { id, nombre, iconos, requiere, activo: document.getElementById('arqActivo').checked, updated_at: new Date().toISOString() }
   const { error } = await supabase.from('tcg_archetypes').upsert(fila)

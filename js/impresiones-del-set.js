@@ -161,7 +161,7 @@ async function aLaMasComun(entradas, columnas) {
   if (!cartas.length) return entradas
   const [filas, legales] = await Promise.all([reimpresionesDe(cartas, columnas), marcasLegales().catch(() => [])])
   if (!filas.length) return entradas
-  const deSet = await fechasDeSets(filas.map((f) => f.set_id))
+  const deSet = await fechasDeSets([...filas.map((f) => f.set_id), ...cartas.map((c) => c.set_id)])
   const porId = new Map(filas.map((f) => [f.id, f]))
   return entradas.map((e) => {
     if (!e.carta) return e
@@ -169,7 +169,7 @@ async function aLaMasComun(entradas, columnas) {
     // puede no traer (las columnas de quien llama).
     const propia = { ...(porId.get(e.carta.id) || {}), ...e.carta }
     for (const k of 'rarity,rarity_en,attacks,hp,name_es,image_path,image_scrydex,image_tcggo'.split(',')) if (propia[k] == null && porId.get(e.carta.id)?.[k] != null) propia[k] = porId.get(e.carta.id)[k]
-    const mejor = impresionMasComun(propia, filas, { legales, fechaDeSet: (id) => deSet.get(id)?.fecha })
+    const mejor = impresionMasComun(propia, filas, { legales, fechaDeSet: (id) => deSet.get(id)?.fecha, codigoDeSet: (id) => deSet.get(id)?.codigo })
     if (mejor === propia) return e
     // Si cambia de colección, con su código: quien pinte una imagen de
     // respaldo por «código + número» (Limitless) no puede mezclar el código

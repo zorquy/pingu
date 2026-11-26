@@ -196,7 +196,7 @@ export function mismaCartaEntreIdiomas(a, b) {
 // 590), la que casa con lo que se le ve hacer (481) o la que trae la lista—.
 // Una promo no sustituye a una carta de colección (regla 2), y nunca se
 // cambia a una sin imagen.
-export function impresionMasComun(carta, candidatas, { legales = [], fechaDeSet = () => '' } = {}) {
+export function impresionMasComun(carta, candidatas, { legales = [], fechaDeSet = () => '', codigoDeSet = () => '' } = {}) {
   if (!carta) return carta
   const rango = (c) => (esPromo(c) ? RANGO_DE_PROMO : rangoDeCarta(c))
   const marca = (c) => String(c.regulation_mark || '')
@@ -214,6 +214,10 @@ export function impresionMasComun(carta, candidatas, { legales = [], fechaDeSet 
     // que es Común — pasa al Común de Escarlata y Púrpura.
     if (legal(carta) && !legal(c)) return false
     if (marca(carta) && !marca(c)) return false
+    // Y una de una colección de TCG Live no pasa a la de un sobre de premio
+    // (los Prize Pack no tienen código): esa no es la forma en que se juega
+    // (1460, Ibai: «como en Limitless»). Sin códigos, como antes.
+    if (codigoDeSet(carta.set_id) && !codigoDeSet(c.set_id)) return false
     const r = rango(c)
     if (r == null || !mismaCartaEntreIdiomas(c, carta)) return false
     // Si la propia no se sabe, solo se cambia la que no tiene dibujo.

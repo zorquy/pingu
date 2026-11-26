@@ -12,7 +12,8 @@
 // de escribir.
 import { supabase } from '../supabase.js'
 import { normalizeSearch } from '../tcgdex.js'
-import { codigoLiveDeNombreDeSet } from '../torneos/comun.js'
+import { codigoLiveDeNombreDeSet, ALIAS_DE_CODIGO_LIVE, variantesDeNumero } from '../torneos/comun.js'
+import { masJugadas, laMasJugada, esLaImpresion, impresionesDelMeta, seccionDeCarta } from '../impresion-del-meta.js'
 import { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConReimpresionLegal } from '../carta-legalidad.js'
 import { canonizarCarta } from '../carta-detalle.js'
 import { claveDeNombre, esEnergiaBasica, idDeEnergiaBasica, letraDeCartaDeEnergia, letraDeEnergia, plano } from './nucleo.js'
@@ -33,7 +34,7 @@ export { marcasLegales, coleccionesRecientes, setsRecientesSinMarca, nombresConR
 // dirección entera que solo `urlDeImagen` deja pasar—. El embebido va el
 // último: `columnasCon` (impresiones-del-set.js) parte esta lista por comas.
 export const COLUMNAS =
-  'id,market,set_id,local_id,name,name_es,name_key,image_path,image_scrydex,image_tcggo,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types,tcg_sets(serie_id,tcg_online_code)'
+  'id,market,set_id,local_id,name,name_es,name_en,name_key,image_path,image_scrydex,image_tcggo,category,stage,evolve_from,trainer_type,energy_type,suffix,rarity,rarity_en,regulation_mark,hp,types,tcg_sets(serie_id,tcg_online_code)'
 
 const MERCADO = 'WEST'
 
@@ -53,16 +54,9 @@ const canonizar = (filas) => (filas || []).map(canonizarCarta)
 // Las promos de cada era: TCG Live las escribe «PR-XX» y Limitless con
 // su propio código (SVP, SP, SMP…), y los dos se aceptan al importar.
 const CODIGOS_EXTRA = { svp: 'PR-SV', swshp: 'PR-SW', smp: 'PR-SM', xyp: 'PR-XY', bwp: 'PR-BLW', sve: 'SVE', mee: 'MEE', mep: 'MEP' }
-// Y al revés, los alias con los que llega un código en una lista.
-const ALIAS_DE_CODIGO = {
-  'PR-SV': 'svp', SVP: 'svp',
-  'PR-SW': 'swshp', SP: 'swshp',
-  'PR-SM': 'smp', SMP: 'smp',
-  'PR-XY': 'xyp', XYP: 'xyp',
-  'PR-BLW': 'bwp', BWP: 'bwp',
-  'PR-ME': 'mep', MEP: 'mep',
-  SVE: 'sve', MEE: 'mee',
-}
+// Y al revés, los alias con los que llega un código en una lista: viven en
+// comun.js desde la 1460, que /torneo también los necesita.
+const ALIAS_DE_CODIGO = ALIAS_DE_CODIGO_LIVE
 // En el espejo, el número de una promo antigua lleva la era delante
 // («SWSH251», «SM01»); en una lista viene a secas («251»).
 export const PREFIJO_PROMO = { swshp: 'SWSH', smp: 'SM', xyp: 'XY', bwp: 'BW' }
@@ -429,23 +423,35 @@ export async function resolverLineas(lineas) {
   }
   const porId = await cartasPorIds([...candidatos.values()].flat(), { completar: false })
 
+  // Y lo que no sale por su id, por su COLECCIÓN y su NÚMERO (1460): las
+  // cartas que crea TCGGO se llaman «tcggo-81961», no «dlr-10», así que una
+  // lista con Delta Reign, el 30 aniversario o un Prize Pack no encontraba
+  // ni una por su id y se iba al nombre — con otra impresión, o ninguna.
+  const porNumero = await cartasPorNumero(lineas.filter((l) => !(candidatos.get(l) || []).some((id) => porId.has(id)) && l.set && l.numero && !esBasicaDeLinea(l)), idsDeCodigo, idDeCodigo)
+
   const porNombre = []
   for (const l of lineas) {
-    const carta = (candidatos.get(l) || []).map((id) => porId.get(id)).find(Boolean)
+    const carta = (candidatos.get(l) || []).map((id) => porId.get(id)).find(Boolean) || porNumero.get(l)
     if (carta) resueltas.push({ linea: l, carta, exacta: true })
     else porNombre.push(l)
   }
 
   // Por nombre, de seis en seis para no lanzar cincuenta consultas a la
   // vez contra la base si alguien pega una lista entera sin códigos.
+  const deNombre = []
   for (let i = 0; i < porNombre.length; i += 6) {
     const tanda = porNombre.slice(i, i + 6)
     const res = await Promise.all(tanda.map((l) => mejorPorNombre(l.nombre, legales)))
     tanda.forEach((l, k) => {
-      if (res[k]) resueltas.push({ linea: l, carta: res[k], exacta: false })
+      if (res[k]) deNombre.push({ linea: l, carta: res[k], exacta: false })
       else sinResolver.push(l)
     })
   }
+  // Y de lo que se ha encontrado por el nombre, la impresión que llevan los
+  // mazos de verdad, como la enseña Limitless (1460): «la más nueva con
+  // marca legal» era muchas veces la de un Prize Pack o la del 30
+  // aniversario, y la Boss's Orders de una repetición salía con el sello.
+  resueltas.push(...(await preferirLaDelMeta(deNombre, { idDeCodigo, idsDeCodigo })))
 
   // La impresión que se enseña (tanda 413, js/impresion-canonica.js): la
   // de rareza más baja de su colección, y una sola colección por carta.
@@ -463,6 +469,108 @@ export async function resolverLineas(lineas) {
     resueltas: juntas.map((e, k) => ({ linea: { ...e.linea, n: e.n }, carta: completas[k], exacta: e.exacta })),
     sinResolver,
   }
+}
+
+// ¿Esta línea es una energía básica? Las mismas cuentas que arriba: esas
+// van siempre a la MEE de su tipo y no se buscan por su número.
+function esBasicaDeLinea(l) {
+  const letra = letraDeEnergia(l.nombre) || letraDeEnergiaPorNumero(l.set, l.numero)
+  return Boolean(
+    letra &&
+      (letraDeEnergiaPorNumero(l.set, l.numero) ||
+        /^(basic\s+)?(\{[a-z]\}|[a-z]+)\s+energy$/i.test(plano(l.nombre)) ||
+        /^energia\s+\S+$/.test(plano(l.nombre)))
+  )
+}
+
+// Las cartas de unas líneas con código por su colección y su número, en UNA
+// consulta (1460). Devuelve `Map(línea → carta)`. El número, en todas sus
+// formas (`variantesDeNumero`); la colección, la del código y las que lo
+// comparten (la galería de Origen Perdido va con «LOR»).
+async function cartasPorNumero(lineas, idsDeCodigo, idDeCodigo) {
+  const fuera = new Map()
+  if (!lineas.length) return fuera
+  const deLinea = new Map()
+  for (const l of lineas) {
+    const codigo = String(l.set).toUpperCase()
+    const sets = [...new Set([idDeCodigo.get(codigo), ...(idsDeCodigo?.get(codigo) || [])].filter(Boolean))]
+    if (!sets.length) continue
+    const codigos = [codigo, ...Object.keys(ALIAS_DE_CODIGO).filter((k) => sets.includes(ALIAS_DE_CODIGO[k]))]
+    deLinea.set(l, { sets, numeros: variantesDeNumero(l.numero, codigos) })
+  }
+  const sets = [...new Set([...deLinea.values()].flatMap((x) => x.sets))]
+  const numeros = [...new Set([...deLinea.values()].flatMap((x) => x.numeros))]
+  if (!sets.length || !numeros.length) return fuera
+  try {
+    const { data, error } = await supabase.from('tcg_cards').select(COLUMNAS).eq('market', MERCADO).in('set_id', sets).in('local_id', numeros).limit(1000)
+    if (error) throw error
+    const filas = canonizar(data)
+    for (const [l, { sets: suyos, numeros: suyas }] of deLinea) {
+      const carta = filas.find((c) => suyos.includes(c.set_id) && suyas.includes(String(c.local_id)))
+      if (carta) fuera.set(l, carta)
+    }
+  } catch {
+    // Sin respuesta, esas líneas siguen por el nombre, como antes.
+  }
+  return fuera
+}
+
+const mismoNombre = (a, b) => {
+  const de = (c) => [c?.name, c?.name_en, c?.name_es, c?.name_key].filter(Boolean).map(plano)
+  const nb = new Set(de(b))
+  return de(a).some((n) => nb.has(n))
+}
+
+// La impresión que llevan los mazos del meta, para lo encontrado por el
+// nombre (1460): `meta_cartas_dia` (las listas de Limitless de los últimos
+// días) dice de cada carta qué colección y número suman más mazos, que es
+// como Limitless la enseña. Si es otra que la elegida y la encontramos por
+// su número, manda esa. Las energías básicas no: van a la MEE de su tipo.
+// Sin la tabla o sin respuesta, se queda la elegida.
+async function preferirLaDelMeta(entradas, { idDeCodigo, idsDeCodigo }) {
+  const cambiables = entradas.filter((e) => e.carta && !esEnergiaBasica(e.carta))
+  if (!cambiables.length) return entradas
+  let filas
+  try {
+    // El meta va en inglés: con un registro en español, la carta encontrada
+    // trae el inglés en `name_en` (y a veces el español en `name`, la 330).
+    filas = await impresionesDelMeta(cambiables.flatMap((e) => [e.carta.name_en, e.carta.name, e.linea.nombre]))
+  } catch {
+    return entradas
+  }
+  // Por sección: la Ultra Ball se busca entre los Entrenadores.
+  const porSeccion = new Map()
+  const mejorDe = (c) => {
+    const s = seccionDeCarta(c) || ''
+    if (!porSeccion.has(s)) porSeccion.set(s, masJugadas(filas, { seccion: s || null }))
+    return porSeccion.get(s)
+  }
+  const { codigoDeId } = await cargarSets()
+  const pedir = []
+  for (const e of cambiables) {
+    const mejor = mejorDe(e.carta)
+    const buena = laMasJugada(mejor, e.carta.name_en) || laMasJugada(mejor, e.carta.name) || laMasJugada(mejor, e.linea.nombre)
+    if (!buena || esLaImpresion(codigoDeId.get(e.carta.set_id), e.carta.local_id, buena)) continue
+    pedir.push({ e, linea: { n: e.linea.n, nombre: e.linea.nombre, set: buena.set, numero: buena.numero } })
+  }
+  if (!pedir.length) return entradas
+  // Por su id (TCGdex) y, si no, por su número (TCGGO), como una línea con código.
+  const ids = new Map()
+  for (const p of pedir) {
+    const setId = idDeCodigo.get(p.linea.set)
+    if (setId) ids.set(p, [`${setId}-${p.linea.numero}`, `${setId}-${String(p.linea.numero).padStart(3, '0')}`, `${setId}-${String(p.linea.numero).replace(/^0+(?=\d)/, '')}`])
+  }
+  const porId = await cartasPorIds([...ids.values()].flat(), { completar: false }).catch(() => new Map())
+  const faltan = pedir.filter((p) => !(ids.get(p) || []).some((id) => porId.has(id)))
+  const porNumero = await cartasPorNumero(faltan.map((p) => p.linea), idsDeCodigo, idDeCodigo)
+  const cambio = new Map()
+  for (const p of pedir) {
+    const carta = (ids.get(p) || []).map((id) => porId.get(id)).find(Boolean) || porNumero.get(p.linea)
+    // Solo si es LA MISMA carta (por su nombre, en cualquiera de sus formas):
+    // una impresión del meta que se llame de otra manera sería otra carta.
+    if (carta && mismoNombre(carta, p.e.carta)) cambio.set(p.e, carta)
+  }
+  return entradas.map((e) => (cambio.has(e) ? { ...e, carta: cambio.get(e) } : e))
 }
 
 // El tipo de una energía básica por su número, para las líneas que no
@@ -493,9 +601,12 @@ export function letraDeEnergiaPorNumero(set, numero) {
 //     regla ordena, no quita.
 async function mejorPorNombre(nombre, legales) {
   const objetivo = normalizeSearch(nombre)
-  const { sets, porId } = await cargarSets()
+  const { sets, porId, codigoDeId } = await cargarSets()
   const recientes = await coleccionesRecientes()
   const legal = (c) => esLegalPorMarca(c, legales, recientes)
+  // Una colección que TCG Live no tiene (los Prize Pack: sin código) no es la
+  // forma en que se juega una carta, sino la de su sobre de premio (1460).
+  const enTcgLive = (c) => codigoDeId.has(c?.set_id)
   const conFicha = (c) => Boolean(c?.category)
   const delJuego = (c) => esDelTCG(porId.get(c?.set_id) || { id: c?.set_id })
   const orden = new Map(sets.map((s, i) => [s.id, i]))
@@ -511,7 +622,21 @@ async function mejorPorNombre(nombre, legales) {
     const todas = exactas.length ? exactas : lista
     const delTcg = todas.filter(delJuego)
     const pool = delTcg.length ? delTcg : todas
+    // El escalón (1460), como juega Estándar la regla de la reimpresión: una
+    // impresión vale si ALGUNA de las que se llaman igual es legal. Primero
+    // la legal de una colección de TCG Live; luego cualquiera de una colección
+    // de TCG Live, si la carta es legal por otra (el Iono de Evoluciones en
+    // Paldea, que es el que se juega aunque lleve la G); luego la legal de un
+    // Prize Pack, que es la impresión de su sobre de premio y no la de juego.
+    // Lo de «legal por otra» solo en Entrenadores y Energías: dos Pokémon que
+    // se llaman igual pueden ser dos cartas distintas.
+    const algunaLegal = exactas.length > 0 && pool.some(legal)
+    const noPokemon = (c) => c?.category && c.category !== 'Pokemon'
+    const escalon = (c) => (legal(c) && enTcgLive(c) ? 3 : enTcgLive(c) && algunaLegal && noPokemon(c) ? 2 : legal(c) ? 1 : 0)
     return [...pool].sort((a, b) => {
+      const ea = escalon(a)
+      const eb = escalon(b)
+      if (ea !== eb) return eb - ea
       const la = legal(a) ? 1 : 0
       const lb = legal(b) ? 1 : 0
       if (la !== lb) return lb - la

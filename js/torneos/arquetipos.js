@@ -39,7 +39,7 @@ import { esAntepasadoDe } from './evoluciones.js'
 // local, y este módulo la usa por dentro en cinco sitios. Se importa Y
 // se reexporta. (Lo cazó la prueba de la 325 al primer intento: un
 // `ReferenceError` en cuanto se deduce un arquetipo.)
-import { normalizarNombre } from '../normalizar.js'
+import { normalizarNombre, claveDeCarta } from '../normalizar.js'
 export { normalizarNombre }
 
 // Todas las líneas de un mazo en una sola lista. El arquetipo puede
@@ -58,15 +58,31 @@ function lineasDelMazo(parsed) {
 //     viene en el idioma del jugador — «Boss's Orders» y «Órdenes del
 //     jefe» son la misma carta. Por eso un requisito puede llevar VARIOS
 //     nombres, y basta con que case uno.
+//
+// Y desde la 1460, con `minimo`: cuántas copias tiene que llevar (sumando
+// las de todas sus impresiones). Es lo que separa «Dragapult Dusknoir»
+// —dos Dusknoir o más— de un «Dragapult» que lleva uno de tecnología, como
+// lo separa Limitless. Sin `minimo`, basta una copia, como siempre.
+// Los nombres se comparan sin guiones ni apóstrofos tipográficos
+// (`claveDeCarta`): TCGdex escribe «Mega-Lucario ex» y TCG Live «Mega
+// Lucario ex», y los dos son la misma carta.
+const claveDeRequisito = (n) => claveDeCarta(n).replace(/[‘’]/g, "'")
 export function llevaLaCarta(lineas, requisito) {
   const numero = String(requisito?.numero ?? '')
   const set = String(requisito?.set ?? '').toUpperCase()
-  const nombres = (requisito?.nombres || []).map(normalizarNombre)
+  const nombres = (requisito?.nombres || []).map(claveDeRequisito)
+  const minimo = Math.max(1, Number(requisito?.minimo) || 1)
 
-  return lineas.some((l) => {
-    if (set && numero && String(l.set ?? '').toUpperCase() === set && String(l.number ?? '') === numero) return true
-    return nombres.length > 0 && nombres.includes(normalizarNombre(l.name))
-  })
+  let copias = 0
+  for (const l of lineas) {
+    const porNumero = set && numero && String(l.set ?? '').toUpperCase() === set && String(l.number ?? '') === numero
+    const porNombre = nombres.length > 0 && nombres.includes(claveDeRequisito(l.name))
+    if (!porNumero && !porNombre) continue
+    // Una línea sin cantidad (un icono, una lista a medias) cuenta como una.
+    copias += Math.max(1, Number(l.quantity ?? l.count) || 1)
+    if (copias >= minimo) return true
+  }
+  return false
 }
 
 // El arquetipo del catálogo que case, y de los que casen el MÁS

@@ -181,23 +181,9 @@ export async function catalogoDeArquetipos() {
 // /repeticiones?r=<id>): el mismo sitio con la mitad de letras.
 export const enlaceCorto = (id, origen = location.origin) => `${origen}/rep/${encodeURIComponent(id)}`
 
-// Qué impresión de cada Pokémon llevan los mazos del meta (repeticiones/
-// impresion.js, `masJugadas`): las filas de los últimos `dias`. Si la
-// tabla no está o falla, ninguna: se queda la que eligió el resolutor.
-export async function impresionesDelMeta(nombres, { dias = 60 } = {}) {
-  const lista = [...new Set((nombres || []).filter(Boolean))]
-  if (!lista.length) return []
-  const desde = new Date(Date.now() - dias * 864e5).toISOString().slice(0, 10)
-  const { data, error } = await supabase
-    .from('meta_cartas_dia')
-    .select('nombre,set_codigo,numero,mazos')
-    .eq('seccion', 'pokemon')
-    .in('nombre', lista)
-    .gte('dia', desde)
-    .order('mazos', { ascending: false })
-    .limit(1000)
-  return error ? [] : data || []
-}
+// Qué impresión de cada carta llevan los mazos del meta: desde la 1460 vive
+// en js/impresion-del-meta.js (la usa también el constructor).
+export { impresionesDelMeta } from '../impresion-del-meta.js'
 
 // ── Mis partidas (tanda 494) ──
 //

@@ -38,7 +38,7 @@
 // guardar la lista — de eso se encarga el juez, no el formulario.
 import { supabase } from './supabase.js'
 import { searchCards, normalizeSearch } from './tcgdex.js'
-import { nombreDeSetLive } from './torneos/comun.js'
+import { nombreDeSetLive, ALIAS_DE_CODIGO_LIVE, variantesDeNumero } from './torneos/comun.js'
 // Las dos preguntas de legalidad viven fuera desde la tanda 335: las
 // hace también la ficha de una carta, y una copia se habría separado el
 // día que cambiara la temporada.
@@ -105,6 +105,13 @@ async function setDeCodigo(codigo) {
   if (overrides[clave]) {
     setsPorCodigo.set(codigo, overrides[clave])
     return overrides[clave]
+  }
+
+  // Los de promos y energías (1460): «SVP» es `svp`, aunque en la base
+  // su código sea «PR-SV».
+  if (ALIAS_DE_CODIGO_LIVE[clave]) {
+    setsPorCodigo.set(codigo, ALIAS_DE_CODIGO_LIVE[clave])
+    return ALIAS_DE_CODIGO_LIVE[clave]
   }
 
   let setId = null
@@ -174,17 +181,20 @@ export async function resolverCarta(linea) {
   let exacta = false
   try {
     // Primero el tiro exacto: su set y su número de colección, SIN el
-    // nombre (los sets nuevos numeran con ceros por delante — 057 — y
-    // el export dice 57, así que se prueban las dos formas).
+    // nombre. El número se prueba en todas sus formas (`variantesDeNumero`,
+    // 1460): con ceros delante —057— y sin ellos —Delta Reign guarda «84» y
+    // la lista dice «084»—, y con el código delante, como numera TCGGO lo
+    // que crea él («SVP 225»).
     const setId = await setDeCodigo(linea.set)
     if (setId) {
-      const numero = String(linea.number)
+      const codigo = String(linea.set || '').toUpperCase()
+      const codigos = [codigo, ...Object.keys(ALIAS_DE_CODIGO_LIVE).filter((k) => ALIAS_DE_CODIGO_LIVE[k] === setId)]
       const { data } = await supabase
         .from('tcg_cards')
         .select(COLUMNAS_DE_LISTA)
         .eq('market', 'WEST')
         .eq('set_id', setId)
-        .in('local_id', [numero, numero.padStart(3, '0')])
+        .in('local_id', variantesDeNumero(linea.number, codigos))
         .limit(1)
       carta = data?.[0] || null
       exacta = Boolean(carta)

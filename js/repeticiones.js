@@ -26,7 +26,7 @@ import { canonizarEntradas } from './impresiones-del-set.js'
 import { imagenDeEnergiaBasica, esEnergiaBasica, letraDeEnergia, plano, codificarMazo, leerLista } from './constructor/nucleo.js'
 import { mazoConLista, sinVerEnLaFoto, premiosCogidos, probabilidadDeRobar } from './repeticiones/lista.js'
 import { leerRegistro } from './repeticiones/registro.js'
-import { usosPorCarta, usosDe, impresionQueCasa, masJugadas, esLaImpresion } from './repeticiones/impresion.js'
+import { usosPorCarta, usosDe, impresionQueCasa } from './repeticiones/impresion.js'
 import { momentosDe, numerosDe, siguienteKo } from './repeticiones/numeros.js'
 import { pintarCarrera } from './repeticiones/carrera.js'
 import { cartasVistas, listaParaArquetipo, entradasDelConstructor, totalVisto } from './repeticiones/mazos.js'
@@ -187,9 +187,10 @@ async function resolverCartas(nombres, vez) {
     if (vez !== R.vez) return
     rehacerFotos()
   }
-  // La impresión que llevan los mazos de verdad, ANTES de afinar por lo
-  // que se le ve hacer: así lo de abajo comprueba esa y no la más nueva.
-  if (await preferirLasDelMeta(resueltos, vez)) rehacerFotos()
+  // La impresión que llevan los mazos de verdad ya la ha puesto
+  // `resolverLineas` (1460, js/impresion-del-meta.js: antes era una pasada
+  // aparte aquí, solo para los Pokémon), ANTES de afinar por lo que se le ve
+  // hacer: así lo de abajo comprueba esa y no la más nueva.
   if (vez !== R.vez) return
   const porAfinar = resueltos.filter((n) => usosDe(R.usos, n).size && R.cartas.get(plano(n))).map((n) => [n, R.cartas.get(plano(n))])
   // Con las cartas encontradas, los mazos se leen bien: el tipo de cada
@@ -199,40 +200,6 @@ async function resolverCartas(nombres, vez) {
   // cartas estén (Juega desde aquí) no tiene por qué esperar también a
   // esto, que son peticiones de una en una.
   afinarTodas(porAfinar, vez)
-}
-
-// De cada Pokémon resuelto por su nombre, la impresión que más mazos del
-// meta llevan (repeticiones/impresion.js, `masJugadas`), si no es ya la
-// elegida. Una consulta para todos, y una más para traer las que cambian.
-async function preferirLasDelMeta(nombres, vez) {
-  const pokemon = nombres.map((n) => [n, R.cartas.get(plano(n))]).filter(([, c]) => c && c.category === 'Pokemon' && c.name)
-  if (!pokemon.length) return false
-  let mejor
-  try {
-    mejor = masJugadas(await datos.impresionesDelMeta(pokemon.map(([, c]) => c.name)))
-  } catch {
-    return false
-  }
-  const lineas = []
-  for (const [nombre, c] of pokemon) {
-    const buena = mejor.get(plano(c.name))
-    if (!buena || esLaImpresion(R.codigoDeSet?.(c.set_id), c.local_id, buena)) continue
-    lineas.push({ n: 1, nombre, set: buena.set, numero: buena.numero })
-  }
-  if (!lineas.length || vez !== R.vez) return false
-  let cambia = false
-  try {
-    const { resueltas } = await resolverLineas(lineas)
-    if (vez !== R.vez) return false
-    for (const r of resueltas) {
-      if (!r.exacta) continue
-      R.cartas.set(plano(r.linea.nombre), r.carta)
-      cambia = true
-    }
-  } catch {
-    /* sin ella se queda la que había */
-  }
-  return cambia
 }
 
 async function afinarTodas(porAfinar, vez) {

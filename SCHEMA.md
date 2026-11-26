@@ -55231,6 +55231,43 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1460 — Los arquetipos de Limitless, y las cartas en su forma de Estándar
+
+`supabase-migration-1460-arquetipos-limitless.sql` (sin ejecutar): 148 filas en
+`tcg_archetypes` (vacía hasta ahora) con `insert … select from
+jsonb_to_recordset(…) on conflict (id) do nothing`: `id` y `nombre` de Limitless
+(los de `meta_arquetipos`), `iconos` `[{ set, numero, nombre }]` (las cartas de
+sus iconos y su impresión más jugada; sin impresión conocida, solo `nombre`) y
+`requiere` `[{ nombres: [inglés, español…], minimo? }]`. El andamio que las
+saca de `meta_resultados`/`meta_cartas_dia` y escribe la migración está en la
+rama `pruebas`, `herramientas/arquetipos-limitless/`.
+
+`js/torneos/arquetipos.js`: `llevaLaCarta(lineas, { nombres, set, numero,
+minimo })` suma las copias de las líneas que casan (por número o por nombre) y
+pide `minimo` (1 sin él); los nombres se comparan con `claveDeCarta` y el
+apóstrofo tipográfico plegado. `admin/js/admin.js`: un requisito «2x Nombre /
+Nombre» lleva `minimo`, y al editar un arquetipo sus iconos conservan su
+`nombre` si no cambian.
+
+Las cartas: `js/torneos/comun.js` exporta `ALIAS_DE_CODIGO_LIVE` (antes, solo
+en el constructor) y `variantesDeNumero(numero, codigos)` (tal cual, con tres
+ceros, sin ceros y «CÓDIGO n»). `js/lista-canonica.js` (`setDeCodigo`, el alias
+antes que la base; `resolverCarta`, el número en todas sus formas).
+`js/constructor/datos.js`: `cartasPorNumero(lineas, idsDeCodigo, idDeCodigo)`
+(una consulta por `set_id` + `local_id` para lo que no sale por su id),
+`esBasicaDeLinea`, `preferirLaDelMeta(entradas, …)` (lo resuelto por nombre,
+a la impresión del meta de su sección, si es la misma carta: `mismoNombre`) y,
+en `mejorPorNombre`, el `escalon` (legal de TCG Live › de TCG Live si un
+Entrenador o Energía es legal por su reimpresión › legal de Prize Pack ›
+lo demás). Nuevo `js/impresion-del-meta.js`: `masJugadas(filas, { seccion })`,
+`laMasJugada`, `esLaImpresion`, `seccionDeCarta` e `impresionesDelMeta(nombres,
+{ dias })` (una consulta por nombre a `meta_cartas_dia`, 300 filas, con
+`seccion`); `repeticiones/impresion.js` y `repeticiones/datos.js` lo
+reexportan y `repeticiones.js` ya no tiene `preferirLasDelMeta` (lo hace
+`resolverLineas`). `js/impresion-canonica.js`: `impresionMasComun(…, {
+codigoDeSet })` no pasa de una colección con código de TCG Live a una sin él;
+`js/impresiones-del-set.js` se lo pasa (`fechasDeSets` trae ya el código).
+
 ## Tanda 1459 — TheHobbyClub a PokeDoc, y lo tuyo para Cardmarket
 
 Sin migración (usa `tcg_cards.cm_id_product_propio`, `tcg_card_versions.cm_id_product`,

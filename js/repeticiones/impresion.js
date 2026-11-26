@@ -83,38 +83,7 @@ export async function impresionQueCasa(nombre, usos, elegida, { pedir = fetch, t
 
 // ── La que se juega en el meta ──
 //
-// Lo de arriba solo sirve si la carta HACE algo en la partida. Un Pokémon
-// que no ataca ni usa nada —el Shaymin de Rivales Predestinados, cuya
-// habilidad es pasiva— no deja huella en el registro, y el resolutor por
-// nombre se quedaba con la impresión legal más NUEVA, que no tiene por qué
-// ser la que lleva nadie. PINGU: «ese Shaymin no es el que se juega
-// realmente; el que se está jugando es el de Rivales Predestinados».
-//
-// La pista que queda es qué impresión LLEVAN los mazos de verdad:
-// `meta_cartas_dia` cuenta los Pokémon de las listas de Limitless por
-// nombre + colección + número. De cada nombre, la que más mazos suma.
-// `filas`: [{ nombre, set_codigo, numero, mazos }] (el nombre, el inglés).
-const numeroPlano = (n) => String(n ?? '').trim().toLowerCase().replace(/^0+(?=\w)/, '')
-
-export function masJugadas(filas) {
-  const suma = new Map()
-  for (const f of filas || []) {
-    const set = String(f?.set_codigo || '').trim().toUpperCase()
-    const numero = numeroPlano(f?.numero)
-    if (!f?.nombre || !set || !numero) continue
-    const clave = `${plano(f.nombre)}|${set}|${numero}`
-    const x = suma.get(clave) || { nombre: plano(f.nombre), set, numero: String(f.numero).trim(), mazos: 0 }
-    x.mazos += Number(f.mazos) || 0
-    suma.set(clave, x)
-  }
-  const mejor = new Map()
-  for (const x of suma.values()) {
-    const ya = mejor.get(x.nombre)
-    if (!ya || x.mazos > ya.mazos) mejor.set(x.nombre, x)
-  }
-  return mejor
-}
-
-// ¿Es esta carta (su código de colección y su número) ESA impresión?
-export const esLaImpresion = (codigo, numero, buena) =>
-  Boolean(codigo && buena) && String(codigo).toUpperCase() === buena.set && numeroPlano(numero) === numeroPlano(buena.numero)
+// `masJugadas` y `esLaImpresion` viven desde la 1460 en js/impresion-del-meta.js
+// (las usa también el constructor): se reexportan para quien ya las cogía de
+// aquí.
+export { masJugadas, esLaImpresion } from '../impresion-del-meta.js'

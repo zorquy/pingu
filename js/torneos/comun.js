@@ -161,6 +161,34 @@ export function nombreDeSetLive(codigo) {
 // TCG Live. Lo usa el constructor de mazos para escribir las listas de
 // exportación; se exporta desde aquí en vez de copiar la tabla, para que
 // el día que salga una colección nueva baste con añadirla en SETS_LIVE.
+// Los códigos con los que llega una colección de PROMOS (o de energías) en
+// una lista, y a qué set nuestro van (1460: vivían solo en el constructor, y
+// /torneo no sabía que «SVP 149» es `svp`: esas cartas entraban por el
+// nombre, sin ser la impresión exacta). TCG Live escribe «PR-SV» y Limitless
+// y el export de TCG Live, «SVP».
+export const ALIAS_DE_CODIGO_LIVE = {
+  'PR-SV': 'svp', SVP: 'svp',
+  'PR-SW': 'swshp', SP: 'swshp',
+  'PR-SM': 'smp', SMP: 'smp',
+  'PR-XY': 'xyp', XYP: 'xyp',
+  'PR-BLW': 'bwp', BWP: 'bwp',
+  'PR-ME': 'mep', MEP: 'mep',
+  SVE: 'sve', MEE: 'mee',
+}
+
+// Las formas en que el NÚMERO de una línea puede estar escrito en nuestro
+// catálogo (1460): tal cual, con ceros delante («057»), sin ellos (Delta
+// Reign guarda «84» y la lista dice «084»), y con el código delante como
+// numera TCGGO lo que crea él («SVP 225»). Sin número, ninguna.
+export function variantesDeNumero(numero, codigos = []) {
+  const n = String(numero ?? '').trim()
+  if (!n) return []
+  const sinCeros = n.replace(/^0+(?=\d)/, '')
+  const formas = [n, n.padStart(3, '0'), sinCeros]
+  for (const c of codigos) if (c) formas.push(`${c} ${n}`, `${c} ${sinCeros}`)
+  return [...new Set(formas)]
+}
+
 export function codigoLiveDeNombreDeSet(nombre) {
   const buscado = String(nombre || '').trim().toLowerCase()
   if (!buscado) return null

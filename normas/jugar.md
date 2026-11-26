@@ -29,6 +29,25 @@
   tcgdex/cards-database y copiando la original de cada reimpresión), pero
   **una expansión nueva que llegue de TCGGO nace otra vez sin categoría**:
   hasta que se automatice, se le hace lo mismo (SCHEMA 1281).
+- **Una carta de una lista se busca por su colección y su NÚMERO, en todas
+  sus formas, y la que se busca por el nombre sale como la juega Limitless**
+  (tanda 1460, Ibai: «hay cartas del formato estándar que PokeDoc no usa en su
+  forma estándar como en Limitless»). Las cartas que crea TCGGO no se llaman
+  `set-número` sino «tcggo-81961», y numeran a su manera («84» donde la lista
+  dice «084», «SVP 225»): el constructor las buscaba por un id que no existe y
+  Delta Reign, el 30 aniversario o los Prize Pack se iban al nombre. Una línea
+  con código se busca por `set_id` + `local_id` con `variantesDeNumero`, y los
+  códigos de promos («SVP» es `svp`, aunque su código sea «PR-SV») están en
+  `ALIAS_DE_CODIGO_LIVE` (comun.js), que usan el constructor Y /torneo. Lo que
+  se busca por el NOMBRE (repeticiones, laboratorio, listas sin código) pasa
+  por `preferirLaDelMeta`: la impresión que más mazos llevan en
+  `meta_cartas_dia`, por SECCIÓN, una consulta por nombre
+  (`js/impresion-del-meta.js`); sin datos del meta, antes una colección de TCG
+  Live que un Prize Pack (`escalon`: los Prize Pack no tienen código), y en un
+  Entrenador la de TCG Live aunque lleve una marca rotada si la carta es legal
+  por su reimpresión (el Iono). Y la impresión que se enseña (624) nunca pasa
+  de una colección de TCG Live a un Prize Pack. Un camino nuevo que resuelva
+  cartas pasa por `resolverLineas` o `resolverCarta`, no por otro buscador.
 - **Una partida o un torneo de /mis-partidas se comparte en una imagen**
   (tanda 997): `js/partida-imagen.js` (por `import()`) con la hoja de
   siempre y el marco de los retos (`cabecera` e `invitacionAbajo` de
@@ -229,7 +248,18 @@ función `ligas-jornadas`, que avisa la víspera (Telegram y campanita
 pasa por ahí, no por otra cuenta.
 
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
-al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda
+al pintarla. El CATÁLOGO (`tcg_archetypes`) son los de Limitless desde la
+1460 (Ibai: «tráete todos los arquetipos de mazos de Limitless»): el mismo id
+y nombre que /meta, sus dos iconos con el nombre de su carta, y requisitos
+sacados de sus listas (las cartas de sus iconos y, si hace falta para no
+confundirlo con otro, alguna más o un `minimo` de copias: lo que separa un
+Dragapult Dusknoir de un Dragapult con un Dusknoir suelto). Gana el de más
+requisitos, así que un arquetipo nuevo que se añada en /admin con UNA carta
+pierde contra los que piden dos: se le ponen las que le hagan falta. Los
+nombres de un requisito van en inglés y en español (el export de TCG Live
+viene en el idioma de cada jugador). Para rehacerlo con el meta de otro
+momento, el andamio está en la rama `pruebas`
+(`herramientas/arquetipos-limitless/`): no se escribe a mano. Eso es lo que hace que la regla de visibilidad no se pueda
 equivocar — se ve el mazo de alguien exactamente cuando la base deja ver
 su lista (torneo terminado, o de lista abierta en juego). Si algún día
 lo cacheas en una columna, te llevas esa garantía por delante.

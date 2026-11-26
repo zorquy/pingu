@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Los mazos se llaman como en Limitless: 148 arquetipos nuevos (Dragapult Dusknoir, Raging Bolt Ogerpon, Iono's Bellibolt…) en los torneos, en tus partidas y en las repeticiones, también con la lista en español.", "enlace": "/meta" },
+    { "fecha": "2026-11-26", "tipo": "arreglo", "texto": "Las cartas de Delta Reign, del 30 aniversario y de las promos SVP ya se reconocen al mandar una lista a un torneo y en el constructor, y las que se buscan por su nombre (repeticiones, listas sin código) salen con la impresión que se juega, como en Limitless, y no con la de su Prize Pack.", "enlace": "/repeticiones" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Tu colección de TheHobbyClub, a PokeDoc: al importar su CSV, lo que tienes va a tu colección y lo que te falta a «La quiero», y si quieres en una lista por cada colección. Y al importar puedes elegir adónde van: a tu colección, para cambio o a «La quiero».", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Para Cardmarket, desde el ⋯ de «La quiero»: lo que buscas, y lo que te falta de las expansiones que elijas, como lista para pegar en tus Wants. Y desde el ⋯ de «Las que doy», un CSV con lo que das y su número de Cardmarket.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-11-26", "tipo": "nuevo", "texto": "Torneos que se repiten: al crear uno puedes decir que es cada semana o cada dos, y al acabar se abre solo el siguiente con todo igual.", "enlace": "/torneos" },

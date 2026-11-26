@@ -4,6 +4,61 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 — IBAI-Claude (1460 — Los arquetipos de Limitless, y las cartas en su forma de Estándar)
+
+**Hecho** (Ibai: «tráete todos los arquetipos de mazos de Limitless y añádelos
+a PokeDoc para que haya más categorías de mazos; además sigue habiendo cartas
+del formato estándar que PokeDoc no usa en su forma estándar como en Limitless:
+no salen al mandar una lista a un torneo ni en el constructor, e incluso en las
+repeticiones salen cartas que no son las correctas»):
+- **Los arquetipos**: `tcg_archetypes` estaba VACÍA en producción (todo salía
+  deducido). La migración 1460 mete 148 de Limitless (los de `meta_arquetipos`,
+  sin el «other» ni sus Basic Box), con el mismo id y nombre que /meta, sus
+  iconos y reglas sacadas de sus listas (`meta_resultados`, ~5.000) y de
+  `meta_cartas_dia`. Contra esas listas, con el código de la web, el 96 % sale
+  con el arquetipo que le pone Limitless (el 99,5 % sale de catálogo). Los
+  requisitos llevan los nombres en inglés y en español, y pueden pedir un
+  mínimo de copias (`minimo`, nuevo en `llevaLaCarta` y en /admin: «2x
+  Dusknoir»). El andamio para rehacerlo está en la rama `pruebas`.
+- **Las cartas que no salían**: medido en producción con las 171 listas de
+  torneo que hay (924 líneas): el constructor no encontraba por su número 30
+  (las de TCGGO —Delta Reign, 30 aniversario, Prize Pack— se llaman
+  «tcggo-…», no `set-número`), /torneo 14 («SVP 149»: el set dice «PR-SV»;
+  «DLR 084»: Delta Reign guarda «84»). Ahora quedan 5 en los dos, y son códigos
+  raros de TCG Live («SVALT», «SMALT», «TG») o la lista mal escrita.
+- **La impresión por el nombre** (repeticiones, laboratorio, listas sin
+  código): de los 791 nombres de las listas de Limitless, la elegida era una de
+  las que se juegan en 452 (muchas de Prize Pack o del 30 aniversario: la Boss's
+  Orders, la Ultra Ball, el Fezandipiti de una repetición salían con el sello);
+  ahora en 718, y en 707 es la misma que enseña Limitless. Va por la impresión
+  que más mazos llevan (`meta_cartas_dia`, por sección; antes solo los Pokémon
+  de las repeticiones) y, sin datos, antes una de TCG Live que una de Prize
+  Pack. Y la impresión que se enseña (624) ya no pasa de una colección de TCG
+  Live a un Prize Pack.
+- Normas en `normas/jugar.md` (el catálogo de Limitless; cómo se busca una
+  carta de una lista).
+
+**Ficheros**: `js/torneos/arquetipos.js`, `js/torneos/comun.js`,
+`js/lista-canonica.js`, `js/constructor/datos.js`, nuevo
+`js/impresion-del-meta.js`, `js/repeticiones.js`, `js/repeticiones/impresion.js`,
+`js/repeticiones/datos.js`, `js/impresion-canonica.js`,
+`js/impresiones-del-set.js`, `admin/js/admin.js`, `admin/index.html`,
+`supabase-migration-1460-arquetipos-limitless.sql`, `novedades.json`, SCHEMA,
+`normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1460.mjs` (puro y PostgreSQL,
+sentencia a sentencia y dos veces, como el SQL Editor) y
+`test-tanda-1460-pantalla.mjs` (con el doble: el constructor y /torneo con
+Delta Reign, SVP y Prize Pack; falla entera con el código de antes). La 590,
+al día: el meta ya no lo mira repeticiones.js sino `resolverLineas`, una
+consulta por nombre. **PINGU: la migración 1460 y una pasada de suite, por
+favor.**
+
+**Pendiente**: el buscador de «Tu mazo» de Mis partidas sigue sin enseñar los
+arquetipos (Ibai lo pidió así en la 238); las partidas apuntadas a mano
+caen igual en su arquetipo al agrupar (`claveCanonicaDeMazo`). Un arquetipo
+NUEVO de Limitless no entra solo: se rehace con el andamio o se añade en /admin.
+
 ## 2026-11-26 — IBAI-Claude (1459 — TheHobbyClub a PokeDoc, y lo tuyo para Cardmarket)
 
 **Hecho** (Ibai: «exportar mi Cardmarket para que aparezcan las que cambio y
