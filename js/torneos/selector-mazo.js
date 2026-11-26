@@ -20,7 +20,7 @@
 //      tanda 234 eso no se podía elegir: PINGU lo vio enseguida, porque
 //      en trainingcourt escribes «hamm» y sale Crushing Hammer.
 //      Estas tardan lo que tarde la consulta y se añaden después.
-import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, OBJETOS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto, respaldoDeSprite, atributosDeRespaldo } from './sprites-pokemon.js'
+import { POKEMON_POR_DEX, POKEMON_APLASTADOS, FORMAS_TCG, OBJETOS_TCG, urlDeSprite, dexDeCarta, spriteDeObjeto, spriteDeCarta, respaldoDeSprite, atributosDeRespaldo } from './sprites-pokemon.js'
 import { searchCards, cardImageUrl } from '../tcgdex.js'
 
 // El escapado va aquí y NO se importa de app.js a propósito: app.js toca
@@ -36,12 +36,39 @@ function escapeHtml(texto) {
 // que EMPIEZA por lo buscado: con «dr», «Dragapult» tiene que salir
 // antes que «Beedrill», que solo lo contiene.
 //
-// Los ARQUETIPOS del catálogo ya NO salen aquí (tanda 238, pedido por
-// Ibai: «que no salgan los arquetipos ya hechos porque no funciona» —
-// salían sin sprite y no aportaban nada que elegir los Pokémon no dé).
-// La agrupación con el catálogo no se pierde: claveCanonicaDeMazo la
-// hace al leer, a partir de los Pokémon elegidos. El parámetro
-// `catalogo` se conserva en la firma para no romper a quien llama.
+// Los ARQUETIPOS del catálogo VUELVEN en la 1461. Se quitaron en la 238
+// (Ibai: «que no salgan los arquetipos ya hechos porque no funciona»:
+// salían sin sprite y no aportaban nada que elegir los Pokémon no diera), y
+// desde la 1460 el catálogo son los de Limitless, con sus dos iconos (Ibai: «adelante»
+// a enseñarlos). Salen con los DOS sprites del mazo y se guardan por su id
+// (`a:<id>`), que es la clave con la que agrupan los de los torneos. Un
+// arquetipo que se llama como una especie («Gardevoir») ocupa su sitio: la
+// especie sola caería en el mismo arquetipo al agrupar (claveCanonicaDeMazo).
+const aplastar = (t) =>
+  String(t || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+// La opción de un arquetipo del catálogo, con los sprites de sus iconos. La
+// usa también Mis partidas al devolver al campo un mazo ya apuntado.
+export function opcionDeArquetipo(a) {
+  if (!a?.id || !a?.nombre) return null
+  const sprites = (a.iconos || []).map((i) => (i?.nombre ? spriteDeCarta(i.nombre) : null)).filter(Boolean).slice(0, 2)
+  return { tipo: 'arquetipo', valor: `a:${a.id}`, nombre: a.nombre, sprite: sprites[0] || null, sprites }
+}
+function opcionesDeArquetipos(q, catalogo) {
+  const fuera = []
+  for (const a of catalogo || []) {
+    if (a?.activo === false) continue
+    const opcion = opcionDeArquetipo(a)
+    if (!opcion) continue
+    const plano = aplastar(a.nombre)
+    if (plano.includes(q)) fuera.push({ ...opcion, empieza: plano.startsWith(q) })
+  }
+  return fuera
+}
+
 export function buscarOpciones(texto, catalogo = [], limite = 40) {
   const q = String(texto || '')
     .toLowerCase()
@@ -168,16 +195,25 @@ export function buscarOpciones(texto, catalogo = [], limite = 40) {
     })
   }
 
+  // Los arquetipos del catálogo (1461): el que se llama como una especie
+  // ocupa su sitio, con los sprites del mazo.
+  const arquetipos = opcionesDeArquetipos(q, catalogo)
+  const suyos = new Set(arquetipos.map((a) => a.nombre.toLowerCase()))
+  const todas = [...arquetipos, ...opciones.filter((o) => !suyos.has(o.nombre.toLowerCase()))]
+
   // Los que EMPIEZAN por lo tecleado, delante: con «dr» hay que ver
   // «Dragapult» antes que «Beedrill», que solo lo contiene. Y NO se
   // ordena por longitud —se probó y hundía a «Dragapult» debajo de
   // «Drampa» y «Dreepy», que es justo lo contrario de lo que hace falta.
-  opciones.sort(
+  // A igualdad, el mazo antes que la especie suelta («Dragapult Dusknoir»
+  // arriba de «Dragonite» al escribir «drag»).
+  todas.sort(
     (a, b) =>
       Number(b.empieza) - Number(a.empieza) ||
+      Number(b.tipo === 'arquetipo') - Number(a.tipo === 'arquetipo') ||
       a.nombre.localeCompare(b.nombre)
   )
-  return opciones.slice(0, limite)
+  return todas.slice(0, limite)
 }
 
 // ── Las cartas que NO son Pokémon ──
@@ -239,6 +275,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   contenedor.innerHTML = `
     <div class="selector-mazo-campo">
       <span class="selector-mazo-marco selector-mazo-sprite hidden"><img loading="lazy" alt="" /></span>
+      <span class="selector-mazo-marco selector-mazo-sprite2 hidden"><img loading="lazy" alt="" /></span>
       <input type="text" class="selector-mazo-texto" placeholder="${escapeHtml(marcador)}" autocomplete="off"
              role="combobox" aria-expanded="false" aria-autocomplete="list" />
       <button type="button" class="selector-mazo-limpiar hidden" aria-label="Quitar">×</button>
@@ -249,6 +286,9 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   const lista = contenedor.querySelector('.selector-mazo-lista')
   const sprite = contenedor.querySelector('.selector-mazo-sprite')
   const spriteImg = sprite.querySelector('img')
+  // El segundo Pokémon de un arquetipo del catálogo (1461).
+  const sprite2 = contenedor.querySelector('.selector-mazo-sprite2')
+  const sprite2Img = sprite2.querySelector('img')
   const limpiar = contenedor.querySelector('.selector-mazo-limpiar')
 
   // El sprite del campo, con la misma red que la lista: cada fallo baja
@@ -260,6 +300,20 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
     if (respaldo && spriteImg.src !== respaldo) spriteImg.src = respaldo
     else sprite.classList.add('hidden')
   })
+  sprite2Img.addEventListener('error', () => {
+    const respaldo = respaldoDeSprite(sprite2Img.src)
+    if (respaldo && sprite2Img.src !== respaldo) sprite2Img.src = respaldo
+    else sprite2.classList.add('hidden')
+  })
+  // Los sprites del campo para una opción (o ninguno).
+  function pintarCampo(o) {
+    sprite.classList.toggle('hidden', !o?.sprite)
+    sprite.classList.toggle('es-carta', Boolean(o?.esCarta))
+    if (o?.sprite) spriteImg.src = o.sprite
+    const segundo = o?.sprites?.[1] || null
+    sprite2.classList.toggle('hidden', !segundo)
+    if (segundo) sprite2Img.src = segundo
+  }
 
   function cerrar() {
     abierto = false
@@ -274,18 +328,21 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
       <li class="selector-mazo-opcion ${i === resaltado ? 'resaltada' : ''}" role="option"
           aria-selected="${i === resaltado}" data-i="${i}">
         ${
+          // Un arquetipo del catálogo (1461), con los DOS Pokémon del mazo.
           // Una carta no se enseña entera (a este tamaño no se lee):
           // se recorta su ilustración en un cuadrado, como el
           // minisprite de un Pokémon. El marco es quien recorta.
           // Un sprite de forma que la CDN no tenga cae al de su especie
           // base (atributosDeRespaldo) en vez de al icono roto.
-          o.sprite
+          o.sprites?.length > 1
+            ? `<span class="selector-mazo-pareja">${o.sprites.map((u) => `<img src="${escapeHtml(u)}" alt="" loading="lazy"${atributosDeRespaldo(u)} />`).join('')}</span>`
+            : o.sprite
             ? o.esCarta
               ? `<span class="selector-mazo-marco es-carta"><img src="${escapeHtml(o.sprite)}" alt="" loading="lazy" /></span>`
               : `<img src="${escapeHtml(o.sprite)}" alt="" loading="lazy"${atributosDeRespaldo(o.sprite)} />`
             : '<span class="selector-mazo-hueco"></span>'
         }
-        <span>${escapeHtml(o.nombre)}</span>
+        <span>${escapeHtml(o.nombre)}</span>${o.tipo === 'arquetipo' ? '<small class="selector-mazo-etiqueta">Mazo</small>' : ''}
       </li>`
       )
       .join('')
@@ -297,9 +354,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
   function elegir(o) {
     elegido = o
     campo.value = o ? o.nombre : ''
-    sprite.classList.toggle('hidden', !o?.sprite)
-    sprite.classList.toggle('es-carta', Boolean(o?.esCarta))
-    if (o?.sprite) spriteImg.src = o.sprite
+    pintarCampo(o)
     limpiar.classList.toggle('hidden', !o)
     cerrar()
     alElegir?.(o)
@@ -316,7 +371,7 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
     // y el valor guardado sería otra.
     if (elegido) {
       elegido = null
-      sprite.classList.add('hidden')
+      pintarCampo(null)
       limpiar.classList.add('hidden')
       alElegir?.(null)
     }
@@ -383,11 +438,9 @@ export function montarSelectorMazo(contenedor, { catalogo = [], marcador = 'Elig
     poner: (opcion) => {
       elegido = opcion || null
       campo.value = elegido ? elegido.nombre : ''
-      sprite.classList.toggle('hidden', !elegido?.sprite)
-      sprite.classList.toggle('es-carta', Boolean(elegido?.esCarta))
-      // `spriteImg`, no `sprite`: el src va en el <img>, no en su marco
-      // (aquí se ponía en el span y el sprite no salía al editar).
-      if (elegido?.sprite) spriteImg.src = elegido.sprite
+      // El src va en el <img>, no en su marco (aquí se ponía en el span y el
+      // sprite no salía al editar): `pintarCampo` lo hace así.
+      pintarCampo(elegido)
       limpiar.classList.toggle('hidden', !elegido)
       cerrar()
     },

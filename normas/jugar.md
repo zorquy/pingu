@@ -74,6 +74,17 @@
   Las rondas de un torneo de PokeDoc se ordenan y se nombran por su
   `round_number` (1133: `ordenDeRondas`, `rotuloDeRonda`, «J4·R1» en una
   liga), nunca por su sitio en la lista; el bye va solo a la tarjeta.
+- **El buscador de mazos de /mis-partidas ofrece los ARQUETIPOS del
+  catálogo** (tanda 1461, Ibai: «adelante»; deshace la 238, que los quitó
+  porque salían sin sprite). Salen con los sprites de sus DOS iconos y la
+  chapa «Mazo», delante de la especie suelta a igualdad, y se guardan por su
+  id (`a:<id>`), que es como agrupan los de los torneos. Un arquetipo es el
+  mazo ENTERO: lo último que se elige en un par de campos manda y vacía al de
+  al lado si uno de los dos es un arquetipo (`mazoDe` se quedaría con el
+  arquetipo y callaría el otro campo). El que se llama como una especie
+  ocupa su sitio, que la especie sola ya caería en él al agrupar
+  (`claveCanonicaDeMazo`). Al editar, el campo vuelve con sus sprites por
+  `opcionDeArquetipo`, pero con el nombre GUARDADO.
 - **Una ficha de pruebas en otro IDIOMA que producción prueba otra web**
   (tanda 593). Los efectos de los ataques se leían de plantillas inglesas
   porque «el espejo guarda el texto en inglés» — y desde la 330 el engorde

@@ -442,6 +442,20 @@
 /* El hueco mantiene alineados los nombres cuando una opción no tiene
    sprite (un arquetipo que se nombra por un objeto). */
 .selector-mazo-hueco { width: 30px; flex: none; }
+/* Los arquetipos del catálogo (1461): sus dos Pokémon, un poco montados,
+   y la chapa «Mazo» que los separa de la especie suelta. SCHEMA 1461. */
+.selector-mazo-pareja { display: flex; flex: none; }
+.selector-mazo-pareja img + img { margin-left: -8px; }
+.selector-mazo-pareja img,
+.selector-mazo-sprite2 img { image-rendering: pixelated; }
+.selector-mazo-sprite2 { margin-left: -16px; }
+.selector-mazo-opcion > span:not([class]) { min-width: 0; overflow-wrap: anywhere; }
+.selector-mazo-etiqueta {
+  margin-left: auto;
+  flex: none;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
 
 .partidas-mazo-fila { align-items: flex-start; }
 

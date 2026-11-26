@@ -55231,6 +55231,23 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1461 — Los arquetipos de Limitless en el buscador de Mis partidas
+
+Sin cambios de esquema. `buscarOpciones(texto, catalogo)` (js/torneos/selector-mazo.js)
+vuelve a usar el catálogo (la 238 lo ignoraba): `opcionDeArquetipo(a)` da
+`{ tipo: 'arquetipo', valor: 'a:<id>', nombre, sprite, sprites }`, con `sprites`
+los de sus iconos por `spriteDeCarta(icono.nombre)` (como mucho dos). Filtra
+por el nombre aplastado (sin tildes ni signos), deja fuera los `activo: false`
+y quita la especie que se llama igual que un arquetipo. Orden: empieza por lo
+tecleado, luego arquetipo antes que especie, luego nombre. En la lista, dos
+sprites van en `span.selector-mazo-pareja` (el segundo montado 8 px) con la
+chapa `small.selector-mazo-etiqueta` («Mazo»); en el campo, el segundo en
+`.selector-mazo-sprite2` (`pintarCampo`, que usan `elegir`, el `input` y
+`poner`). En js/mis-partidas.js cada selector conoce a su hermano: al elegir,
+si lo elegido o lo del hermano es `a:`, el hermano se vacía; y
+`ponerMazoEnSelector` pone un `a:` con `opcionDeArquetipo` del catálogo
+cargado y el nombre guardado.
+
 ## Tanda 1460 — Los arquetipos de Limitless, y las cartas en su forma de Estándar
 
 `supabase-migration-1460-arquetipos-limitless.sql` (sin ejecutar): 148 filas en

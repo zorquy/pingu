@@ -20,7 +20,7 @@ import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
 import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe, pestaniaConAlgo, rotuloDeRonda, ordenDeRondas } from './matriz-partidas.js'
-import { montarSelectorMazo } from './torneos/selector-mazo.js'
+import { montarSelectorMazo, opcionDeArquetipo } from './torneos/selector-mazo.js'
 import {
   arquetipoDeMazoGuardado,
   mazoDeJugador,
@@ -1495,6 +1495,15 @@ function ponerMazoEnSelector(sel1, sel2, clave, nombre) {
     primero.limpiar()
     return
   }
+  // Un arquetipo del catálogo vuelve con sus dos sprites (1461). Con el
+  // nombre GUARDADO, no el de hoy del catálogo: es lo que se apuntó.
+  const delCatalogo = String(clave || '').startsWith('a:')
+    ? opcionDeArquetipo(catalogo.find((a) => `a:${a.id}` === clave))
+    : null
+  if (delCatalogo) {
+    primero.poner({ ...delCatalogo, nombre })
+    return
+  }
   const dex = dexesDeNombre(nombre)[0]
   primero.poner({
     valor: clave,
@@ -2023,17 +2032,26 @@ async function init() {
 
   $('partidaFecha').value = new Date().toISOString().slice(0, 10)
 
-  for (const [clave, caja, marcador] of [
-    ['mio1', 'selMio1', 'Tu Pokémon principal…'],
-    ['mio2', 'selMio2', 'Y el segundo (opcional)…'],
-    ['rival1', 'selRival1', 'Su Pokémon principal…'],
-    ['rival2', 'selRival2', 'Y el segundo (opcional)…'],
-    ['tmio1', 'selTorneoMio1', 'Tu Pokémon principal…'],
-    ['tmio2', 'selTorneoMio2', 'Y el segundo (opcional)…'],
+  for (const [clave, caja, marcador, hermano] of [
+    ['mio1', 'selMio1', 'Tu mazo o su Pokémon principal…', 'mio2'],
+    ['mio2', 'selMio2', 'Y el segundo (opcional)…', 'mio1'],
+    ['rival1', 'selRival1', 'Su mazo o su Pokémon principal…', 'rival2'],
+    ['rival2', 'selRival2', 'Y el segundo (opcional)…', 'rival1'],
+    ['tmio1', 'selTorneoMio1', 'Tu mazo o su Pokémon principal…', 'tmio2'],
+    ['tmio2', 'selTorneoMio2', 'Y el segundo (opcional)…', 'tmio1'],
   ]) {
     // Los de «Tu mazo» avisan a su bloque al cambiar (la casilla del
     // predeterminado sigue a lo elegido, 1070).
-    const alElegir = clave.startsWith('mio') ? () => elegirSuelta?.alCambiarMano() : clave.startsWith('tmio') ? () => elegirTorneo?.alCambiarMano() : undefined
+    const avisar = clave.startsWith('mio') ? () => elegirSuelta?.alCambiarMano() : clave.startsWith('tmio') ? () => elegirTorneo?.alCambiarMano() : null
+    // Un arquetipo del catálogo ES el mazo entero (1461): no se junta con
+    // el otro campo. Lo último que se elige manda y vacía al de al lado si
+    // uno de los dos es un arquetipo; si no, `mazoDe` se quedaría con el
+    // arquetipo y callaría lo del otro campo sin decir nada.
+    const alElegir = (o) => {
+      const otro = selectores[hermano]
+      if (o && otro?.valor() && (o.tipo === 'arquetipo' || otro.valor().valor?.startsWith('a:'))) otro.limpiar()
+      avisar?.()
+    }
     selectores[clave] = montarSelectorMazo($(caja), { catalogo, marcador, alElegir })
   }
 

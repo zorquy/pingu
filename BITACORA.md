@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 — IBAI-Claude (1461 — Los arquetipos de Limitless en el buscador de Mis partidas)
+
+**Hecho** (Ibai: «adelante», a «¿quieres que el buscador de Mis partidas
+enseñe también los arquetipos, ahora que ya son los de Limitless?»):
+- **El buscador de mazos ofrece los arquetipos del catálogo** (deshace la 238,
+  que los quitó porque salían sin sprite): con los sprites de sus dos iconos
+  y la chapa «Mazo», delante de la especie suelta a igualdad («drag» →
+  Dragapult Dusknoir antes que Dragalge), y se guardan por su id (`a:<id>`),
+  la clave con la que agrupan los de los torneos. El que se llama como una
+  especie («Gardevoir») ocupa su sitio: no sale dos veces.
+- **Un arquetipo es el mazo entero**: en un par de campos, lo último que se
+  elige manda y vacía al de al lado si uno de los dos es un arquetipo. Antes
+  `mazoDe` se quedaba con el arquetipo y callaba el otro campo.
+- Al editar una partida, el arquetipo vuelve al campo con sus dos sprites
+  (`opcionDeArquetipo`) y el nombre guardado; guardar sin tocarlo no le
+  cambia la clave.
+- Los marcadores dicen «Tu mazo o su Pokémon principal…». Norma en
+  `normas/jugar.md`.
+
+**Ficheros**: `js/torneos/selector-mazo.js`, `js/mis-partidas.js`,
+`css/partidas.css`, `novedades.json`, SCHEMA, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-selector-mazo.mjs` al día (las secciones 3
+y 4 decían que el catálogo NO salía) y `test-tanda-1461-pantalla.mjs` (con el
+doble: la lista, el campo con dos sprites, el par de campos, guardar y
+editar, en los dos temas). La 251, la 627 y la 1070-pantalla se paran en el
+mismo sitio con el código de antes (el «⋯»/torneo plegado de la 1390, no esto).
+
+**Pendiente**: lo mismo que la 1460 (la migración, que sin ella el catálogo
+está vacío y el buscador sale como antes; y una pasada de suite).
+
+**Renumeradas**: la 1459, la 1460 y la 1461 se escribieron como 1446, 1447 y
+1448 (así iban en los primeros bundles de Ibai) y se rehicieron encima de lo
+que PINGU subió mientras tanto (de la 1446 a la 1458, hasta 10c4840). Con
+ellas cambian de nombre la migración
+(`supabase-migration-1460-arquetipos-limitless.sql`) y las pruebas
+(`test-tanda-1459*`, `test-tanda-1460*`, `test-tanda-1461-pantalla`).
+
 ## 2026-11-26 — IBAI-Claude (1460 — Los arquetipos de Limitless, y las cartas en su forma de Estándar)
 
 **Hecho** (Ibai: «tráete todos los arquetipos de mazos de Limitless y añádelos
@@ -112,8 +150,7 @@ pasada de suite, por favor.**
 **Pendiente / límites**: lo de TCGGO no tiene ataques en inglés y sale en «a
 mano»; el formato de importación del stock de Cardmarket no se ha probado con
 un fichero suyo de verdad (se leen `idProduct`, `Count`, `Language`,
-`Condition`, `isFoil`). Si el número 1459 choca con una tanda tuya,
-renúmerala.
+`Condition`, `isFoil`). Se escribió como 1446 (ver la 1461).
 
 ## 2026-11-26 — IBAI-Claude (1281b — en el repo, la 1281 que se ejecutó)
 
