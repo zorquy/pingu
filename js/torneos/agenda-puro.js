@@ -52,8 +52,11 @@ export const TRAMOS = [
 
 // Lo que viene, por fecha (el más cercano arriba), con lo que está en juego
 // por delante de todo.
-export function ordenarProximos(torneos) {
-  return [...(torneos || [])].sort((a, b) => (b.status === 'in_progress') - (a.status === 'in_progress') || new Date(a.start_at) - new Date(b.start_at))
+// Una liga en curso (1463) se ordena por su PRÓXIMA jornada y, entre jornadas,
+// no está «en juego»: `cuando` y `enJuego` lo dicen desde fuera (la pantalla
+// sabe sus rondas; esto no).
+export function ordenarProximos(torneos, { cuando = (t) => t.start_at, enJuego = (t) => t.status === 'in_progress' } = {}) {
+  return [...(torneos || [])].sort((a, b) => enJuego(b) - enJuego(a) || new Date(cuando(a)) - new Date(cuando(b)))
 }
 
 // Los terminados, del último al primero, en grupos por mes («Noviembre 2026»).

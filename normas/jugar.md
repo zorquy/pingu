@@ -530,3 +530,15 @@ si la serie ya tiene uno posterior) y un fallo suyo nunca impide terminar.
 Cancelar no crea el siguiente, y Duplicar no copia `repite` (serían dos series).
 Las fechas van en hora de Madrid: sumar días en UTC movía la hora al cambiar el
 horario.
+
+**En /torneos lo próximo va en grande y la liga es un torneo más** (tanda 1463,
+PINGU: «la liga está corriendo, jornada 8, eso debería contar, no?»). Los tres
+primeros de la agenda son carteles (`js/torneos/carteles.js`); el resto, filas
+por días. Una liga en curso NO va aparte: entra en la agenda por la fecha de su
+PRÓXIMA jornada (`ordenarProximos` con `cuando`/`enJuego`) y su cartel
+(`ligaCartelHtml`) lleva los huecos `data-lc-*` que rellena `completarLiga` (lo
+que llega se guarda: los filtros repintan la agenda entera). Ningún vacío dice
+«no hay nada que jugar» mientras haya una liga en marcha. Y un cartel con algo
+`sr-only` dentro va `position: relative`: en el carrusel del móvil, un
+absoluto sin caja propia se escapaba del deslizable y ensanchaba la página
+entera a 570 px.

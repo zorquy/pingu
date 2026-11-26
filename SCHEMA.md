@@ -55426,6 +55426,30 @@ en la fila (también en el móvil). Ficha: `#torneoSerie` bajo el sitio.
 `#btnDejarDeRepetir` en el «⋯» del organizador. Creador: `#torneoRepite` en
 el extra `repite` (oculto en liga); sin la columna, reintenta sin ella y avisa.
 
+## Tanda 1462–1463 — /torneos más visual
+
+**Colores por tipo (1462)**: `style.css` → `--tipo-online|persona|liga|oficial|repite|vivo`
+y `--tipo-sobre` (el texto encima de una chapa llena), en el tema claro y en el
+oscuro. `components.css` → `[data-tipo-torneo='…'] { --c }` y `.chapa-tipo`
+(`.llena`, `.chapa-tipo-punto` que late). `js/chapa-tipo.js` → `TIPOS_DE_TORNEO`,
+`chapaTipoHtml(tipo, { texto, llena, titulo })`, `tipoPrincipal(t)` (liga, o
+persona/online). Filas: `data-tipo-torneo` en `.torneo-fila` (no en las
+terminadas) tiñe `.torneo-fila-fecha`.
+
+**Filtros (1462)**: `chipsDeFiltroHtml` → todos/online/persona con su cuenta, la
+lupa y `#torneosVistaIcono` movido al final por `colocarMandosTorneos` (PC). El
+conmutador `.torneo-vista-conmutador` queda escondido. Móvil: `.torneos-buscar`
+de 40 px, `.abierta` a lo ancho (clic / focusout).
+
+**Carteles (1463)**: `js/torneos/carteles.js` → `CARTELES = 3`, `cuandoCorto`,
+`losaHtml`, `arteHtml` (`.t-cartel-arte.torneo-arte` para `ponerArteDelMeta`),
+`cartelHtml(t, datos)`, `huecoHtml`, `cartelesHtml`. `torneos.js` → `cartelDe`
+(los datos de la fila), `agenda.cartel`, `agenda.ligas` (contexto para
+`completarLiga`), `completarLigasEnCarteles` (guarda lo que llega en
+`ligaCompletada`), `ponerRelojesDeLiga`. `ligas-franja.js` → `ligaCartelHtml`
+(los mismos huecos `data-lc-*`). `agenda-puro.js` → `ordenarProximos(t, { cuando,
+enJuego })`. La franja `#torneosLigas` se queda vacía y escondida.
+
 ## Tanda 1458 — Ventanas modales centradas
 
 `style.css`: `:where(dialog:modal) { margin: auto; }` tras el reseteo `*` (especificidad

@@ -14,6 +14,7 @@ import { chapaDeVersionHtml } from '../../js/mi-coleccion/iconos-version.js'
 import { banderaHtml } from '../../js/precio-vista.js'
 import { atributosDeRango } from '../../js/rangos.js'
 import { vacioHtml } from '../../js/vacio.js'
+import { chapaTipoHtml, TIPOS_DE_TORNEO } from '../../js/chapa-tipo.js'
 import { showToast } from '../../js/toast.js'
 
 // ── Lo puro: los tokens de la hoja ──
@@ -50,6 +51,7 @@ export const APARTADOS = [
   { id: 'botones', titulo: 'Botones', donde: 'style.css (917, 1225): tres clases, en pastilla' },
   { id: 'chips', titulo: 'Chips, segmentos y pestañas', donde: 'components.css: `.chip-filtro`, `.seg`, `.tabs`; con icono, `.seg-iconos` (1366: Cartas, Mazos, Partidas)' },
   { id: 'chapas', titulo: 'Chapas de una carta', donde: 'estado, gradeo, versión e idioma: sus funciones, en toda la web' },
+  { id: 'tipos', titulo: 'Tipos de torneo', donde: 'js/chapa-tipo.js, `chapaTipoHtml` (1462): un color por tipo (`--tipo-*`), siempre con icono y texto; lo que se pulsa sigue en `--acento`' },
   { id: 'nombres', titulo: 'Nombres con rango', donde: 'js/rangos.js, `atributosDeRango`' },
   { id: 'juego', titulo: 'El panel de juego', donde: '`.panel-juego` y las fichas `--juego-*` (1404): SOLO el escenario de Jugar (el cara a cara, «Tu combate», las pantallas que celebran); lo de alrededor, con las tarjetas del tema' },
   { id: 'vacio', titulo: 'Una pantalla vacía', donde: 'js/vacio.js, `vacioHtml` (1325)' },
@@ -150,6 +152,7 @@ export function guiaHtml(tokens) {
     botones: botonesHtml(),
     chips: chipsHtml(),
     chapas: chapasHtml(),
+    tipos: `<div class="gde-filas"><div class="gde-fila"><code>chapaTipoHtml(tipo)</code><span class="gde-fila-libre">${Object.keys(TIPOS_DE_TORNEO).map((t) => chapaTipoHtml(t)).join(' ')}</span></div><div class="gde-fila"><code>{ llena: true }</code><span class="gde-fila-libre">${Object.keys(TIPOS_DE_TORNEO).map((t) => chapaTipoHtml(t, { llena: true })).join(' ')}</span></div></div>`,
     nombres: nombresHtml(),
     juego: juegoHtml(de('juego')),
     vacio: vacioDemo(),

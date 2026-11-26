@@ -3141,3 +3141,17 @@ body.portada-compacta .page-content {
 .chapa-estado[data-estado='LP'] { background: var(--estado-lp); color: var(--estado-tinta); }
 .chapa-estado[data-estado='PL'] { background: var(--estado-pl); }
 .chapa-estado[data-estado='PO'] { background: var(--estado-po); }
+
+/* La chapa del tipo de torneo (1462, SCHEMA): su color sale de data-tipo-torneo. */
+[data-tipo-torneo='online'] { --c: var(--tipo-online); }
+[data-tipo-torneo='persona'] { --c: var(--tipo-persona); }
+[data-tipo-torneo='liga'] { --c: var(--tipo-liga); }
+[data-tipo-torneo='oficial'] { --c: var(--tipo-oficial); }
+[data-tipo-torneo='repite'] { --c: var(--tipo-repite); }
+[data-tipo-torneo='vivo'] { --c: var(--tipo-vivo); }
+.chapa-tipo { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--c, var(--text-mid)) 14%, transparent); color: var(--c, var(--text-mid)); font-size: var(--t-xs); font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.chapa-tipo.llena { background: var(--c); color: var(--tipo-sobre); }
+.chapa-tipo > svg { flex: none; }
+.chapa-tipo-punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: chapa-late 1.6s ease-in-out infinite; }
+@keyframes chapa-late { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .chapa-tipo-punto { animation: none; } }

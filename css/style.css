@@ -141,6 +141,8 @@
   --acento-texto: var(--blanco-fijo);
   /* El hueco de abajo con tope (1135): iOS lo deja a veces con el alto del teclado (SCHEMA 1135). */
   --seguro-abajo: min(env(safe-area-inset-bottom, 0px), 48px);
+  /* Un color por tipo de torneo (1462): dice «qué es»; «qué hacer» es --acento. */
+  --tipo-online: #0369a1; --tipo-persona: #047857; --tipo-liga: #6d28d9; --tipo-oficial: #a16207; --tipo-repite: #be185d; --tipo-vivo: #dc2626; --tipo-sobre: var(--blanco-fijo);
 }
 /* 1024 (largo en SCHEMA 1201). */
 :root[data-theme='dark'] { --acento: var(--navy); --acento-texto: #0b1219; }
@@ -186,6 +188,7 @@ html[data-seccion='jugar'] { --acento: #5f43d9; }
   --pink: #f472b6;
   --pink-bg: #3a1526;
   --navbar-bg: rgba(11, 18, 25, 0.92);
+  --tipo-online: #38bdf8; --tipo-persona: #34d399; --tipo-liga: #a78bfa; --tipo-oficial: #f0c048; --tipo-repite: #f472b6; --tipo-vivo: #f87171; --tipo-sobre: #0b1219;
 }
 
 * {

@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (704) — PINGU-Claude (1462–1463 — /torneos más visual: colores por tipo, cuatro filtros, carteles y la liga que cuenta)
+
+**Hecho** (propuesta «Torneos más visuales», PINGU: «adelante con todo lo
+recomendado»; antes: «lo veo todo muy poco visual y muy cargado. Los filtros
+son demasiados… ahí pone que no hay torneos para jugar ahora mismo pero es
+mentira, la liga está corriendo»):
+- **1462** Un color por tipo de torneo en toda la web (`--tipo-*` en los dos
+  temas; `chapaTipoHtml` en `js/chapa-tipo.js`; `.chapa-tipo` en
+  components.css; en /admin → Guía de estilo). En /torneos la fila de mandos
+  pasa de nueve a cuatro: Todos · Online · En persona ▾ (con su color y
+  cuántos hay), la lupa y el calendario como botón redondo al final (en el
+  móvil la lupa es un círculo que se abre a lo ancho). Fuera de la fila:
+  Oficiales y Ligas (se ven por su chapa), Los míos (#mios sigue valiendo) y
+  Terminados (su botón «Ver los N terminados» al final). Las filas llevan sus
+  chapas de color y la fecha teñida de su tipo; «Tienda» ya no va aparte.
+- **1463** «Lo próximo»: los tres primeros como carteles (imagen o fondo del
+  color del tipo con su icono y los mazos del meta, la losa del día, chapas,
+  plazas, quién organiza y el botón); el resto en filas por días. Con menos de
+  tres, el hueco invita a crear uno. En el móvil, un carrusel con puntos. La
+  liga en curso deja su franja y es un cartel más, por la fecha de su próxima
+  jornada, con la tira, tu puesto, los tres primeros y «Manda tu lista»; la
+  cifra de arriba dice «en juego». Ya no sale «No hay ningún torneo por jugar»
+  con la liga en marcha.
+
+**Ficheros**: `js/chapa-tipo.js` (nuevo), `js/torneos/carteles.js` (nuevo),
+`js/torneos/torneos.js`, `js/torneos/ligas-franja.js`,
+`js/torneos/agenda-puro.js`, `css/style.css`, `css/components.css`,
+`css/torneos.css`, `admin/js/guia-estilo.js`, `normas/interfaz.md`,
+`normas/jugar.md`. Pruebas: `test-tanda-1463-pantalla.mjs` y
+`fixture-arena.mjs` (la liga, dos abiertos, dos más adelante y dos
+terminados), y las viejas que miraban la franja y los chips que se fueron.
+
+El botón del cartel lleva el nombre en su etiqueta («Estás inscrito: ver
+Copa…»), como el de la fila. La portada sube 0,4 KB (los tokens y la chapa):
+152,0 de 170.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-26 — IBAI-Claude (1461 — Los arquetipos de Limitless en el buscador de Mis partidas)
 
 **Hecho** (Ibai: «adelante», a «¿quieres que el buscador de Mis partidas

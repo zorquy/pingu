@@ -13,6 +13,8 @@ import { icons } from '../icons.js'
 import { jornadasDeLiga, clasificacionDeLiga } from './liga-en-curso.js'
 import { rondasPorJornada, rondaEnJornada } from './rondas-jornada.js'
 import { caraHtml } from './caras.js'
+import { arteHtml } from './carteles.js'
+import { chapaTipoHtml } from '../chapa-tipo.js'
 
 const DIA_MS = 864e5
 const ARTES = 6
@@ -122,6 +124,47 @@ export function ligaFranjaHtml(t, rondas, { ahora = Date.now(), inscrito = false
       ${inscrito ? '<p class="lc-tu" data-lc-tu hidden></p>' : ''}
       <ol class="lc-podio" aria-label="Los tres primeros" data-lc-podio>${podioHtml(podio)}</ol>
       <a class="${boton.clase} lc-boton" href="${boton.href}" data-lc-boton>${escapeHtml(boton.texto)}</a>
+    </div>
+  </article>`
+}
+
+// LA LIGA COMO CARTEL (1463, PINGU: «ahí pone que no hay torneos para jugar
+// ahora mismo pero es mentira, la liga está corriendo, jornada 8»). La misma
+// liga de la franja, en el molde de los carteles de «Lo próximo»: su portada
+// con el día de la jornada que viene, la tira de jornadas, tu puesto con los
+// tres primeros y el botón que toca. Lleva los mismos huecos (`data-lc-*`)
+// que la franja, así que `completarLiga` la rellena igual.
+export function ligaCartelHtml(t, rondas, { ahora = Date.now(), inscrito = false } = {}) {
+  const j = jornadasDeLiga(t, rondas)
+  const s = j.siguiente
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  const tira = j.lista
+    .map((x) => {
+      const clase = x === s ? (x.estado === 'en_juego' ? 'en-juego' : 'siguiente') : x.estado === 'hecha' ? 'hecha' : x.estado === 'saltada' ? 'saltada' : 'pendiente'
+      return `<li class="lc-j lc-j-${clase}" title="${escapeHtml(`Jornada ${x.n}${x.fecha ? ` · ${diaCorto(x.fecha)}` : ''}`)}"><span class="sr-only">Jornada ${x.n}</span></li>`
+    })
+    .join('')
+  const ultima = [...j.lista].reverse().find((x) => x.fecha)?.fecha
+  const datos = [s ? `Jornada ${s.n} de ${j.total}` : `${j.total} jornadas`, ultima ? `termina el ${new Date(ultima).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')}` : ''].filter(Boolean).join(' · ')
+  const viva = s?.estado === 'en_juego' ? (rondas || []).find((r) => r.status === 'active') || null : null
+  const k = rondasPorJornada(t)
+  let boton = botonDeLiga(t, { inscrito, siguiente: s })
+  if (viva && inscrito) boton = { texto: 'Ir a tu mesa', clase: 'btn-primary', href: url }
+  const arriba = (viva ? chapaTipoHtml('vivo', { texto: k > 1 ? `Ronda ${rondaEnJornada(t, viva.round_number)} de ${k}` : 'En juego', llena: true }) : '') + chapaTipoHtml('liga', { llena: true })
+  const conFecha = { ...t, _cuando: s?.fecha || t.start_at }
+  return `<article class="t-cartel t-cartel-liga${viva ? ' lc-en-vivo' : ''}" data-tipo-torneo="${viva ? 'vivo' : 'liga'}" data-liga="${escapeHtml(String(t.id))}" data-torneo-id="${escapeHtml(String(t.id))}">
+    ${arteHtml(conFecha, { tipo: 'liga', arriba, abajo: escapeHtml(chapaDeLiga(j, ahora)) })}
+    <div class="t-cartel-cuerpo">
+      <h3 class="t-cartel-nombre"><a href="${url}">${escapeHtml(t.name)}</a></h3>
+      ${viva?.ends_at ? `<p class="lc-vivo"><span class="torneo-punto"></span><b>Jornada ${s.n}</b> <span class="lc-vivo-reloj" data-lc-reloj="${escapeHtml(viva.ends_at)}">–:––</span></p>` : ''}
+      <ol class="lc-tira t-cartel-tira" aria-label="Jornadas de la liga">${tira}</ol>
+      <p class="t-cartel-sub"><span>${escapeHtml(datos)}</span></p>
+      <p class="lc-listas t-cartel-listas" data-lc-listas></p>
+      <div class="t-cartel-tuyo">
+        ${inscrito ? '<p class="lc-tu" data-lc-tu hidden></p>' : ''}
+        <ol class="lc-podio" aria-label="Los tres primeros" data-lc-podio>${podioHtml(null)}</ol>
+      </div>
+      <a class="${boton.clase} t-cartel-boton lc-boton" href="${boton.href}" data-lc-boton>${escapeHtml(boton.texto)}</a>
     </div>
   </article>`
 }

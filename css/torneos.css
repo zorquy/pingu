@@ -5867,3 +5867,104 @@ button.torneo-tj { cursor: pointer; }
   .torneo-puerta-mandos > .btn-primary, .torneo-puerta-mandos > .btn-secondary { flex: 1 1 auto; }
   .torneo-puerta-sin-cuenta { flex-direction: column; text-align: center; }
 }
+
+/* ── 1462: colores por tipo y cuatro filtros (propuesta «Torneos más visuales») ──
+   Los colores son las fichas --tipo-* de style.css; la chapa, .chapa-tipo de
+   components.css. Aquí solo lo de /torneos. */
+/* Los filtros de tipo llevan su color también sin pulsar; pulsados, llenos. */
+.torneos-filtros .chip-filtro[data-tipo-torneo]:not(.activa) { color: var(--c); border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 7%, var(--white)); }
+.torneos-filtros .chip-filtro[data-tipo-torneo].activa { background: var(--c); border-color: var(--c); color: var(--tipo-sobre); }
+.torneos-filtros .chip-filtro .torneo-pestana-cuenta { opacity: .85; }
+/* Lista / Calendario: un botón redondo, también en el PC (el conmutador de dos, fuera). */
+.torneo-vista-conmutador { display: none !important; }
+.torneos-vista-icono { display: inline-grid; place-items: center; width: 40px; min-width: 40px; height: 40px; padding: 0; border-radius: var(--radius-pill); }
+.torneos-vista-icono[hidden] { display: none; }
+.torneos-filtros > .torneos-vista-icono { flex: 0 0 auto; }
+.torneos-mandos:has(> .torneos-semana.hidden) { display: none; }
+/* La fecha de cada fila, teñida del color de su tipo (en juego, rojo). */
+.torneo-fila[data-tipo-torneo] .torneo-fila-fecha { background: color-mix(in srgb, var(--c) 14%, var(--white)); }
+.torneo-fila[data-tipo-torneo] .torneo-fila-fecha small { color: var(--c); }
+.torneo-fila-donde .chapa-tipo { font-size: 0.72rem; }
+@media (max-width: 599px) {
+  /* La lupa del móvil: un círculo que se abre a lo ancho de la fila. */
+  .torneos-filtros .torneos-buscar { flex: 0 0 40px; width: 40px; min-width: 40px; min-height: 40px; padding: 0; justify-content: center; cursor: pointer; }
+  .torneos-filtros .torneos-buscar input { width: 0; opacity: 0; }
+  .torneos-filtros .torneos-buscar.abierta { position: absolute; inset: 0 var(--e-lg, 16px); width: auto; min-width: 0; z-index: 3; padding: 0 var(--e-md); justify-content: flex-start; }
+  .torneos-filtros .torneos-buscar.abierta input { width: 100%; opacity: 1; }
+}
+
+/* ── 1463: «Lo próximo» en carteles y la liga como uno más ──
+   Tres columnas en el PC; con menos de tres, el hueco que invita a crear uno
+   completa la fila. Hasta 899 px, un carrusel que se desliza de lado. */
+.t-carteles-tramo { margin-bottom: var(--e-lg); }
+.t-carteles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-lg); align-items: stretch; }
+.t-cartel { position: relative; display: grid; grid-template-rows: auto 1fr; min-width: 0; border-radius: var(--radius-xl); overflow: hidden; background: var(--white); border: 1px solid color-mix(in srgb, var(--c) 32%, var(--border)); box-shadow: var(--shadow-sm); transition: transform .18s var(--ease), box-shadow .18s var(--ease); }
+.t-cartel:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+@media (prefers-reduced-motion: reduce) { .t-cartel, .t-cartel:hover { transition: none; transform: none; } }
+/* El fondo: la imagen, o el color del tipo con su icono grande. */
+.t-cartel-arte.torneo-arte { position: relative; display: block; height: auto; aspect-ratio: 16 / 8; max-width: 100%; padding: 0; overflow: hidden; text-decoration: none; color: var(--blanco-fijo);
+  background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--c) 70%, transparent) 0%, transparent 60%), linear-gradient(140deg, color-mix(in srgb, var(--c) 78%, #0b1219) 0%, #1d1b3f 100%); }
+.t-cartel-imagen { z-index: 0; }
+.t-cartel-arte::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 18, 25, .28) 0%, transparent 38%, transparent 62%, rgba(11, 18, 25, .45) 100%); pointer-events: none; }
+.t-cartel-marca { position: absolute; right: -18px; bottom: -30px; color: rgba(255, 255, 255, .16); line-height: 0; }
+.t-cartel-arte .torneo-arte-meta { right: var(--e-md); bottom: var(--e-xs); z-index: 1; }
+.t-cartel-dia { position: absolute; z-index: 2; left: var(--e-md); top: var(--e-md); display: grid; justify-items: center; min-width: 54px; padding: 5px 8px 6px; border-radius: var(--radius-lg); background: rgba(11, 18, 25, .8); color: var(--blanco-fijo); line-height: 1.05; }
+.t-cartel-dia small { font-size: 0.66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--c); filter: brightness(1.35); }
+.t-cartel-dia b { font-family: var(--font-display); font-size: 1.5rem; }
+.t-cartel-dia i { font-style: normal; font-size: 0.7rem; opacity: .8; }
+.t-cartel-tipos { position: absolute; z-index: 2; right: var(--e-md); top: var(--e-md); display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; max-width: 60%; }
+.t-cartel-cuando { position: absolute; z-index: 2; left: var(--e-md); bottom: var(--e-sm); padding: 3px 10px; border-radius: var(--radius-pill); background: rgba(11, 18, 25, .8); color: var(--blanco-fijo); font-size: var(--t-sm); font-weight: 700; }
+.t-cartel-cuerpo { display: flex; flex-direction: column; gap: var(--e-sm); padding: var(--e-md) var(--e-lg) var(--e-lg); min-width: 0; }
+.t-cartel-nombre { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.15; margin: 0; }
+.t-cartel-nombre a { color: var(--text); text-decoration: none; }
+.t-cartel-nombre a:hover { color: var(--c); }
+.t-cartel-sub { display: flex; flex-wrap: wrap; gap: 2px var(--e-md); color: var(--text-mid); font-size: var(--t-sm); margin: 0; }
+.t-cartel-sub span { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.t-cartel-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.t-cartel-premio { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--tipo-oficial) 14%, transparent); color: var(--tipo-oficial); font-size: var(--t-xs); font-weight: 700; }
+.t-cartel-plazas { display: grid; grid-template-columns: 1fr auto; gap: var(--e-sm); align-items: center; color: var(--text-mid); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.t-cartel-plazas.sin-barra { grid-template-columns: 1fr; }
+.t-cartel-barra { height: 6px; border-radius: var(--radius-pill); background: var(--ice); overflow: hidden; }
+.t-cartel-barra i { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--c); }
+.t-cartel-plazas.apurada .t-cartel-barra i { background: var(--warning); }
+.t-cartel-pie { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); margin-top: auto; padding-top: var(--e-xs); }
+.t-cartel-organiza { display: inline-flex; align-items: center; gap: 7px; min-width: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.t-cartel-organiza > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-cartel-boton { flex: 0 0 auto; }
+/* La liga: la tira de jornadas fina, tu puesto y los tres primeros. */
+.t-cartel-liga .t-cartel-tira { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.t-cartel-liga .t-cartel-tira .lc-j { flex: 1; height: 6px; min-width: 0; padding: 0; border-radius: 3px; background: var(--ice); border: 0; }
+.t-cartel-liga .t-cartel-tira .lc-j-hecha { background: var(--tipo-liga); }
+.t-cartel-liga .t-cartel-tira .lc-j-siguiente, .t-cartel-liga .t-cartel-tira .lc-j-en-juego { background: color-mix(in srgb, var(--tipo-liga) 30%, transparent); box-shadow: inset 0 0 0 2px var(--tipo-liga); }
+.t-cartel-liga .t-cartel-tira .lc-j-en-juego { box-shadow: inset 0 0 0 2px var(--tipo-vivo); }
+.t-cartel-liga .t-cartel-tira .lc-j-saltada { background: var(--border-strong); }
+.t-cartel-listas { margin: 0; min-height: 1.2em; color: var(--text-mid); font-size: var(--t-xs); }
+.t-cartel-tuyo { display: grid; grid-template-columns: auto 1fr; gap: var(--e-md); align-items: center; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: var(--ice); }
+.t-cartel-tuyo .lc-tu { display: grid; justify-items: center; margin: 0; line-height: 1.1; }
+.t-cartel-tuyo .lc-tu[hidden] { display: none; }
+.t-cartel-tuyo .lc-tu span, .t-cartel-tuyo .lc-tu small { font-size: 0.66rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-mid); }
+.t-cartel-tuyo .lc-tu b { font-family: var(--font-display); font-size: 1.6rem; color: var(--tipo-liga); }
+.t-cartel-tuyo:not(:has(.lc-tu:not([hidden]))) { grid-template-columns: 1fr; }
+.t-cartel-tuyo .lc-podio { margin: 0; }
+.t-cartel-liga .t-cartel-boton { align-self: stretch; justify-content: center; margin-top: auto; }
+.t-cartel-liga .lc-vivo { margin: 0; }
+/* El hueco: completa la fila cuando hay menos de tres. */
+.t-cartel-hueco { display: grid; place-content: center; justify-items: center; gap: var(--e-sm); padding: var(--e-lg); border-radius: var(--radius-xl); border: 1px dashed var(--border-strong); color: var(--text-mid); text-align: center; }
+.t-cartel-hueco > svg { color: var(--tipo-liga); opacity: .7; }
+.t-cartel-hueco p { margin: 0; max-width: 26ch; }
+.t-carteles[data-n='1'] > .t-cartel-hueco { grid-column: span 2; }
+.t-carteles-puntos { display: none; }
+@media (max-width: 899px) {
+  .t-carteles { position: relative; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; gap: 12px; margin: 0 calc(-1 * var(--e-lg, 16px)); padding: 2px var(--e-lg, 16px) 6px; }
+  .t-carteles::-webkit-scrollbar { display: none; }
+  .t-carteles > * { flex: 0 0 min(82%, 380px); scroll-snap-align: start; }
+  .t-carteles > .t-cartel-hueco { flex-basis: min(60%, 260px); }
+  .t-cartel:hover { transform: none; }
+  .t-carteles-puntos { display: flex; justify-content: center; gap: 5px; margin-top: var(--e-sm); }
+  .t-carteles-puntos i { width: 6px; height: 6px; border-radius: 3px; background: var(--border-strong); transition: width .2s var(--ease); }
+  .t-carteles-puntos i.on { width: 18px; background: var(--acento); }
+  .t-cartel-nombre { font-size: var(--t-lg); }
+}
+/* En el teléfono el carrusel se explica solo: sin el título «Lo próximo», lo
+   primero queda arriba (la 1040: antes de 296 px). */
+@media (max-width: 599px) { .t-carteles-tramo > .torneos-tramo-cab { display: none; } }

@@ -512,3 +512,13 @@
   Deshacer debajo) va con `modal: false`. Subir de nivel, las rachas de 7, 30
   y 100 días y la expansión completa ya pasan por ahí; un momento nuevo
   también, no con otro toast ni otra caja.
+- **Un color por TIPO de torneo, y el color dice «qué es», no «qué hacer»**
+  (tanda 1462, PINGU: «cada pastilla como online, en persona… debería tener un
+  color distintivo»): online azul, en persona verde, liga violeta, oficial oro,
+  se repite rosa y en juego rojo que late. Son fichas de `style.css`
+  (`--tipo-*`, en los DOS temas) y una sola pieza, `chapaTipoHtml` de
+  `js/chapa-tipo.js` (`.chapa-tipo` en components.css, el color por
+  `data-tipo-torneo`, que no es `data-tipo`: ese ya lo usan los avisos y
+  /admin). Siempre con icono y texto: quien no distingue el verde del azul lee
+  igual. Lo que se pulsa sigue siendo `--acento`. Un tipo nuevo entra en
+  `TIPOS_DE_TORNEO` y en las dos fichas; no se pinta a mano.
