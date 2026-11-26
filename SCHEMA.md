@@ -55231,6 +55231,25 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1472 — Arena limpia: la lista de /torneos
+
+Sin cambios de esquema (usa `image_url` y `banner_url` de `tournaments`, que
+ya existían). `js/torneos/arena-lista.js` (puro): `inicialesDe(nombre)`,
+`avatarDeTorneoHtml(t)`, `porMeses(torneos, { recientes, cuando })`,
+`filaArenaHtml(t, d)` (`article.tf.torneo-tarjeta[data-tipo-torneo]` con
+`.tf-banner`, `.tf-fecha`, `.tf-avatar`, `.tf-texto`, `.tf-gente`, `.tf-der`),
+`destacadoHtml(t, d)` (`.tdest`) y `elegirDestacado(proximos, { mio, oficial })`.
+`torneos.js`: `vistaLista` ('proximos' | 'vivo' | 'hechos'; `#en-juego`,
+`#terminados`), `#torneosSeg.tseg` con `[data-vista-lista]`, cuerpos
+`cuerpoArenaProximos/Vivo/Hechos`; la agenda recibe `vivos`, `destacado`,
+`inscrito` y `cuando`. Las rondas se piden de todos los `in_progress`;
+`primerosDe` (tres `user_id` activos por torneo) entra en la consulta de
+perfiles. `torneos.html`: cabecera `.tcab` sin la banda ni sus cifras. `filaArenaHtml` pone
+`.tf-plazas.apurada` con el 80 % de las plazas; `destacadoHtml` recibe `tuyo`
+(`{ texto, ver }`, el botón «Tu lista» / «Tu entrada»). Una liga
+`in_progress` entre jornadas en la que juegas lleva de acción «Tu lista»
+(`?ver=jugar`) en vez de «Estás dentro».
+
 ## Tanda 1471 — La clasificación sin el top 4 de arriba
 
 Sin cambios de esquema. `ronda.js` → `pintarClasificacion`: el `banner` de la

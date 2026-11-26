@@ -611,3 +611,23 @@ de mientras se juega: la tabla ya marca los tres primeros con su medalla. Solo,
 si TÚ estás en el podio, una línea (`.torneo-podio-tuyo`) con tu puesto y
 «Compartir». No lo vuelvas a meter con otra forma (tira, peanas, tarjetas):
 fueron tres intentos (1345, 1392, 1448) y ninguno gustó.
+
+**Arena limpia: una fila por torneo, cuatro pestañas iguales** (tandas 1472 y
+1473, PINGU y Manso: «sencillo, visual… que las pestañas estén bien pensadas,
+compensadas, que no tengan tamaños distintos»). Manda sobre lo que dicen de la
+lista y de la cabecera las de la 1454, 1460, 1463, 1464, 1468 y 1375:
+- En /torneos, **todo torneo es una fila** (`filaArenaHtml`, arena-lista.js),
+  todas con el mismo molde, y lo que la distingue es **su imagen**: la
+  cuadrada (`image_url`) a la izquierda y el banner (`banner_url`) difuminado
+  al fondo. Sin imagen, sus iniciales en el color de su tipo. No vuelvas a
+  meter carteles, carruseles ni tarjetas de otro tamaño entre las filas: el
+  único que es distinto es el destacado de arriba, y es uno.
+- Las pestañas de la lista (Próximos · En juego · Terminados) y las de la ficha
+  (Resumen · Clasificación · Rondas · Mazos) son **del mismo ancho y siempre
+  las mismas**: una pestaña vacía se queda y dice cuándo se llena
+  (`.torneo-panel-vacio`). Una pestaña nueva no se añade: lo que haga falta va
+  dentro de una de las cuatro o en la cabecera (como el Modo juez).
+- La cabecera de la ficha son **cuatro datos** (`datosDeFicha`): si algo más
+  tiene que decirse arriba, sustituye a uno, no se añade un quinto.
+- **Tu mesa no es una pestaña**: es la barra viva (`#torneoBarraViva.con-mia`)
+  encima de las pestañas y la de entrada si juegas.

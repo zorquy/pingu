@@ -43,6 +43,12 @@
   <link rel="modulepreload" href="/js/torneos/caras.js" />
   <!-- precargas: las escribe generar-precargas.mjs (1315) -->
   <link rel="modulepreload" href="/js/torneos/avisos-huerfanos.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/chapa-tipo.js" />
+  <link rel="modulepreload" href="/js/torneos/carteles.js" />
+  <link rel="modulepreload" href="/js/torneos/agenda-puro.js" />
+  <link rel="modulepreload" href="/js/torneos/arena-lista.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
@@ -143,27 +149,17 @@
     <!-- La banda de la sección (1212, lo de la portada): cuántos torneos hay
          abiertos, en juego y terminados (los pone js/torneos/torneos.js;
          nacen con guion) y, a la derecha, crear. -->
-    <header class="banda-s cabecera-pagina torneos-heroe cab-lista">
-      <div class="banda-s-texto torneos-heroe-texto">
-        <span class="banda-s-ceja">Jugar · Torneos</span>
-        <!-- «La arena» (1393, modo juego): el menú sigue diciendo Torneos. -->
-        <h1>La arena</h1>
-        <p class="banda-s-lema cab-lema">Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo.</p>
-        <div class="banda-s-cifras">
-          <span class="banda-s-cifra"><b id="tNAbiertas">—</b><small>abiertos</small></span>
-          <span class="banda-s-cifra"><b id="tNEnJuego">—</b><small id="tNEnJuegoTexto">en juego</small></span>
-          <span class="banda-s-cifra"><b id="tNTerminados">—</b><small>terminados</small></span>
-        </div>
-        <!-- Tu temporada (1468): si has jugado este año, tus torneos, podios,
-             récord y racha; las cifras de arriba pasan a ser una línea pequeña.
-             La pinta js/torneos/temporada.js. -->
-        <div class="t-temporada" id="torneosTemporada" hidden></div>
-        <!-- Tu próximo torneo (1215): el más cercano en el que estás inscrito,
-             con cuándo es, las plazas, el check-in y tu lista. Lo pinta
-             js/torneos/torneos.js; sin ninguno, la banda enseña las cifras. -->
-        <div class="t-proximo" id="torneosProximo" hidden></div>
+    <!-- La cabecera de Arena limpia: el título, una línea y Crear. Lo que
+         había aquí (la banda «La arena», sus cifras, tu temporada y tu
+         próximo torneo) se fue: tu próximo torneo es el destacado de la
+         lista, y tu temporada, del perfil. -->
+    <header class="cabecera-pagina torneos-heroe cab-lista tcab">
+      <div class="torneos-heroe-texto">
+        <span class="tcab-ceja">Jugar</span>
+        <h1>Torneos</h1>
+        <p class="cab-lema">Online en TCG Live o en tu tienda: te apuntas, juegas y la clasificación va sola.</p>
       </div>
-      <div class="banda-s-derecha torneos-heroe-acciones">
+      <div class="torneos-heroe-acciones">
         <!-- 1021: en el móvil, Lista/Calendario es este icono (el conmutador de abajo se esconde); lo engancha js/torneos/torneos.js. -->
         <button type="button" class="btn-secondary torneos-vista-icono" id="torneosVistaIcono" aria-label="Ver como calendario" hidden></button>
         <!-- Mis partidas y el constructor salieron de aquí en la 839: ya

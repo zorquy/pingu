@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-26 (711) — PINGU-Claude (1472 — Arena limpia: la lista de /torneos)
+
+**Hecho** (propuesta «Arena limpia, montada de verdad»; PINGU: «me gusta,
+adelante con todo y sube»):
+- **Tres pestañas del mismo ancho**: Próximos · En juego · Terminados, con
+  cuántos hay. `#en-juego` y `#terminados` abren la suya.
+- **Una fila por torneo** (`js/torneos/arena-lista.js`, `filaArenaHtml`): la
+  fecha en el color de su tipo, **la imagen cuadrada** del torneo
+  (`image_url`; sin ella, sus iniciales en ese color), el nombre con sus chapas,
+  la línea de lo que decide, las caras de los tres primeros apuntados con las
+  plazas, y **el banner** (`banner_url`) difuminado al fondo de la derecha. En
+  juego dice «R3 de 5»; terminado, el campeón con su mazo y tu puesto.
+- **El destacado**: tu próximo torneo, o el oficial más cercano, o el primero
+  con banner, con el banner entero y tres datos.
+- **Por meses** en Próximos y Terminados (`porMeses`).
+- **La cabecera corta** («Torneos» y Crear): fuera la banda «La arena» con
+  sus cifras, «Tu temporada» (ya está en el perfil), los carteles de «Lo
+  próximo» y los dorados de Campeones (las funciones siguen en carteles.js y
+  temporada.js, sin uso en la lista). La barra «Tu combate» se queda, en
+  una pieza baja.
+- Se piden las rondas de TODO lo que está en juego (antes, solo de las ligas)
+  y los perfiles de los tres primeros apuntados de lo que viene.
+- En el móvil la fecha va en la línea de abajo y la fila entera es el botón.
+- **Lo que hacían los carteles, que no se pierde**: en tu próximo torneo, el
+  destacado lleva «Tu lista» (en persona, «Tu entrada») junto a «Estás
+  dentro»; una liga entre jornadas en la que juegas lleva «Tu lista» en su
+  fila (a mandar la de la jornada que viene); y un torneo casi lleno (80 %)
+  pone su «quedan N» en naranja.
+- Sin solapes (1233): el destacado del PC baja las losas y los botones a otra
+  línea si no caben, y las pestañas del móvil bajan el número.
+
+**Ficheros**: `js/torneos/arena-lista.js` (nuevo), `js/torneos/torneos.js`,
+`torneos.html`, `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1472-pantalla.mjs` y las de la lista
+adaptadas (ver la entrada de la 1473).
+
+**Se va de la lista** (vive en la ficha): el podio de la liga, «3 de 4 ya han
+mandado lista» y tu puesto en la liga.
+
+**Pendiente**: el CSS de los carteles, los campeones dorados y la banda queda
+sin uso en `torneos.css`; para una limpieza aparte. Sin migración.
+
 ## 2026-11-26 (710) — PINGU-Claude (1471 — la clasificación sin el top 4 de arriba)
 
 **Hecho** (Manso y PINGU: «la clasificación no me gusta con el top 4 ahí

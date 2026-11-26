@@ -6218,3 +6218,173 @@ a.t-campeon-tu:hover { color: var(--acento); }
 .torneo-podio-tuyo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--tipo-oficial) 14%, var(--white)); border: 1px solid color-mix(in srgb, var(--tipo-oficial) 45%, var(--border)); font-size: var(--t-sm); }
 .torneo-podio-tuyo > svg { color: var(--tipo-oficial); flex: none; }
 .torneo-podio-tuyo > span { flex: 1; min-width: 0; }
+
+/* ══ Arena limpia — /torneos (SCHEMA «Arena limpia»): la cabecera corta, las
+   tres pestañas iguales, una fila por torneo con su imagen y su banner, y el
+   destacado. El color de cada tipo sale de [data-tipo-torneo] (--c). ══ */
+.tcab { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--e-lg); margin: 0 0 var(--e-lg); padding: 0; background: none; border: 0; box-shadow: none; }
+.tcab h1 { margin: 0; font-family: var(--font-display); font-size: var(--t-3xl); line-height: 1.1; color: var(--text); }
+.tcab-ceja { display: block; font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--acento); }
+.tcab .cab-lema { margin: var(--e-xs) 0 0; max-width: 60ch; color: var(--text-mid); font-size: var(--t-md); }
+.tcab .torneos-heroe-acciones { display: flex; gap: var(--e-sm); align-items: center; }
+
+.tseg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-xs); padding: var(--e-xs); margin: 0 0 var(--e-md); background: var(--ice); border-radius: var(--radius-lg); }
+.tseg-btn { display: flex; align-items: center; justify-content: center; gap: var(--e-sm); min-height: 44px; padding: 0 var(--e-sm); border: 0; border-radius: var(--radius-md); background: none; color: var(--text); font: 700 var(--t-md)/1 var(--font-display); cursor: pointer; white-space: nowrap; }
+.tseg-btn:hover { color: var(--text); }
+.tseg-btn.activa { background: var(--acento); color: var(--acento-texto); box-shadow: var(--shadow-sm); }
+.tseg-btn.activa .tseg-n { background: color-mix(in srgb, var(--acento-texto) 22%, transparent); color: inherit; }
+.tseg-n { min-width: 24px; padding: 2px 8px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--acento) 14%, transparent); color: var(--acento); font-size: var(--t-xs); }
+.tseg-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 25%, transparent); }
+
+#listaTorneos .torneos-agenda { display: grid; gap: var(--e-xl); }
+#listaTorneos .torneos-tramo-cab { padding-left: var(--e-xs); }
+
+/* La fila. */
+.tf.torneo-tarjeta { position: relative; display: flex; flex-direction: row; align-items: center; gap: var(--e-md); min-height: 80px; padding: var(--e-sm) var(--e-md) var(--e-sm) var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); box-shadow: inset 4px 0 0 var(--c, var(--border)); overflow: hidden; isolation: isolate; }
+@media (hover: hover) { .tf.torneo-tarjeta:hover { transform: translateY(-1px); box-shadow: inset 4px 0 0 var(--c, var(--border)), var(--shadow-md); border-color: var(--border-strong); } }
+.tf.tf-mia { box-shadow: inset 4px 0 0 var(--c, var(--border)), 0 0 0 1px color-mix(in srgb, var(--acento) 50%, transparent); }
+/* El banner, al fondo de la derecha y difuminado hacia el texto. */
+.tf-banner { position: absolute; inset: 0 0 0 auto; width: 52%; z-index: -1; background: center / cover no-repeat; opacity: 0.42; -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%); mask-image: linear-gradient(90deg, transparent, #000 70%); pointer-events: none; }
+.tf-banner.sin-banner { opacity: 1; background: radial-gradient(120% 140% at 100% 50%, color-mix(in srgb, var(--c) 16%, transparent), transparent 60%); }
+.tf .tf-enlace { display: flex; flex-direction: row; text-align: left; align-items: center; gap: var(--e-md); flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+.tf-fecha { display: grid; place-items: center; align-content: center; flex: none; width: 52px; height: 60px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--c) 14%, var(--white)); color: var(--c); line-height: 1.05; }
+.tf-fecha small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.tf-fecha b { font: 800 var(--t-xl)/1.05 var(--font-display); color: var(--text); }
+.tf-fecha i { font-style: normal; font-size: var(--t-2xs); color: var(--text-mid); }
+.tf-fecha.viva { background: color-mix(in srgb, var(--danger) 16%, var(--white)); color: var(--danger); }
+.tf-fecha.viva b { font-size: var(--t-lg); color: var(--danger); }
+.tf-avatar { display: grid; place-items: center; flex: none; width: 60px; height: 60px; border-radius: var(--radius-md); overflow: hidden; background: color-mix(in srgb, var(--c) 22%, var(--white)); color: var(--c); font: 800 var(--t-xl)/1 var(--font-display); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 8%, transparent); }
+.tf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tf-texto { display: grid; gap: var(--e-xs); min-width: 0; flex: 1; }
+.tf-titulo { display: flex; align-items: center; flex-wrap: wrap; gap: var(--e-xs) var(--e-sm); min-width: 0; }
+.tf .tf-titulo .torneo-nombre { font: 700 var(--t-lg)/1.25 var(--font-display); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.tf-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--e-md); font-size: var(--t-sm); color: var(--text-mid); }
+.tf-tipo { display: inline-flex; align-items: center; gap: var(--e-xs); font-weight: 700; color: var(--c); }
+.tf-premio { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--tipo-oficial); font-weight: 600; }
+.tf-nota b { color: var(--acento); }
+.tf-chapa { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 2px 8px; border-radius: var(--radius-pill); font-size: var(--t-2xs); font-weight: 800; white-space: nowrap; }
+.tf-chapa.suave { background: var(--ice); color: var(--text-mid); }
+.tf-chapa.tuya { background: color-mix(in srgb, var(--acento) 16%, transparent); color: var(--acento); }
+.tf-chapa.oro { background: color-mix(in srgb, var(--tipo-oficial) 18%, transparent); color: var(--tipo-oficial); }
+.tf-gente { display: flex; align-items: center; gap: var(--e-sm); flex: none; }
+.tf-caras { display: flex; padding-left: var(--e-sm); }
+.tf-plazas { display: grid; justify-items: end; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-md); background: color-mix(in srgb, var(--white) 80%, transparent); line-height: 1.2; }
+.tf-plazas b { font: 800 var(--t-md)/1.2 var(--font-display); color: var(--text); }
+.tf-plazas small { font-size: var(--t-2xs); color: var(--text-mid); }
+.tf-campeon { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) var(--e-sm) var(--e-xs) var(--e-xs); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--white) 82%, transparent); }
+.tf-campeon-cara .torneo-cara { width: 32px; height: 32px; margin: 0; border: 0; box-shadow: 0 0 0 2px var(--tipo-oficial); }
+.tf-campeon-texto { display: grid; line-height: 1.2; }
+.tf-campeon-texto b { font-size: var(--t-md); color: var(--text); }
+.tf-campeon-texto small { font-size: var(--t-2xs); color: var(--text-mid); }
+.tf .tf-campeon-mazo.torneo-arte { display: flex; position: static; width: auto; height: auto; min-height: 0; aspect-ratio: auto; margin: 0; padding: 0; border-radius: 0; background: none; overflow: visible; box-shadow: none; }
+.tf .tf-campeon-mazo.torneo-arte::before, .tf .tf-campeon-mazo.torneo-arte::after { display: none; }
+.tf-campeon-mazo .torneo-arte-meta { display: flex; gap: 0; }
+.tf-campeon-mazo .torneo-arte-sprite { width: 32px; height: 32px; margin-left: -8px; object-fit: contain; }
+.tf-der { display: flex; align-items: center; gap: var(--e-sm); flex: none; }
+.tf-der .torneo-pie-accion { min-height: 40px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); display: inline-flex; align-items: center; white-space: nowrap; }
+.tf-inscrito { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--success); font-weight: 700; text-decoration: none; background: color-mix(in srgb, var(--success) 14%, var(--white)); }
+.tf-hecha .tf-fecha { background: var(--ice); color: var(--text-mid); }
+
+.tf-sub-cuando { display: none; font-weight: 700; color: var(--text); text-transform: capitalize; }
+/* «Tu combate» (la barra del torneo que juegas), en una pieza baja. */
+#torneoVivo.torneo-vivo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--e-sm) var(--e-lg); margin: 0 0 var(--e-lg); padding: var(--e-md) var(--e-lg); border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--danger) 9%, var(--white)); box-shadow: none; color: var(--text); }
+#torneoVivo.torneo-vivo::before, #torneoVivo.torneo-vivo::after { display: none; }
+#torneoVivo .torneo-vivo-texto { text-align: left; flex-direction: row; justify-content: flex-start; display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); min-width: 0; }
+#torneoVivo .torneo-vivo-ceja { display: none; }
+#torneoVivo .torneo-vivo-texto strong { font: 800 var(--t-lg)/1.2 var(--font-display); color: var(--text); }
+#torneoVivo .torneo-vivo-sub { flex-basis: 100%; font-size: var(--t-sm); color: var(--text-mid); }
+#torneoVivo .torneo-vivo-sub b { color: var(--text); }
+#torneoVivo .torneo-vivo-der { display: flex; align-items: center; gap: var(--e-md); }
+#torneoVivo .torneo-vivo-reloj { display: grid; justify-items: end; }
+#torneoVivo .torneo-vivo-rotulo { font-size: var(--t-2xs); color: var(--text-mid); letter-spacing: 0.06em; text-transform: uppercase; }
+#torneoVivo .torneo-vivo-reloj b { font: 800 var(--t-xl)/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--danger); }
+#torneoVivo .btn-primary { min-height: 40px; border-radius: var(--radius-pill); padding: 0 var(--e-lg); display: inline-flex; align-items: center; }
+#torneoVivo .torneo-vivo-despues { grid-column: 1 / -1; }
+
+@media (max-width: 599px) {
+  .tf-fecha { display: none; }
+  .tf-sub-cuando { display: inline; }
+  .tf-sub { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+  .tf-sub > :nth-child(n + 3) { display: none !important; }
+  .tf-inscrito span { display: none; }
+  .tf-mia .tf-plazas, .tf-plazas small { display: none; }
+  .tf-der .tf-inscrito { padding: 0 var(--e-sm); }
+  #torneoVivo.torneo-vivo { padding: var(--e-md); gap: var(--e-sm) var(--e-md); }
+  #torneoVivo .torneo-vivo-rondas, #torneoVivo .torneo-vivo-rotulo, #torneoVivo .torneo-vivo-chapa { display: none; }
+  #torneoVivo .torneo-vivo-der { flex-direction: column; align-items: flex-end; gap: var(--e-xs); }
+  #torneoVivo .btn-primary { min-height: 32px; padding: 0 var(--e-md); font-size: var(--t-sm); }
+  .tcab { margin: 0 0 var(--e-md); align-items: center; }
+  .tcab h1 { font-size: var(--t-2xl); }
+  .tcab .cab-lema { display: none; }
+  /* Con muchos (Terminados 94) el número baja a otra línea: nada se sale. */
+  .tseg-btn { font-size: var(--t-xs); gap: 2px var(--e-xs); padding: var(--e-xs); flex-wrap: wrap; line-height: 1.2; }
+  .tseg-btn > span:not(.tseg-n) { min-width: 0; text-align: center; overflow-wrap: anywhere; }
+  .tseg-n { min-width: 0; padding: 1px 6px; }
+  .tseg-punto { width: 6px; height: 6px; box-shadow: none; }
+  .tf.torneo-tarjeta { gap: var(--e-sm); min-height: 72px; padding: var(--e-sm); }
+  .tf-enlace { gap: var(--e-sm); }
+  .tf-fecha { width: 44px; height: 52px; }
+  .tf-fecha b { font-size: var(--t-lg); }
+  .tf-avatar { width: 52px; height: 52px; font-size: var(--t-lg); }
+  .tf-titulo .torneo-nombre { font-size: var(--t-md); }
+  .tf-titulo .chapa-tipo, .tf-titulo .torneo-privado { display: none; }
+  .tf-sub { font-size: var(--t-xs); gap: 0 var(--e-sm); }
+  .tf-caras { display: none; }
+  .tf-banner { width: 70%; opacity: 0.4; }
+  .tf-campeon-texto, .tf-campeon-mazo { display: none; }
+  .tf-campeon { padding: var(--e-xs); }
+  /* En el móvil la fila entera es el botón: solo queda el «Inscrito». */
+  .tf-der .torneo-pie-accion:not(.tf-inscrito):not(.btn-primary) { display: none; }
+  .tf-der .torneo-pie-accion { min-height: 32px; padding: 0 var(--e-md); font-size: var(--t-xs); }
+  .tf-der:empty { display: none; }
+}
+
+/* El destacado: el banner grande arriba y lo que decide en tres losas. */
+.tdest.torneo-tarjeta { display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; background: var(--white); box-shadow: var(--shadow-sm); }
+.tdest-arte { display: block; height: 168px; background: center / cover no-repeat; position: relative; }
+.tdest-arte.sin-banner { background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, #0b1219), color-mix(in srgb, var(--c) 30%, #0b1219)); color: color-mix(in srgb, #fff 30%, transparent); overflow: hidden; }
+.tdest-marca { position: absolute; right: var(--e-xl); top: -12px; }
+/* En el PC, en una fila si cabe; si no (dos botones, un nombre largo), las
+   losas y los botones bajan a la siguiente en vez de pisar el nombre (1233). */
+.tdest-cuerpo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-md) var(--e-lg); padding: 0 var(--e-xl) var(--e-lg); }
+.tdest-cuerpo > .tdest-avatar, .tdest-cuerpo > .tdest-losas, .tdest-cuerpo > .tdest-accion { flex: none; }
+.tdest-cuerpo > .tdest-texto { flex: 1 1 280px; }
+.tdest-avatar { display: grid; place-items: center; width: 88px; height: 88px; margin-top: -32px; border-radius: var(--radius-lg); overflow: hidden; background: color-mix(in srgb, var(--c) 22%, var(--white)); color: var(--c); font: 800 var(--t-2xl)/1 var(--font-display); box-shadow: 0 0 0 4px var(--white), var(--shadow-md); }
+.tdest-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tdest-texto { display: grid; gap: var(--e-xs); min-width: 0; padding-top: var(--e-md); }
+.tdest-ceja { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-sm); align-items: center; }
+.tdest-motivo { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--acento); }
+.tdest-nombre { margin: 0; font: 800 var(--t-2xl)/1.15 var(--font-display); overflow-wrap: anywhere; }
+.tdest-nombre a { color: var(--text); text-decoration: none; }
+.tdest-quien { font-size: var(--t-sm); color: var(--text-mid); }
+.tdest-losas { display: grid; grid-template-columns: repeat(3, minmax(104px, auto)); gap: var(--e-sm); padding-top: var(--e-md); }
+.tdest-losa { display: grid; justify-items: center; gap: 2px; padding: var(--e-sm); border-radius: var(--radius-md); background: var(--ice); text-align: center; }
+.tdest-losa b { font: 800 var(--t-lg)/1.2 var(--font-display); color: var(--text); white-space: nowrap; }
+.tdest-losa:first-child b { text-transform: capitalize; }
+.tdest-losa small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mid); }
+.tdest-accion { display: grid; justify-items: end; gap: var(--e-sm); padding-top: var(--e-md); }
+.tdest-accion .torneo-pie-accion { min-height: 44px; padding: 0 var(--e-xl); border-radius: var(--radius-pill); display: inline-flex; align-items: center; }
+@media (max-width: 900px) {
+  .tdest-cuerpo { display: grid; grid-template-columns: auto minmax(0, 1fr); padding: 0 var(--e-lg) var(--e-lg); gap: var(--e-md); }
+  .tdest-losas, .tdest-accion { grid-column: 1 / -1; }
+  .tdest-losas { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 0; }
+  .tdest-accion { grid-template-columns: auto 1fr; align-items: center; justify-items: stretch; padding-top: 0; }
+  .tdest-accion .torneo-pie-accion { justify-content: center; }
+}
+@media (max-width: 599px) {
+  .tdest-arte { height: 120px; }
+  .tdest-avatar { width: 68px; height: 68px; margin-top: -24px; font-size: var(--t-xl); }
+  .tdest-nombre { font-size: var(--t-xl); }
+  .tdest-texto { padding-top: var(--e-sm); }
+  .tdest-ceja .chapa-tipo:not([data-tipo-torneo='oficial']) { display: none; }
+}
+
+
+.tf .tf-campeon-mazo .torneo-arte-meta { position: static; inset: auto; display: flex; padding-left: var(--e-sm); transform: none; }
+@media (max-width: 599px) {
+  .tf .tf-campeon-mazo.torneo-arte, .tf .tf-der .torneo-tarjeta-mas { display: none; }
+}
+.tdest-accion .tdest-tuyo { min-height: 44px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); display: inline-flex; align-items: center; }
+@media (min-width: 901px) { .tdest-accion { grid-auto-flow: column; align-items: center; } .tdest-accion .tf-caras { grid-column: 1 / -1; justify-self: end; } }
+/* Casi lleno (297): lo que queda, en naranja. */
+.tf-plazas.apurada small { color: var(--warning); font-weight: 700; }
