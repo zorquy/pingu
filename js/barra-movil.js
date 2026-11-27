@@ -21,6 +21,7 @@ import { hojaInyectada } from './hoja.js'
 import { montarArrastreDeHojas } from './hoja-arrastre.js'
 import { engancharCompartir } from './compartir.js'
 import { escapeHtml } from './html.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 
 // Qué icono lleva cada sección (por el nombre del desplegable). «Colección»
 // se llamaba «Cartas» hasta la 1036 (PINGU: «dentro no solo hay cartas: hay
@@ -33,8 +34,11 @@ export const ORDEN = ['Inicio', 'Aprender', 'Colección', 'Comunidad', 'Jugar']
 // tema del foro, un torneo…) pertenece a la sección de lo que enseña.
 export const SECCION_DE = {
   Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'quien-es', 'ordena-precio', 'que-expansion', 'parejas', 'nueve', 'glosario'],
-  'Colección': ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'evento'],
-  Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora', 'tiendas', 'tienda', 'para-tiendas'],
+  // Tiendas, de Comunidad a Colección (1482, PINGU: «van de la mano con las
+  // cartas, con deseos y cambios»): /tiendas, la ficha de cada tienda
+  // (/tiendas/<tienda>, cuya clave es `tiendas`), su panel y Para tiendas.
+  'Colección': ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'evento', 'tiendas', 'tienda', 'para-tiendas'],
+  Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'meta-torneo', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
   Inicio: ['index', 'noticias', 'lanzamientos', 'novedades'],
 }
@@ -72,8 +76,10 @@ export function seccionesDeLaBarra(doc = document) {
 // Los enlaces SUELTOS de la barra de arriba (758): Noticias y Lanzamientos
 // son de Inicio, y «Mi colección», que dejó de ser el desplegable
 // «Cartas», es la sección Cartas. Lo usan la web y el generador.
+// Y desde la 1482 Tiendas va suelta detrás de «Mi colección» y es de Colección.
+export const SUELTOS_DE_COLECCION = ['mi-coleccion', 'tiendas']
 export function seccionesDe(grupos, sueltos) {
-  const deCartas = sueltos.filter((e) => claveDePagina(e.href) === 'mi-coleccion')
+  const deCartas = sueltos.filter((e) => SUELTOS_DE_COLECCION.includes(claveDePagina(e.href)))
   const deInicio = sueltos.filter((e) => !deCartas.includes(e))
   const inicio = { nombre: 'Inicio', enlaces: [{ href: '/', texto: 'Inicio' }, ...deInicio] }
   const cartas = deCartas.length && !grupos.some((g) => g.nombre === 'Colección') ? [{ nombre: 'Colección', enlaces: deCartas }] : []
@@ -102,6 +108,27 @@ export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
 // «Guías»). Jugar ya va corto desde la 1358: Torneos, Mazos, Partidas.
 export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', usuarios: 'Gente' }
 export const rotuloCorto = (clave, texto) => ROTULO_CORTO[clave] || texto
+
+// LAS PARTES DE MI COLECCIÓN (758, antes en barra-lateral.js): Panel, Cartas,
+// Deseos y cambios y Buscar. Dentro de /mi-coleccion son sus pestañas; fuera,
+// la lateral las lleva como enlaces en el cajón de Colección y, desde la 1482,
+// la burbuja del móvil de /tiendas también (PINGU: «solo hace falta meter
+// tiendas ahí»), con Tiendas al final. Viven aquí porque la lateral ya lee de
+// este fichero y la burbuja no debe bajarse la lateral entera.
+export const PARTES_DE_LA_COLECCION = [
+  { ver: 'resumen', texto: 'Panel', icono: (t = 18) => icons.barChart(t) },
+  // Cartas (1366, «Colección en cuatro»): Expansiones, Pokédex, Álbumes y
+  // Productos son sus pestañas, y abre siempre Expansiones.
+  { ver: 'album', texto: 'Cartas', icono: (t = 18) => icons.cards(t) },
+  // Deseos y cambios (765), que es lo que dice el menú de Mi colección; desde
+  // la 770 abre por el Mercado.
+  { ver: 'mercado', texto: 'Deseos y cambios', icono: (t = 18) => ICONOS_COLECCION.corazon(t) },
+  // Y Buscar, que vuelve a ser su pestaña (767).
+  { ver: 'buscar', texto: 'Buscar', icono: (t = 18) => icons.search(t) },
+]
+// ¿Es la sección de Mi colección? La que empieza por ella (la de una tienda,
+// 1075, también se llama Colección pero empieza por /cartas).
+export const esLaDeMiColeccion = (s) => claveDePagina(s?.enlaces?.[0]?.href || '') === 'mi-coleccion'
 
 // Una burbuja con más de lo que cabe lleva un degradado en el lado por el
 // que sigue, para que se vea que se desliza; al llegar al final, se quita.
@@ -506,7 +533,10 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
       const burbuja = doc.createElement('nav')
       burbuja.className = 'bm-burbuja'
       burbuja.setAttribute('aria-label', `Páginas de ${seccion.nombre}`)
-      burbuja.innerHTML = seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('')
+      // En /tiendas, la de Colección: sus cuatro partes y Tiendas al final (1482).
+      burbuja.innerHTML = esLaDeMiColeccion(seccion)
+        ? PARTES_DE_LA_COLECCION.map((p) => `<a class="bm-burbuja-item" href="/mi-coleccion?ver=${p.ver}" title="${p.texto}">${p.icono(24)}<span class="bm-texto">${p.texto}</span></a>`).join('') + seccion.enlaces.slice(1).map((e) => item(e, 'bm-burbuja-item')).join('')
+        : seccion.enlaces.map((e) => item(e, 'bm-burbuja-item')).join('')
       doc.body.appendChild(burbuja)
       doc.documentElement.classList.add('con-burbuja-movil')
       vigilarDesborde(burbuja)

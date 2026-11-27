@@ -2,6 +2,7 @@
 <html lang="es" data-seccion="comunidad" data-detalle>
 <head>
   <meta charset="UTF-8" />
+  <script>/* La ficha de una tienda (/tiendas/<tienda>) es de Colección y va en su amarillo (1482); la misma página sirve los perfiles, que son de Comunidad. */if(/^\/tiendas\//.test(location.pathname))document.documentElement.dataset.seccion='cartas'</script>
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script><script>try{var pe=document.documentElement,pl=localStorage.getItem('pd-letra');if(pl==='grande'||pl==='muy-grande')pe.dataset.letra=pl;if(localStorage.getItem('pd-contraste')==='1')pe.dataset.contraste='1'}catch(x){}</script>
   <script>/* Temporada (1134, 1285-1289, generar-temporada.mjs): la fiesta de hoy antes del primer pintado; las pruebas automáticas no la ven salvo con ?temporada=… */(function(){try{var n=new Date(),k=(n.getMonth()+1)*100+n.getDate(),q=/[?&]temporada=([a-z]+)/.exec(location.search),a=navigator.webdriver,r=document.documentElement,t=q?q[1]:a?'':k==1031||k==1101?'halloween':k>=1222||k<=106?'navidad':'',f=q?q[1]:a?'':{1228:'inocentes',1231:'nochevieja',101:'nochevieja',105:'reyes',106:'reyes'}[k]||'',l=localStorage;if(/^(inocentes|nochevieja|reyes)$/.test(f)){t='navidad';if(l.getItem('pd-sin-'+f)!=='1'&&!(f=='inocentes'&&l.getItem('pd-tienda')))r.dataset.fiesta=f}var s=q||l.getItem('pd-sin-'+t)!=='1';if(k>=1201&&k<=1231&&!a||t=='adviento')r.setAttribute('data-adviento','');if(t=='halloween'&&s){r.dataset.temporada=t;r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}if(t=='navidad'&&s){r.dataset.temporada=t;document.write('<link rel="stylesheet" href="/css/navidad.css">')}if(r.dataset.fiesta=='inocentes')document.write('<link rel="stylesheet" href="/css/inocentes.css">');if(r.dataset.fiesta=='reyes')document.write('<link rel="stylesheet" href="/css/reyes.css">');}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -114,12 +115,12 @@
           </div>
         </div>
         <a href="/mi-coleccion">Mi colección</a>
+        <a href="/tiendas">Tiendas</a>
         <div class="nav-grupo">
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Comunidad</button>
           <div class="nav-sub">
             <a href="/foro.html">Foro</a>
             <a href="/eventos">Eventos</a>
-            <a href="/tiendas">Tiendas</a>
             <a href="/usuarios.html">Gente</a>
           </div>
         </div>
@@ -150,11 +151,11 @@
         <a href="/glosario">Glosario</a>
       </details>
       <a href="/mi-coleccion">Mi colección</a>
+      <a href="/tiendas">Tiendas</a>
       <details class="nav-menu-grupo" name="nav-menu">
         <summary>Comunidad</summary>
         <a href="/foro.html">Foro</a>
         <a href="/eventos">Eventos</a>
-        <a href="/tiendas">Tiendas</a>
         <a href="/usuarios.html">Gente</a>
       </details>
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">

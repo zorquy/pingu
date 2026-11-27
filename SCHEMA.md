@@ -55231,6 +55231,24 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1482 — Tiendas, de Comunidad a Colección
+
+Sin cambios de esquema. Las barras de cada HTML llevan `<a href="/tiendas">`
+suelto detrás de «Mi colección» (arriba y en el menú plegado) y Comunidad sin
+él; `seccionesDe` mete en Colección los sueltos de `SUELTOS_DE_COLECCION`
+(`mi-coleccion`, `tiendas`), así que la sección es [Mi colección, Tiendas].
+`PARTES_DE_LA_COLECCION` se muda de barra-lateral.js a barra-movil.js (la
+lateral la reexporta) con `esLaDeMiColeccion(s)`: la lateral pinta las
+partes (o el menú de Mi colección) y detrás `s.enlaces.slice(1)`; la burbuja
+del móvil fuera de /mi-coleccion pinta las partes y detrás el resto. En
+`SECCION_DE`, `tiendas`, `tienda` y `para-tiendas` pasan a Colección. La
+ficha /tiendas/<tienda> es usuario.html (`data-seccion="comunidad"`): una
+línea en su cabecera pone `cartas` si la ruta empieza por /tiendas/ (la
+cuenta de tienda sigue en `tienda` por tienda-marco.js). `css/lateral.css`:
+`.lat .lat-menu-sitio ~ li > a` con 8 de aire y 8 de hueco, como
+`.mc-pestania`. En `bienvenida-seccion.js` la fila de Tiendas va al final de
+`cartas` y la pestaña por defecto solo se pone en /mi-coleccion o /cartas.
+
 ## Tanda 1481 — El filtro de idioma del Mercado, en una fila en el móvil
 
 Sin cambios de esquema. En `css/mi-coleccion.css`, tras `.mc-seg.mc-lista-cats`:

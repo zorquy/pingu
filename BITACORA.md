@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (719) — PINGU-Claude (1482 — Tiendas, de Comunidad a Colección)
+
+**Hecho** (PINGU: «las tiendas en comunidad igual mejor quedarían en
+colección… van de la mano con las cartas, con deseos y cambios»; con la
+propuesta «Tiendas a Colección» delante: «al final y todo lo de tiendas en
+amarillo»). La primera propuesta dibujaba la barra de arriba: PINGU, «el menú
+es lateral» (la lateral sale desde 1.400 px y se había capturado a 1.280).
+- **Lateral del PC**: el cajón de Colección es Panel · Cartas · Deseos y
+  cambios · Buscar · **Tiendas**, en /tiendas y dentro de Mi colección (debajo
+  de su menú, alineada con sus pestañas). Comunidad: Foro · Eventos · Gente.
+- **Móvil**: en /tiendas la burbuja es la de Colección (las cuatro partes y
+  Tiendas al final, marcada); en Mi colección, Tiendas es la ajena del final.
+  Abajo se marca Colección.
+- **En amarillo**: /tiendas, /tienda, /para-tiendas y la ficha de cada tienda
+  (/tiendas/<tienda> es usuario.html: una línea en su cabecera la pinta de
+  Colección antes del primer pintado; un perfil de persona sigue en rosa). El
+  rótulo de /tiendas dice «Colección · Tiendas».
+- **Bienvenidas**: la fila de Tiendas pasa de la de Comunidad a la de
+  Colección (al final); en /tiendas «Estás aquí» es Tiendas, no el Panel.
+
+**Ficheros**: las 51 páginas con barra (Tiendas suelta detrás de «Mi
+colección», arriba y en el menú plegado; fuera de Comunidad), `usuario.html`
+(la línea de la cabecera), `tiendas.html` (rótulo), `js/barra-movil.js`
+(`SECCION_DE`, `SUELTOS_DE_COLECCION`, `PARTES_DE_LA_COLECCION` y
+`esLaDeMiColeccion`, que vienen de barra-lateral.js; la burbuja de /tiendas),
+`js/barra-lateral.js` (Tiendas tras las partes; reexporta las partes),
+`css/lateral.css` (Tiendas a la medida de las pestañas), `js/bienvenida-seccion.js`,
+`normas/tiendas.md`. Regenerados: barra de abajo, cartas.html y precargas.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1482-pantalla.mjs`; adaptadas
+1239, 1242, 1366 y 758 (la 758 sigue con su rojo de antes, la lista de la barra
+de arriba). La 704 ya tenía seis rojos de antes (habla de «Cartas») y suma uno
+que es justo esto (Tiendas, ajena al final de Mi colección). 1071 y 1244 en
+rojo igual que antes.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-27 (718) — PINGU-Claude (1481 — el filtro de idioma de Deseos y cambios, en una fila en el móvil)
 
 **Hecho** (PINGU, con la captura: «el filtro de idioma en deseos y cambios está

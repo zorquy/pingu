@@ -50,6 +50,8 @@ export const BIENVENIDAS = {
       { nombre: 'Productos', icono: 'package', pestania: 'productos', texto: 'Sobres, cajas y latas: lo que llevan dentro y lo que valen.' },
       { nombre: 'Deseos y cambios', icono: 'corazon', pestania: 'mercado', soloCuenta: true, texto: 'Apunta las que quieres y las que das. Cruces te dice con quién encajas para proponerle un trato.' },
       { nombre: 'Buscar', icono: 'search', pestania: 'buscar', texto: 'Cualquier carta por su nombre, para añadirla con su idioma y su versión.' },
+      // Tiendas, de Comunidad a Colección (1482), al final como en la lateral.
+      { nombre: 'Tiendas', icono: 'store', href: '/tiendas', clave: 'tiendas', texto: 'Las tiendas de cartas de PokeDoc: su escaparate, dónde están y cuáles tienen algo de tu lista.' },
     ],
   },
   comunidad: {
@@ -58,7 +60,6 @@ export const BIENVENIDAS = {
     paginas: [
       { nombre: 'Foro', icono: 'messageSquare', href: '/foro', clave: 'foro', texto: 'Pregunta, comparte y habla de lo que quieras. Sigue un tema y te avisamos de lo nuevo.' },
       { nombre: 'Eventos', icono: 'calendar', href: '/eventos', clave: 'eventos', texto: 'Card shows, trade days y quedadas en España: di «Voy» y apúntalo en tu calendario.' },
-      { nombre: 'Tiendas', icono: 'store', href: '/tiendas', clave: 'tiendas', texto: 'Las tiendas de cartas de PokeDoc: su escaparate, dónde están y cuáles tienen algo de tu lista.' },
       { nombre: 'Gente', icono: 'users', href: '/usuarios', clave: 'usuarios', texto: 'Otros coleccionistas y jugadores: mira su vitrina y escríbeles.' },
     ],
   },
@@ -127,7 +128,9 @@ function contexto(doc = document) {
   const catalogo = doc.body?.dataset.modo === 'catalogo'
   // Dentro de Cartas (1366) manda la pestaña de su fila, no el botón del menú.
   const activa = doc.querySelector('.mc-cartas-pestanas [aria-pressed="true"]') || doc.querySelector('.mc-pestania[aria-selected="true"]')
-  const pestania = activa?.dataset.pestania || (seccion === 'cartas' ? (catalogo ? 'album' : 'resumen') : null)
+  // En /tiendas (de Colección desde la 1482) no hay pestaña: «Estás aquí» es Tiendas.
+  const enLaColeccion = ['mi-coleccion', 'cartas'].includes(claveDeRuta(location.pathname))
+  const pestania = activa?.dataset.pestania || (seccion === 'cartas' && enLaColeccion ? (catalogo ? 'album' : 'resumen') : null)
   const conCuenta = Boolean(doc.getElementById('navUserBtn'))
   return { seccion, catalogo, pestania, ruta: location.pathname, conCuenta }
 }

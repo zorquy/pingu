@@ -12,9 +12,11 @@
 // nada por ella (lo único que cuesta es la línea de app.js que la llama).
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
-import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { esNueva } from './paginas-nuevas.js'
-import { ICONOS, claveDePagina, cubrePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto } from './barra-movil.js'
+import { ICONOS, claveDePagina, cubrePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto, PARTES_DE_LA_COLECCION, esLaDeMiColeccion } from './barra-movil.js'
+// Las partes viven en barra-movil.js desde la 1482 (la burbuja de /tiendas las
+// usa); se siguen ofreciendo desde aquí, donde estaban.
+export { PARTES_DE_LA_COLECCION }
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
 
@@ -45,18 +47,14 @@ export const DIBUJOS = {
 // /mi-coleccion el cajón lleva sus partes como enlaces; DENTRO lleva su
 // propio menú (`#mcMenu`, la 740), que cambia de pestaña sin recargar, y
 // desde la 767 sin la fila «Mi colección» encima.
-export const PARTES_DE_LA_COLECCION = [
-  { ver: 'resumen', texto: 'Panel', icono: () => icons.barChart(18) },
-  // Cartas (1366, «Colección en cuatro»): Expansiones, Pokédex, Álbumes y
-  // Productos son sus pestañas, y abre siempre Expansiones.
-  { ver: 'album', texto: 'Cartas', icono: () => icons.cards(18) },
-  // Deseos y cambios (765), que es lo que dice el menú de Mi colección; desde
-  // la 770 abre por el Mercado.
-  { ver: 'mercado', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },
-  // Y Buscar, que vuelve a ser su pestaña (767).
-  { ver: 'buscar', texto: 'Buscar', icono: () => icons.search(18) },
-]
-const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'
+// La sección de Mi colección lleva sus partes; lo que venga detrás de «Mi
+// colección» (Tiendas, 1482) va debajo de ellas, como una página más.
+const soloLaColeccion = esLaDeMiColeccion
+const paginaHtml = (e, clave) => {
+  const k = claveDePagina(e.href)
+  return `<li><a href="${e.href}"${cubrePagina(e.href, clave) ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<em class="lat-nuevo">Nuevo</em>' : ''}</a></li>`
+}
+const trasLasPartes = (s, clave) => s.enlaces.slice(1).map((e) => paginaHtml(e, clave)).join('')
 
 // Las páginas que cuelgan de una sección en la lateral: sin la portada (1024,
 // PINGU: «la pestaña de inicio la quitaba porque ya hay inicio»), que es la
@@ -79,15 +77,10 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
         ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${(soloLaColeccion(s) && clave === 'mi-coleccion') || menuAqui
           // Dentro de Mi colección, sin la fila «Mi colección» (767, PINGU:
           // «no hace falta ese submenú»): su menú va directamente aquí.
-          ? '<li class="lat-menu-sitio"></li>'
+          ? `<li class="lat-menu-sitio"></li>${soloLaColeccion(s) ? trasLasPartes(s, clave) : ''}`
           : partes
-          ? PARTES_DE_LA_COLECCION.map((p) => `<li><a href="/mi-coleccion?ver=${p.ver}">${p.icono()}<span>${p.texto}</span></a></li>`).join('')
-          : paginasDe(s)
-            .map((e) => {
-              const k = claveDePagina(e.href)
-              return `<li><a href="${e.href}"${cubrePagina(e.href, clave) ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<em class="lat-nuevo">Nuevo</em>' : ''}</a></li>`
-            })
-            .join('')}</ul></div>`
+          ? PARTES_DE_LA_COLECCION.map((p) => `<li><a href="/mi-coleccion?ver=${p.ver}">${p.icono()}<span>${p.texto}</span></a></li>`).join('') + trasLasPartes(s, clave)
+          : paginasDe(s).map((e) => paginaHtml(e, clave)).join('')}</ul></div>`
         : ''
       const flecha = conCajon
         ? `<button type="button" class="lat-flecha" aria-expanded="${abierto}" aria-controls="${id}" aria-label="${abierto ? 'Plegar' : 'Desplegar'} ${s.nombre}" title="${abierto ? 'Plegar' : 'Desplegar'}">${DIBUJOS.flecha(16)}</button>`

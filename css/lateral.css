@@ -121,6 +121,14 @@
     border-left: 0;
   }
 
+  /* Tiendas, debajo del menú de Mi colección (1482): a la medida de sus
+     pestañas (8 de aire y 8 al texto), no de las páginas de la lateral (12),
+     o queda corrida a la derecha. */
+  .lat .lat-menu-sitio ~ li > a {
+    padding: 0 var(--e-sm);
+    gap: var(--e-sm);
+  }
+
   /* La píldora (784) se mide contra el menú: tiene que ser su caja (798). */
   .lat .mc-pestanias .pildora {
     background: var(--ice);

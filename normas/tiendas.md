@@ -42,8 +42,15 @@
   1079). «Me interesa» (1080) es un adjunto `tipo: 'carta'` de un mensaje: lo
   escribe quien lo manda, así que la foto sale del catálogo y Vender busca la
   línea en el stock de la tienda, nunca se fía del adjunto. Las tiendas son
-  una página de Comunidad (1242, PINGU): Foro · Eventos · Tiendas · Gente en
-  las barras de cada HTML, y una página recién llegada a una sección lleva
+  de **Colección** desde la 1482 (PINGU: «van de la mano con las cartas, con
+  deseos y cambios»; entraron en Comunidad en la 1242): en las barras de cada
+  HTML, «Tiendas» va suelta detrás de «Mi colección» (`SUELTOS_DE_COLECCION`
+  en `js/barra-movil.js`), y la lateral y la burbuja de /tiendas son Panel ·
+  Cartas · Deseos y cambios · Buscar · Tiendas (`PARTES_DE_LA_COLECCION`, que
+  vive en barra-movil.js). Todo lo de tiendas va en amarillo: /tiendas,
+  /tienda, /para-tiendas y la ficha /tiendas/<tienda>, que es usuario.html y se
+  pinta de Colección con una línea en su cabecera (un perfil de persona sigue
+  de Comunidad). Una página recién llegada a una sección lleva
   «Nuevo» unas semanas por `js/paginas-nuevas.js` (`NUEVA_HASTA`), no con
   texto en el enlace: la burbuja y la lateral leen su `textContent`. Y una tienda se
   reconoce por su nombre (1243): es el rango `tienda` de `js/rangos.js` (verde
