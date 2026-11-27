@@ -814,7 +814,8 @@ async function crearTorneo() {
   let imageUrl = null
   let bannerUrl = null
   try {
-    if (imagenElegida) imageUrl = await uploadProfileImage(session.user.id, imagenElegida, 'torneo')
+    // Un logo recortado se marca al subirlo y se pinta sin caja (1485).
+    if (imagenElegida) imageUrl = await uploadProfileImage(session.user.id, imagenElegida, await (await import('./imagen-torneo.js')).tipoDeSubida(imagenElegida))
     if (bannerElegido) bannerUrl = await uploadProfileImage(session.user.id, bannerElegido, 'torneo-banner')
   } catch (err) {
     return { error: 'No se ha podido subir la imagen: ' + (err?.message || err) }

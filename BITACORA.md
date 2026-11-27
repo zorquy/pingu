@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (721) — PINGU-Claude (1484–1485 — «Solo tú los apuntas» sin inscripciones, y el logo de un torneo sin caja)
+
+**Hecho** (PINGU, con el Tradeitto 2):
+- **1484** · «Lo apunto yo según vayan llegando… sin querer le di a abrir
+  inscripciones… lo que quiero es que nadie se pueda apuntar hasta que el día
+  del evento». Lo que pasaba: su torneo es «Piden plaza y les das entrada» (la
+  primera de las tres, la recomendada), que con las inscripciones abiertas deja
+  pedir plaza desde casa; la que quiere es «Solo tú los apuntas». Ahora: en
+  Editar sale «Se apunta» (las tres maneras, en uno en persona y hasta la ronda
+  1; antes solo se elegía al crearlo); con «Solo tú los apuntas» el borrador
+  lleva «Publicar el torneo» (no «Abrir inscripciones»), después no hay
+  «Cerrar» ni «Reabrir» (no cambiaban nada: la base no deja apuntarse a nadie)
+  y la cabecera dice «En la puerta · te apuntan al llegar». Cerrar
+  inscripciones nunca cancelaba nada: solo deja de admitir gente y se puede
+  reabrir.
+- **1485** · «Es un PNG redondo. ¿Por qué sale el recuadro cuadrado?… la
+  lógica de los eventos»: al subir la imagen se miran sus esquinas
+  (`esquinasTransparentesDe`, la de los eventos) y, si son transparentes, se
+  sube como `torneo-sinfondo-<hora>.png`; la ficha, la lista y el destacado la
+  pintan sin caja ni aro (`sin-fondo`). Sin migración: una imagen de antes se
+  queda con su caja hasta que se vuelva a subir (Editar › Cambiar imagen).
+
+**Ficheros**: `js/torneos/torneo.js` (`soloLosApuntaQuienOrganiza`, las
+acciones, `sin-fondo` del avatar), `js/torneos/torneo-editor.js` (`Se apunta`,
+la subida), `js/torneos/arena-ficha.js` («En la puerta»), nuevo
+`js/torneos/imagen-torneo.js` (`tipoDeSubida`), `js/torneos/arena-lista.js`
+(`esImagenSinFondo`), `js/torneos/crear.js`, `js/app.js` (tipo
+`torneo-sinfondo`), `css/torneos.css`, `normas/jugar.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1484-pantalla.mjs`; 1452, 1453
+y 1341 en verde; 1472, 1473 y 295 con el mismo rojo que antes.
+
+**Pendiente**: PINGU, en el Tradeitto 2: Editar › Se apunta › «Solo tú los
+apuntas», y volver a subir el logo para que salga sin caja.
+
 ## 2026-11-27 (720) — PINGU-Claude (1483 — Los comentarios de una noticia no avisan, y bajar del todo cuenta como leída)
 
 **Hecho** (PINGU):

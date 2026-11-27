@@ -359,6 +359,15 @@ QR) y con tres maneras de apuntarse (`inscripcion`). Lo que dice «usuario de
 TCG Live», «búscale en TCG Live» o el check-in mira antes `enPersona()`. Y las
 columnas de la 1446 solo se mandan al crear uno en persona: uno online se
 sigue creando aunque la migración no esté.
+Con **«Solo tú los apuntas»** no hay inscripciones (1484, PINGU: «sin querer le
+di a abrir inscripciones… nadie se pueda apuntar hasta que el día del evento»):
+el borrador se PUBLICA (`registration_open` por debajo), no salen «Cerrar» ni
+«Reabrir», y la cabecera dice «En la puerta». Cómo se apunta la gente se
+cambia en Editar hasta la ronda 1. Y **la imagen de un torneo que es un logo
+recortado va sin caja** (1485): la marca la pone la subida en el nombre del
+fichero (`torneo-sinfondo-…`, `js/torneos/imagen-torneo.js`) y la lee
+`esImagenSinFondo` (arena-lista.js); una pieza nueva que pinte `image_url`
+le pone `sin-fondo` igual.
 
 **Una lista larga de la ficha se ve corta y se busca** (1448–1450, PINGU: «hay
 que scrollear un montonazo»): la clasificación enseña el Top 8 (o el corte) y

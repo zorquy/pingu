@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-27", "tipo": "mejora", "texto": "En un torneo en persona donde apuntas tú a la gente en la puerta, ya no hay inscripciones que abrir: se publica y listo. Y cómo se apunta la gente se puede cambiar al editarlo.", "enlace": "/torneos" },
+    { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "El logo de un torneo que es un PNG recortado (redondo, por ejemplo) se ve tal cual, sin el recuadro de color detrás.", "enlace": "/torneos" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "Una guía cuenta como leída aunque bajes del todo, hasta los comentarios, antes de que pase el rato de lectura.", "enlace": "/aprender" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "Los comentarios en las noticias ya no mandan avisos de «nuevo comentario en tu guía».", "enlace": "/noticias" },
     { "fecha": "2026-11-27", "tipo": "mejora", "texto": "Las tiendas se mudan a Colección, junto a tus cartas y a Deseos y cambios, y se visten de su amarillo.", "enlace": "/tiendas" },

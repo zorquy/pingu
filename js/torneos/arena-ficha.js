@@ -42,6 +42,10 @@ export function datosDeFicha(t, { ronda = null, rondas = null, activos = 0, camp
   } else if (enJuego) {
     const corte = ronda?.phase === 'top_cut'
     estado = { b: corte ? `Top ${t.top_cut_size}` : `Ronda ${ronda?.round_number || 1}`, s: corte ? 'en juego' : `de ${t.swiss_rounds} · en juego`, clase: 'vivo' }
+  } else if (t.modalidad === 'presencial' && t.inscripcion === 'organizador' && !liga) {
+    // «Solo tú los apuntas» (1484): no hay inscripción abierta ni cerrada,
+    // la gente entra el día, cuando le dan entrada en la puerta.
+    estado = { b: 'En la puerta', s: 'te apuntan al llegar', clase: 'abierto' }
   } else estado = t.status === 'registration_open' ? { b: 'Abierto', s: 'inscripción', clase: 'abierto' } : { b: 'Cerrado', s: 'inscripción', clase: 'suave' }
   return [
     { ...cuando, rotulo: 'Cuándo' },

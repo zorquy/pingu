@@ -6,7 +6,7 @@
 // ABIERTA AL PÚBLICO desde la tanda 252, igual que /torneos: la ficha
 // se ve sin cuenta y la visibilidad fina la decide la política de la base.
 import { datosDeFicha, datosDeFichaHtml } from './arena-ficha.js'
-import { inicialesDe } from './arena-lista.js'
+import { inicialesDe, esImagenSinFondo } from './arena-lista.js'
 import { tipoPrincipal } from '../chapa-tipo.js'
 import { supabase } from '../supabase.js'
 import { avisarExito } from '../exito.js'
@@ -94,6 +94,8 @@ let soloMirando = false
 // existen y todo torneo es online.
 const enPersona = () => torneo?.modalidad === 'presencial'
 const inscripcionPersona = () => torneo?.inscripcion || 'pedir'
+// En persona y «Solo tú los apuntas»: no hay inscripciones que abrir (1484).
+const soloLosApuntaQuienOrganiza = () => enPersona() && inscripcionPersona() === 'organizador' && torneo?.format !== 'league'
 
 const $ = (id) => document.getElementById(id)
 
@@ -260,6 +262,8 @@ function pintarArenaCabecera() {
   if (avatar) {
     // Si la imagen no carga, sus iniciales: nunca el cuadro vacío.
     avatar.dataset.tipoTorneo = tipoPrincipal(torneo)
+    // Un logo recortado, sin la caja (1485).
+    avatar.classList.toggle('sin-fondo', esImagenSinFondo(torneo.image_url))
     pintarSiCambia(avatar, torneo.image_url ? `<img src="${escapeHtml(torneo.image_url)}" alt="" onerror="this.parentElement.textContent=${escapeHtml(JSON.stringify(inicialesDe(torneo.name)))}" />` : escapeHtml(inicialesDe(torneo.name)))
   }
   $('torneoCabecera')?.setAttribute('data-tipo-torneo', tipoPrincipal(torneo))
@@ -403,6 +407,19 @@ function pintarFicha() {
 
   const acciones = $('torneoAdminAcciones')
   if (!mando()) {
+    pintarSiCambia(acciones, '')
+  } else if (torneo.status === 'draft' && soloLosApuntaQuienOrganiza()) {
+    // «Solo tú los apuntas» (1484, PINGU: «yo lo que quiero es que nadie se
+    // pueda apuntar hasta que el día del evento… vaya viniendo la gente»):
+    // nadie se apunta solo, así que no hay inscripciones que abrir. El botón
+    // PUBLICA el torneo (sale de borrador y lo ve todo el mundo); la gente
+    // entra el día, cuando le das entrada en la puerta.
+    if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Publicar el torneo</button>'))
+      $('btnAbrirInscripciones').addEventListener('click', () => cambiarEstado('registration_open', 'Publicado. Nadie se apunta solo: el día del torneo das entrada a quien llegue.'))
+  } else if (soloLosApuntaQuienOrganiza() && ['registration_open', 'registration_closed'].includes(torneo.status)) {
+    // Ni «Cerrar» ni «Reabrir»: con «Solo tú los apuntas» no cambian nada (la
+    // base no deja apuntarse a nadie en ninguno de los dos), y «cerrar» hacía
+    // pensar que se cancelaba algo. Se juega desde aquí: puerta y ronda 1.
     pintarSiCambia(acciones, '')
   } else if (torneo.status === 'draft') {
     if (pintarSiCambia(acciones, '<button class="btn-primary" id="btnAbrirInscripciones">Abrir inscripciones</button>'))

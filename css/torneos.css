@@ -6391,6 +6391,11 @@ a.t-campeon-tu:hover { color: var(--acento); }
 .tficha #torneoEstado { display: none; }
 .tficha-avatar { display: grid; place-items: center; width: 104px; height: 104px; margin-top: -40px; border-radius: var(--radius-xl); overflow: hidden; background: color-mix(in srgb, var(--c, var(--acento)) 22%, var(--white)); color: var(--c, var(--acento)); font: 800 var(--t-2xl)/1 var(--font-display); box-shadow: 0 0 0 4px var(--white), var(--shadow-md); }
 .tficha-avatar img { width: 100%; height: 100%; object-fit: cover; }
+/* Un logo recortado (1485, PINGU: «es un PNG redondo… debería ser redondo»),
+   como el de los eventos: sin la caja de color, el aro ni el recorte, entero y
+   con su sombra. La marca la pone la subida (js/torneos/imagen-torneo.js). */
+:is(.tficha-avatar, .tf-avatar, .tdest-avatar).sin-fondo { overflow: visible; border-radius: 0; background: none; box-shadow: none; }
+:is(.tficha-avatar, .tf-avatar, .tdest-avatar).sin-fondo img { object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)); }
 .tficha .torneo-hero-texto { min-width: 0; padding-top: var(--e-md); }
 .tficha h1, html.torneo-jugando .tficha #torneoNombre { margin: 0; color: var(--text); font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem); text-shadow: none; }
 .tficha .torneo-hero-sub .torneo-meta { color: var(--text-mid); }

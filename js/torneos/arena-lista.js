@@ -30,9 +30,13 @@ export function inicialesDe(nombre) {
 }
 
 // La imagen cuadrada, o las iniciales en su color.
+// Un logo recortado (1485) va sin la caja: `sin-fondo`. La marca la pone al
+// subirla js/torneos/imagen-torneo.js, en el nombre del fichero.
+const SIN_FONDO = /\/torneo-sinfondo-\d+\.(png|webp|gif|svg)(\?|$)/i
+export const esImagenSinFondo = (url) => SIN_FONDO.test(String(url || ''))
 export function avatarDeTorneoHtml(t, { tipo = tipoPrincipal(t), clase = 'tf-avatar' } = {}) {
   return t.image_url
-    ? `<span class="${clase}" data-tipo-torneo="${tipo}"><img src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('sin-imagen');this.parentElement.textContent=${escapeHtml(JSON.stringify(inicialesDe(t.name)))}" /></span>`
+    ? `<span class="${clase}${esImagenSinFondo(t.image_url) ? ' sin-fondo' : ''}" data-tipo-torneo="${tipo}"><img src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('sin-imagen');this.parentElement.textContent=${escapeHtml(JSON.stringify(inicialesDe(t.name)))}" /></span>`
     : `<span class="${clase} sin-imagen" data-tipo-torneo="${tipo}" aria-hidden="true">${escapeHtml(inicialesDe(t.name))}</span>`
 }
 

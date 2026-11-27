@@ -263,7 +263,7 @@ export async function uploadProfileImage(userId, file, kind) {
   // La extensión, del TIPO y no del nombre que puso cada uno (804): el
   // nombre llegaba entero a la dirección pública de la foto.
   const ext = extensionDeImagen(file)
-  const tipo = ['avatar', 'banner', 'torneo', 'torneo-banner'].includes(kind) ? kind : 'imagen'
+  const tipo = ['avatar', 'banner', 'torneo', 'torneo-sinfondo', 'torneo-banner'].includes(kind) ? kind : 'imagen'
   const path = `${userId}/${tipo}-${Date.now()}.${ext}`
   const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
   if (error) throw error

@@ -55231,6 +55231,22 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1484–1485 — «Solo tú los apuntas» sin inscripciones; el logo sin caja
+
+Sin cambios de esquema. 1484: en torneo.js `soloLosApuntaQuienOrganiza()`
+(en persona, `inscripcion = 'organizador'`, no liga): en `draft` el botón
+`#btnAbrirInscripciones` dice «Publicar el torneo» (pasa a `registration_open`)
+y en `registration_open`/`registration_closed` no hay acciones de inscripción;
+`datosDeFicha` (arena-ficha.js) da «En la puerta · te apuntan al llegar». El
+editor lleva `#editarInscripcion` (con `TEXTO_INSCRIPCION` de crear-puro.js) en
+uno en persona antes de la ronda 1 y guarda `inscripcion`. 1485:
+`tipoDeSubida(fichero)` (js/torneos/imagen-torneo.js) devuelve
+`torneo-sinfondo` si las esquinas son transparentes (64×64 y
+`esquinasTransparentesDe` de eventos-puro.js); `uploadProfileImage` admite ese
+tipo; `esImagenSinFondo(url)` (arena-lista.js) mira
+`/torneo-sinfondo-\d+\.(png|webp|gif|svg)`; `.sin-fondo` en `.tficha-avatar`,
+`.tf-avatar` y `.tdest-avatar` quita fondo, aro y recorte.
+
 ## Tanda 1483 — Los comentarios de una noticia no avisan; bajar del todo cuenta
 
 Sin cambios de esquema. `notifyGuideComment({ …, esNoticia })` sale tras el

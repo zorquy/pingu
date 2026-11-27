@@ -12,6 +12,7 @@ import { showToast } from '../toast.js'
 import { premiosDeTorneo, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { rondasPorJornada } from './jornadas.js'
 import { precioDelCampo } from './torneo-tienda.js'
+import { TEXTO_INSCRIPCION } from './crear-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -166,6 +167,15 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) 
         <label>Minutos por ronda<input type="number" inputmode="numeric" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
         <label>Inscripción (€)<input type="text" inputmode="decimal" id="editarPrecio" maxlength="7" placeholder="Sin decir" value="${torneo.precio_entrada == null ? '' : escapeHtml(String(torneo.precio_entrada).replace('.', ','))}" /></label>
         <label>Check-in (min)<input type="number" inputmode="numeric" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
+        ${
+          // Cómo se apunta la gente a uno en persona (1484, PINGU: «lo apunto
+          // yo según vayan llegando… y sin querer le di a abrir
+          // inscripciones»): se elegía al crearlo y ya no se podía cambiar.
+          // Hasta la ronda 1; quien ya pidió plaza se queda con ella.
+          torneo.modalidad === 'presencial' && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status)
+            ? `<label>Se apunta<select id="editarInscripcion">${Object.entries(TEXTO_INSCRIPCION).map(([v, t]) => `<option value="${v}" ${(torneo.inscripcion || 'libre') === v ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('')}</select></label>`
+            : ''
+        }
         <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
         <label id="editarCorteBoCampo" class="${torneo.top_cut_size ? '' : 'hidden'}">Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       </div>
@@ -449,7 +459,8 @@ async function guardarEdicion() {
       const { uploadProfileImage } = await import('../app.js')
       if (editarImagenNueva !== undefined) {
         cambios.image_url =
-          editarImagenNueva === null ? null : await uploadProfileImage(session.user.id, editarImagenNueva, 'torneo')
+          // Un logo recortado se marca al subirlo y se pinta sin caja (1485).
+          editarImagenNueva === null ? null : await uploadProfileImage(session.user.id, editarImagenNueva, await (await import('./imagen-torneo.js')).tipoDeSubida(editarImagenNueva))
       }
       if (editarBannerNuevo !== undefined) {
         cambios.banner_url =
@@ -488,6 +499,7 @@ async function guardarEdicion() {
     return
   }
   if ('precio_entrada' in torneo || precio != null) cambios.precio_entrada = precio
+  if ($('editarInscripcion')) cambios.inscripcion = $('editarInscripcion').value
   let { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
   // Si alguna migración de columna nueva aún no se ejecutó, se guarda
   // sin esa columna (del modo de listas queda el booleano viejo). El
