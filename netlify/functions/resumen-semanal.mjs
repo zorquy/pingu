@@ -12,6 +12,11 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY. Sin ella, no hace
 // nada y lo dice.
 
+import { lasQueMasSuben } from '../../js/suben-puro.js'
+import { rutaDeCarta, urlDeImagen } from '../../js/carta-ruta.js'
+import { nombreDeCarta } from '../../js/catalogo-series.js'
+import { asuntoDelResumen } from '../../js/email-plantilla.js'
+
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
 function servicio(clave) {
@@ -59,6 +64,27 @@ export async function lanzamientosDeLaSemana(rest, clave, ahora = new Date()) {
   try {
     const sets = await rest(`tcg_sets?market=eq.WEST&oculto=not.is.true&serie_id=neq.tcgp&release_date=gte.${hoy}&release_date=lte.${hasta}&select=id,name,name_en,release_date&order=release_date&limit=4`, clave)
     return (sets || []).map((x) => ({ nombre: x.name_en || x.name, fecha: x.release_date }))
+  } catch {
+    return []
+  }
+}
+
+// Las tres que más suben (1488, «Lo que más sube» con su foto): las mismas
+// cuentas que la portada sin cuenta (js/suben-puro.js). La foto, en PNG: el
+// Outlook de escritorio no pinta WebP. Si falla o no hay tres, no hay bloque.
+export async function subenDeLaSemana(rest, clave) {
+  try {
+    const precios = await rest('tcg_card_prices?cm_trend=gt.10&select=card_id,cm_trend,cm_avg7,cm_avg30&order=cm_trend.desc&limit=120', clave)
+    const suben = lasQueMasSuben(precios, 6)
+    if (suben.length < 3) return []
+    const cartas = await rest(`tcg_cards?market=eq.WEST&id=in.(${suben.map((x) => `"${x.id}"`).join(',')})&select=id,name,name_es,name_en,image_path,market,set_id,local_id`, clave)
+    const porId = new Map((cartas || []).filter((c) => c.image_path).map((c) => [c.id, c]))
+    const tres = suben.filter((x) => porId.has(x.id)).slice(0, 3)
+    if (tres.length < 3) return []
+    return tres.map((x) => {
+      const c = porId.get(x.id)
+      return { nombre: nombreDeCarta(c), ruta: rutaDeCarta(c), imagen: String(urlDeImagen(c.image_path, 'low', c.market) || '').replace(/\.webp$/, '.png'), pct: Math.round(x.sube * 100) }
+    })
   } catch {
     return []
   }
@@ -146,7 +172,7 @@ export async function contenidoSemanal(rest, clave) {
   const temasOrdenados = topIds.map((id) => (temas || []).find((t) => t.id === id)).filter(Boolean)
 
   const guias = await rest(
-    `guides?review_status=eq.approved&published_at=gte.${encodeURIComponent(desde)}&select=title,slug&order=published_at.desc&limit=1`,
+    `guides?review_status=eq.approved&published_at=gte.${encodeURIComponent(desde)}&select=title,slug,cover_image,estimated_mins&order=published_at.desc&limit=1`,
     clave
   )
 
@@ -165,7 +191,7 @@ export async function contenidoSemanal(rest, clave) {
   try {
     noticias =
       (await rest(
-        `guides?kind=eq.news&published_at=gte.${encodeURIComponent(desde)}&select=title,slug,published_at&order=published_at.desc&limit=4`,
+        `guides?kind=eq.news&published_at=gte.${encodeURIComponent(desde)}&select=title,slug,published_at,cover_image&order=published_at.desc&limit=4`,
         clave
       )) || []
   } catch {
@@ -182,6 +208,7 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   const semana = claveSemana(ahora)
   const { temas, mensajesPorTema, guia, noticias, posts } = await contenidoSemanal(rest, clave)
   const lanzamientos = await lanzamientosDeLaSemana(rest, clave, ahora)
+  const suben = await subenDeLaSemana(rest, clave)
 
   // Semana sin vida = sin correo. Mejor callar que escribir para nada.
   // Una semana con noticias SÍ tiene algo que contar aunque el foro haya
@@ -217,9 +244,12 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   // avisos de una línea.
   const comun = {
     temas: temas.map((t) => ({ id: t.id, titulo: t.title, mensajes: mensajesPorTema[t.id] || 0 })),
-    guia: guia ? { titulo: guia.title, slug: guia.slug } : null,
-    noticias: (noticias || []).map((n) => ({ titulo: n.title, slug: n.slug })),
+    // Con su portada (1488): el correo ya no es solo una lista de títulos.
+    guia: guia ? { titulo: guia.title, slug: guia.slug, portada: guia.cover_image || null, minutos: Number(guia.estimated_mins) || null } : null,
+    noticias: (noticias || []).map((n) => ({ titulo: n.title, slug: n.slug, portada: n.cover_image || null })),
     lanzamientos,
+    suben,
+    semana: { desde: new Date(ahora.getTime() - 7 * 86400e3).toISOString().slice(0, 10), hasta: new Date(ahora.getTime() - 86400e3).toISOString().slice(0, 10) },
   }
   const previewDe = (id) => JSON.stringify(tuyo.has(id) ? { ...comun, tu: tuyo.get(id) } : comun)
 
@@ -245,7 +275,8 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   const filas = nuevos.map((id) => ({
     recipient_id: id,
     type: 'weekly_digest',
-    subject: hayAlgoTuyo(tuyo.get(id)) ? 'Tu semana en PokeDoc' : 'Lo mejor de PokeDoc esta semana',
+    // Con lo más llamativo (1488): «Tu colección sube 48 € · y sale…».
+    subject: asuntoDelResumen({ tu: hayAlgoTuyo(tuyo.get(id)) ? tuyo.get(id) : null, lanzamientos, noticias: comun.noticias }),
     preview: previewDe(id),
     link: '/foro',
     thread_key: semana,

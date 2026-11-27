@@ -231,7 +231,9 @@ export function asuntoConPropio(asunto, propio) {
 //
 // Sin imágenes, y no por ahorrar: los clientes de correo las bloquean por
 // defecto, así que un logotipo en <img> es un hueco roto en la mitad de
-// las bandejas. La marca se pinta con texto y color.
+// las bandejas. La marca se pinta con texto y color. (El resumen semanal sí
+// las lleva desde la 1488, PINGU: «pocas imágenes»: cada una con su `alt` y
+// lo que dicen, también en texto.)
 const FUENTE = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 
 // La etiqueta de familia, como celda de tabla: un <span> con fondo se lo
@@ -303,7 +305,8 @@ function preheaderHtml(texto) {
   return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:transparent;height:0;width:0;">${escapeHtml(texto)}${'&#8199;&#65279;&#847; '.repeat(30)}</div>`
 }
 
-function envoltorio({ preheader, contenido }) {
+// `ancho`: 520 para un aviso; el resumen semanal, 600 (1488), que lleva fotos.
+function envoltorio({ preheader, contenido, ancho = 520 }) {
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -318,7 +321,7 @@ ${preheaderHtml(preheader)}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8;">
   <tr>
     <td align="center" style="padding:24px 12px;">
-      <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px;background-color:#ffffff;border-radius:12px;">
+      <table role="presentation" width="${ancho}" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:${ancho}px;background-color:#ffffff;border-radius:12px;">
 ${contenido}
       </table>
     </td>
@@ -412,81 +415,209 @@ function diaDeLaSemana(f) {
   return Number.isNaN(d.getTime()) ? 'esta semana' : `el ${d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', timeZone: 'Europe/Madrid' })}`
 }
 
-export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], tu = null, siteUrl, unsubscribeUrl, propio = null }) {
-  // Con algo tuyo, el asunto es tuyo (1322): «Tu semana en PokeDoc».
-  const asunto = sanitizeHeader(asuntoConPropio(lineasDeTuSemana(tu).length ? 'Tu semana en PokeDoc' : 'Lo mejor de PokeDoc esta semana', propio))
+// ── El resumen, visual (tanda 1488, PINGU: «es mucho texto, pocas imágenes…
+// podríamos meter la mascota por ahí haciendo algo tipo GIF») ──
+// La mascota de cartero en la cabecera (un GIF sacado del modelo 3D de la web,
+// en /assets/correo/), tu semana en losas, la noticia con su portada, las tres
+// cartas que más suben con su foto, el lanzamiento, el foro, la guía y el
+// reto. Las imágenes SÍ van ahora (PINGU lo pidió): cada una con su `alt` y
+// todo lo que dicen también en texto, para quien las tenga bloqueadas.
+const GIF_CABECERA = '/assets/correo/mascota-entregar.gif'
+const GIF_RETO = '/assets/correo/mascota-pensar.gif'
+// Con el punto de los miles a mano: en es-ES `toLocaleString` no lo pone a
+// 1235, y el Node de Netlify no tiene `useGrouping: 'always'`.
+const eurosDe = (n) => `${String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} €`
+
+// El asunto, con lo más llamativo de la semana (1488, la D3): lo tuyo que más
+// tira (lo que sube tu colección, tus cruces o tu racha) y lo que sale o la
+// noticia. Sin nada de eso, el de siempre.
+export function asuntoDelResumen({ tu = null, lanzamientos = [], noticias = [] } = {}) {
+  let tuyo = ''
+  if (tu && Number(tu.cambio) >= 1) tuyo = `Tu colección sube ${eurosDe(tu.cambio)}`
+  else if (tu && tu.cruces > 0) tuyo = `${tu.cruces} ${tu.cruces === 1 ? 'cruce nuevo' : 'cruces nuevos'} para ti`
+  else if (tu && tu.racha >= 3) tuyo = `Llevas ${tu.racha} días de racha`
+  const nuevo = lanzamientos?.[0]?.nombre ? `sale ${lanzamientos[0].nombre}` : noticias?.[0]?.titulo ? String(noticias[0].titulo) : ''
+  if (tuyo && nuevo) return `${tuyo} · y ${lanzamientos?.[0]?.nombre ? nuevo : `${nuevo.charAt(0).toLowerCase()}${nuevo.slice(1)}`}`
+  if (tuyo) return tuyo
+  if (lanzamientos?.[0]?.nombre) return `Esta semana sale ${lanzamientos[0].nombre}`
+  if (nuevo) return nuevo
+  return tu ? 'Tu semana en PokeDoc' : 'Lo mejor de PokeDoc esta semana'
+}
+
+// Una dirección de imagen que el correo puede pedir: entera, o de la web.
+const imagenDe = (siteUrl, url) => {
+  const u = String(url || '').trim()
+  if (/^https:\/\//.test(u)) return u
+  return u.startsWith('/') ? absoluteUrl(siteUrl, u) : null
+}
+
+export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], suben = [], semana = null, tu = null, siteUrl, unsubscribeUrl, propio = null }) {
+  const asunto = sanitizeHeader(asuntoConPropio(asuntoDelResumen({ tu: lineasDeTuSemana(tu).length ? tu : null, lanzamientos, noticias }), propio))
   const { cta: verbo, pie } = textosDeTipo('weekly_digest', propio)
   const urlForo = absoluteUrl(siteUrl, '/foro')
-
-  const filas = temas.map((t) => ({
-    titulo: sanitizeHeader(t.titulo, 160),
-    url: absoluteUrl(siteUrl, `/tema/${encodeURIComponent(String(t.id ?? ''))}`),
-    mensajes: Number(t.mensajes) || 0,
-  }))
-  const filaGuia = guia
-    ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia/${encodeURIComponent(String(guia.slug ?? ''))}`) }
-    : null
-  // Las noticias van PRIMERO en el correo: es lo más perecedero de todo
-  // lo que lleva dentro. Un hilo del foro sigue ahí la semana que viene;
-  // «han revelado las cartas del 30 aniversario», no.
-  const filasNoticias = (noticias || []).map((n) => ({
-    titulo: sanitizeHeader(n.titulo, 160),
-    url: absoluteUrl(siteUrl, `/noticias/${encodeURIComponent(String(n.slug ?? ''))}`),
-  }))
-
-  const filasTuyas = lineasDeTuSemana(tu).map((l) => ({ titulo: sanitizeHeader(l.texto, 160), url: absoluteUrl(siteUrl, l.ruta) }))
-  const filasLanzamientos = (lanzamientos || []).map((x) => ({ titulo: sanitizeHeader(x.nombre, 160), url: absoluteUrl(siteUrl, '/lanzamientos'), fecha: String(x.fecha || '').slice(0, 10) }))
+  const F = FUENTE
+  const temasF = temas.map((t) => ({ titulo: sanitizeHeader(t.titulo, 160), url: absoluteUrl(siteUrl, `/tema/${encodeURIComponent(String(t.id ?? ''))}`), mensajes: Number(t.mensajes) || 0 }))
+  const guiaF = guia ? { titulo: sanitizeHeader(guia.titulo, 160), url: absoluteUrl(siteUrl, `/guia/${encodeURIComponent(String(guia.slug ?? ''))}`), portada: imagenDe(siteUrl, guia.portada), minutos: Number(guia.minutos) || 0 } : null
+  const noticiasF = (noticias || []).map((n) => ({ titulo: sanitizeHeader(n.titulo, 160), url: absoluteUrl(siteUrl, `/noticias/${encodeURIComponent(String(n.slug ?? ''))}`), portada: imagenDe(siteUrl, n.portada) }))
+  const lanzF = (lanzamientos || []).map((x) => ({ titulo: sanitizeHeader(x.nombre, 160), url: absoluteUrl(siteUrl, '/lanzamientos'), fecha: String(x.fecha || '').slice(0, 10) }))
+  const subenF = (suben || []).filter((x) => x?.imagen && /^https:\/\//.test(x.imagen)).slice(0, 3).map((x) => ({ nombre: sanitizeHeader(x.nombre, 60), url: absoluteUrl(siteUrl, x.ruta || '/cartas'), imagen: x.imagen, pct: Math.round(Number(x.pct) || 0) }))
+  const lineas = lineasDeTuSemana(tu)
   const diaBonito = (f) => { const d = new Date(`${f}T12:00:00Z`); return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }) }
+  const diaCorto = (f) => { const d = new Date(`${f}T12:00:00Z`); return Number.isNaN(d.getTime()) ? null : { n: d.getUTCDate(), dia: d.toLocaleDateString('es-ES', { weekday: 'short', timeZone: 'UTC' }).replace('.', '') } }
+  const rango = semana?.desde && semana?.hasta ? (() => { const a = new Date(`${semana.desde}T12:00:00Z`); const z = new Date(`${semana.hasta}T12:00:00Z`); const m = (d) => d.toLocaleDateString('es-ES', { month: 'long', timeZone: 'UTC' }); return Number.isNaN(a) || Number.isNaN(z) ? '' : a.getUTCMonth() === z.getUTCMonth() ? `Del ${a.getUTCDate()} al ${z.getUTCDate()} de ${m(z)}` : `Del ${a.getUTCDate()} de ${m(a)} al ${z.getUTCDate()} de ${m(z)}` })() : ''
 
+  // ── El texto plano, con todo ──
   const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
   const text =
     `${asunto}\n\n` +
-    (filasTuyas.length ? filasTuyas.map((t) => `· ${t.titulo}\n  ${t.url}`).join('\n') + '\n' : '') +
-    (filasLanzamientos.length ? filasLanzamientos.map((x) => `· Sale el ${diaBonito(x.fecha)}: ${x.titulo}\n  ${x.url}`).join('\n') + '\n' : '') +
-    (filasNoticias.length ? filasNoticias.map((n) => `· Noticia: ${n.titulo}\n  ${n.url}`).join('\n') + '\n' : '') +
-    filas.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
-    (filaGuia ? `\n· Guía nueva: ${filaGuia.titulo}\n  ${filaGuia.url}` : '') +
+    (lineas.length ? lineas.map((l) => `· ${l.texto}\n  ${absoluteUrl(siteUrl, l.ruta)}`).join('\n') + '\n' : '') +
+    (noticiasF.length ? noticiasF.map((n) => `· Noticia: ${n.titulo}\n  ${n.url}`).join('\n') + '\n' : '') +
+    (subenF.length ? subenF.map((x) => `· Sube: ${x.nombre} (+${x.pct} %)\n  ${x.url}`).join('\n') + '\n' : '') +
+    (lanzF.length ? lanzF.map((x) => `· Sale el ${diaBonito(x.fecha)}: ${x.titulo}\n  ${x.url}`).join('\n') + '\n' : '') +
+    temasF.map((f) => `· ${f.titulo} (${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana)\n  ${f.url}`).join('\n') +
+    (guiaF ? `\n· Guía nueva: ${guiaF.titulo}\n  ${guiaF.url}` : '') +
+    `\n· Los retos de hoy: ${absoluteUrl(siteUrl, '/retos')}` +
     (urlForo ? `\n\n${verbo}: ${urlForo}\n\n` : '\n\n') +
     pie +
     bajaTexto
 
-  // Cada tema, su enlace y cuánto se ha movido. Sin la cita genérica de
-  // un aviso: esto es una lista, y metida en un blockquote salía como un
-  // bloque de texto sin saltos ni enlaces.
-  const filaHtml = (url, titulo, detalle) => `
-            <tr>
-              <td style="padding:0 0 14px;font-family:${FUENTE};">
-                ${url ? `<a href="${escapeHtml(url)}" style="color:#1e5175;font-weight:700;font-size:15px;line-height:1.45;text-decoration:none;">${escapeHtml(titulo)}</a>` : `<span style="color:#111827;font-weight:700;font-size:15px;">${escapeHtml(titulo)}</span>`}<br />
-                <span style="font-size:13px;color:#6b7280;">${escapeHtml(detalle)}</span>
-              </td>
-            </tr>`
-
-  const contenido = `${cabeceraHtml()}
-      ${etiquetaHtml('weekly_digest')}
-      <tr>
-        <td style="padding:12px 28px 0;">
-          <h1 style="margin:0 0 4px;font-family:${FUENTE};font-size:20px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
-          <p style="margin:0 0 20px;font-family:${FUENTE};font-size:13.5px;line-height:1.5;color:#6b7280;">${escapeHtml(filasNoticias.length ? 'Las noticias de la semana y lo que más se ha movido en el foro.' : 'Lo que más se ha movido en el foro estos días.')}</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            ${filasTuyas.map((t) => filaHtml(t.url, t.titulo, 'Tu semana')).join('')}
-            ${filasNoticias.map((n) => filaHtml(n.url, n.titulo, 'Noticia de esta semana')).join('')}
-            ${filasLanzamientos.map((x) => filaHtml(x.url, x.titulo, `Sale el ${diaBonito(x.fecha)}`)).join('')}
-            ${filas.map((f) => filaHtml(f.url, f.titulo, `${f.mensajes} ${f.mensajes === 1 ? 'mensaje' : 'mensajes'} esta semana`)).join('')}
-            ${filaGuia ? filaHtml(filaGuia.url, filaGuia.titulo, 'Guía nueva de esta semana') : ''}
-          </table>
+  // ── Las piezas ──
+  const rotulo = (t) => `<tr><td style="padding:22px 24px 8px;font-family:${F};font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#5b6f7c;">${escapeHtml(t)}</td></tr>`
+  const gif = absoluteUrl(siteUrl, GIF_CABECERA)
+  const cabecera = `<tr>
+        <td style="background-color:#1e5175;border-radius:12px 12px 0 0;padding:20px 0 0 24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td valign="top" style="padding:0 8px 20px 0;">
+              <span style="font-family:${F};font-size:20px;font-weight:800;color:#ffffff;">Poke</span><span style="font-family:${F};font-size:20px;font-weight:800;color:#8fc4e0;">Doc</span>
+              <h1 style="margin:14px 0 6px;font-family:${F};font-size:26px;line-height:1.15;font-weight:800;color:#ffffff;">${escapeHtml(lineas.length ? 'Tu semana en PokeDoc' : 'La semana en PokeDoc')}</h1>
+              <p style="margin:0;font-family:${F};font-size:14px;line-height:1.45;color:#c9dbe8;">${escapeHtml(rango ? `${rango} · lo tuyo, lo nuevo y lo que más se mueve` : 'Lo tuyo, lo nuevo y lo que más se mueve')}</p>
+            </td>
+            ${gif ? `<td width="150" valign="bottom" style="width:150px;padding:0;"><img src="${escapeHtml(gif)}" width="150" height="175" alt="La mascota de PokeDoc, de cartero, con tu semana" style="display:block;width:150px;height:175px;border:0;" /></td>` : ''}
+          </tr></table>
         </td>
-      </tr>
-      ${botonHtml(urlForo, verbo)}
-      ${pieHtml(pie, unsubscribeUrl, siteUrl)}`
+      </tr>`
 
-  // El preheader es lo que se lee en la bandeja de entrada, antes de
-  // abrir: si hay noticia, manda la noticia.
-  const cabezas = [...filasTuyas, ...filasNoticias, ...filasLanzamientos, ...filas]
-  const preheader = cabezas.length
-    ? `${cabezas[0].titulo}${cabezas.length > 1 ? ` y ${cabezas.length - 1} más` : ''}`
-    : 'El resumen de la semana en el foro.'
+  // Tu semana en losas: valor, racha, respuestas y cruces (lo que haya).
+  const losas = []
+  if (tu && Number.isFinite(tu.valor)) {
+    const c = Number(tu.cambio)
+    losas.push({ cifra: eurosDe(tu.valor), extra: Number.isFinite(c) && Math.round(c) !== 0 ? `${c > 0 ? '+' : '−'}${eurosDe(Math.abs(c))}` : '', extraColor: c > 0 ? '#0f7f55' : '#b42318', texto: 'tu colección', ruta: '/mi-coleccion' })
+  }
+  if (tu?.racha >= 3) losas.push({ cifra: String(tu.racha), texto: 'días de racha', ruta: '/retos' })
+  if (tu?.respuestas > 0) losas.push({ cifra: String(tu.respuestas), texto: tu.respuestas === 1 ? 'respuesta en temas que sigues' : 'respuestas en temas que sigues', ruta: '/foro' })
+  if (tu?.cruces > 0) losas.push({ cifra: String(tu.cruces), texto: tu.cruces === 1 ? 'cruce nuevo' : 'cruces nuevos', ruta: '/mi-coleccion?ver=cambios' })
+  const otrasTuyas = lineas.filter((l) => !/^(Tu colección vale|Llevas \d+ días|\d+ mensajes? nuevos?|\d+ cruces? nuevos?)/.test(l.texto))
+  const bloqueTu = losas.length || otrasTuyas.length ? `${rotulo('Tu semana')}
+      ${losas.length ? `<tr><td style="padding:0 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="8" border="0" style="border-collapse:separate;border-spacing:8px 0;"><tr>
+            ${losas.map((l) => `<td width="${Math.floor(100 / losas.length)}%" valign="top" align="center" style="background-color:#e7eff5;border-radius:12px;padding:12px 8px;">
+              <a href="${escapeHtml(absoluteUrl(siteUrl, l.ruta))}" style="display:block;text-decoration:none;text-align:center;font-family:${F};">
+                <span style="display:block;font-size:20px;font-weight:800;color:#0d1b2a;line-height:1.2;">${escapeHtml(l.cifra)}</span>
+                ${l.extra ? `<span style="display:block;font-size:12px;font-weight:700;color:${l.extraColor};">${escapeHtml(l.extra)}</span>` : ''}
+                <span style="display:block;font-size:12px;color:#5b6f7c;line-height:1.3;">${escapeHtml(l.texto)}</span>
+              </a>
+            </td>`).join('')}
+          </tr></table>
+        </td></tr>` : ''}
+      ${otrasTuyas.map((l) => `<tr><td style="padding:10px 24px 0;font-family:${F};font-size:14px;"><a href="${escapeHtml(absoluteUrl(siteUrl, l.ruta))}" style="color:#1e5175;font-weight:700;text-decoration:none;">${escapeHtml(l.texto)}</a></td></tr>`).join('')}` : ''
 
-  return { subject: asunto, html: envoltorio({ preheader, contenido }), text }
+  // La noticia, con su portada; las demás, en fila con la suya pequeña.
+  const [noti, ...masNotis] = noticiasF
+  const bloqueNoticias = noti ? `${rotulo('La noticia de la semana')}
+      <tr><td style="padding:0 24px;">
+        <a href="${escapeHtml(noti.url)}" style="display:block;text-decoration:none;">
+          ${noti.portada ? `<img src="${escapeHtml(noti.portada)}" width="552" alt="" style="display:block;width:100%;max-width:552px;height:auto;border:0;border-radius:12px 12px 0 0;" />` : ''}
+          <span style="display:block;background-color:#0d1b2a;border-radius:${noti.portada ? '0 0 12px 12px' : '12px'};padding:12px 16px;font-family:${F};">
+            <span style="display:block;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8fc4e0;">Noticia</span>
+            <span style="display:block;font-size:19px;font-weight:800;line-height:1.25;color:#ffffff;">${escapeHtml(noti.titulo)}</span>
+          </span>
+        </a>
+      </td></tr>
+      ${masNotis.map((n) => `<tr><td style="padding:10px 24px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          ${n.portada ? `<td width="88" valign="middle" style="width:88px;padding-right:12px;"><a href="${escapeHtml(n.url)}"><img src="${escapeHtml(n.portada)}" width="88" height="60" alt="" style="display:block;width:88px;height:60px;object-fit:cover;border:0;border-radius:8px;" /></a></td>` : ''}
+          <td valign="middle" style="font-family:${F};font-size:15px;line-height:1.35;"><a href="${escapeHtml(n.url)}" style="color:#0d1b2a;font-weight:700;text-decoration:none;">${escapeHtml(n.titulo)}</a></td>
+        </tr></table>
+      </td></tr>`).join('')}` : ''
+
+  // Las tres que más suben, con su foto.
+  const bloqueSuben = subenF.length === 3 ? `${rotulo('Lo que más sube')}
+      <tr><td style="padding:0 18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          ${subenF.map((x) => `<td width="33%" valign="top" align="center" style="padding:0 6px;font-family:${F};">
+            <a href="${escapeHtml(x.url)}" style="text-decoration:none;"><img src="${escapeHtml(x.imagen)}" width="172" alt="${escapeHtml(x.nombre)}" style="display:block;width:100%;max-width:172px;height:auto;border:0;border-radius:8px;" />
+            <span style="display:block;margin-top:6px;font-size:13px;font-weight:700;color:#0d1b2a;">${escapeHtml(x.nombre)}</span>
+            <span style="display:block;font-size:13px;font-weight:800;color:#0f7f55;">+${x.pct} %</span></a>
+          </td>`).join('')}
+        </tr></table>
+      </td></tr>` : ''
+
+  const bloqueLanz = lanzF.length ? `${rotulo('Sale esta semana')}
+      ${lanzF.map((x) => { const d = diaCorto(x.fecha); return `<tr><td style="padding:0 24px 8px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e3e9ee;border-radius:12px;"><tr>
+          ${d ? `<td width="56" align="center" valign="middle" style="width:56px;padding:10px 0 10px 10px;"><span style="display:block;background-color:#e7eff5;border-radius:10px;padding:6px 0;font-family:${F};"><span style="display:block;font-size:22px;font-weight:800;line-height:1;color:#0d1b2a;">${d.n}</span><span style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:#5b6f7c;">${escapeHtml(d.dia)}</span></span></td>` : ''}
+          <td valign="middle" style="padding:10px 12px;font-family:${F};"><a href="${escapeHtml(x.url)}" style="color:#0d1b2a;font-size:15px;font-weight:800;text-decoration:none;">${escapeHtml(x.titulo)}</a><br /><span style="font-size:13px;color:#5b6f7c;">Sale el ${escapeHtml(diaBonito(x.fecha))}, con su lista y lo que vale cada carta</span></td>
+        </tr></table>
+      </td></tr>` }).join('')}` : ''
+
+  const colores = ['#e8763a', '#2a6b96', '#0f7f55', '#c62a5c']
+  const bloqueForo = temasF.length ? `${rotulo('Lo más hablado en el foro')}
+      ${temasF.map((t, i) => `<tr><td style="padding:0 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:${i ? '1px solid #e3e9ee' : '0'};"><tr>
+          <td width="32" valign="middle" style="width:32px;padding:8px 10px 8px 0;"><span style="display:block;width:32px;height:32px;line-height:32px;border-radius:16px;background-color:${colores[i % colores.length]};color:#ffffff;text-align:center;font-family:${F};font-size:13px;font-weight:800;">${escapeHtml((t.titulo.match(/[\p{L}\p{N}]/u) || ['·'])[0].toUpperCase())}</span></td>
+          <td valign="middle" style="padding:8px 0;font-family:${F};font-size:14px;line-height:1.35;"><a href="${escapeHtml(t.url)}" style="color:#0d1b2a;font-weight:700;text-decoration:none;">${escapeHtml(t.titulo)}</a></td>
+          <td width="40" align="right" valign="middle" style="padding:8px 0 8px 8px;font-family:${F};"><span style="display:inline-block;background-color:#e7eff5;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;color:#5b6f7c;">${t.mensajes}</span></td>
+        </tr></table>
+      </td></tr>`).join('')}
+      ${urlForo ? `<tr><td style="padding:10px 24px 0;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="background-color:#e7eff5;border-radius:999px;"><a href="${escapeHtml(urlForo)}" style="display:inline-block;padding:9px 16px;color:#1e5175;text-decoration:none;font-family:${F};font-weight:700;font-size:14px;">${escapeHtml(verbo)}</a></td></tr></table>
+      </td></tr>` : ''}` : ''
+
+  const bloqueGuia = guiaF ? `${rotulo('Guía nueva')}
+      <tr><td style="padding:0 24px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          ${guiaF.portada ? `<td width="120" valign="middle" style="width:120px;padding-right:14px;"><a href="${escapeHtml(guiaF.url)}"><img src="${escapeHtml(guiaF.portada)}" width="120" height="84" alt="" style="display:block;width:120px;height:84px;object-fit:cover;border:0;border-radius:10px;" /></a></td>` : ''}
+          <td valign="middle" style="font-family:${F};"><a href="${escapeHtml(guiaF.url)}" style="color:#0d1b2a;font-size:15px;font-weight:800;line-height:1.35;text-decoration:none;">${escapeHtml(guiaF.titulo)}</a>${guiaF.minutos ? `<br /><span style="font-size:13px;color:#5b6f7c;">${guiaF.minutos} min de lectura</span>` : ''}</td>
+        </tr></table>
+      </td></tr>` : ''
+
+  const gifReto = absoluteUrl(siteUrl, GIF_RETO)
+  const urlRetos = absoluteUrl(siteUrl, '/retos')
+  const bloqueReto = `<tr><td style="padding:22px 24px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1edff;border-radius:14px;"><tr>
+          <td valign="middle" style="padding:16px;font-family:${F};">
+            <span style="display:block;font-size:18px;font-weight:800;color:#5f43d9;">Los retos de hoy</span>
+            <span style="display:block;margin:4px 0 12px;font-size:14px;line-height:1.45;color:#5b6f7c;">${escapeHtml(tu?.racha >= 3 ? `Seis retos nuevos cada día. Llevas ${tu.racha} días de racha: no la pierdas.` : 'Seis retos nuevos cada día: cartas, precios, siluetas y parejas.')}</span>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="background-color:#1e5175;border-radius:999px;"><a href="${escapeHtml(urlRetos)}" style="display:inline-block;padding:10px 18px;color:#ffffff;text-decoration:none;font-family:${F};font-weight:700;font-size:14px;">Jugar el de hoy</a></td></tr></table>
+          </td>
+          ${gifReto ? `<td width="110" valign="bottom" style="width:110px;padding:8px 8px 0 0;"><img src="${escapeHtml(gifReto)}" width="110" height="128" alt="" style="display:block;width:110px;height:128px;border:0;" /></td>` : ''}
+        </tr></table>
+      </td></tr>`
+
+  const pieF = `<tr>
+        <td style="padding:22px 24px 24px;">
+          <div style="border-top:1px solid #e3e9ee;padding-top:16px;font-family:${F};font-size:12px;line-height:1.6;color:#6b7280;">
+            ${escapeHtml(pie)}<br />
+            ${(() => { const ajustes = absoluteUrl(siteUrl, '/perfil.html'); return `${ajustes ? `<a href="${escapeHtml(ajustes)}" style="color:#6b7280;text-decoration:underline;">Elegir qué avisos quieres</a>` : ''}${ajustes && unsubscribeUrl ? ' · ' : ''}${unsubscribeUrl ? `<a href="${escapeHtml(unsubscribeUrl)}" style="color:#6b7280;text-decoration:underline;">Dejar de recibir estos</a>` : ''}` })()}
+          </div>
+        </td>
+      </tr>`
+
+  const contenido = `${cabecera}
+      ${bloqueTu}
+      ${bloqueNoticias}
+      ${bloqueSuben}
+      ${bloqueLanz}
+      ${bloqueForo}
+      ${bloqueGuia}
+      ${bloqueReto}
+      ${pieF}`
+
+  // El preheader: lo primero que haya, como antes.
+  const cabezas = [...lineas.map((l) => ({ titulo: l.texto })), ...noticiasF, ...lanzF, ...temasF]
+  const preheader = cabezas.length ? `${cabezas[0].titulo}${cabezas.length > 1 ? ` y ${cabezas.length - 1} más` : ''}` : 'El resumen de la semana en PokeDoc.'
+
+  return { subject: asunto, html: envoltorio({ preheader, contenido, ancho: 600 }), text }
 }
 
 // Cada fila de la cola con su pintura. El resumen semanal guarda en
@@ -501,7 +632,7 @@ export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl, textos = null 
     try {
       const carga = JSON.parse(fila.preview)
       if (carga && Array.isArray(carga.temas)) {
-        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], lanzamientos: carga.lanzamientos || [], tu: carga.tu || null, siteUrl, unsubscribeUrl, propio })
+        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], lanzamientos: carga.lanzamientos || [], suben: carga.suben || [], semana: carga.semana || null, tu: carga.tu || null, siteUrl, unsubscribeUrl, propio })
       }
     } catch {}
   }
@@ -675,12 +806,20 @@ export const EJEMPLOS_DE_CORREO = [
     // plantilla del resumen lo lee de ahí. El ejemplo lleva el mismo
     // JSON que encola la función.
     preview: JSON.stringify({
-      noticias: [{ titulo: 'Reveladas las cartas del 30 aniversario', slug: 'cartas-30-aniversario' }],
+      noticias: [{ titulo: 'Reveladas las cartas del 30 aniversario', slug: 'cartas-30-aniversario', portada: '/assets/images/og-default.png' }],
       temas: [
         { id: 128, titulo: 'Mazos de Ceruledge en Mega Evolución', mensajes: 24 },
         { id: 131, titulo: 'Dudas del reglamento', mensajes: 11 },
       ],
-      guia: { titulo: 'Cómo montar tu primer mazo', slug: 'como-montar-tu-primer-mazo' },
+      guia: { titulo: 'Cómo montar tu primer mazo', slug: 'como-montar-tu-primer-mazo', minutos: 8 },
+      // Las tres que más suben (1488), con su foto en PNG.
+      suben: [
+        { nombre: 'Charizard ex', ruta: '/carta/sv03.5-199', imagen: 'https://assets.tcgdex.net/en/sv/sv03.5/199/low.png', pct: 38 },
+        { nombre: 'Umbreon ex', ruta: '/carta/sv08.5-161', imagen: 'https://assets.tcgdex.net/en/sv/sv08.5/161/low.png', pct: 21 },
+        { nombre: 'Charizard ex', ruta: '/carta/sv04.5-234', imagen: 'https://assets.tcgdex.net/en/sv/sv04.5/234/low.png', pct: 17 },
+      ],
+      lanzamientos: [{ nombre: 'Ascended Heroes', fecha: '2026-11-28' }],
+      semana: { desde: '2026-11-20', hasta: '2026-11-26' },
     }),
   },
 ]

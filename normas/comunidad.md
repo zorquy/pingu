@@ -444,6 +444,15 @@
   botón y pie, por tipo. Lo que pinte un correo pasa por `renderFilaDeCola` /
   `renderEmail` con sus `textos` (send-emails los lee una vez por pasada); un
   tipo nuevo de correo va en `EJEMPLOS_DE_CORREO` para salir en el panel.
+  El resumen semanal es VISUAL (1488, PINGU: «mucho texto, pocas imágenes…
+  la mascota… tipo GIF»): `renderResumenSemanal` a 600 px con la mascota de
+  cartero (`/assets/correo/mascota-entregar.gif`, sacado del modelo 3D),
+  losas de tu semana, la noticia con su portada, las tres que más suben con
+  su foto en PNG (`subenDeLaSemana`, con `js/suben-puro.js`, lo mismo que la
+  portada), el lanzamiento, el foro y su botón, la guía y el reto con su GIF.
+  El asunto lo da `asuntoDelResumen` (lo tuyo que más tira y lo que sale). Un
+  GIF nuevo se saca del 3D con la herramienta de la rama `pruebas` y pesa
+  menos de 250 KB; Outlook de escritorio enseña el primer fotograma.
 - **Silenciar y banear llevan motivo y duración** (tanda 1121): se hace por
   `admin_moderar` / `admin_moderar_quitar` (registro en `moderaciones`) y lo
   vencido lo levanta `moderacion_al_dia()` cada hora. Lo que se CUMPLE sigue

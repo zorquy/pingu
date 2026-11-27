@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (724) — PINGU-Claude (1488 — El correo de los lunes, visual y con la mascota)
+
+**Hecho** (PINGU: «solo pone temas del foro, es mucho texto, pocas imágenes…
+podríamos meter la mascota por ahí haciendo algo tipo GIF»; con la propuesta
+«Correo de los lunes»: «dale con lo recomendado»):
+- **Cabecera** azul con la mascota de cartero entregando la semana (GIF de
+  verdad, sacado del modelo 3D de la web: `assets/correo/mascota-entregar.gif`,
+  160 KB), el título y del día al día de la semana.
+- **Tu semana en losas** (lo que vale tu colección y lo que sube, racha,
+  respuestas, cruces); tus jornadas y eventos debajo, en líneas.
+- **La noticia con su portada** y las demás con su foto pequeña; **lo que más
+  sube**, tres cartas con su foto (PNG, que el Outlook de escritorio no pinta
+  WebP) y su %; **el lanzamiento** con su día; **el foro** con sus temas y el
+  botón de siempre (el que cambia el equipo en /admin); **la guía** con su
+  portada; **el reto** con la mascota pensando (`mascota-pensar.gif`).
+- **El asunto**, con lo más llamativo: «Tu colección sube 48 € · y sale
+  Ascended Heroes», «2 cruces nuevos para ti», «Esta semana sale…», la noticia,
+  o el de siempre (`asuntoDelResumen`).
+- La función de los lunes pide además la portada de la noticia y de la guía y
+  las tres que más suben (`subenDeLaSemana`, con `js/suben-puro.js`, que ahora
+  comparte con la portada).
+
+**Ficheros**: `js/email-plantilla.js` (`renderResumenSemanal` nuevo,
+`asuntoDelResumen`, `envoltorio` con ancho, el ejemplo de /admin),
+`netlify/functions/resumen-semanal.mjs`, nuevo `js/suben-puro.js`,
+`js/escaparate.js` (lo importa y lo reexporta), `assets/correo/` (los dos
+GIF), `normas/comunidad.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1488.mjs`; al día 1122, 1322 y
+272 (el asunto y los rótulos nuevos); correos, 350, 785 y 823 en verde.
+
+**Pendiente**: nada. Sin migración. El primero sale el lunes que viene.
+
 ## 2026-11-27 (723) — PINGU-Claude (1487 — La portada sin cuenta, más visual)
 
 **Hecho** (PINGU: «más visual. Ves que el ancho no es igual… que la peña se

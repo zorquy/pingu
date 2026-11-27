@@ -12,18 +12,13 @@ import { supabase } from './supabase.js'
 import { rutaDeCarta, urlDeImagen } from './carta-ruta.js'
 import { escapeHtml } from './html.js'
 import { nombreDeCarta } from './catalogo-series.js'
+import { lasQueMasSuben } from './suben-puro.js'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
-// Puro: de las filas de precio, las N que más suben (con un mínimo de 5 %).
-export function lasQueMasSuben(filas, n = 3) {
-  return (filas || [])
-    .map((r) => ({ ...r, siete: Number(r.cm_avg7), treinta: Number(r.cm_avg30) }))
-    .filter((r) => r.siete > 0 && r.treinta > 0 && r.siete / r.treinta >= 1.05)
-    .map((r) => ({ id: r.card_id, precio: Number(r.cm_trend) || r.siete, sube: r.siete / r.treinta - 1 }))
-    .sort((a, b) => b.sube - a.sube)
-    .slice(0, n)
-}
+// Puro, en js/suben-puro.js desde la 1488 (el correo de los lunes también la
+// usa). Se sigue ofreciendo desde aquí, donde la buscan las pruebas.
+export { lasQueMasSuben }
 
 // Las tres que más suben, con su foto (o null). Se guardan seis horas en el
 // navegador (la media de 7 días no se mueve más deprisa): la banda de la

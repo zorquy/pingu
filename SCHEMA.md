@@ -55231,6 +55231,18 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1488 — El correo de los lunes, visual
+
+Sin cambios de esquema. El `preview` del `weekly_digest` (JSON) lleva además
+`noticias[].portada`, `guia.portada` y `guia.minutos`, `suben` (tres
+`{ nombre, ruta, imagen (PNG de TCGdex, low), pct }`) y `semana { desde, hasta
+}`; `renderFilaDeCola` se lo pasa a `renderResumenSemanal`, que pinta a 600 px
+(`envoltorio({ ancho })`). `subenDeLaSemana(rest, clave)` pide
+`tcg_card_prices` (120 por `cm_trend`) y `tcg_cards`, con `lasQueMasSuben` de
+`js/suben-puro.js`. El asunto de la fila y el del correo, `asuntoDelResumen({ tu,
+lanzamientos, noticias })`. GIF en `assets/correo/` (240×280, a 150 y 110 de
+ancho en el correo).
+
 ## Tanda 1487 — La portada sin cuenta
 
 Sin cambios de esquema. index.html: `.hero-portada` con `.hero-grid` (copia +
