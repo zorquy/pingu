@@ -28,8 +28,8 @@ if (lasQueMasSuben) {
 console.log('── 2. Estático ──')
 const idx = leer('index.html')
 check('PA3: botones «Crear mi cuenta» y «Ver el catálogo»', /Crear mi cuenta/.test(idx) && /href="\/cartas" class="btn-outline">Ver el catálogo/.test(idx))
-check('  …las tres puertas', (idx.match(/<nav class="hero-puertas"[\s\S]*?<\/nav>/)?.[0].match(/<a /g) || []).length === 3)
-check('  …y el hueco de «lo que más sube»', /id="heroSuben"/.test(idx))
+check('  …las cuatro puertas, una por sección (desde la 1487)', (idx.match(/<nav class="hero-puertas"[\s\S]*?<\/nav>/)?.[0].match(/<a /g) || []).length === 4)
+check('  …y el hueco de «lo que más sube» (una chapa desde la 1487)', /id="heroSube"/.test(idx))
 check('PA2: el torneo y el lanzamiento, arriba de la columna de la derecha', /<aside class="portada-lateral">\s*<!-- S780\.201 -->\s*<section id="torneoPortadaSeccion">[\s\S]*?<section id="lanzamientoSeccion">/.test(idx))
 check('  …y el torneo con los azules fijos', /\.portada-torneo \{[^}]*var\(--navy-solid-dark\), var\(--navy-solid-light\)/.test(leer('css/portada.css')))
 
@@ -56,12 +56,13 @@ const semilla = () => {
   await p.waitForTimeout(2500)
   check('sin errores', errores.length === 0, errores.join(' | '))
   const r = await p.evaluate(() => ({
-    filas: [...document.querySelectorAll('#heroSuben li')].map((li) => li.textContent.replace(/\s+/g, ' ').trim()),
-    visible: !document.querySelector('.hero-suben').classList.contains('hidden'),
+    // Desde la 1487, una chapa con la que más sube (en el centro del abanico).
+    filas: [document.getElementById('heroSube')?.textContent.replace(/\s+/g, ' ').trim() || ''],
+    visible: !document.getElementById('heroSube').classList.contains('hidden'),
     fotos: [...document.querySelectorAll('.hero-portada .tcg-card img')].map((i) => i.getAttribute('src')),
     alinea: getComputedStyle(document.querySelector('.hero-portada h1')).textAlign,
   }))
-  check('PA3: «lo que más sube», con las tres de verdad y su subida', r.visible && r.filas.length === 3 && /^Carta 1/.test(r.filas[0]) && /\+100 %/.test(r.filas[0]), JSON.stringify(r.filas))
+  check('PA3: «lo que más sube», la que más de verdad y su subida', r.visible && /^Carta 1/.test(r.filas[0]) && /\+100 %/.test(r.filas[0]), JSON.stringify(r.filas))
   check('  …y sus escaneos en el abanico', r.fotos.length === 3 && r.fotos.every((u) => /assets\.tcgdex\.net\/.*sv08/.test(u)), JSON.stringify(r.fotos))
   check('  …con el titular a la izquierda', r.alinea !== 'center', r.alinea)
   await ctx.close()
