@@ -110,7 +110,7 @@ console.log('\n── 5. Una página de lista no cambia, y el pie es corto ─�
   await p.goto(`${BASE}/aprender.html`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(1500)
   const cols = await p.evaluate(() => [...document.querySelectorAll('.footer .pie-col')].filter((c) => c.getBoundingClientRect().height > 0).length)
-  check('en el PC el pie conserva las columnas', cols === 3, cols)
+  check('en el PC el pie conserva las columnas (cuatro desde la 1486)', cols === 4, cols)
   await ctx.close()
 }
 

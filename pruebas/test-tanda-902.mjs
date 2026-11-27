@@ -200,7 +200,8 @@ console.log('\n── 7. Lo estático: el pie, la etiqueta de X y el semáforo �
 {
   const PAGINAS = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
   const conPie = PAGINAS.filter((f) => /<footer class="footer">/.test(leer(f)))
-  const sinRedes = conPie.filter((f) => !/<p class="pie-redes"><a href="https:\/\/x\.com\/pokedoc_es"[^>]*>X<\/a><a href="https:\/\/www\.instagram\.com\/pokedoc_es"[^>]*>Instagram<\/a><\/p>/.test(leer(f)))
+  // Desde la 1486 van con su icono y el nombre para quien escucha (aria-label).
+  const sinRedes = conPie.filter((f) => !/<p class="pie-redes"><a href="https:\/\/x\.com\/pokedoc_es"[^>]*aria-label="PokeDoc en X"[^>]*><svg[\s\S]*?<\/a><a href="https:\/\/www\.instagram\.com\/pokedoc_es"[^>]*aria-label="PokeDoc en Instagram"[^>]*><svg[\s\S]*?<\/a><\/p>/.test(leer(f)))
   check(`las ${conPie.length} páginas con pie enlazan a X e Instagram`, conPie.length >= 44 && sinRedes.length === 0, sinRedes.join(', '))
   check('  …en una pestaña nueva y sin referrer de vuelta', conPie.every((f) => /pie-redes"><a href="https:\/\/x\.com\/pokedoc_es" target="_blank" rel="noopener"/.test(leer(f))))
   const conTarjeta = PAGINAS.filter((f) => /name="twitter:card"/.test(leer(f)))
@@ -230,10 +231,10 @@ console.log('\n── 8. El pie en pantalla: los enlaces se pulsan (44) y se ven
     const enlaces = [...document.querySelectorAll('.pie-redes a')]
     return enlaces.map((a) => {
       const b = a.getBoundingClientRect()
-      return { texto: a.textContent, alto: b.height, ancho: b.width, color: getComputedStyle(a).color }
+      return { texto: a.getAttribute('aria-label') || a.textContent, alto: b.height, ancho: b.width, color: getComputedStyle(a).color }
     })
   })
-  check('dos enlaces, X e Instagram', r.map((x) => x.texto).join(',') === 'X,Instagram', JSON.stringify(r))
+  check('dos enlaces, X e Instagram (iconos con su nombre, 1486)', r.map((x) => x.texto).join(',') === 'PokeDoc en X,PokeDoc en Instagram', JSON.stringify(r))
   check('  …de 44 por lo menos en el móvil', r.every((x) => x.alto >= 44 && x.ancho >= 44), JSON.stringify(r.map((x) => [x.alto, x.ancho])))
   await page.close()
   const pc = await browser.newPage({ viewport: { width: 1280, height: 900 } })
