@@ -480,6 +480,15 @@
   tema, título y barra, para que nada suba ni baje entre una leída y una sin
   leer. Y Guardados es de guías y noticias: los temas del foro que sigues no
   salen ahí (PINGU: «ocupa demasiadísimo»).
+- **La portada sin cuenta vende con lo de dentro** (tanda 1487, PINGU: «más
+  visual… que la peña se enganche y que se registre»): el titular con el
+  abanico de las tres que más suben (`pintarEscaparate`, la de más en el centro
+  y su chapa `#heroSube`) y la mascota saludando, tres cifras, «Con tu cuenta
+  puedes» con las cuatro secciones en su color (`data-seccion-color`) y el
+  aviso final con la mascota. Va al ancho del mosaico de abajo (el `.hero` de
+  style.css le quitaba el aire de los lados). Los huecos de la mascota se
+  marcan en home.js SOLO sin cuenta. Y los retos se juegan sin cuenta: al
+  acabar, `premiosHtml` pinta «Guarda tu día» con su botón al registro.
 - **Una noticia no avisa de sus comentarios** (tanda 1483, PINGU: «la escribo
   como PokeDoc, pero a mí me llegan las notificaciones… y encima pone
   comentario en tu guía»): es del sitio, no de quien la guarda, así que

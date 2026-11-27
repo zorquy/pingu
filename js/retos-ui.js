@@ -35,15 +35,19 @@ export function premiosHtml(guardado, { posible = 0, volver = '/retos', racha = 
     if (guardado.bonoRacha) premios.push(`<div class="rj-premio xp"><b>+${guardado.xpRacha} XP</b><small>${guardado.racha} días jugando</small></div>`)
   } else if (guardado?.nuevo === false) {
     premios.push(`<div class="rj-premio xp"><b>+${guardado.xp || 0} XP</b><small>ya contados hoy</small></div>`)
-  } else if (guardado?.sinCuenta && posible > 0) {
-    premios.push(`<div class="rj-premio"><b>+${posible} XP</b><small><a href="/auth.html?registro=1&amp;volver=${encodeURIComponent(volver)}">Crea tu cuenta</a> y cuentan</small></div>`)
   }
+  // SIN CUENTA, AL ACABAR SE PIDE (1487, la D2 de «Inicio sin cuenta»: el
+  // reto se juega sin cuenta y aquí se ofrece guardarlo). Era una nota
+  // pequeña («Crea tu cuenta y cuentan»); ahora un aviso con su botón.
+  const cuenta = guardado?.sinCuenta
+    ? `<div class="rj-cuenta"><span><b>Guarda tu día${posible > 0 ? ` y sus ${posible} XP` : ''}</b><small>Crea tu cuenta gratis: tu racha, tu XP y la liga de la semana.</small></span><a class="btn-primary" href="/auth.html?registro=1&amp;volver=${encodeURIComponent(volver)}">Crear mi cuenta</a></div>`
+    : ''
   if (racha >= 2) premios.push(`<div class="rj-premio racha"><b>${racha} días</b><small>${escapeHtml(rachaTexto)}</small></div>`)
   // La liga de la semana (989): la XP de los seis retos, de lunes a domingo.
   // Se ve entera en /retos (1188; antes, en la portada).
   const liga = guardado?.liga ? textoSaltoLiga(guardado.liga.antes, guardado.liga.despues) : ''
   const ligaHtml = liga ? `<a class="rj-liga" href="/retos#clasificacion">${icons.trophy(16)} ${escapeHtml(liga)}</a>` : ''
-  return premios.length || ligaHtml ? `<div class="rj-premios">${premios.join('')}${ligaHtml}</div>` : ''
+  return `${cuenta}${premios.length || ligaHtml ? `<div class="rj-premios">${premios.join('')}${ligaHtml}</div>` : ''}`
 }
 
 // El reparto: `cuentas` = { 1: n, 2: n… }; `tuyo` = la fila de hoy.

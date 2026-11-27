@@ -362,6 +362,11 @@ async function init() {
 
   if (!session) {
     document.getElementById('signupBanner').style.display = 'block'
+    // La mascota saluda en el titular y en el aviso final (1487). El hueco se
+    // marca AQUÍ, solo sin cuenta: con sesión el titular no se ve y no se baja
+    // el motor 3D para nada.
+    for (const hueco of document.querySelectorAll('.hero-mascota, .banner-mascota')) hueco.dataset.mascota = 'saludar'
+    import('./mascota.js').then((m) => m.montarMascotas()).catch(() => {})
     // Las tres que más suben, en el hero (785, PA3). Después de las del set
     // más nuevo, que ya están puestas: si estas no llegan, se quedan aquellas.
     import('./escaparate.js').then(({ pintarEscaparate }) => pintarEscaparate()).catch(() => {})
@@ -439,8 +444,10 @@ async function cargarReto() {
       rotulo: 'Retos de hoy',
       titular: 'Seis retos al día',
       puntos: puntosHtml(0, 6),
-      sub: 'Los mismos para todo el mundo. Se juegan en un minuto y suman XP.',
-      boton: '<a class="btn-primary reto-hoy-boton" href="/retos">Jugar →</a>',
+      // Se juegan sin cuenta (1487): al acabar, cada reto pide la cuenta para
+      // guardar la racha (premiosHtml, retos-ui.js).
+      sub: 'Juégalos ya, sin cuenta. Para guardar tu racha y entrar en la liga, crea la tuya al acabar.',
+      boton: '<a class="btn-primary reto-hoy-boton" href="/retos">Jugar el de hoy →</a>',
     })
     seccion.style.display = ''
     return

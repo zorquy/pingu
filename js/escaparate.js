@@ -76,8 +76,10 @@ export async function pintarAbanico(caja) {
 
 export async function pintarEscaparate(doc = document) {
   const marcos = [...doc.querySelectorAll('.hero-portada .card-stack .tcg-card')]
-  const lista = doc.getElementById('heroSuben')
-  if (!marcos.length || !lista) return false
+  // Desde la 1487 la lista de tres se queda en una chapa: la que más sube,
+  // con su nombre y cuánto, debajo del abanico.
+  const chapa = doc.getElementById('heroSube')
+  if (!marcos.length || !chapa) return false
   const { data: precios, error } = await supabase
     .from('tcg_card_prices')
     .select('card_id, cm_trend, cm_avg7, cm_avg30')
@@ -96,7 +98,8 @@ export async function pintarEscaparate(doc = document) {
   const tres = suben.filter((s) => porId.has(s.id)).slice(0, 3)
   if (tres.length < 3) return false
   marcos.forEach((marco, i) => {
-    const c = porId.get(tres[i % 3].id)
+    // La que más sube, en el centro (c2), que es la de delante (1487).
+    const c = porId.get(tres[[1, 0, 2][i % 3]].id)
     marco.querySelector('img')?.remove()
     const img = doc.createElement('img')
     img.className = 'tcg-card-foto'
@@ -106,10 +109,10 @@ export async function pintarEscaparate(doc = document) {
     img.src = urlDeImagen(c.image_path, 'low', c.market)
     marco.appendChild(img)
   })
-  lista.innerHTML = tres.map((s) => {
-    const c = porId.get(s.id)
-    return `<li><a href="${escapeHtml(rutaDeCarta(c))}"><span>${escapeHtml(nombreDeCarta(c))}</span><b>${escapeHtml(euros.format(s.precio))}</b><small>+${Math.round(s.sube * 100)} %</small></a></li>`
-  }).join('')
-  lista.closest('.hero-suben')?.classList.remove('hidden')
+  // La del centro del abanico (c2) es la que más sube.
+  const primera = porId.get(tres[0].id)
+  chapa.href = rutaDeCarta(primera)
+  chapa.innerHTML = `<span>${escapeHtml(nombreDeCarta(primera))}</span> <b>+${Math.round(tres[0].sube * 100)} %</b> esta semana · ${escapeHtml(euros.format(tres[0].precio))}`
+  chapa.classList.remove('hidden')
   return true
 }

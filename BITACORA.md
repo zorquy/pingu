@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (723) — PINGU-Claude (1487 — La portada sin cuenta, más visual)
+
+**Hecho** (PINGU: «más visual. Ves que el ancho no es igual… que la peña se
+enganche y que se registre»; con la propuesta «Inicio sin cuenta»: «dale con
+lo recomendado»):
+- **Al mismo ancho**: el titular, las cifras, las puertas y el aviso final van
+  de borde a borde del mosaico (el `.hero` de style.css ponía a 0 el aire de
+  los lados que el contenedor da en el PC).
+- **Titular nuevo**: «Tu colección, con lo que vale. Y gente que la entiende.»,
+  «Crear mi cuenta gratis», cuántos coleccionistas hay dentro; a la derecha el
+  abanico grande de las tres que más suben (la que más, en el centro, con su
+  chapa «nombre · +N % esta semana · precio») y la mascota saludando.
+- **Tres cifras** (cartas, guías, «6 retos») y **«Con tu cuenta puedes»**:
+  cuatro puertas, una por sección, con su color e icono (antes tres de texto).
+- **El aviso final**: «Entra gratis en 30 segundos» con la mascota, cuatro
+  cosas que ganas y el botón.
+- **El reto sin cuenta**: la tarjeta dice «Juégalos ya, sin cuenta…» y, al
+  acabar cualquiera de los seis, en vez de la nota «Crea tu cuenta y cuentan»
+  sale «Guarda tu día y sus N XP» con «Crear mi cuenta» (`premiosHtml`).
+- Con cuenta no cambia nada: el titular no se ve y sus huecos de mascota no se
+  marcan.
+
+**Ficheros**: `index.html` (titular y aviso final), `js/home.js` (la mascota
+sin cuenta, el texto del reto), `js/escaparate.js` (`#heroSube`, la que más
+sube en el centro), `css/portada.css` (lo nuevo), `css/style.css` (fuera lo
+viejo del titular y del aviso: −3,3 KB sin comprimir que bajaba toda la web),
+`js/retos-ui.js` + `css/retos-juego.css` (`.rj-cuenta`),
+`normas/comunidad.md`. La portada pesa 153,7 KB (+1,1).
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1487-pantalla.mjs`; 785 al día
+(cuatro puertas, la chapa); 269 y 1023 en verde; 299, 362 y 981 con los rojos
+de antes.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-27 (722) — PINGU-Claude (1486 — El pie, más corto y con los iconos de X e Instagram)
 
 **Hecho** (PINGU: «hay demasiadas cosas. X e Instagram deberían ser… unos

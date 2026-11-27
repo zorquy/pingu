@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-27", "tipo": "mejora", "texto": "La portada para quien aún no tiene cuenta, más visual: las cartas que más suben, la mascota saludando y lo que puedes hacer en cada sección.", "enlace": "/" },
+    { "fecha": "2026-11-27", "tipo": "mejora", "texto": "Si juegas un reto sin cuenta, al acabar te ofrecemos guardar tu día, tu racha y tu experiencia creándola.", "enlace": "/retos" },
     { "fecha": "2026-11-27", "tipo": "mejora", "texto": "El pie de página, más corto y ordenado como el menú, con los iconos de X e Instagram para seguirnos de un toque.", "enlace": "/" },
     { "fecha": "2026-11-27", "tipo": "mejora", "texto": "En un torneo en persona donde apuntas tú a la gente en la puerta, ya no hay inscripciones que abrir: se publica y listo. Y cómo se apunta la gente se puede cambiar al editarlo.", "enlace": "/torneos" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "El logo de un torneo que es un PNG recortado (redondo, por ejemplo) se ve tal cual, sin el recuadro de color detrás.", "enlace": "/torneos" },

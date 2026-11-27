@@ -418,7 +418,6 @@
 
 /* S780.190 */
 .hero-que-es {
-  margin-top: var(--e-md);
   min-height: 44px;
   padding: 0;
   background: none;
@@ -436,6 +435,89 @@
 .hero-que-es:focus-visible {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
+}
+
+/* ── La portada sin cuenta (1487, PINGU: «más visual… que se registre») ──
+   El titular con el abanico de las tres que más suben y la mascota, tres
+   cifras, «Con tu cuenta puedes» con el color de cada sección y el aviso
+   final. Todo al ancho del mosaico de abajo. */
+.hero-portada { padding-block: var(--e-lg) var(--e-md); text-align: left; }
+.hero-portada .hero-grid { display: grid; gap: var(--e-lg); align-items: center; padding: var(--e-xl); border: 1px solid var(--border); border-radius: var(--radius-xl); background: radial-gradient(120% 140% at 100% 0%, var(--banda-a), var(--banda-b)); text-align: left; }
+.hero-portada .hero-copy { align-items: flex-start; }
+.hero-portada .hero-pill { margin-bottom: var(--e-md); }
+.hero-portada h1 { margin: 0 0 var(--e-md); max-width: 15em; }
+.hero-portada h1 em { font-style: normal; color: var(--acento-cartas); }
+.hero-portada .hero-copy > p { margin: 0 0 var(--e-lg); font-size: var(--t-lg); max-width: 36em; }
+.hero-portada .hero-actions { justify-content: flex-start; }
+.hero-gente { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--e-xs); margin: var(--e-md) 0 0; font-size: var(--t-sm); color: var(--text-mid); }
+.hero-gente b { color: var(--text); }
+.hero-abanico { position: relative; display: grid; justify-items: center; min-height: 300px; }
+.hero-abanico .card-stack { width: 300px; height: 250px; }
+.hero-abanico .tcg-card { width: 150px; height: 210px; border-radius: var(--radius-md); border: 0; box-shadow: var(--shadow-lg); }
+.hero-abanico .tcg-card::after { display: none; }
+.hero-abanico .tcg-card.c1 { left: 0; top: 24px; }
+.hero-abanico .tcg-card.c2 { left: 75px; top: 0; }
+.hero-abanico .tcg-card.c3 { left: 150px; top: 20px; }
+.hero-sube { position: relative; z-index: 4; margin-top: var(--e-sm); padding: var(--e-xs) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--white); color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.hero-sube b { color: var(--success); }
+.hero-sube span { color: var(--text); font-weight: 700; }
+.hero-mascota { position: absolute; right: 0; bottom: 0; z-index: 5; height: 168px; }
+.hero-cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); margin-top: var(--e-md); }
+.hero-cifras > div { display: grid; gap: 2px; padding: var(--e-md) var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.hero-cifras b { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.1; }
+.hero-cifras span { color: var(--text-mid); font-size: var(--t-sm); }
+.hero-puedes { margin: var(--e-xl) 0 var(--e-md); font-size: var(--t-xl); }
+.hero-puertas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-md); }
+.hero-puertas a { position: relative; display: grid; align-content: start; gap: var(--e-sm); min-height: 44px; padding: var(--e-lg); overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 20%, var(--white)), var(--white) 60%); color: var(--text); }
+.hero-puertas a:hover { border-color: var(--c); }
+.hero-puertas small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c); }
+.hero-puertas i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); }
+.hero-puertas b { font-family: var(--font-display); font-size: var(--t-lg); line-height: 1.2; }
+.hero-puertas span { color: var(--text-mid); font-size: var(--t-sm); }
+/* El color de cada sección, el de style.css (html[data-seccion]). */
+:root { --acento-cartas: #9a5f06; }
+:root[data-theme='dark'] { --acento-cartas: #e4b44a; }
+[data-seccion-color='cartas'] { --c: var(--acento-cartas); }
+[data-seccion-color='aprender'] { --c: #0f7f55; }
+[data-seccion-color='comunidad'] { --c: #c62a5c; }
+[data-seccion-color='jugar'] { --c: #5f43d9; }
+:root[data-theme='dark'] [data-seccion-color='aprender'] { --c: #2fb47c; }
+:root[data-theme='dark'] [data-seccion-color='comunidad'] { --c: #f06c9b; }
+:root[data-theme='dark'] [data-seccion-color='jugar'] { --c: #9b7bff; }
+@media (min-width: 900px) {
+  /* Al ancho del mosaico: el `.hero` de style.css le quita el aire de los lados. */
+  .hero-portada { padding: var(--e-lg) 40px var(--e-md); }
+  .hero-portada .hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); padding: var(--e-2xl) var(--e-2xl) var(--e-xl); }
+}
+@media (max-width: 899px) {
+  .hero-portada { padding-top: var(--e-md); }
+  .hero-portada .hero-grid { padding: var(--e-lg); }
+  .hero-abanico { order: -1; min-height: 0; }
+  .hero-abanico .card-stack { width: 196px; height: 160px; }
+  .hero-abanico .tcg-card { width: 96px; height: 134px; }
+  .hero-abanico .tcg-card.c2 { left: 50px; }
+  .hero-abanico .tcg-card.c3 { left: 100px; }
+  .hero-mascota { height: 112px; right: -8px; }
+  .hero-portada .hero-actions > * { flex: 1; }
+  .hero-cifras { gap: var(--e-sm); }
+  .hero-cifras > div { padding: var(--e-sm) var(--e-md); }
+  .hero-cifras b { font-size: var(--t-lg); }
+  .hero-cifras span { font-size: var(--t-xs); }
+  .hero-puertas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+  .hero-puertas a { padding: var(--e-md); }
+  .hero-puertas span { display: none; }
+}
+
+/* El aviso final (1487): la mascota, lo que ganas al entrar y el botón. */
+.banner-signup { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-xl); align-items: center; padding: var(--e-xl); border: 1px solid var(--border); border-radius: var(--radius-xl); background: linear-gradient(120deg, var(--banda-a), var(--banda-b)); }
+.banner-mascota { height: 150px; }
+.banner-signup h2 { margin: 0; font-size: var(--t-2xl); }
+.banner-signup ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-xs) var(--e-lg); margin: var(--e-md) 0 0; padding: 0; list-style: none; color: var(--text-mid); }
+.banner-signup li::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: var(--e-sm); border-radius: 50%; background: var(--success); }
+@media (max-width: 899px) {
+  .banner-signup { grid-template-columns: 1fr; justify-items: center; gap: var(--e-md); text-align: center; padding: var(--e-lg); }
+  .banner-mascota { height: 112px; }
+  .banner-signup ul { grid-template-columns: 1fr; text-align: left; }
 }
 
 /* La portada del móvil, la mitad de larga (785, PA1; el porqué en SCHEMA). */

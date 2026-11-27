@@ -55231,6 +55231,21 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1487 — La portada sin cuenta
+
+Sin cambios de esquema. index.html: `.hero-portada` con `.hero-grid` (copia +
+`.hero-abanico`: `.card-stack` de tres `.tcg-card`, `#heroSube` y
+`.hero-mascota`), `.hero-cifras` (`#heroStatCartas`, `#heroStatGuides`),
+`.hero-puedes` y `.hero-puertas` (cuatro `<a data-seccion-color>`);
+`#heroStatMiembros` va en `.hero-gente`. `#signupBanner .banner-signup` con
+`.banner-mascota`, lista y botón. home.js, sin sesión: `data-mascota="saludar"`
+en los dos huecos y `montarMascotas()`. escaparate.js: `pintarEscaparate`
+pone la que más sube en c2 (`[1, 0, 2]`) y su chapa en `#heroSube` (ya no hay
+`#heroSuben`). CSS de todo ello en portada.css (con `--acento-cartas` y los
+colores de sección por `data-seccion-color`); de style.css salen `.hero-panel*`,
+`.hero-suben`, `.hero-puertas`, `.banner-signup` y el bloque `.hero-portada`.
+`premiosHtml` (retos-ui.js): con `sinCuenta`, `.rj-cuenta` antes de los premios.
+
 ## Tanda 1486 — El pie, más corto y con iconos
 
 Sin cambios de esquema. El `<footer class="footer">` de las 51 páginas:

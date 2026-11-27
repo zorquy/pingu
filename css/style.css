@@ -263,7 +263,7 @@ h1, h2, h3 {
 
 /* La marca y las cifras grandes, en la letra de la marca (1016, 1018). */
 .nav-logo, .auth-logo, .pie-marca,
-.perfil-cifra .valor, .hero-panel-stat .value, .xp-display, .achievement-xp {
+.perfil-cifra .valor, .xp-display, .achievement-xp {
   font-family: var(--font-marca);
   font-weight: 600;
 }
@@ -1093,67 +1093,6 @@ button.btn-block {
   }
 }
 
-.hero-panel {
-  display: none;
-  /* Los azules fijos (785, PA3): en oscuro `--navy` era azul cielo. */
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%);
-  pointer-events: none;
-}
-
-.hero-panel .eyebrow {
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--ice);
-  opacity: 0.85;
-}
-
-.hero-panel-stats {
-  display: grid;
-  /* S780.36 */
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.hero-panel-stat .value {
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-.hero-panel-stat .label {
-  font-size: var(--t-xs);
-  color: var(--ice);
-  opacity: 0.85;
-  margin-top: 2px;
-}
-
-.hero-panel-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.16);
-  margin: 24px 0;
-}
-
-@media (min-width: 900px) {
-  .hero-panel {
-    display: block;
-  }
-}
-
 /* ── Grids ── */
 .grid-categories {
   display: grid;
@@ -1370,44 +1309,6 @@ button.btn-block {
   transition: width 0.3s var(--ease);
 }
 
-
-/* ── Banner ── */
-.banner-signup {
-  background: var(--navy);
-  color: var(--white);
-  border-radius: var(--radius-xl);
-  padding: 32px 24px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  position: relative;
-  overflow: hidden;
-}
-
-.banner-signup::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 90% at 0% 100%, rgba(255, 255, 255, 0.1), transparent 60%);
-  pointer-events: none;
-}
-
-.banner-signup h2 {
-  font-size: var(--t-2xl);
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.banner-signup .btn-primary {
-  background: var(--white);
-  color: var(--navy);
-}
-
-.banner-signup .btn-primary:hover {
-  background: var(--ice);
-}
 
 /* ── Empty / loading states ── */
 /* Los estados vacíos (tanda 310) (el porqué, en SCHEMA.md: tanda 359) */
@@ -1967,93 +1868,6 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
 @supports (-webkit-touch-callout: none) or (font: -apple-system-body) {
   @view-transition { navigation: none; }
   .bm, .navbar { view-transition-name: none; }
-}
-
-/* El escaparate sin cuenta (785, PA3; el porqué en SCHEMA). */
-.hero-portada {
-  padding-top: var(--e-lg);
-  text-align: left;
-}
-
-.hero-portada .hero-grid,
-.hero-portada .hero-copy {
-  text-align: left;
-  align-items: flex-start;
-}
-
-.hero-portada h1,
-.hero-portada p {
-  margin-left: 0;
-}
-
-.hero-portada .hero-actions {
-  justify-content: flex-start;
-}
-
-.hero-suben ol {
-  display: grid;
-  gap: var(--e-xs);
-  margin: var(--e-sm) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hero-suben a {
-  display: flex;
-  align-items: baseline;
-  gap: var(--e-sm);
-  color: inherit;
-}
-
-.hero-suben a span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.hero-suben small {
-  font-weight: 700;
-}
-
-.hero-puertas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--e-sm);
-  margin-top: var(--e-xl);
-}
-
-.hero-puertas a {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--text);
-}
-
-.hero-puertas a:hover {
-  border-color: var(--navy);
-}
-
-.hero-puertas b {
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-}
-
-.hero-puertas span {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-@media (min-width: 900px) {
-  .hero-portada {
-    padding: var(--e-2xl) 0 var(--e-2xl);
-  }
 }
 
 /* El icono de tienda detrás de su nombre (1243, js/rangos.js). */

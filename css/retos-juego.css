@@ -133,6 +133,22 @@
   color: var(--text);
 }
 
+/* «Guarda tu día» sin cuenta (1487): el aviso con su botón, no una nota. */
+.rj-cuenta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+.rj-cuenta span { display: grid; gap: 2px; min-width: 0; }
+.rj-cuenta b { font-family: var(--font-display); font-size: var(--t-lg); }
+.rj-cuenta small { color: var(--text-mid); font-size: var(--t-sm); }
+
 .rj-premios {
   display: flex;
   flex-wrap: wrap;
