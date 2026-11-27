@@ -289,6 +289,11 @@
   orden y con el nombre de `js/mi-coleccion/hoja-filtros.js` (lo que pinta
   la pantalla entra con `meterEnLaHoja`), lo propio detrás de la raya, y
   abajo «Limpiar» y «Ver N cartas».
+- **El interruptor «Los dos · Occidental · Japonés» va en UNA fila en el
+  móvil** (1481, PINGU con la captura: «ocupa demasiado»). Con cuentas de tres
+  cifras partía Japonés a otra fila: en el móvil lleva letra `--t-xs` y 8 px de
+  aire, y por debajo de 375 solo bandera y cuenta. Una opción más no cabe:
+  antes de añadirla, se mide a 375 (`test-tanda-1481-pantalla.mjs`).
 - **Toda lista de cartas lleva «Seleccionar»** (tanda 1057, PINGU: «siempre
   que haya una lista de cartas, un botón para seleccionar cartas todas de
   golpe»): Cartas, expansiones, Pokédex, Buscar, álbumes y «La quiero» ya lo

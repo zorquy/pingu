@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (718) — PINGU-Claude (1481 — el filtro de idioma de Deseos y cambios, en una fila en el móvil)
+
+**Hecho** (PINGU, con la captura: «el filtro de idioma en deseos y cambios está
+roto para móvil… ocupa demasiado. Es mejor dejarlo en una fila y quizá hacerlo
+más pequeño para que quepan las 3 opciones»): el interruptor «Los dos ·
+Occidental · Japonés» del Mercado (y de Quiero y Doy cuando hay de los dos)
+partía Japonés a otra fila con cuentas de tres cifras (370 px de 342). En el
+móvil va sin saltar de fila, con la letra de metadato (`--t-xs`) y 8 px de aire
+por lado: 327 px, cabe desde 375. Por debajo (el Zoom de pantalla del iPhone,
+320) se quedan la bandera y la cuenta, como el slide de Expansiones (1381); el
+nombre sigue para el lector de pantalla. El PC, igual.
+
+**Ficheros**: `css/mi-coleccion.css` (tras `.mc-seg.mc-lista-cats`),
+`normas/coleccion.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1481-pantalla.mjs` (390, 375 y
+320 con cuentas de tres cifras, y el PC); 1033, 1125 y 1231 en verde.
+
+**Pendiente**: nada. Sin migración. PINGU preguntó además si las tiendas irían
+mejor en Colección que en Comunidad: se le contesta en el chat, sin tocar nada.
+
 ## 2026-11-26 (717) — PINGU-Claude (1480 — el dibujo oficial en Mis mazos y en el perfil)
 
 **Hecho** (la O1 y la O2 de la propuesta «Partidas más visual», PINGU: «donde

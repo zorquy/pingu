@@ -15706,6 +15706,17 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-seg.mc-lista-cats button { min-height: 32px; border: 0; background: transparent; color: var(--text-mid); }
 .mc-seg.mc-lista-cats button[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 :is(.mc-mandos, .mc-mercado-barra) > .mc-lista-cats { margin-left: auto; }
+/* En el móvil, en UNA fila (1481, PINGU con la captura: «ocupa demasiado»; el
+   Japonés bajaba a otra fila): letra de metadato y menos aire. En los más
+   estrechos (menos de 375: el Zoom de pantalla del iPhone, 320) ni así caben los nombres y se
+   quedan la bandera y la cuenta, como el slide de Expansiones (1381). */
+@media (max-width: 900px) {
+  .mc-seg.mc-lista-cats { flex-wrap: nowrap; }
+  .mc-seg.mc-lista-cats button { padding: 0 var(--e-sm); font-size: var(--t-xs); white-space: nowrap; }
+}
+@media (max-width: 374px) {
+  .mc-seg.mc-lista-cats button:has(.pv-bandera) > span:not(.pv-bandera) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 /* Cruces del mismo tamaño (1222, PINGU: «deberían ser todos iguales»): cada
    lado es UNA fila de tres casillas (tablon.js), la rejilla iguala el alto de
    todas las filas y la balanza y los botones van pegados abajo. */

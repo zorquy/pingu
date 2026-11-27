@@ -55231,6 +55231,16 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1481 — El filtro de idioma del Mercado, en una fila en el móvil
+
+Sin cambios de esquema. En `css/mi-coleccion.css`, tras `.mc-seg.mc-lista-cats`:
+con `max-width: 900px`, `flex-wrap: nowrap` y cada botón a `--t-xs` con
+`padding: 0 var(--e-sm)` (36 px de alto siguen, la 1038); con `max-width:
+374px`, el nombre de los botones con bandera (`:has(.pv-bandera)`) se esconde a
+la vista y no al lector. Con cuentas de tres cifras mide 327 px: cabe desde
+375 con el margen de 24. `test-tanda-1481-pantalla.mjs` lo mide a 390, 375 y
+320.
+
 ## Tanda 1480 — El dibujo oficial en Mis mazos y en el perfil
 
 Sin cambios de esquema. `dexesDeMazoGuardado(cards, filaDe)` (sprites-de-mazo.js):
