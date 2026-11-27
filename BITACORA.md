@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (720) — PINGU-Claude (1483 — Los comentarios de una noticia no avisan, y bajar del todo cuenta como leída)
+
+**Hecho** (PINGU):
+- «Cuando yo escribo una noticia, la escribo como PokeDoc, pero a mí me llegan
+  las notificaciones de comentario… y encima pone comentario en tu guía… no me
+  deberían de llegar»: `notifyGuideComment` recibe `esNoticia` (de guia.js por
+  `initGuideForum`) y, en una noticia, no avisa ni al autor guardado ni al
+  equipo. Responder a un comentario sigue avisando a esa persona, y las
+  menciones igual.
+- «Hay guías que bajo hasta abajo, scrolleo y no me la da como leída»: la
+  cuenta atrás de 15 s se cancelaba en cuanto el final del texto dejaba de
+  verse, y bajar del todo lo deja ARRIBA de la pantalla. Ahora cuenta haber
+  visto o rebasado el final (también mirando al desplazar, por si un
+  desplazamiento rápido se lo salta), y se marca a los 15 s de abrirla.
+
+**Ficheros**: `js/guia.js` (`setupReadTracking`, `esNoticia` al foro),
+`js/guide-forum.js`, `js/notifications.js`, `normas/comunidad.md`.
+
+**Pruebas** (rama `pruebas`): nueva `test-tanda-1483-pantalla.mjs` (con la web
+de antes falla en las dos cosas; con esta, en verde).
+
+**Pendiente**: los avisos de comentarios de noticias que ya tenga PINGU en la
+campanita se quedan (no se borra nada de la base); se van al leerlos.
+
 ## 2026-11-27 (719) — PINGU-Claude (1482 — Tiendas, de Comunidad a Colección)
 
 **Hecho** (PINGU: «las tiendas en comunidad igual mejor quedarían en

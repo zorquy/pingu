@@ -55231,6 +55231,15 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1483 — Los comentarios de una noticia no avisan; bajar del todo cuenta
+
+Sin cambios de esquema. `notifyGuideComment({ …, esNoticia })` sale tras el
+aviso de respuesta si es una noticia (ni autor ni equipo). `setupReadTracking`
+(guia.js): `llegar()` arranca el temporizador hasta los 15 s desde que se abrió
+cuando el centinela `#articleEndSentinel` se ve O queda por encima
+(`rect.top < innerHeight`), por el observador y por un `scroll` pasivo que se
+quita al marcar; ya no se cancela al dejar de verse.
+
 ## Tanda 1482 — Tiendas, de Comunidad a Colección
 
 Sin cambios de esquema. Las barras de cada HTML llevan `<a href="/tiendas">`

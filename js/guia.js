@@ -73,22 +73,32 @@ function setupReadTracking(session, guide, esNoticia = false) {
     }
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    if (done) return
-    const visible = entries.some((e) => e.isIntersecting)
-    if (!visible) {
-      // Ha vuelto a subir antes de tiempo: se cancela la cuenta atrás.
-      if (timer) { clearTimeout(timer); timer = null }
-      return
-    }
+  // LLEGAR AL FINAL CUENTA AUNQUE TE PASES (1483, PINGU: «bajo hasta abajo,
+  // scrolleo y no me la da como leída»). Antes la cuenta atrás de los 15
+  // segundos se cancelaba si el final dejaba de verse, y bajar del todo (a
+  // los comentarios o al pie) lo deja ARRIBA de la pantalla: quien bajaba
+  // deprisa no la tenía nunca. Ahora, una vez visto o rebasado el final, se
+  // marca al cumplir los 15 segundos desde que se abrió, suba o baje.
+  // Y un desplazamiento muy rápido puede saltarse el final sin que el
+  // observador lo vea cruzar: por eso se mira también al desplazar.
+  const llegar = () => {
+    if (done || timer) return
     const falta = MIN_READ_SECONDS * 1000 - (Date.now() - openedAt)
     if (falta <= 0) { marcar(); return }
-    // En una guía corta el final ya se ve nada más abrir, y el
-    // observador NO vuelve a dispararse porque la intersección no
-    // cambia. Sin este temporizador, esas guías no se marcarían nunca.
-    if (!timer) timer = setTimeout(marcar, falta)
+    // En una guía corta el final ya se ve nada más abrir: el temporizador
+    // la marca sin que haga falta moverse.
+    timer = setTimeout(marcar, falta)
+  }
+  const alcanzado = (rect) => rect.top < (window.innerHeight || document.documentElement.clientHeight)
+  const observer = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting || alcanzado(e.boundingClientRect))) llegar()
   })
   observer.observe(sentinel)
+  const alDesplazar = () => {
+    if (done || timer) { window.removeEventListener('scroll', alDesplazar); return }
+    if (alcanzado(sentinel.getBoundingClientRect())) llegar()
+  }
+  window.addEventListener('scroll', alDesplazar, { passive: true })
 }
 
 // SIGUE LEYENDO (866; portadas desde la 1283): al acabar, tres más del mismo
@@ -628,6 +638,7 @@ async function init() {
     guideAuthorId: guide.author_id,
     guideTitle: guide.title,
     guideSlug: guide.slug,
+    esNoticia,
   })
 }
 

@@ -480,6 +480,14 @@
   tema, título y barra, para que nada suba ni baje entre una leída y una sin
   leer. Y Guardados es de guías y noticias: los temas del foro que sigues no
   salen ahí (PINGU: «ocupa demasiadísimo»).
+- **Una noticia no avisa de sus comentarios** (tanda 1483, PINGU: «la escribo
+  como PokeDoc, pero a mí me llegan las notificaciones… y encima pone
+  comentario en tu guía»): es del sitio, no de quien la guarda, así que
+  `notifyGuideComment` con `esNoticia` no avisa a nadie de «nuevo comentario»;
+  responder a un comentario sí avisa a esa persona. Y una guía cuenta como
+  leída al llegar a su final AUNQUE se baje más (a los comentarios o al pie)
+  antes de los 15 segundos (`setupReadTracking`): lo que se rebasa no cancela
+  la cuenta.
 - **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
   la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
   lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su

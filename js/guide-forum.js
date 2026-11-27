@@ -29,7 +29,7 @@ function snippet(text, len = 90) {
 // Comentarios de guía estilo foro: paginado, con citar/responder. La
 // documentación de arriba hace de "post principal" — esto pinta solo los
 // comentarios de los usuarios debajo.
-export function initGuideForum({ containerEl, guideId, currentSession, isAdmin = false, guideAuthorId = null, guideTitle = '', guideSlug = '' }) {
+export function initGuideForum({ containerEl, guideId, currentSession, isAdmin = false, guideAuthorId = null, guideTitle = '', guideSlug = '', esNoticia = false }) {
   let replyingTo = null
 
   function updatePageInUrl(page) {
@@ -191,6 +191,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
         guideTitle,
         guideSlug,
         replyToAuthorId: replyingTo?.authorId || null,
+        esNoticia,
       }).catch((err) => console.error('No se pudo avisar del comentario:', err.message))
 
       // Y a quien se haya mencionado con @nombre. Va aparte de

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "Una guía cuenta como leída aunque bajes del todo, hasta los comentarios, antes de que pase el rato de lectura.", "enlace": "/aprender" },
+    { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "Los comentarios en las noticias ya no mandan avisos de «nuevo comentario en tu guía».", "enlace": "/noticias" },
     { "fecha": "2026-11-27", "tipo": "mejora", "texto": "Las tiendas se mudan a Colección, junto a tus cartas y a Deseos y cambios, y se visten de su amarillo.", "enlace": "/tiendas" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "En el móvil, el filtro de idioma de Deseos y cambios (Los dos, Occidental, Japonés) cabe en una sola fila.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-11-26", "tipo": "mejora", "texto": "Tus mazos lucen el dibujo oficial de sus Pokémon en la portada, y en tu perfil «Tu último torneo» es un cartel con tu medalla y el mazo con el que jugaste.", "enlace": "/mazos" },

@@ -176,7 +176,7 @@ async function adminIds() {
   return (data || []).map((p) => p.id)
 }
 
-export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, guideSlug, replyToAuthorId = null }) {
+export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, guideSlug, replyToAuthorId = null, esNoticia = false }) {
   const link = `/guia/${guideSlug}`
   const enviados = new Set([actorId])
 
@@ -194,6 +194,13 @@ export async function notifyGuideComment({ guideAuthorId, actorId, guideTitle, g
       link,
     })
   }
+
+  // UNA NOTICIA NO AVISA DE SUS COMENTARIOS (1483, PINGU: «la escribo como
+  // PokeDoc, pero a mí me llegan las notificaciones… y encima pone comentario
+  // en tu guía»). Una noticia es del sitio, no de quien la guarda (guia.js no
+  // enseña su autor), así que nadie recibe «nuevo comentario». Quien responde
+  // a un comentario sí avisa a esa persona, arriba.
+  if (esNoticia) return
 
   // Sin autor es una guía oficial: la lleva el equipo.
   const destinos = guideAuthorId ? [guideAuthorId] : await adminIds()
