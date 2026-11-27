@@ -1688,7 +1688,8 @@ button.btn-block {
   margin: 0 auto;
   padding: 32px 24px 24px;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  /* 1486: la marca y las cuatro secciones del menú, cuatro enlaces cada una. */
+  grid-template-columns: 1.4fr repeat(4, 1fr);
   gap: 32px;
 }
 
@@ -1713,17 +1714,23 @@ button.btn-block {
 .pie-redes {
   margin: 12px 0 0;
   display: flex;
-  gap: var(--e-md);
+  gap: var(--e-sm);
 }
+/* X e Instagram con su icono, redondos (1486, PINGU: «unos iconos de X e
+   Instagram para que te lleven ahí, no un enlace de texto normal»). */
 .pie-redes a {
-  font-size: var(--t-sm);
-  font-weight: 600;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ice);
   color: var(--text);
   text-decoration: none;
 }
 .pie-redes a:hover {
-  color: var(--navy);
-  text-decoration: underline;
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* S780.42 */
@@ -1764,13 +1771,22 @@ button.btn-block {
   margin: 0;
 }
 
-/* S780.43 */
-.footer-links a {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+/* S780.43; 1486: sin subrayado ni puntos, separados por aire. Siguen EN LÍNEA
+   (no flex): son texto corrido, y así los cuenta la prueba del dedo (312). */
+.footer-links {
+  line-height: 2;
 }
-.footer-links a:hover {
-  color: var(--navy);
+.footer-links :is(a, .pie-enlace) {
+  margin-right: var(--e-lg);
+  color: var(--text-mid);
+  text-decoration: none;
+}
+.footer-links :is(a, .pie-enlace):last-child {
+  margin-right: 0;
+}
+.footer-links :is(a, .pie-enlace):hover {
+  color: var(--text);
+  text-decoration: underline;
 }
 
 /* S780.44 */

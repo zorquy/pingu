@@ -817,9 +817,10 @@
   .pie-lema { display: none; }
   .pie-col { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--e-xs); }
   .pie-col .pie-titulo { flex: 1 0 100%; margin: 0; }
-  .pie-col a,
-  .pie-redes a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 var(--e-sm); }
-  .pie-redes { margin: 0; gap: 0; }
+  .pie-col a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 var(--e-sm); }
+  /* Los iconos de X e Instagram (1486): redondos y de 44 al dedo. */
+  .pie-redes a { width: 44px; height: 44px; }
+  .pie-redes { margin: 0; gap: var(--e-sm); }
 }
 /* En la app instalada, la barra de abajo ya lleva a todo: del pie, lo legal. */
 @media (max-width: 900px) and (display-mode: standalone) {
@@ -861,7 +862,16 @@
   .pie-marca {
     font-size: var(--t-lg);
   }
+  /* 1486: la marca a la izquierda y los iconos a la derecha, en una fila. */
+  .pie-quien {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
   .pie-abajo {
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--e-xs) var(--e-md);
     padding: var(--e-sm) var(--e-lg) var(--e-md);
     font-size: var(--t-2xs);

@@ -55231,6 +55231,17 @@ vigilancia estática de `escuchar({ tablas })` sobre tablas de torneo sin
 canal) y carga con `pgbench` (60 clientes, 15 s) contra un torneo de 64
 jugadores con la migración 1438 en el PostgreSQL local.
 
+## Tanda 1486 — El pie, más corto y con iconos
+
+Sin cambios de esquema. El `<footer class="footer">` de las 51 páginas:
+`.pie-quien` (marca, lema y `.pie-redes` con dos `<a aria-label>` con su SVG en
+línea: el de X es el de `icons.xLogo`, el de Instagram el de Feather), cuatro
+`.pie-col` de cuatro enlaces y `.pie-abajo` con `.footer-links` (el feedback lo
+añade app.js sin separador). `.pie-rejilla` a `1.4fr repeat(4, 1fr)`; los
+enlaces legales siguen `inline` con `margin-right` y `line-height: 2`. En el
+móvil (movil.css, bloque 1019) `.pie-quien` es una fila con los iconos a la
+derecha y `.pie-abajo` va en columna.
+
 ## Tanda 1484–1485 — «Solo tú los apuntas» sin inscripciones; el logo sin caja
 
 Sin cambios de esquema. 1484: en torneo.js `soloLosApuntaQuienOrganiza()`

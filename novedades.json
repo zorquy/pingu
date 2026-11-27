@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-27", "tipo": "mejora", "texto": "El pie de página, más corto y ordenado como el menú, con los iconos de X e Instagram para seguirnos de un toque.", "enlace": "/" },
     { "fecha": "2026-11-27", "tipo": "mejora", "texto": "En un torneo en persona donde apuntas tú a la gente en la puerta, ya no hay inscripciones que abrir: se publica y listo. Y cómo se apunta la gente se puede cambiar al editarlo.", "enlace": "/torneos" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "El logo de un torneo que es un PNG recortado (redondo, por ejemplo) se ve tal cual, sin el recuadro de color detrás.", "enlace": "/torneos" },
     { "fecha": "2026-11-27", "tipo": "arreglo", "texto": "Una guía cuenta como leída aunque bajes del todo, hasta los comentarios, antes de que pase el rato de lectura.", "enlace": "/aprender" },

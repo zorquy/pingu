@@ -611,7 +611,8 @@ function montarFeedbackEnElPie() {
   if (!pie || document.getElementById('pieFeedbackBtn')) return
   pie.insertAdjacentHTML(
     'beforeend',
-    ' · <button type="button" class="pie-enlace" id="pieFeedbackBtn">Enviar feedback</button>'
+    // Sin « · » delante (1486): la fila de abajo separa con hueco, no con puntos.
+    '<button type="button" class="pie-enlace" id="pieFeedbackBtn">Enviar feedback</button>'
   )
   document.getElementById('pieFeedbackBtn').addEventListener('click', async () => {
     const { openFeedbackModal } = await import('./feedback.js')

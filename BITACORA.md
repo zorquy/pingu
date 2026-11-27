@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-27 (722) — PINGU-Claude (1486 — El pie, más corto y con los iconos de X e Instagram)
+
+**Hecho** (PINGU: «hay demasiadas cosas. X e Instagram deberían ser… unos
+iconos»; con la propuesta «Un pie más corto» delante: «dale con lo
+recomendado», la A):
+- X e Instagram, iconos redondos (40 px en el PC, 44 al dedo en el móvil) con
+  su nombre para el lector.
+- En el PC, la marca y las cuatro secciones del menú (Aprender · Colección ·
+  Comunidad · Jugar), cuatro enlaces cada una: de 332 a 258 px. Fuera del pie
+  (siguen en el menú): Novedades, Guardados, Buscar, Colabora, Laboratorio y
+  «Hecho para coleccionistas y jugadores».
+- Abajo, © 2026 PokeDoc y Qué es PokeDoc · Términos · Privacidad · Apoyar
+  PokeDoc · Enviar feedback, sin subrayados ni puntos (en línea, separados por
+  aire).
+- En el móvil, la marca y los iconos en una fila; lo legal debajo.
+
+**Ficheros**: las 51 páginas con pie, `css/style.css`, `css/movil.css`,
+`js/app.js` (el feedback sin « · »), `normas/interfaz.md`. La portada pesa
+152,6 KB (+0,6).
+
+**Pruebas** (rama `pruebas`): 902 y 1019 al día (iconos y cuatro columnas);
+312 en verde. 780, 326, 857 y 1067 con los rojos de antes.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-27 (721) — PINGU-Claude (1484–1485 — «Solo tú los apuntas» sin inscripciones, y el logo de un torneo sin caja)
 
 **Hecho** (PINGU, con el Tradeitto 2):

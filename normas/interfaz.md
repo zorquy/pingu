@@ -448,7 +448,12 @@
 - **El pie va en el HTML de las 22 páginas que lo tienen** (tanda 312),
   no montado desde JavaScript: esos enlaces tienen que estar aunque el JS
   no llegue, y son los que recorre Google. Si tocas el pie, tócalo en las
-  22 — la prueba las cuenta.
+  22 — la prueba las cuenta. Desde la 1486 (PINGU: «hay demasiadas cosas… X e Instagram
+  deberían ser… unos iconos») son 51, todos iguales: la marca con los iconos
+  redondos de X e Instagram (con `aria-label`), las cuatro secciones del menú
+  con cuatro enlaces cada una y abajo lo legal, en línea y sin puntos (los
+  enlaces legales son texto corrido: si pasan a `flex` dejan de serlo y la
+  prueba del dedo los mide). Un enlace nuevo entra en lugar de otro.
 - **Un control que se pulsa no se pinta con `--text-dim`** (tanda 311).
   Ese gris da 2,35 y es para un metadato de refilón: una fecha, un «hace
   2 h». Un botón hay que poder leerlo — `--text-mid`. La excepción es un
