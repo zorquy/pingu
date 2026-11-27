@@ -63,14 +63,14 @@ for (const [ver, esperada] of [['album', 'Expansiones*|·|·|·'], ['pokedex', '
     const panel = { album: 'mcPanelAlbum', pokedex: 'mcPanelPokedex', carpetas: 'mcPanelCarpetas', productos: 'mcPanelProductos' }[ver]
     const caja = f?.getBoundingClientRect()
     return {
-      menu: [...document.querySelectorAll('#mcMenu .mc-pestania')].filter((x) => x.offsetParent).map((x) => x.innerText.trim() + (x.classList.contains('activa') ? '*' : '')).join('|'),
+      menu: [...document.querySelectorAll('#mcMenu .mc-pestania')].filter((x) => x.offsetParent).map((x) => x.innerText.trim().replace(/\s*Nuevo$/, '') + (x.classList.contains('activa') ? '*' : '')).join('|'),
       dentro: Boolean(f && document.getElementById(panel).contains(f)),
       arriba: caja ? Math.round(caja.top) : -1,
       ancho: document.documentElement.scrollWidth,
       cabe: f ? f.scrollWidth <= f.clientWidth + 1 : false,
     }
   }, ver)
-  check(`?ver=${ver}: la burbuja dice Panel|Cartas*|Cambios|Buscar`, r.menu === 'Panel|Cartas*|Cambios|Buscar', r.menu)
+  check(`?ver=${ver}: la burbuja dice Panel|Cartas*|Cambios|Buscar|Tiendas (Tiendas desde la 1482)`, r.menu === 'Panel|Cartas*|Cambios|Buscar|Tiendas', r.menu)
   check(`  …la fila está en su pantalla, arriba (${r.arriba} px), y dice ${esperada}`, r.dentro && r.arriba > 0 && r.arriba < 200 && (await fila(page, '#mcCartasPestanas')) === esperada, `${await fila(page, '#mcCartasPestanas')} ${JSON.stringify(r)}`)
   check('  …sin desbordar la pantalla ni la fila', r.ancho <= 390 && r.cabe, JSON.stringify(r))
   await ctx.close()

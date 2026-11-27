@@ -95,7 +95,8 @@ console.log('── 3. En el iPhone ──')
   await l.ctx.close()
 
   const m = await abrir('/mi-coleccion.html?ver=album')
-  check('en Mi colección: Colección (antes Cartas) activa, sin segunda burbuja, sin escanear ni ajenas', (await barra(m.page)).some((x) => x.startsWith('Colección*:')) && (await m.page.locator('.bm-burbuja, .bm-escanear, .bm-ajena').count()) === 0, (await barra(m.page)).join(' | '))
+  // Desde la 1482 Tiendas es de Colección: su única ajena, al final de la suya.
+  check('en Mi colección: Colección (antes Cartas) activa, sin segunda burbuja ni escanear, y de ajena solo Tiendas (1482)', (await barra(m.page)).some((x) => x.startsWith('Colección*:')) && (await m.page.locator('.bm-burbuja, .bm-escanear').count()) === 0 && (await m.page.$$eval('.bm-ajena', (as) => as.map((a) => a.getAttribute('href')).join())) === '/tiendas', (await barra(m.page)).join(' | '))
   const pest = await m.page.$$eval('.mc-pestanias > *', (as) => as.map((a) => a.textContent.trim()).filter(Boolean))
   check('  …y su burbuja propia no lleva «Escanear» ni «Catálogo»', pest.length > 0 && !pest.some((t) => /Escanear|Catálogo/.test(t)), pest.join())
   await m.ctx.close()
@@ -133,7 +134,7 @@ console.log('── 4b. «Mi colección» en una línea (PINGU lo vio partido a 
 for (const ancho of [1240, 1280]) {
   const p = await abrir('/mi-coleccion.html?ver=carpetas', { movil: false, ancho })
   const altos = await p.page.$$eval('.nav-links > *', (as) => as.map((a) => Math.round(a.getBoundingClientRect().height)))
-  check(`a ${ancho}, con «Mi colección» activa, ningún enlace se parte en dos líneas`, altos.length === 7 /* con Novedades, 829 */ && altos.every((h) => h === altos[0]), JSON.stringify(altos))
+  check(`a ${ancho}, con «Mi colección» activa, ningún enlace se parte en dos líneas`, altos.length === 8 /* con Novedades, 829, y Tiendas, 1482 */ && altos.every((h) => h === altos[0]), JSON.stringify(altos))
   await p.ctx.close()
 }
 
@@ -151,7 +152,8 @@ console.log('── 5. La lateral del ordenador: Cartas con su desplegable ─�
     const c = ss.find((x) => x.querySelector('.lat-seccion-enlace span')?.textContent === 'Colección')
     return { abierto: c?.querySelector('.lat-cajon')?.classList.contains('lat-abierto'), enlaces: [...(c?.querySelectorAll('.lat-paginas a') || [])].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`) }
   })
-  check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Cartas>/mi-coleccion?ver=album,Deseos y cambios>/mi-coleccion?ver=mercado,Buscar>/mi-coleccion?ver=buscar', JSON.stringify(partes))
+  check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Cartas>/mi-coleccion?ver=album,Deseos y cambios>/mi-coleccion?ver=mercado,Buscar>/mi-coleccion?ver=buscar,TiendasNuevo>/tiendas', JSON.stringify(partes))
+  // (Tiendas, detrás de las cuatro desde la 1482; «Nuevo» mientras lo diga paginas-nuevas.js.)
   check('  …sin errores', l.errores.length === 0, l.errores.join(' | '))
   await l.ctx.close()
   const m = await abrir('/mi-coleccion.html?ver=album', { movil: false, ancho: 1440 })

@@ -27,12 +27,15 @@ console.log('── 1. Las barras de las páginas ──')
   const conBarra = html.filter((f) => readFileSync(`${RAIZ}/${f}`, 'utf8').includes('<a href="/eventos">Eventos</a>'))
   const mal = conBarra.filter((f) => {
     const s = readFileSync(`${RAIZ}/${f}`, 'utf8')
-    const arriba = /<a href="\/eventos">Eventos<\/a>\n\s*<a href="\/tiendas">Tiendas<\/a>\n\s*<a href="\/usuarios.html">Gente<\/a>/g
-    return (s.match(arriba) || []).length !== 2 || !s.includes('<a href="/para-tiendas">Para tiendas</a>')
+    // Desde la 1482, Tiendas va detrás de «Mi colección» (es de Colección) y
+    // Comunidad se queda en Foro, Eventos y Gente.
+    const arriba = /<a href="\/mi-coleccion">Mi colección<\/a>\n\s*<a href="\/tiendas">Tiendas<\/a>/g
+    const comunidad = /<a href="\/eventos">Eventos<\/a>\n\s*<a href="\/usuarios.html">Gente<\/a>/g
+    return (s.match(arriba) || []).length !== 2 || (s.match(comunidad) || []).length < 2 /* arriba, el menú y el pie */ || !s.includes('<a href="/para-tiendas">Para tiendas</a>')
   })
-  check(`las ${conBarra.length} páginas: Tiendas entre Eventos y Gente arriba y en el menú, el pie igual`, conBarra.length >= 45 && !mal.length, mal.join(', '))
+  check(`las ${conBarra.length} páginas: Tiendas detrás de Mi colección arriba y en el menú (1482), el pie igual`, conBarra.length >= 45 && !mal.length, mal.join(', '))
   const t = readFileSync(`${RAIZ}/tiendas.html`, 'utf8').match(/<html[^>]*>/)[0]
-  check('/tiendas ya no es una ficha (sin data-detalle)', t.includes('data-seccion="comunidad"') && !t.includes('data-detalle'), t)
+  check('/tiendas ya no es una ficha (sin data-detalle), y es de Colección (1482)', t.includes('data-seccion="cartas"') && !t.includes('data-detalle'), t)
 }
 
 console.log('── 2. Lo puro ──')
@@ -63,18 +66,25 @@ console.log('── 3. El móvil ──')
 {
   const { ctx, page, errores } = await abrir({ movil: true })
   await page.goto(`${BASE}/foro`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.bm-burbuja-item[href="/tiendas"]', { timeout: 8000 }).catch(() => {})
+  await page.waitForSelector('.bm-burbuja-item[href="/eventos"]', { timeout: 8000 }).catch(() => {})
   const items = await page.evaluate(() => [...document.querySelectorAll('.bm-burbuja-item')].map((a) => a.getAttribute('href')))
-  check('la burbuja de Comunidad: Foro, Eventos, Tiendas, Gente', items.join('|') === '/foro.html|/eventos|/tiendas|/usuarios.html', items.join('|'))
+  // Tiendas se fue a Colección en la 1482.
+  check('la burbuja de Comunidad: Foro, Eventos, Gente (1482)', items.join('|') === '/foro.html|/eventos|/usuarios.html', items.join('|'))
   check('Eventos con el calendario (no la brújula)', (await dibujo(page, '.bm-burbuja-item[href="/eventos"]')) === trazo('calendar'))
-  check('Tiendas con la tienda', (await dibujo(page, '.bm-burbuja-item[href="/tiendas"]')) === trazo('store'))
+  // El punto de «Nuevo», en Mi colección, donde Tiendas es la ajena del final
+  // (en /tiendas es la marcada y no lo lleva a la vista).
+  await page.goto(`${BASE}/mi-coleccion?ver=mercado`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.bm-ajena[href="/tiendas"]', { timeout: 8000 }).catch(() => {})
+  check('Tiendas con la tienda', (await dibujo(page, '.bm-ajena[href="/tiendas"]')) === trazo('store'))
   const punto = await page.evaluate(() => {
-    const p = document.querySelector('.bm-burbuja-item[href="/tiendas"] .bm-nuevo')
+    const p = document.querySelector('.bm-ajena[href="/tiendas"] .bm-nuevo')
     if (!p) return null
     const r = p.getBoundingClientRect(), a = p.closest('a').getBoundingClientRect()
     return { w: r.width, dentro: r.left >= a.left && r.right <= a.right && r.top >= a.top, nombre: p.closest('a').textContent.trim() }
   })
-  check('Tiendas lleva su punto de «Nuevo», dentro del botón y dicho para quien escucha', punto && punto.w >= 8 && punto.dentro && /Nuevo/.test(punto.nombre), JSON.stringify(punto))
+  // «Nuevo» mientras lo diga paginas-nuevas.js; pasado ese día, sin punto.
+  const { esNueva: esNuevaHoy } = await import(`${RAIZ}/js/paginas-nuevas.js`)
+  check('Tiendas lleva su punto de «Nuevo» (mientras sea nueva), dentro del botón y dicho para quien escucha', esNuevaHoy('tiendas') ? punto && punto.w >= 8 && punto.dentro && /Nuevo/.test(punto.nombre) : punto === null, JSON.stringify(punto))
   await page.goto(`${BASE}/tiendas`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.bm-burbuja-item[href="/tiendas"]', { timeout: 8000 }).catch(() => {})
   const aqui = await page.evaluate(() => document.querySelector('.bm-burbuja-item[aria-current="page"]')?.getAttribute('href'))
@@ -106,7 +116,7 @@ console.log('── 5. La bienvenida de Comunidad ──')
   await page.waitForSelector('#bvsDialogo[open]', { timeout: 8000 }).catch(() => {})
   const filas = await page.evaluate(() => [...document.querySelectorAll('#bvsDialogo .bvs-fila')].map((a) => ({ n: a.querySelector('b')?.textContent.trim(), href: a.getAttribute('href') })))
   const t = filas.find((f) => f.href === '/tiendas')
-  check('cuatro filas y Tiendas con «Nuevo»', filas.length === 4 && t && /^Tiendas\s+Nuevo$/.test(t.n), JSON.stringify(filas))
+  check('tres filas y sin Tiendas, que es de Colección (1482)', filas.length === 3 && !t, JSON.stringify(filas))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
