@@ -30,7 +30,8 @@ console.log('── Lo tuyo ──')
   check('en el correo: los cruces a Cruces, la jornada a su torneo, el evento a su ficha y la racha a los retos', l.some((x) => /^2 cruces nuevos/.test(x.texto) && x.ruta === '/mi-coleccion?ver=cambios') && l.some((x) => /^Liga FDN · Jornada 2, el jueves 19$/.test(x.texto) && x.ruta === '/torneo?id=t1') && l.some((x) => /^Trade night, el sábado 21: vas$/.test(x.texto) && x.ruta === '/eventos/trade-night') && l.some((x) => /12 días de racha/.test(x.texto) && x.ruta === '/retos'), JSON.stringify(l))
   const conTu = renderResumenSemanal({ temas: [], tu: a, siteUrl: 'https://pokedoc.es', unsubscribeUrl: 'https://pokedoc.es/baja' })
   const sinTu = renderResumenSemanal({ temas: [{ id: 'x', titulo: 'Iono', mensajes: 3 }], tu: null, siteUrl: 'https://pokedoc.es', unsubscribeUrl: 'https://pokedoc.es/baja' })
-  check('el asunto: «Tu semana en PokeDoc» con algo tuyo, el de siempre sin nada', conTu.subject === 'Tu semana en PokeDoc' && sinTu.subject === 'Lo mejor de PokeDoc esta semana', `${conTu.subject} | ${sinTu.subject}`)
+  // Desde la 1488 el asunto dice lo más llamativo de lo tuyo (aquí, los cruces).
+  check('el asunto: lo más llamativo de lo tuyo, el de siempre sin nada (1488)', conTu.subject === '2 cruces nuevos para ti' && sinTu.subject === 'Lo mejor de PokeDoc esta semana', `${conTu.subject} | ${sinTu.subject}`)
 }
 
 console.log('── La pasada ──')
@@ -51,7 +52,7 @@ function montarRest({ perfiles = [], posts = [], cruces = [] } = {}) {
   const m = montarRest({ perfiles: [{ id: 'a', notification_email_disabled: [], current_streak: 0 }, { id: 'b', notification_email_disabled: [] }], cruces: [{ recipient_id: 'a' }] })
   const r = await rs.procesar({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, rest: m.rest, ahora: AHORA })
   check('semana tranquila: solo le llega a quien tiene algo suyo', r.encolados === 1 && m.encolado.length === 1 && m.encolado[0].recipient_id === 'a', JSON.stringify(r))
-  check('  …con «Tu semana en PokeDoc» de asunto y su cruce dentro', m.encolado[0].subject === 'Tu semana en PokeDoc' && JSON.parse(m.encolado[0].preview).tu.cruces === 1)
+  check('  …con su cruce de asunto (1488) y dentro', m.encolado[0].subject === '1 cruce nuevo para ti' && JSON.parse(m.encolado[0].preview).tu.cruces === 1, m.encolado[0].subject)
   const vacio = montarRest({ perfiles: [{ id: 'a', notification_email_disabled: [] }] })
   const r2 = await rs.procesar({ env: { SUPABASE_SERVICE_ROLE_KEY: 'k' }, rest: vacio.rest, ahora: AHORA })
   check('sin nada de nadie: no sale ninguno', r2.saltado && vacio.encolado.length === 0, JSON.stringify(r2))

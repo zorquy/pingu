@@ -110,7 +110,8 @@ console.log('\n── 5. El correo, pintado ──')
   const soloForo = renderResumenSemanal({
     temas: [{ id: 't1', titulo: 'Un hilo movido', mensajes: 7 }], siteUrl: 'https://pokedoc.es',
   })
-  check('sin noticias, el correo es el de siempre', soloForo.html.includes('Lo que más se ha movido en el foro estos días'))
+  // Desde la 1488 cada cosa va en su bloque con su rótulo.
+  check('sin noticias, el correo lleva el foro y no el bloque de noticias', soloForo.html.includes('Lo más hablado en el foro') && !soloForo.html.includes('La noticia de la semana'))
 }
 
 console.log('\n── 6. Y una fila de la cola se pinta con lo suyo ──')

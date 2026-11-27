@@ -1,0 +1,4 @@
+<!DOCTYPE html><html lang="es" data-theme="light"><head><meta charset="UTF-8"><link rel="stylesheet" href="/css/style.css">
+<style>body{margin:0;background:transparent} #h{display:block;width:180px;height:230px;margin:30px 30px 20px} .mascota-globo{display:none}</style></head>
+<body><span id="h" class="mascota mascota-3d" data-mascota="saludar"></span>
+<script type="module">import { montarMascotas } from '/js/mascota.js'; const g = new URLSearchParams(location.search).get('g'); if (g) document.getElementById('h').dataset.mascota = g; montarMascotas()</script></body></html>
